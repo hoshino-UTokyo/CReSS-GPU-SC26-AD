@@ -1,0 +1,140 @@
+radiation package version
+
+1.4.0
+Updated files:
+  DeveloperAdd/allocfft.f90                     by S.Tsujino
+  DeveloperAdd/allocspc.f90                     by S.Tsujino
+  DeveloperAdd/comspc.f90                       by S.Tsujino
+  DeveloperAdd/s2snd.f90                        by S.Tsujino
+  DeveloperAdd/specnudm.f90                     by S.Tsujino
+  DeveloperAdd/specnuds.f90                     by S.Tsujino
+  DeveloperAdd/splitwv.f90                      by S.Tsujino
+  DeveloperAdd/uvw2snd.f90                      by S.Tsujino
+  DeveloperMod/chknlslv.f90                     by S.Tsujino
+  DeveloperMod/comindx.f90                      by S.Tsujino
+  DeveloperMod/defname.f90                      by S.Tsujino
+  DeveloperMod/forcedrv.f90                     by S.Tsujino
+  DeveloperMod/forcept.f90                      by S.Tsujino
+  DeveloperMod/forces.f90                       by S.Tsujino
+  DeveloperMod/forceuvw.f90                     by S.Tsujino
+  DeveloperMod/ndgstep.f90                      by S.Tsujino
+  DeveloperMod/setname.f90                      by S.Tsujino
+  DeveloperMod/slvdrv.f90                       by S.Tsujino
+  DeveloperMod/solver.f90                       by S.Tsujino
+  DeveloperMod/Make_clean                       by S.Tsujino
+  DeveloperMod/Make_module                      by S.Tsujino
+  DeveloperMod/Make_object                      by S.Tsujino
+  DeveloperMod/Make_solver                      by S.Tsujino
+  DeveloperMod/Make_spnlib                      by S.Tsujino
+  DeveloperMod/Makefile                         by S.Tsujino
+  Doc/RAD1.3.3/00README_RAD                     by S.Tsujino 
+  Doc/RAD1.3.3/NOTE_SPN                         by S.Tsujino
+  Doc/RAD1.3.3/compile.conf.radlib              by S.Tsujino
+  Doc/RAD1.3.3/compile_radlib.csh               by S.Tsujino
+  Doc/RAD1.3.3/ispack_download.sh               by S.Tsujino
+  Doc/RAD1.3.3/mod_list.txt                     by S.Tsujino
+  Doc/RAD1.3.3/readme_user.conf.txt             by S.Tsujino
+
+1.3.2
+Updated files:
+  DeveloperMod/Make_object                      by K.Hasegawa
+  DeveloperMod/inivar.f90                       by K.Hasegawa
+  DeveloperMod/intgdrv.f90                      by K.Hasegawa
+  DeveloperMod/outres.f90                       by K.Hasegawa
+  DeveloperMod/rdres.f90                        by K.Hasegawa
+  DeveloperMod/sfcphy.f90                       by K.Hasegawa
+  DeveloperMod/slvdrv.f90                       by K.Hasegawa
+  DeveloperMod/soildrv.f90                      by K.Hasegawa
+  Doc/RAD1.3.2/00README_RAD                     by K.Hasegawa
+  Doc/RAD1.3.2/mod_list.txt                     by K.Hasegawa
+
+1.3.1
+Updated files:
+  compile_radlib.csh                            by M.Kato
+  compile.conf.radlib                           by M.Kato
+  01_mstrn/dtrn32.f90                           by ESC(NEC)
+  01_mstrn/twst2.f90                            by ESC(NEC)
+  03_rrtmg_lw_v4.85/rrtmg_lw_rtrn.f90           by ESC(NEC)
+  DeveloperMod/setproj.f90                      replaced the program of CReSS3.4.4m_20150623
+  DeveloperMod/ll2xy.f90                        replaced the program of CReSS3.4.4m_20150623
+  DeveloperMod/Makefile                         by M.Kato
+  DeveloperMod/Make_clean                       by M.Kato
+  DeveloperMod/Make_crscln                      by M.Kato
+  DeveloperMod/Make_radcln                      by M.Kato
+  Doc/RAD1.3.1/00README_RAD                     by M.Kato
+  Doc/RAD1.3.1/compile.conf.radlib              by M.Kato
+  Doc/RAD1.3.1/mod_list.txt                     by M.Kato
+  Doc/RAD1.3.1/readme_first.txt                 by M.Kato
+  Doc/RAD1.3.1/readme_user.conf.txt             by M.Kato
+  Doc/RAD1.3.1/tag.txt                          by M.Kato
+
+1.3.0
+Hase version.
+Namelist (user.conf) variable 'radobj' has been changed,
+ from number expressions 'NN' to characters 'ox'.
+Updated files:
+  DeveloperAdd/allocrad.f90
+  DeveloperAdd/comrad.f90
+  DeveloperAdd/raddrv.f90
+  DeveloperAdd/radstep.f90
+  DeveloperAdd/rrtmdrv.f90
+  DeveloperMod/Make*
+  DeveloperMod/chknlslv.f90
+  DeveloperMod/comindx.f90
+  DeveloperMod/comname.f90
+  DeveloperMod/defname.f90
+  DeveloperMod/ini0name.f90
+  DeveloperMod/inidef.f90
+  DeveloperMod/intgdrv.f90
+  DeveloperMod/outdmp.f90
+  DeveloperMod/setname.f90
+  DeveloperMod/soildrv.f90
+
+
+1.2.4 (本パッケージに含まれているものとは異なる)
+Yoshioka version.
+BUG fixed in vertical level interporation for cgas data
+                   (employed data from MSTRN X datafile).
+Modified files:
+  DeveloperAdd/cress21d.f90
+  DeveloperAdd/rrtmdrv.f90
+
+Changed messages output on standard out in using radiation scheme,
+  DeveloperAdd/rrtmdrv.f90
+
+Employed optimized calculation, including tuned codes, by NEC for MSTRNX
+  01_mstrn/dtrn32.f90
+  01_mstrn/twst2.f90
+
+
+1.2.3
+Yoshioka version.
+rrtmg_?w_k_g.f90  -> rrtmg_?w_k_g?kgb??.f90
+                  -> rrtmg_?w_k_g?kgb??.f90 - rrtmg_?w_k_g?kgb???.f90
+archived into a library,
+           containing rrtmg_?w_k_g?kgb??.f90, rrtmg_?w_k_g?kgb???.f90
+modified DeveloperMod/Make*
+added compile_rad.csh
+
+Employed optimized calculation, including tuned codes, by NEC for RRTM
+  03_rrtmg_lw_v4.85/rrtmg_lw_rtrn.f90.nec
+
+
+1.2.2
+Yoshioka version.
+rrtmg_?w_k_g.f90  -> rrtmg_?w_k_g?kgb??.f90
+                  -> rrtmg_?w_k_g?kgb??.f90 - rrtmg_?w_k_g?kgb???.f90
+separated into more files, divided into smaller size subroutine.
+modified DeveloperMod/Make*
+
+
+1.2.1
+Hase version.
+rrtmg_?w_k_g.f90  -> rrtmg_?w_k_g?kgb
+separated into 16 files, separated for each subroutine.
+
+
+1.2.0
+rrtmg_?w_k_g.f90
+
+

@@ -1,0 +1,397 @@
+!***********************************************************************
+      module m_raddrv
+!***********************************************************************
+
+!     Author      : Sakakibara Atsushi
+!     Date        : 2010/10/20
+!     Modification: 2010/12/17, 2010/12/21, 2013/02/13, 2013/03/27,
+!                   2013/10/08
+
+!-----7--1----+----2----+----3----+----4----+----5----+----6----+----7--
+
+! In this module,
+!     control the inferior subroutines for mstranx radiation scheme.
+
+!-----7--------------------------------------------------------------7--
+
+! Module reference
+
+      use m_adjstlnd
+      use m_atmosin
+      use m_changept
+      use m_comindx
+      use m_commstrn
+      use m_commpi
+      use m_comrad
+      use m_cress21d
+      use m_getcname
+      use m_getexner
+      use m_getiname
+      use m_getta3d
+      use m_inichar
+      use m_radheat
+      use m_zenith
+
+!-----7--------------------------------------------------------------7--
+
+! Implicit typing
+
+      implicit none
+
+! Default access control
+
+      private
+
+! Exceptional access control
+
+      public :: raddrv, s_raddrv
+
+!-----7--------------------------------------------------------------7--
+
+! Module variable
+
+!     none
+
+! Module procedure
+
+      interface raddrv
+
+        module procedure s_raddrv
+
+      end interface
+
+!-----7--------------------------------------------------------------7--
+
+! Intrinsic procedure
+
+!     none
+
+! External procedure
+
+!     none
+
+!-----7--------------------------------------------------------------7--
+
+! Internal module procedure
+
+      contains
+
+!***********************************************************************
+      subroutine s_raddrv(fpdatdir,fpncdat,fpsfcopt,fpradopt,           &
+     &                    radon,pdate,dtb,ni,nj,nk,nqw,nqi,nund,        &
+     &                    land,beta,lat,lon,zph,pbr,ptbr,rbr,ppp,ptpp,  &
+     &                    qvp,qwtrp,qicep,tundp,ptpf,coseta,pi,p,t)
+!***********************************************************************
+
+! Input variables
+
+      character(len=6), intent(in) :: radon
+                       ! Control flag of mstranx radiation scheme
+
+      character(len=12), intent(in) :: pdate
+                       ! Forecast date at 1 step past
+                       ! with Gregorian calendar, yyyymmddhhmm
+
+      integer, intent(in) :: fpdatdir
+                       ! Formal parameter of unique index of datdir
+
+      integer, intent(in) :: fpncdat
+                       ! Formal parameter of unique index of ncdat
+
+      integer, intent(in) :: fpsfcopt
+                       ! Formal parameter of unique index of sfcopt
+
+      integer, intent(in) :: fpradopt
+                       ! Formal parameter of unique index of radopt
+
+      integer, intent(in) :: ni
+                       ! Model dimension in x direction
+
+      integer, intent(in) :: nj
+                       ! Model dimension in y direction
+
+      integer, intent(in) :: nk
+                       ! Model dimension in z direction
+
+      integer, intent(in) :: nqw
+                       ! Number of water hydrometeor array
+
+      integer, intent(in) :: nqi
+                       ! Number of ice hydrometeor array
+
+      integer, intent(in) :: nund
+                       ! Number of soil and sea layers
+
+      integer, intent(in) :: land(0:ni+1,0:nj+1)
+                       ! Land use of surface
+
+      real, intent(in) :: dtb
+                       ! Large time steps interval
+
+      real, intent(in) :: beta(0:ni+1,0:nj+1)
+                       ! Evapotranspiration efficiency
+
+      real, intent(in) :: lat(0:ni+1,0:nj+1)
+                       ! Latitude
+
+      real, intent(in) :: lon(0:ni+1,0:nj+1)
+                       ! Longitude
+
+      real, intent(in) :: zph(0:ni+1,0:nj+1,1:nk)
+                       ! z physical coordinates
+
+      real, intent(in) :: pbr(0:ni+1,0:nj+1,1:nk)
+                       ! Base state pressure
+
+      real, intent(in) :: ptbr(0:ni+1,0:nj+1,1:nk)
+                       ! Base state potential temperature
+
+      real, intent(in) :: rbr(0:ni+1,0:nj+1,1:nk)
+                       ! Base state density
+
+      real, intent(in) :: ppp(0:ni+1,0:nj+1,1:nk)
+                       ! Pressure perturbation at past
+
+      real, intent(in) :: ptpp(0:ni+1,0:nj+1,1:nk)
+                       ! Potential temperature perturbation at past
+
+      real, intent(in) :: qvp(0:ni+1,0:nj+1,1:nk)
+                       ! Water vapor mixing ratio at past
+
+      real, intent(in) :: qwtrp(0:ni+1,0:nj+1,1:nk,1:nqw)
+                       ! Water hydrometeor at past
+
+      real, intent(in) :: qicep(0:ni+1,0:nj+1,1:nk,1:nqi)
+                       ! Ice hydrometeor at past
+
+      real, intent(in) :: tundp(0:ni+1,0:nj+1,1:nund)
+                       ! Ground temperature at past
+
+! Input and output variable
+
+      real, intent(inout) :: ptpf(0:ni+1,0:nj+1,1:nk)
+                       ! Potential temperature perturbation at future
+
+! Internal shared variables
+
+      character(len=108) datdir
+                       ! User specified directory for external data
+
+      character(len=1) ca
+                       ! Data file extension
+
+      character(len=2) cbnd
+                       ! Data file extension
+
+      character(len=64) err
+                       ! Error messages
+
+      integer ncdat    ! Number of character of datdir
+
+      integer sfcopt   ! Option for surface physics
+      integer radopt   ! Option for turning on mstranx radiation scheme
+
+      integer nln      ! number of layers in data
+
+      integer i        ! Array index in x direction
+      integer j        ! Array index in y direction
+
+      real aland       ! Adjusted real land use category
+
+      real, intent(inout) :: coseta(0:ni+1,0:nj+1)
+                       ! cos (Zenith angle), use work array
+
+      real, intent(inout) :: pi(0:ni+1,0:nj+1,1:nk)
+                       ! Exner function
+
+      real, intent(inout) :: p(0:ni+1,0:nj+1,1:nk)
+                       ! Pressure
+
+      real, intent(inout) :: t(0:ni+1,0:nj+1,1:nk)
+                       ! Air temperature
+
+!-----7--------------------------------------------------------------7--
+
+! Initialize the character variable.
+
+      call inichar(datdir)
+
+! -----
+
+! Get the required namelist variables.
+
+      call getcname(fpdatdir,datdir)
+      call getiname(fpncdat,ncdat)
+      call getiname(fpsfcopt,sfcopt)
+      call getiname(fpradopt,radopt)
+
+! -----
+
+!!!! Perform mstranx radiation scheme.
+
+      if(radopt.eq.1) then
+
+!!! Perform mstranx radiation scheme at marked time.
+
+        if(radon.eq.'motion') then
+
+! Open read files.
+
+          write(cbnd,'(i2)') kbnd
+
+          if(mype.eq.root) then
+
+           open(iug,file=datdir(1:ncdat)//'DataMSTRN/PARAG.'//cbnd,     &
+     &          status='old')
+
+           open(iup,file=datdir(1:ncdat)//'DataMSTRN/PARAPC.'//cbnd,    &
+     &          status='old')
+
+           open(iuv,file=datdir(1:ncdat)//'DataMSTRN/VARDATA.RM'//cbnd, &
+     &          status='old')
+
+          end if
+
+! -----
+
+! Reading standard atmospheric condition from DATA.${ca}.
+
+          write(ca,'(i1)') iatm
+
+          if(mype.eq.root) then
+
+            open(iud,file=datdir(1:ncdat)//'DataMSTRN/DATA.'//ca)
+
+          end if
+
+          call atmosin(iud,nln,cpcl_data,gdcfrc_data,cgas_data,ccfc)
+
+          nln=nk-3
+
+          if(mype.eq.root) then
+
+            close(iud)
+
+          end if
+
+! -----
+
+! Calculte the zenith angle.
+
+          call zenith(pdate,ni,nj,lat,lon,coseta)
+
+! -----
+
+! Calculate the total pressure variable and Exner function.
+
+          call getexner(ni,nj,nk,pbr,ppp,pi,p)
+
+! -----
+
+! Calculate the air temperature.
+
+          call getta3d(ni,nj,nk,ptbr,pi,ptpp,t)
+
+! -----
+
+!! Perform radiative transfer.
+
+          do j=1,nj-1
+          do i=1,ni-1
+
+! Set solar zenith angle.
+
+            ams=coseta(i,j)
+
+! -----
+
+! Set ground surface parameters.
+
+            if(sfcopt.eq.0) then
+
+              prg(1)=4.1e0
+              prg(2)=0.e0
+
+              gtmp=t(i,j,2)
+
+            else
+
+              call adjstlnd(i,j,aland,ni,nj,land)
+
+              prg(1)=aland
+              prg(2)=beta(i,j)
+
+              gtmp=tundp(i,j,1)
+
+            end if
+
+! -----
+
+! Set the one dimentional variables for mstranx radiation scheme.
+
+            call cress21d(idcphopt,i,j,ni,nj,nk,nqw,nqi,zph,rbr,p,t,qvp,&
+     &                    qwtrp,qicep,cpcl_data,gdcfrc_data,cgas_data,  &
+     &                    zl,pl,tl,pb,tb,cpcl,gdcfrc,cgas)
+
+! -----
+
+! Perform radiative transfer.
+
+            err=''
+
+            call dtrn3(iug,iup,iuv,ams,nln,pb,pl,tb,tl,gtmp,cpcl,gdcfrc,&
+     &                 cgas,ccfc,prg,fd,fu,err)
+
+            if(err.ne.'') then
+
+               write(6,*) 'error: ',err
+
+               stop
+
+            end if
+
+! -----
+
+! Get heating rate.
+
+            call radheat(i,j,ni,nj,nk,                                  &
+     &                   pb,cgas,fd,fu,htrsd,htrsu,htrld,htrlu)
+
+! -----
+
+          end do
+          end do
+
+!! -----
+
+! Close files.
+
+          if(mype.eq.root) then
+
+            close(iug,status='keep')
+            close(iup,status='keep')
+            close(iuv,status='keep')
+
+          end if
+
+! -----
+
+        end if
+
+!!! -----
+
+! Change potential temperature perturbation.
+
+        call changept(dtb,ni,nj,nk,htrsd,htrsu,htrld,htrlu,ptpf)
+
+! -----
+
+      end if
+
+!!!! -----
+
+      end subroutine s_raddrv
+
+!-----7--------------------------------------------------------------7--
+
+      end module m_raddrv
