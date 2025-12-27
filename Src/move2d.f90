@@ -107,6 +107,23 @@
 
 ! Add the relative velocity to the u1d and the v1d.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: move2d.f90 :: s_move2d
+! Summary : Subtract grid moving velocity (umove, vmove) from horizontally
+!           averaged velocity profiles u1d and v1d
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Simple subtraction operation on 1D arrays
+!   - Writes to u1d, v1d arrays (in-place modification)
+!   - Single worksharing construct with 1D loop
+!   - No synchronization constructs besides implicit barriers at !$omp end do
+! Next:
+!   - Convert to OpenMP target offloading with data mapping for u1d, v1d
+!   - Small array size (nlev) may not benefit significantly from GPU offloading
+!   - Consider keeping on CPU if nlev is small
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(kl)

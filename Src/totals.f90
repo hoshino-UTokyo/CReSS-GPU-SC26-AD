@@ -99,6 +99,22 @@
 ! Get the total value of optional scalar variable from base state and
 ! perturbation value.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: totals.f90 :: s_totals
+! Summary : Add base state and perturbation values to get total scalar
+!           variable (s = sbr + sp)
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls
+!   - Single output array (s)
+!   - Simple element-wise addition
+!   - No synchronization constructs
+! Next:
+!   - Very simple GPU port - ideal candidate
+!   - Consider fusing with other scalar operations
+!   - Memory bandwidth bound operation
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

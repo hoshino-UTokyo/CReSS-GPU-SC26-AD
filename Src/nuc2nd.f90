@@ -131,6 +131,22 @@
 
 !! Calculate the secondary nucleation rate.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: nuc2nd.f90 :: s_nuc2nd
+! Summary : Calculate secondary ice nucleation rate from snow and graupel
+!           based on temperature and wet/dry graupel conditions.
+! GPU diff: Easy
+! Findings:
+!   - Conditional branch for nk.eq.1 vs nk.gt.1 cases
+!   - Temperature-based conditionals (270.16, 268.16, 265.16 K)
+!   - Output arrays spsi, spgi written independently per grid point
+!   - No function calls; simple arithmetic operations
+!   - No inter-thread dependencies; fully parallel
+! Next:
+!   - Direct port to GPU kernel
+!   - Branch divergence from temperature conditionals
+!   - Consider using select case or predicated assignments
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! In the case nk = 1.

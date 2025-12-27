@@ -141,6 +141,21 @@
 
 ! Calculate the diffusion term.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: gsmoow.f90 :: s_gsmoow
+! Summary : Compute 2nd-order diffusion term for z-velocity (wgpv) smoothing
+!           using 3D stencil in x, y, z directions.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - No global writes; only writes to dfw array (output buffer)
+!   - No sync constructs (barriers, critical sections)
+!   - Simple stencil computation with k-loop parallelized
+! Next:
+!   - Convert to OpenMP target offload with collapse(2) on j,i loops
+!   - Use data mapping for wgpv (read) and dfw (write)
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=3,nk-2
@@ -221,6 +236,20 @@
 
 ! Update the GPV data.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: gsmoow.f90 :: s_gsmoow
+! Summary : Update z-velocity GPV data by adding diffusion term scaled by dtcoe.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - No global writes; updates wgpv array in-place
+!   - No sync constructs
+!   - Simple element-wise update operation
+! Next:
+!   - Convert to OpenMP target offload with collapse(2) on j,i loops
+!   - Use data mapping for wgpv (read/write) and dfw (read)
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-1

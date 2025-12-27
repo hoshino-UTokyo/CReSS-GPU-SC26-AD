@@ -97,6 +97,23 @@
 
 ! Calculate the air temperature.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: getta2d.f90 :: s_getta2d
+! Summary : Calculates 2D air temperature from potential temperature and
+!           Exner function: t = (ptbr + ptp) * pi
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls inside parallel region
+!   - Simple element-wise multiplication at each grid point
+!   - 2D loop over surface grid points (i,j)
+!   - No loop-carried dependencies
+!   - No synchronization constructs beyond implicit barriers
+! Next:
+!   - Direct port to OpenMP target teams loop
+!   - Collapse j,i loops for better GPU occupancy
+!   - Trivial computation, ensure data is already on device
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j)

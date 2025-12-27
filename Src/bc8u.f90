@@ -125,6 +125,21 @@
 
 !! Set the west and east boundary conditions.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: bc8u.f90 :: s_bc8u
+! Summary : Sets west and east boundary conditions for optional variable at u points
+!           by copying from adjacent interior points based on BC type.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls inside parallel region
+!   - Nested loops with outer k-loop serial, inner j-loop parallelized
+!   - Uses module variables from m_commpi (ebw, ebe, isub, nisub)
+!   - Conditional execution based on BC type (wbc, ebc) and subdomain position
+! Next:
+!   - Convert to OpenMP target offload with collapsed j,k loops
+!   - Restructure loops to have k as inner loop for better GPU coalescing
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the west boundary conditions.

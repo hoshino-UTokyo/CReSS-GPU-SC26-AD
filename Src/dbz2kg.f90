@@ -114,6 +114,22 @@
 
 ! Convert the hydrometeor mesuremement from [dBZe] to [kg/m^3]
 
+!@llm start meta_info ----------------------------------------------------
+! Location: dbz2kg.f90 :: s_dbz2kg
+! Summary : Convert radar reflectivity from dBZe to precipitation mixing
+!           ratio in kg/m^3 using exponential/logarithmic transformation.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - Uses intrinsic exp and log functions (GPU-compatible)
+!   - Simple 3D loop with independent point-wise operations
+!   - Writes to qpdat array (in-place modification)
+!   - Conditional check on lim34n threshold
+! Next:
+!   - Direct conversion to OpenMP target or OpenACC with collapsed loops
+!   - Straightforward data mapping for qpdat array
+!   - No synchronization needed between iterations
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(kd)
 
       do kd=1,nkd

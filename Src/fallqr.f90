@@ -154,6 +154,20 @@
 
 ! Get the minimum time interval.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: fallqr.f90 :: s_fallqr
+! Summary : Find minimum time interval for rain water fall-out integration
+!           by computing min reduction over grid using terminal velocity.
+! GPU diff: Medium
+! Findings:
+!   - Uses min reduction on dtp variable
+!   - Simple nested loop with read-only array access
+!   - No function calls inside parallel region
+!   - No global writes other than reduction variable
+! Next:
+!   - Use GPU reduction kernel for min operation
+!   - Can be ported with standard GPU min reduction pattern
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

@@ -95,6 +95,21 @@
 
 ! Calculate the inverse of base state density.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: getvdens.f90 :: s_getvdens
+! Summary : Compute inverse of base state density (1/rbr) for all 3D
+!           grid points for use in momentum equations.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls within parallel region
+!   - Simple element-wise division: rbv = 1/rbr
+!   - No global writes, only output array rbv is modified
+!   - No synchronization constructs other than implicit barrier
+! Next:
+!   - Direct translation to OpenMP target with collapsed loops
+!   - Consider loop collapse for k,j,i dimensions
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

@@ -127,6 +127,24 @@
 !!! Calculate the Coriolis force in the x, the y and the z components
 !!! of velocity equation.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: coriuvw.f90 :: s_coriuvw
+! Summary : Calculates Coriolis force contributions to u, v, w velocity
+!           forcing terms using staggered grid interpolations.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls
+!   - Multiple separate loop nests for different components (ufrc, vfrc, wfrc)
+!   - Uses temporary arrays tmp1, tmp2 for intermediate calculations
+!   - Data dependency: tmp1 computed first, then used for tmp2 and forces
+!   - Multiple implicit barriers between loop nests
+! Next:
+!   - Consider fusing loops where possible to reduce kernel launches
+!   - Temporary arrays tmp1, tmp2 need to be on GPU
+!   - May need explicit synchronization between kernel sections
+!   - Collapse k,j,i loops within each section for better occupancy
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Calculate the Coriolis force in the x components of velocity equation.

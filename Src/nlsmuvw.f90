@@ -176,6 +176,23 @@
 
 !! Calculate the non linear velocity numerical smoothing.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: nlsmuvw.f90 :: s_nlsmuvw
+! Summary : Non-linear smoothing for u, v, w velocity components using
+!           finite differences with a*abs(a) nonlinear diffusion.
+! GPU diff: Medium
+! Findings:
+!   - Multiple sequential do-k loops for u, v, w components
+!   - tmp4 reused for each velocity component (u, v, w)
+!   - tmp1, tmp2, tmp3 store intermediate differences per component
+!   - Separate forcing updates for ufrc, vfrc, wfrc
+!   - No function calls; uses intrinsic abs only
+!   - Complex stencil patterns with different index ranges per loop
+! Next:
+!   - Consider separate kernels for u, v, w smoothing
+!   - May need 3+ kernel launches per velocity component
+!   - Ensure tmp4 synchronization between velocity components
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Calculate the non linear u smoothing.

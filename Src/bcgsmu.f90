@@ -142,6 +142,22 @@
 
 !! Set the boundary conditions.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: bcgsmu.f90 :: s_bcgsmu
+! Summary : Sets boundary conditions for x-velocity diffusion term in GPV smoothing
+!           at west, east, south, north, bottom, and top boundaries.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls inside parallel region
+!   - Nested loops with outer k-loop serial, inner i or j loop parallelized
+!   - Uses module variables from m_commpi (ebw, ebe, ebs, ebn, isub, jsub, nisub, njsub)
+!   - Conditional execution based on subdomain position and BC type
+!   - Bottom/top BC uses 2D loop over i,j
+! Next:
+!   - Convert to OpenMP target offload with collapsed loops
+!   - Restructure nested loops to expose more parallelism in k dimension
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the west boundary conditions.

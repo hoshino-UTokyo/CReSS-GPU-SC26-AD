@@ -258,6 +258,25 @@
 
 !! Set the radiative lateral boundary conditions.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: rbcpt.f90 :: s_rbcpt
+! Summary : Sets radiative lateral boundary conditions for potential
+!           temperature perturbation at domain corners and edges (W/E/S/N).
+! GPU diff: Hard
+! Findings:
+!   - No omp_get_thread_num usage
+!   - Multiple conditional branches based on MPI subdomain position (ebs, ebn, ebw, ebe, isub, jsub)
+!   - Many small omp do regions (50+) with varying loop bounds
+!   - Writes to ptpf (3D inout array) at boundary points only
+!   - No sync constructs; implicit barriers at omp end do
+!   - Uses module variables from m_commpi (ebs, ebn, ebw, ebe, isub, jsub, nisub, njsub)
+!   - Complex conditional logic (advopt, nggopt, lspopt, vspopt options)
+!   - Serial k-loop with nested parallel j or i loops in some regions
+! Next:
+!   - Restructure boundary updates into separate GPU kernels per edge
+!   - Consider batching corner/edge updates to reduce kernel launch overhead
+!   - MPI-related conditionals may require host-side decision before GPU kernel
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the boundary conditions at the four corners.

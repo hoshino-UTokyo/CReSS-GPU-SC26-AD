@@ -140,6 +140,22 @@
 ! Separate the pressure and the potential temperature to the base state
 ! and the perturbation value.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: sparprt.f90 :: s_sparprt
+! Summary : Separates pressure and potential temperature into base state and
+!           perturbation values by subtracting interpolated base state
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls inside parallel region
+!   - Single !$omp do loop with schedule(runtime)
+!   - Simple element-wise subtraction operations
+!   - Writes to ppdat, ptpdat arrays (in-place update)
+!   - No synchronization constructs besides implicit barriers
+! Next:
+!   - Map pbdat, ptbdat (in), ppdat, ptpdat (inout) to GPU
+!   - Convert to !$omp target teams distribute parallel do collapse(3)
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(kd)
 
       do kd=1,nkd

@@ -352,6 +352,24 @@
 
 !!! Calculate the velocity phase speed for the open boundary conditions.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: phvuvw.f90 :: s_phvuvw
+! Summary : Calculate velocity phase speed (u,v,w) for open boundary
+!           conditions on all four boundaries (west, east, south, north).
+! GPU diff: Hard
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region (only intrinsic abs, sign, min, max, mod)
+!   - Writes to output arrays ucpx, ucpy, vcpx, vcpy, wcpx, wcpy
+!   - Uses shared work arrays cpavex, cpavey, u8v, v8u for vertical averaging
+!   - Complex conditional branching based on boundary condition options
+!   - Multiple sequential k-loops with workshared inner j/i loops
+!   - No explicit barriers but implicit at !$omp end do
+! Next:
+!   - Collapse nested loops where possible for better GPU occupancy
+!   - Consider using OpenACC kernels directive with appropriate private clauses
+!   - Boundary-only computation may benefit from separate small kernels
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !! Calculate the u phase speed.

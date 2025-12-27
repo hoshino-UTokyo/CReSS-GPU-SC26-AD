@@ -360,6 +360,27 @@
 !!!! Solve the new potential temperature perturbation, the mixing ratio
 !!!! and concentrations.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: newblk_noevap.f90 :: s_newblk_noevap
+! Summary : Solve new potential temperature perturbation, mixing ratios, and
+!           concentrations for bulk microphysics without temperature variation for evaporation
+! GPU diff: Hard
+! Findings:
+!   - No omp_get_thread_num usage
+!   - Uses intrinsic abs() and max() functions - GPU compatible
+!   - Uses module constants from m_comphy (cp, mr0, mi0, ms0)
+!   - Very complex conditional logic based on cphopt (2, 3, or 4)
+!   - Different calculations for nk==1 (2D) vs nk>1 (3D)
+!   - Many private variables with complex local computations
+!   - Writes to ptpf, qvf, qcf, qrf, qif, qsf, qgf, nccf, ncrf, ncif, ncsf, ncgf
+!   - Multiple nested conditionals checking thresq thresholds
+!   - No synchronization constructs besides implicit barriers at !$omp end do
+! Next:
+!   - Convert to OpenMP target offloading with extensive data mapping
+!   - Consider restructuring to reduce branch divergence on GPU
+!   - May benefit from separating cphopt cases into different kernels
+!   - Collapse nested i,j loops for better GPU occupancy
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !!! In the case nk = 1.

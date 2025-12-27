@@ -116,6 +116,23 @@
 
 ! The eddy viscosity is devided by Jacobian.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: eddyvisj.f90 :: s_eddyvisj
+! Summary : Divide eddy viscosity by Jacobian, with optional map scale
+!           factor multiplication for horizontal component
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls inside parallel region
+!   - Simple element-wise division operations
+!   - Conditional branch based on mfcopt option (map scale factor)
+!   - Writes to rkh, rkv arrays (no race conditions)
+!   - No synchronization constructs besides implicit barrier
+! Next:
+!   - Straightforward conversion to OpenMP target or OpenACC kernels
+!   - Collapse k,j,i loops for maximum parallelism
+!   - Consider using a single kernel with conditional inside for both paths
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       if(mfcopt.eq.0) then

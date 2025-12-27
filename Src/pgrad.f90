@@ -269,6 +269,25 @@
 
 !! Calculate the pressure gradient force.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: pgrad.f90 :: subroutine s_pgrad
+! Summary : Calculates pressure gradient force for u, v, w equations
+!           including divergence damping and terrain-following corrections.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - Calls diver3d() before parallel region - need to check that subroutine.
+!   - Reads module constant divndc from comphy (indirectly via divch/divcv).
+!   - No synchronization constructs within parallel region.
+!   - Multiple code paths based on divopt, trnopt, mfcopt, mpopt.
+!   - Multi-stage stencil with temporary arrays (tmp1, tmp2, tmp3).
+!   - Terrain correction (trnopt>=1) adds extra stencil stage.
+! Next:
+!   - Ensure diver3d is GPU-ready before porting this routine.
+!   - Use multiple kernels matching the loop structure.
+!   - Map scale factor conditionals can be evaluated outside kernel.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
 ! Add the divergence damping to the pressure perturbation.

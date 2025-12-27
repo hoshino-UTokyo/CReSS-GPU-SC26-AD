@@ -214,6 +214,22 @@
 
 ! Initialize the table of unit numbers.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: allociot.f90 :: s_allociot
+! Summary : Initialize the I/O unit number table (iolst) with sequential
+!           unit numbers starting from 11
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Writes to module-level array iolst from m_comionum
+!   - Simple 1D loop with no data dependencies
+!   - Very small loop size (nio typically small)
+! Next:
+!   - Trivial GPU port but likely not worth offloading
+!   - Small array size means CPU execution is faster
+!   - Keep on CPU; initialization is one-time cost
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(iio_sub)

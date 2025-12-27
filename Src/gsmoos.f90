@@ -140,6 +140,22 @@
 
 ! Calculate the diffusion term.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: gsmoos.f90 :: s_gsmoos (diffusion calculation)
+! Summary : Calculate 3D Laplacian diffusion term for GPV smoothing
+!           using 6-point stencil in x, y, z directions.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls within parallel region
+!   - Standard stencil operation with neighbor access
+!   - No global writes, only output array dfs is modified
+!   - No synchronization constructs other than implicit barriers
+! Next:
+!   - Direct translation to OpenMP target with collapsed loops
+!   - Standard stencil pattern, well-suited for GPU
+!   - Consider shared memory tiling for better cache utilization
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=3,nk-3
@@ -220,6 +236,22 @@
 
 ! Update the GPV data.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: gsmoos.f90 :: s_gsmoos (GPV update)
+! Summary : Apply diffusion correction to scalar GPV data using
+!           pre-computed diffusion term with time coefficient.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls within parallel region
+!   - Simple element-wise update: sgpv = sgpv + dtcoe*dfs
+!   - No global writes other than sgpv array
+!   - No synchronization constructs
+! Next:
+!   - Direct translation to OpenMP target with collapsed loops
+!   - Can be fused with diffusion calculation if boundary exchange
+!     can be performed on GPU or overlapped with computation
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-2

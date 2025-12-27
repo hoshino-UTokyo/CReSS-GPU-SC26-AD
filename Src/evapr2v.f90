@@ -159,6 +159,24 @@
 
 ! Calculate the evaporation rate from the rain water to the water vapor.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: evapr2v.f90 :: s_evapr2v
+! Summary : Calculate evaporation rate from rain water to water vapor,
+!           updating potential temperature and mixing ratios
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - Uses intrinsic functions: exp, log (GPU compatible)
+!   - Complex nested conditionals for threshold checks
+!   - Updates ptpf, qvf, qrf arrays based on evaporation calculations
+!   - No race conditions - each (i,j,k) point independent
+!   - No synchronization constructs besides implicit barrier
+! Next:
+!   - Straightforward conversion to GPU kernels
+!   - Collapse k,j,i loops for maximum parallelism
+!   - Nested conditionals may cause thread divergence on GPU
+!   - Consider restructuring conditionals for better GPU efficiency
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

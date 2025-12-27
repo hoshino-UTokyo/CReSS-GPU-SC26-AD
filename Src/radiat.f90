@@ -291,6 +291,25 @@
 !!!!! downward short wave radiation and the upward and downward long
 !!!!! wave radiation.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: radiat.f90 :: s_radiat
+! Summary : Calculates zenith angle, short/long wave radiation fluxes
+!           (rgd, rsd, rld, rlu) based on dry/moist air conditions.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - Intrinsic functions used: cos, sin, exp, log10, sqrt, max, min
+!   - Multiple omp do regions inside single parallel region
+!   - Writes to zph8s, zref, coseta (2D), rgd, rsd, rld, rlu (2D output arrays)
+!   - No sync constructs; implicit barriers at omp end do
+!   - Conditional branching based on fmois (dry/moist) and cphopt
+!   - Serial k-loop with nested parallel i,j loops
+!   - Uses module constants from m_comdays, m_commath, m_comphy
+! Next:
+!   - Collapse k-loop with i,j loops if possible
+!   - Consider separating dry/moist code paths for GPU kernels
+!   - Hoist conditional checks outside parallel region if feasible
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Calculte the zenith angle.

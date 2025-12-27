@@ -341,6 +341,22 @@
 
 ! Calculate the constant height at scalar points.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: outctl.f90 :: s_outctl
+! Summary : Calculate constant height z1d at scalar points for GrADS
+!           control file output, interpolating stretched coordinates.
+! GPU diff: Easy
+! Findings:
+!   - Small loop over k from 2 to nk-2
+!   - Conditionals on fproc, mype, dmplev checked outside omp do
+!   - Simple arithmetic: z1d(k) = 0.5*(zsth(k)+zsth(k+1))
+!   - Only executed on root process (mype.eq.root)
+!   - No inter-thread dependencies
+! Next:
+!   - Very small computation, likely not worth GPU offload
+!   - Keep on CPU as it runs only on root process
+!   - Simple loop could be left as serial if needed
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
       if(fproc(1:3).eq.'dmp') then

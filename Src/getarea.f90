@@ -225,6 +225,21 @@
 
 ! Get the area of each boundary plane.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: getarea.f90 :: s_getarea
+! Summary : Compute total area of each boundary plane (top/bottom and
+!           lateral) by summing grid cell areas with map scale factors.
+! GPU diff: Medium
+! Findings:
+!   - Multiple reduction operations (+ for area0, areaw, areae, areas, arean)
+!   - Complex conditional logic based on mfcopt, mpopt, boundary flags
+!   - Different loops for different boundary planes
+!   - Uses MPI module variables (ebw, ebe, ebs, ebn, isub, jsub, etc.)
+! Next:
+!   - Use GPU reduction kernels for area summation
+!   - May need separate kernels for each boundary plane
+!   - Consider whether GPU overhead is worthwhile for boundary-only computation
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
       if(mfcopt.eq.0) then

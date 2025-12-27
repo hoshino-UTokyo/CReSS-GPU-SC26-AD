@@ -160,6 +160,23 @@
 !! Rotate the x and the y components of velocity from the data sphere to
 !! the model grid.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: rotuvs2m.f90 :: s_rotuvs2m
+! Summary : Rotate velocity components from lat/lon grid to projected model grid for different projections
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - Uses intrinsic functions: cos, sin, tan
+!   - Three conditional branches based on mpopt (1, 2, or 4)
+!   - Outer kd loop is serial with inner !$omp do on id,jd
+!   - In-place update of udat and vdat arrays using temp variables
+!   - Conditional on udat,vdat > lim34n before rotation
+!   - No synchronization constructs
+! Next:
+!   - Collapse kd,jd,id loops for better GPU parallelism
+!   - Consider separate kernels for each mpopt case
+!   - Use OpenMP target teams distribute parallel for collapse(3)
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(kd)
 
 ! Rotate the x and the y components of velocity with the Polar

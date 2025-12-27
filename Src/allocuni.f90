@@ -217,6 +217,22 @@
 
 ! Fill in all array for the program unite with 0.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: allocuni.f90 :: s_allocuni
+! Summary : Initialize arrays for the unite program (tmp1-4, iodmp, var)
+!           to zero for file merging operations
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Writes to module-level arrays tmp1-4, iodmp, var from m_comuni
+!   - Multiple simple initialization loops with no data dependencies
+!   - Four separate do loops for different array dimensions
+! Next:
+!   - Straightforward GPU port with OpenACC parallel loops
+!   - Collapse nested loops in var initialization
+!   - Small arrays (nk, nio_uni) may not benefit from GPU offload
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(k)

@@ -185,6 +185,23 @@
 
 !! Set the lateral boundary conditions.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: lbculv.f90 :: s_lbculv
+! Summary : Apply lateral boundary conditions for y-velocity (v) using
+!           3rd-order extrapolation formula at domain boundaries.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls within parallel region
+!   - Uses 3rd-order extrapolation: v(0) = v(3) - 3*(v(2)-v(1))
+!   - Modifies ghost zone values at index 0 or nj+1
+!   - Uses module variables from m_commpi (ebw,ebe,ebs,ebn,isub,jsub,nisub,njsub)
+!   - No synchronization constructs besides implicit barrier at omp end do
+! Next:
+!   - Convert to OpenMP target offload or OpenACC kernels
+!   - Collapse k and j/i loops for improved GPU occupancy
+!   - Simple stencil operation suitable for GPU vectorization
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the west and east boundary conditions.

@@ -164,6 +164,23 @@
 
 ! Check and avoid the super saturation mixing ratio.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: chksat.f90 :: s_chksat
+! Summary : Limit water vapor mixing ratio (qv) to saturation value computed
+!           from pressure and temperature fields
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function/subroutine calls inside parallel region
+!   - No reductions or synchronization constructs
+!   - Uses intrinsic functions (exp, log, min)
+!   - Modifies output array qv in-place
+!   - Conditional branches based on fproc flag and temperature threshold (tlow)
+!   - Saturation vapor pressure computed using Clausius-Clapeyron approximation
+! Next:
+!   - Direct OpenMP target offload with collapse(2) for inner loops
+!   - exp/log functions have GPU intrinsic support
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       if(fproc(1:3).eq.'bar') then

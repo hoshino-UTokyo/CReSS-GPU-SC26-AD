@@ -108,6 +108,22 @@
 
 ! Calculate the base state density x sound wave speed squared.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: sndwave.f90 :: s_sndwave
+! Summary : Computes base state density times sound wave speed squared
+!           from base state pressure (rcsq = cp/cv * pbr)
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls inside parallel region
+!   - Single !$omp do loop with schedule(runtime)
+!   - Simple element-wise computation with scalar cpdvcv
+!   - Writes only to rcsq array
+!   - No synchronization constructs besides implicit barriers
+! Next:
+!   - Map pbr (in), rcsq (out) to GPU
+!   - Convert to !$omp target teams distribute parallel do collapse(3)
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

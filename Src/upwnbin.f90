@@ -143,6 +143,20 @@
 
 ! Calculate the sedimentation.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: upwnbin.f90 :: s_upwnbin
+! Summary : Calculate sedimentation for optional bin concentrations
+!           using upwind scheme with flux divergence
+! GPU diff: Easy
+! Findings:
+!   - Serial k-loop wrapping parallel i,j loops (private(k))
+!   - Three sequential loop nests: flux calc, update, boundary copy
+!   - Contains max() intrinsic for non-negative concentration
+!   - No complex branching or function calls
+! Next:
+!   - Collapse loops or use OpenACC kernels with loop directive
+!   - Can potentially fuse kernels for better performance
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

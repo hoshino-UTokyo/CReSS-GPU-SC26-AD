@@ -159,6 +159,22 @@
 
 !! Calculate the negative divergence horizontally.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: diver2d.f90 :: s_diver2d
+! Summary : Calculate 2D horizontal negative divergence using velocity
+!           components u,v weighted by Jacobian and map scale factors.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls inside parallel region
+!   - No global/module variable writes
+!   - No synchronization constructs
+!   - Multiple branches (mfcopt, mpopt) but all are simple data-parallel loops
+!   - Two-phase computation: multiply then difference
+! Next:
+!   - Direct OpenMP target offload with collapse(2) on j-i loops
+!   - tmp1, tmp2 are temporary arrays that can be fused or kept on GPU
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Optional variables at u, v and w points are multiplyed by u, v and wc.

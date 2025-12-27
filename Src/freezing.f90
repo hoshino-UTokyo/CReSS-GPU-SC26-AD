@@ -151,6 +151,21 @@
 
 !!! Calculate the freezing rate from the rain water to the graupel.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: freezing.f90 :: s_freezing
+! Summary : Calculate freezing rate from rain water to graupel based on
+!           temperature and rain water content with different cphopt modes.
+! GPU diff: Medium
+! Findings:
+!   - Complex conditional logic (nk==1 vs nk>1, cphopt==2 vs >=3)
+!   - Uses exp intrinsic function
+!   - Multiple threshold checks (thresq, t0cel, tclow)
+!   - Writes to frrg and frrgn arrays
+!   - No reductions or synchronization
+! Next:
+!   - Port with GPU kernels handling conditionals via masks or separate kernels
+!   - Consider separating cphopt==2 and cphopt>=3 cases for clarity
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !! In the case nk = 1.

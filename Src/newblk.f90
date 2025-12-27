@@ -368,6 +368,29 @@
 !!!! Solve the new potential temperature perturbation, the mixing ratio
 !!!! and concentrations.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: newblk.f90 :: subroutine s_newblk
+! Summary : Solves microphysics budget equations for potential temperature,
+!           mixing ratios (qv, qc, qr, qi, qs, qg), and concentrations.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - Reads module constants (cp, mr0, mi0, ms0) from comphy.
+!   - No synchronization constructs.
+!   - Complex conditionals on cphopt (cloud physics option: 2, 3, or 4).
+!   - Separate code paths for nk=1 (2D) vs nk>1 (3D).
+!   - Many private variables for microphysics rate calculations.
+!   - Contains threshold checks (qxp > thresq) with conditional updates.
+!   - All grid points are independent (embarrassingly parallel).
+!   - Uses intrinsic max() and abs() - GPU compatible.
+! Next:
+!   - Select code path based on cphopt outside kernel.
+!   - OpenACC kernels with collapse(2) or collapse(3) for 3D case.
+!   - Large number of input arrays - ensure efficient data movement.
+!   - Consider kernel fusion for related calculations.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
 !!! In the case nk = 1.

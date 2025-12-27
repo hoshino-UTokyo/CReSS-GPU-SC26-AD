@@ -291,6 +291,21 @@
 
 ! Calculate the known quantity in the right hand.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: masscon.f90 :: s_masscon
+! Summary : Calculate the known quantity (RHS) for mass consistent velocity fitting
+!           by computing divergence of momentum from Jacobian-weighted velocities
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Writes to tmp1, tmp2, tmp3, known arrays
+!   - Multiple worksharing constructs with different k-loop ranges
+!   - No synchronization constructs besides implicit barriers at !$omp end do
+! Next:
+!   - Convert to OpenMP target offloading with data mapping for jcb8u, jcb8v, jcb8w, up, vp, wc, tmp1, tmp2, tmp3, known
+!   - Collapse nested i,j loops for better GPU occupancy
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-2

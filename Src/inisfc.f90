@@ -352,6 +352,24 @@
 !! evapotranspiration efficiency, albedo, roughness length,
 !! thermal capacity and thermal diffusivity.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: inisfc.f90 :: subroutine s_inisfc
+! Summary : Initializes surface physical parameters (land use, albedo,
+!           roughness, thermal properties) based on input data flags.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - Reads module variables (sealbe, sebeta, etc.) but no writes to them.
+!   - No synchronization constructs.
+!   - Multiple conditional branches selecting different initialization paths.
+!   - All loop iterations are independent (embarrassingly parallel).
+!   - Uses intrinsic int() which is GPU-compatible.
+! Next:
+!   - Direct OpenACC kernels directive should work.
+!   - Module constants can be copied to device as scalars.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared)
 
 ! Reset the land use categories.

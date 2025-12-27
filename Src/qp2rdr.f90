@@ -135,6 +135,24 @@
 ! Calculate the analysis nudging terms for optional precipitation mixing
 ! ratio.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: qp2rdr.f90 :: subroutine s_qp2rdr
+! Summary : Performs analysis nudging of precipitation mixing ratio
+!           toward radar observations with time interpolation.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - Reads module constant lim34n from commath.
+!   - No synchronization constructs.
+!   - Uses intrinsic max() - GPU compatible.
+!   - Conditional updates based on data validity thresholds.
+!   - All grid points are independent.
+! Next:
+!   - Direct OpenACC kernels with conditional update.
+!   - Data validity check may cause minor warp divergence.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
       if(ngropt.eq.1.and.ngrdmp(1).gt.0.e0) then

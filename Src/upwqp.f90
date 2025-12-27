@@ -159,6 +159,24 @@
 
 ! Calculate the sedimentation and precipitation.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: upwqp.f90 :: subroutine s_upwqp
+! Summary : Calculates sedimentation flux and precipitation for optional
+!           precipitation mixing ratio using upwind scheme.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region (pure arithmetic only).
+!   - No writes to global/module variables.
+!   - No synchronization constructs.
+!   - Uses intrinsic max() which is GPU-compatible.
+!   - Vertical dependency: qpflx computed first, then used for qpf update.
+!   - precip accumulation has no race (each (i,j) independent).
+! Next:
+!   - Split into two kernels: (1) compute qpflx, (2) update qpf and precip.
+!   - Or use OpenACC with proper data clauses.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

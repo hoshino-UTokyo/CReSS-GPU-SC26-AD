@@ -247,6 +247,22 @@
 
 !! Correspond and damp the model height to the external data height.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: cpondtrn.f90 :: s_cpondtrn
+! Summary : Calculate interpolating ratios at domain boundaries and corners,
+!           then blend model terrain height with external data height.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Writes to dfx, dfy, dfxy, ht arrays (output arrays)
+!   - Complex conditional logic based on boundary flags (ebw, ebe, ebs, ebn, etc.)
+!   - Multiple sequential do loops with dependencies between them
+! Next:
+!   - Convert to OpenMP target or OpenACC with data region for dfx, dfy, dfxy, ht
+!   - Consider collapsing 2D loops for better GPU occupancy
+!   - Handle conditional branches carefully on GPU
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
       if(exbwid.ge.1) then

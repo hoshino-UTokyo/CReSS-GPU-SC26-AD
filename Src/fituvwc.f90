@@ -270,6 +270,21 @@
 !! Fit the x and the y components of velocity and the zeta components of
 !! contravariant velocity to the mass consistent equation by the lamb.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: fituvwc.f90 :: s_fituvwc
+! Summary : Adjust u, v, and wc velocity components using Lagrange multiplier
+!           (lamb) to satisfy mass consistency equation.
+! GPU diff: Easy
+! Findings:
+!   - Three separate do-k loops with omp do inside
+!   - Simple element-wise updates to u, v, wc arrays
+!   - No function calls inside parallel region
+!   - No reductions or synchronization constructs
+!   - Read from lamb, jcb8u/v/w; write to u, v, wc
+! Next:
+!   - Direct GPU kernel port with 3D thread mapping
+!   - Consider fusing the three k-loops into single kernel
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Fit the x and y components of velocity.

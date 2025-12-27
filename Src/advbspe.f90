@@ -116,6 +116,21 @@
 
 ! Calculate the base state pressure advection.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: advbspe.f90 :: subroutine s_advbspe
+! Summary : Calculates base state pressure advection for horizontally
+!           explicit and vertically explicit method.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - Uses module constant g from comphy.
+!   - Pure arithmetic, all GPU compatible.
+!   - All grid points independent (embarrassingly parallel).
+! Next:
+!   - Direct OpenACC kernels with collapse(3) for (k,j,i).
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-2

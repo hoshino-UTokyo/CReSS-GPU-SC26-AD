@@ -107,6 +107,20 @@
 
 ! Fill in the array with the constant value.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: setcst3d.f90 :: s_setcst3d
+! Summary : Fill 3D array with a constant value (real type)
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls
+!   - Simple 3D loop with direct assignment
+!   - No synchronization constructs
+!   - Trivially parallelizable
+! Next:
+!   - Convert to OpenACC with parallel loop collapse(3)
+!   - Consider using memset or array assignment for better performance
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=kmin,kmax
@@ -173,6 +187,20 @@
 
 ! Fill in the array with the constant value.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: setcst3d.f90 :: s_setcst3d_r8
+! Summary : Fill 3D array with a constant value (real*8 type)
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls
+!   - Simple 3D loop with direct assignment
+!   - No synchronization constructs
+!   - Trivially parallelizable
+! Next:
+!   - Convert to OpenACC with parallel loop collapse(3)
+!   - Consider using memset or array assignment for better performance
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=kmin,kmax

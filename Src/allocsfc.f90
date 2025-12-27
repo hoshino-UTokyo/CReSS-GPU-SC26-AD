@@ -237,6 +237,22 @@
 
 ! For the integer variables.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: allocsfc.f90 :: s_allocsfc
+! Summary : Initialize integer surface arrays (land, landat) to zero for
+!           the terrain preprocessing program
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Writes to module-level arrays land, landat from m_comsfc
+!   - Simple 2D initialization loops with no data dependencies
+!   - Two separate do loops for different array dimensions
+! Next:
+!   - Straightforward GPU port with OpenACC parallel loops
+!   - Collapse nested loops for better occupancy
+!   - May combine with subsequent setcst2d calls for efficiency
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j)

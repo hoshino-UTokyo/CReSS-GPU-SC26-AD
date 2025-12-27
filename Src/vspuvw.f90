@@ -205,6 +205,26 @@
 
 !!! Calculate the vertical sponge damping for the velocity.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: vspuvw.f90 :: subroutine s_vspuvw
+! Summary : Calculates vertical sponge damping for u, v, w velocity
+!           components near model top to absorb outgoing waves.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - No writes to module/global variables.
+!   - No synchronization constructs.
+!   - Multiple code paths based on vspvar and vspopt flags.
+!   - Loops start from ksp0 (sponge layer index) to top.
+!   - All grid points are independent within each loop.
+!   - Damping to GPV data or base state based on vspopt.
+! Next:
+!   - Direct OpenACC kernels for each component.
+!   - Evaluate conditions outside kernel to select code path.
+!   - Consider fusing loops for same component if beneficial.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
 ! Set the common used variable.

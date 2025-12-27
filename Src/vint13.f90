@@ -158,6 +158,22 @@
 
 !! Interpolate the variable to the model or data grid vertically.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: vint13.f90 :: s_vint13
+! Summary : Interpolate 1D variable to 3D model/data grid vertically
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - getindx() called before parallel region (safe)
+!   - Reads from zph (3D), z1d, var1d (1D); writes to outvar (3D)
+!   - First section: extrapolation with k loop serial, i,j parallelized
+!   - Second section: kl,k loops serial, i,j parallelized for interpolation
+!   - Conditional branches for vertical level selection
+! Next:
+!   - Collapse k,j,i loops for GPU parallelism
+!   - Use OpenMP target teams distribute parallel do collapse(3)
+!   - May need to restructure kl loop to avoid repeated grid searches
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k,kl)
 
 ! Extrapolate the variable.

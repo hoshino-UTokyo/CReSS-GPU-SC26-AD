@@ -184,6 +184,26 @@
 
 ! Calculate the scalar turbulent mixing.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: turbs.f90 :: subroutine s_turbs
+! Summary : Calculates scalar turbulent mixing (diffusion) with Jacobian
+!           and map scale factor corrections for terrain-following coords.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - No writes to module/global variables.
+!   - No synchronization constructs.
+!   - Multiple code paths based on trnopt, mpopt, mfcopt options.
+!   - Multi-stage: (1) compute tmp1,tmp2 flux components,
+!     (2) optional tmp3 terrain correction, (3) divergence to sfrc.
+!   - Uses 2D map scale factor arrays (mf, rmf, rmf8u, rmf8v).
+! Next:
+!   - Can use OpenACC kernels for each loop nest.
+!   - Many conditional paths - consider unifying with flag-based selection.
+!   - Temporary arrays already allocated.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
       if(trnopt.eq.0) then

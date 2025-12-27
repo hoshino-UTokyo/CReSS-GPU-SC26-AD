@@ -537,6 +537,23 @@
 
 ! For the table.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: setname.f90 :: s_setname
+! Summary : Copies land use parameters from arrays to name table indexed by category,
+!           including albedo, beta, roughness, heat capacity, and diffusivity.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Simple 1D loops copying from land category arrays to name table
+!   - All loops are independent with private iid index
+!   - No synchronization constructs
+!   - Loop count is numctg_lnd (small, number of land categories)
+! Next:
+!   - Straightforward GPU port with simple 1D kernel
+!   - Consider keeping on CPU due to small loop count
+!   - If porting, use single kernel for all table copies
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(iid)

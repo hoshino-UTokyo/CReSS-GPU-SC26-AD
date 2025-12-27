@@ -175,6 +175,23 @@
 !! Set the bottom and the top boundary conditions for the base state
 !! variables.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: bcbase.f90 :: s_bcbase
+! Summary : Sets bottom and top boundary conditions for base state variables
+!           (ubr, vbr, ptbr, qvbr, ptvbr, pibr, pbr, rbr) using extrapolation.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls inside parallel region
+!   - Multiple 2D loops over i,j for different variables
+!   - Uses physical constants from m_comphy (g, cp, rd, p0)
+!   - Exner function BC requires exp/log calculations
+!   - Pressure and density BCs depend on previously computed pibr and ptvbr
+! Next:
+!   - Convert to OpenMP target offload with collapsed i,j loops
+!   - Ensure data dependencies between loops are respected (ptvbr before pibr, pibr before pbr/rbr)
+!   - Consider fusing independent loops for better kernel efficiency
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Set the bottom and the top boundary conditions for the base state

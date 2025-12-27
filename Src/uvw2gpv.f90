@@ -174,6 +174,21 @@
 
 !! Perform the analysis nudging to GPV data of the velocity.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: uvw2gpv.f90 :: s_uvw2gpv
+! Summary : Apply analysis nudging forcing terms for velocity components
+!           (u, v, w) to GPV data with time interpolation
+! GPU diff: Easy
+! Findings:
+!   - Serial k-loop wrapping parallel i,j loops (private(k))
+!   - Three separate conditional blocks for u, v, w components
+!   - Conditionals based on character flag nggvar (checked outside loop)
+!   - Simple accumulation to forcing arrays
+! Next:
+!   - Convert to OpenACC with collapse clause
+!   - Conditionals are at outer level, no branch divergence in kernel
+!   - Can separate into three independent kernels
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Calculate the analysis nudging term for the x components of velocity.

@@ -300,6 +300,24 @@
 !!!!! diffusivity of water, mean mass of cloud ice, mean diameters
 !!!!! and ventilation factors.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: setblk.f90 :: s_setblk
+! Summary : Calculate thermodynamic properties (T, saturation, latent heat),
+!           air properties (viscosity, conductivity), and hydrometeor parameters
+! GPU diff: Hard
+! Findings:
+!   - No omp_get_thread usage
+!   - Uses intrinsic functions (exp, log, sqrt) extensively
+!   - Complex conditional structure: nk==1 vs nk>1, abs(cphopt)<=3 vs ==4
+!   - Many output arrays (t, tcel, qvsw, qvsi, lv, ls, lf, kp, mu, dv, etc.)
+!   - Uses 2D work array nu(0:ni+1,0:nj+1) between loop nests within k loop
+!   - Uses module constants from m_commath, m_comphy
+!   - Multiple !$omp do regions within single parallel region
+! Next:
+!   - Consider restructuring to avoid nu dependency between loop nests
+!   - Large number of output arrays requires careful data management
+!   - Branch structure may benefit from separate GPU kernels per case
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !!!! In the case nk = 1.

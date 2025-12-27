@@ -185,6 +185,23 @@
 !!!! Calculate the nucleation rate of the condensation, contact and
 !!!! homogeneous.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: nuc1stc.f90 :: s_nuc1stc
+! Summary : Calculate ice nucleation rates (condensation, contact,
+!           homogeneous) based on temperature and cloud water.
+! GPU diff: Medium
+! Findings:
+!   - Conditional branch for nk.eq.1 vs nk.gt.1 cases
+!   - Complex conditionals (temperature thresholds) per grid point
+!   - Uses exp, log, min intrinsics - GPU compatible
+!   - Many private variables (tc, piv, knd, dar, f1, f2, ft, etc.)
+!   - Output array nuci written independently per grid point
+!   - No inter-thread dependencies within each omp do
+! Next:
+!   - Branch divergence may reduce GPU efficiency
+!   - Consider precomputing masks for temperature conditions
+!   - Can port as single kernel with good occupancy
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !!! In the case nk = 1.

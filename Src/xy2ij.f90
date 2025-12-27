@@ -141,6 +141,21 @@
 ! Calculate the real indices from the 2 dimensional x and the y
 ! coordinates at the model grid points.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: xy2ij.f90 :: s_xy2ij
+! Summary : Convert 2D x,y coordinates to real grid indices (ri, rj) using
+!           inverse grid spacing multipliers.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls inside parallel region
+!   - No global variable writes (only output arrays ri, rj)
+!   - No synchronization constructs beyond implicit barrier at end do
+!   - Simple element-wise computation with no data dependencies
+! Next:
+!   - Direct translation to OpenMP target offload or OpenACC parallel loop
+!   - Map x2d, y2d as to, and ri, rj as from
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j)

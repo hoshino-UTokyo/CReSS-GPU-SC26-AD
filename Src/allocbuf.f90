@@ -370,6 +370,22 @@
 
 ! Initialize the other table and set boundary conditions.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: allocbuf.f90 :: s_allocbuf
+! Summary : Initialize communication buffers and group domain arrangement
+!           tables (idxbuf, mxnbuf, sbuf, rbuf, grpxy, xgrp, ygrp)
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Writes to module-level arrays from m_combuf and m_comgrp
+!   - Simple initialization loops with no data dependencies
+!   - Conditional blocks for boundary condition setup (wbc, ebc, sbc, nbc)
+! Next:
+!   - Straightforward GPU port with OpenACC parallel loops
+!   - Consider async data transfers for buffer initialization
+!   - May combine multiple initialization loops into single kernel
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(ijpe)

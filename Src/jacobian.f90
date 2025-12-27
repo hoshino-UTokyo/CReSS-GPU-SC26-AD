@@ -214,6 +214,23 @@
 
 ! Calculate the transformation Jacobian.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: jacobian.f90 :: s_jacobian
+! Summary : Calculate transformation Jacobian components (j31, j32, jcb) from
+!           physical coordinates (x, y, z, zph)
+! GPU diff: Easy
+! Findings:
+!   - Three separate loop nests computing j31, j32, and jcb arrays
+!   - Simple arithmetic operations (subtraction, division)
+!   - Private variables: k, i, j
+!   - Reads from x, y, z, zph arrays
+!   - Writes to j31, j32, jcb arrays
+!   - No function calls within the parallel region
+!   - No sync constructs or data dependencies between grid points
+! Next:
+!   - Can be directly ported to GPU with OpenACC parallel loop
+!   - Consider fusing loops for better GPU memory access patterns
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk

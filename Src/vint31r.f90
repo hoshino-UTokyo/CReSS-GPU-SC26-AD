@@ -111,6 +111,23 @@
 !! Interpolate the 3 dimensional input variable to the 1 dimensional
 !! flat plane.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: vint31r.f90 :: s_vint31r
+! Summary : Interpolates 3D radar data variable to 1D flat plane with
+!           undefined value handling outside the interpolation range.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Uses module constant lim34n, lim35n from m_commath
+!   - Nested k/kd loops with !$omp do on inner jd,id loops
+!   - No synchronization constructs other than implicit barriers
+!   - Simple conditional interpolation logic
+! Next:
+!   - Straightforward GPU port with collapse clause
+!   - Map varef, zdat, vardat arrays to device
+!   - Consider loop restructuring for coalesced memory access
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k,kd)
 
 ! Fill in the undifined value outside of the flat plane.

@@ -179,6 +179,22 @@
 
 ! Get the maximum and minimum value of optional data.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: chkmxn.f90 :: s_chkmxn
+! Summary : Find maximum and minimum values of 3D data array with optional
+!           undefined value filtering, using max/min reductions
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function/subroutine calls inside parallel region
+!   - Uses multiple reductions: reduction(max:maxvl,maxeps) reduction(min:minvl,mineps)
+!   - Uses intrinsic functions (sign, max, min)
+!   - Conditional processing based on fproc flag and undefined value range
+!   - Simple 3D loop with element-wise min/max computation
+! Next:
+!   - Direct OpenMP target offload with collapse(3) and multiple reductions
+!   - GPU reduction primitives well-suited for this pattern
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
       if(fproc(1:3).eq.'all') then
@@ -247,6 +263,22 @@
 
 ! Get the indices of maximum and minimum value of optional data.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: chkmxn.f90 :: s_chkmxn
+! Summary : Find indices (i,j,k) of maximum and minimum values in 3D array
+!           using max/min reductions on index variables
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function/subroutine calls inside parallel region
+!   - Uses multiple reductions on indices: reduction(max:maxi,maxj,maxk) reduction(min:mini,minj,mink)
+!   - Uses intrinsic functions (abs, sign, max, min)
+!   - Depends on maxeps/mineps computed in previous parallel region
+!   - Conditional processing based on fproc flag and undefined value range
+! Next:
+!   - Index-finding reductions can be tricky on GPU; consider argmax/argmin patterns
+!   - May need custom reduction or atomic compare-and-swap for indices
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
       if(fproc(1:3).eq.'all') then

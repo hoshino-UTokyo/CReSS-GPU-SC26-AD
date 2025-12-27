@@ -123,6 +123,23 @@
 
 ! Set the periodic boundary conditions in x direction.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: bcyclex.f90 :: s_bcyclex
+! Summary : Sets periodic boundary conditions in x direction by copying
+!           values between west and east boundaries for cyclic domains.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Module variable nisub from m_commpi used (read-only)
+!   - Simple 1D array copy operations along j-dimension
+!   - Sequential k-loop with parallel j loops inside
+!   - No synchronization constructs beyond implicit barriers
+! Next:
+!   - Convert to OpenMP target with data mapping for var array
+!   - Consider collapsing k-loop with j-loop for better GPU utilization
+!   - Ensure nisub is mapped or use firstprivate
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       if(nisub.eq.1) then

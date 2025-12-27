@@ -138,6 +138,23 @@
 
 ! Calculate the pressure gradient force vertically.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: pgradiv.f90 :: s_pgradiv
+! Summary : Compute vertical pressure gradient force using implicit method,
+!           updating forcing term for w equation.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region (pure arithmetic)
+!   - No global/module variable writes (only intent(inout) fw, fpdvj arrays)
+!   - No sync constructs
+!   - Two separate k-loops: first computes fpdvj, second updates fw
+!   - Second loop has k-1 dependency on fpdvj (read from previous level)
+! Next:
+!   - Convert to OpenMP target with collapse for k,j,i loops
+!   - First loop is independent; second loop needs fpdvj from k-1 level
+!   - Can fuse loops or ensure proper synchronization between them
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-2

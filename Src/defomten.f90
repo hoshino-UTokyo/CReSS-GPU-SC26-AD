@@ -267,6 +267,21 @@
 
       if(trnopt.ge.1) then
 
+!@llm start meta_info ----------------------------------------------------
+! Location: defomten.f90 :: s_defomten (first parallel region)
+! Summary : Initialize velocity arrays at w-points for terrain-following
+!           coordinate deformation tensor calculation.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Private variable k for outer loop
+!   - Writes to s11, s22 arrays (temporary storage for u, v at w-points)
+!   - Simple stencil averaging in vertical direction
+! Next:
+!   - Direct conversion to OpenMP target with data region
+!   - Can collapse k and j loops for better GPU occupancy
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
         do k=2,nk-1
@@ -304,6 +319,25 @@
 
 !!! Calculate the deformation tensor.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: defomten.f90 :: s_defomten (second parallel region)
+! Summary : Calculate all components of deformation tensor (s11, s22, s33,
+!           s12, s13, s23, s31, s32) using finite differences and Jacobians.
+! GPU diff: Hard
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Private variable k for outer loop; jcbiv2, mfdvj2 for local scalars
+!   - Writes to s11, s22, s33, s12, s13, s23, s31, s32, tmp1-tmp4 arrays
+!   - Complex conditional branches based on trnopt, mfcopt, mpopt options
+!   - Multiple sequential k-loops with data dependencies
+!   - Stencil operations with varying grid indices
+! Next:
+!   - Split into multiple GPU kernels based on logical sections
+!   - Create data region encompassing all arrays
+!   - Consider kernel fusion where dependencies allow
+!   - Profile to identify performance-critical sections
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Calculate the diagonal and the x-y components of the deformation

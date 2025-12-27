@@ -242,6 +242,23 @@
 
 ! Check the air moisture.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: set1d.f90 :: subroutine s_set1d (max qv check)
+! Summary : Finds maximum water vapor mixing ratio to determine dry/moist
+!           simulation flag.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - No writes to module/global variables.
+!   - Uses OpenMP reduction(max:) for qvmax.
+!   - Simple 1D loop over vertical levels.
+!   - Single scalar reduction result.
+! Next:
+!   - Use OpenACC reduction(max:qvmax) directive.
+!   - Or compute on host since nlev is typically small.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(kl) reduction(max: qvmax)
@@ -324,6 +341,24 @@
 ! Calculate the natural logarithm of pressure and virtual potential
 ! temperature.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: set1d.f90 :: subroutine s_set1d (log pressure/virtual pt calc)
+! Summary : Calculates virtual potential temperature from temperature and
+!           humidity, then integrates pressure hydrostatically.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - Reads module constant epsav from comphy.
+!   - Uses !$omp single for sequential integration (vertical dependency).
+!   - Uses reduction(min:) for lpmin/pimin error checking.
+!   - First loop is parallel, second loop is sequential.
+! Next:
+!   - Keep sequential integration on host (small nlev).
+!   - Parallel virtual temperature calculation on GPU if needed.
+!   - Consider prefix sum for hydrostatic integration.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(kl)
@@ -387,6 +422,22 @@
 
 ! Calculate the Exner function and virtual temperature.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: set1d.f90 :: subroutine s_set1d (Exner/virtual temp calc)
+! Summary : Calculates virtual temperature and integrates Exner function
+!           hydrostatically for pressure-based sounding data.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - Reads module constant epsav from comphy.
+!   - Uses !$omp single for sequential integration (vertical dependency).
+!   - Uses reduction(min:) for pimin error checking.
+! Next:
+!   - Keep sequential integration on host (small nlev).
+!   - Similar approach as temperature-based sounding.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(kl)
@@ -447,6 +498,23 @@
 
 ! Calculate the pressure and temperature or potential temperature.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: set1d.f90 :: subroutine s_set1d (pressure/temperature calc)
+! Summary : Converts log pressure to pressure and temperature to potential
+!           temperature (or vice versa) based on sounding data type.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - Reads module constants (p0, rddvcp, cpdvrd) from comphy.
+!   - No synchronization constructs.
+!   - Simple 1D loops with exp/log intrinsics - GPU compatible.
+!   - All vertical levels are independent.
+! Next:
+!   - Direct OpenACC kernels if needed.
+!   - Small nlev typically - host computation may be sufficient.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared)
 
           if(sndtyp(2:2).eq.'t') then
@@ -481,6 +549,24 @@
 ! iterated water vapor mixing ratio.
 
           if(sndtyp(3:3).eq.'r') then
+
+!@llm start meta_info ----------------------------------------------------
+! Location: set1d.f90 :: subroutine s_set1d (qv iteration)
+! Summary : Iteratively converts relative humidity to mixing ratio using
+!           Clausius-Clapeyron relation until convergence.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - Reads module constants (es0, t0, tlow, eps, epsva) from comphy.
+!   - Uses reduction(max:) for convergence check (itcon).
+!   - Called within iteration loop - multiple invocations.
+!   - Uses intrinsic exp(), abs() - GPU compatible.
+! Next:
+!   - Reduction for convergence check needs GPU reduction.
+!   - Consider fused iteration kernel if beneficial.
+!   - Small nlev - may be better to keep on host.
+!@llm end meta_info ------------------------------------------------------
 
 !$omp parallel default(shared)
 
@@ -559,6 +645,21 @@
 
 ! Swap the variable and get the minimum value.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: set1d.f90 :: subroutine s_set1d (pressure swap/min)
+! Summary : Swaps pressure from z1d array and finds minimum for error check.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - No writes to module/global variables.
+!   - Uses reduction(min:) for pmin.
+!   - Simple 1D array copy and reduction.
+! Next:
+!   - Direct OpenACC kernels with reduction(min:pmin).
+!   - Small array - likely better on host.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(kl)
@@ -613,6 +714,24 @@
 
 !! Calcuate the potential temperature or temperature, water vapor mixing
 !! ratio and z physical coordiantes.
+
+!@llm start meta_info ----------------------------------------------------
+! Location: set1d.f90 :: subroutine s_set1d (pt/t/qv/z calculation)
+! Summary : Calculates potential temperature, mixing ratio from relative
+!           humidity, and z coordinates from pressure-based sounding.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - Reads module constants from comphy.
+!   - Uses !$omp single for sequential z integration (vertical dependency).
+!   - Multiple parallel loops followed by sequential integration.
+!   - Contains temperature threshold conditionals.
+! Next:
+!   - Parallel loops can use OpenACC kernels.
+!   - Sequential z integration must remain serial or use prefix sum.
+!   - Small nlev - host computation may be adequate.
+!@llm end meta_info ------------------------------------------------------
 
 !$omp parallel default(shared)
 
@@ -712,6 +831,22 @@
 
 ! Force the water vapor mixing ratio more than user specified threshold
 ! value.
+
+!@llm start meta_info ----------------------------------------------------
+! Location: set1d.f90 :: subroutine s_set1d (qv threshold)
+! Summary : Forces water vapor mixing ratio to zero if below threshold.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - No writes to module/global variables.
+!   - No synchronization constructs.
+!   - Simple 1D loop with conditional assignment.
+!   - All levels are independent.
+! Next:
+!   - Direct OpenACC kernels if needed.
+!   - Small nlev - likely better on host.
+!@llm end meta_info ------------------------------------------------------
 
 !$omp parallel default(shared)
 

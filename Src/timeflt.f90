@@ -341,6 +341,23 @@
 
 !!!! Perform the Asselin time filter.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: timeflt.f90 :: s_timeflt
+! Summary : Apply Asselin time filter to velocity, pressure, temperature,
+!           hydrometeors, aerosols, tracers, TKE, and soil temperature
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls within loops
+!   - Writes to many arrays (u, v, w, pp, ptp, qv, qwtr, nwtr, qice, nice, qcwtr, qcice, qasl, qt, tke, tund)
+!   - Many conditional branches based on cphopt, haiopt, qcgopt, aslopt, trkopt, tubopt, sfcopt
+!   - Land mask conditional for soil temperature
+!   - No synchronization constructs within parallel region
+! Next:
+!   - GPU port may require multiple kernels for different physics options
+!   - Consider data persistence on GPU for frequently updated arrays
+!   - Land mask can be handled with conditional execution on GPU
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k,n)
 
 ! Perform the Asselin time filter for the velocity.

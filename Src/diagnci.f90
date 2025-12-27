@@ -117,6 +117,23 @@
 
 ! Get the diagnostic concentrations of the cloud ice.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: diagnci.f90 :: s_diagnci
+! Summary : Calculate diagnostic cloud ice concentrations from ice mixing
+!           ratio using a simple linear scaling with inverse max mass.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Private variable k for outer loop
+!   - Writes to nidia output array
+!   - Simple point-wise multiplication operation
+!   - Completely independent iterations
+! Next:
+!   - Direct conversion to OpenMP target with collapsed loops
+!   - Minimal data transfer: input qice, output nidia
+!   - Excellent GPU candidate due to simplicity
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

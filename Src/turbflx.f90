@@ -194,6 +194,21 @@
 
       if(trnopt.ge.1) then
 
+!@llm start meta_info ----------------------------------------------------
+! Location: turbflx.f90 :: s_turbflx (terrain preprocessing)
+! Summary : Calculate j31*s and j32*s products for terrain-following
+!           coordinate transformation of scalar turbulent fluxes
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls
+!   - Writes to j31s and j32s arrays
+!   - Simple stencil computations (4-point average)
+!   - No synchronization constructs within parallel region
+! Next:
+!   - Straightforward GPU port
+!   - Can be fused with main flux calculation if data dependencies allow
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
         do k=2,nk-1
@@ -237,6 +252,23 @@
 
 !! Calculate the turbulent fluxes.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: turbflx.f90 :: s_turbflx (main flux calculation)
+! Summary : Calculate x, y, z components of turbulent fluxes for optional
+!           scalar variable with terrain and surface physics options
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls within loops
+!   - Writes to h1, h2, h3, jcbs arrays
+!   - Multiple conditional branches (trnopt, sfcopt)
+!   - Surface forcing applied at k=2 level when sfcopt>=1
+!   - No synchronization constructs within parallel region
+! Next:
+!   - GPU port with conditional handling for terrain/surface options
+!   - Surface boundary condition needs special handling
+!   - Consider kernel specialization for with/without terrain
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the common used array.

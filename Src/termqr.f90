@@ -123,6 +123,21 @@
 
 ! Calculate the terminal velocity of the rain water.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: termqr.f90 :: s_termqr
+! Summary : Calculate terminal velocity of rain water using power-law
+!           formulation based on density and mixing ratio
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - Calls intrinsic functions only (exp, log, sqrt)
+!   - Single output array (urq)
+!   - Simple conditional (threshold check)
+!   - No synchronization constructs
+! Next:
+!   - Straightforward GPU port with OpenMP target or OpenACC
+!   - Single kernel with simple data mapping
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

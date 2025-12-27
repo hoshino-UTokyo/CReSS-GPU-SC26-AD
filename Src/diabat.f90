@@ -267,6 +267,24 @@
 
 !! Calculate the diabatic in the pressure equation.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: diabat.f90 :: subroutine s_diabat (virtual potential temperature)
+! Summary : Calculates virtual potential temperature for dry/moist/cloud
+!           physics cases as part of diabatic forcing computation.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside this parallel region.
+!   - Reads module constant epsav from comphy.
+!   - No synchronization constructs.
+!   - Conditional on fmois (dry/moist) and cphopt (cloud physics).
+!   - All grid points are independent (embarrassingly parallel).
+!   - Uses only basic arithmetic and division.
+! Next:
+!   - Direct OpenACC kernels should work well.
+!   - Conditionals can be evaluated outside kernel for efficiency.
+!@llm end meta_info ------------------------------------------------------
+
 ! Cauculate the virtual potential temperature.
 
 !$omp parallel default(shared) private(k)
@@ -387,6 +405,23 @@
 
 !! Add the time tendency to the diabatic term and get the diabatic
 !! value.
+
+!@llm start meta_info ----------------------------------------------------
+! Location: diabat.f90 :: subroutine s_diabat (diabatic value computation)
+! Summary : Adds time tendency to diabatic term and computes final diabatic
+!           value for pressure equation.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - No writes to module/global variables.
+!   - No synchronization constructs.
+!   - Two stages: (1) add time tendency, (2) normalize by ptv.
+!   - All grid points are independent (embarrassingly parallel).
+! Next:
+!   - Direct OpenACC kernels for each loop nest.
+!   - Consider fusing the two stages into single kernel.
+!@llm end meta_info ------------------------------------------------------
 
 !$omp parallel default(shared) private(k)
 

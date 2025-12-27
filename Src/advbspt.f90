@@ -138,6 +138,24 @@
 
 ! Calculate the base state potential temperature advection.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: advbspt.f90 :: subroutine s_advbspt
+! Summary : Calculates base state potential temperature advection by
+!           vertical velocity for gravity wave mode calculations.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - No writes to module/global variables.
+!   - No synchronization constructs.
+!   - Two stages: (1) compute pta8w at w-points, (2) accumulate to ptadv.
+!   - Conditional on gwmopt for accumulation vs assignment.
+!   - All grid points are independent within each stage.
+! Next:
+!   - Direct OpenACC kernels for each loop nest.
+!   - Consider fusing stages if pta8w is temporary.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-1

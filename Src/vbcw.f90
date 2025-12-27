@@ -175,6 +175,26 @@
 
 !! Set the bottom and top boundary conditions.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: vbcw.f90 :: s_vbcw
+! Summary : Sets vertical boundary conditions for z-velocity component using
+!           terrain-following coordinate transformations at bottom/top.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - No global/module variable writes, only local array writes
+!   - No synchronization constructs (barrier, critical, atomic)
+!   - Complex conditional branching on bbc, tbc, mfcopt, mpopt values
+!   - Many separate omp do regions (20+) within single parallel region
+!   - Uses temporary 2D arrays (mf25, j31u2, j32v2) for intermediate results
+!   - Data dependency: j31u2/j32v2 computed then used in subsequent loops
+! Next:
+!   - Consider restructuring to reduce number of kernel launches on GPU
+!   - Ensure proper data movement for intermediate 2D arrays
+!   - May benefit from fusing some loops where data dependencies allow
+!   - Conditionals can be handled with masked operations or separate kernels
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Set the common used variable.

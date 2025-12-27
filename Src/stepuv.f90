@@ -283,6 +283,26 @@
 
 ! Solve the x and y components of velocity to the next time step.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: stepuv.f90 :: subroutine s_stepuv
+! Summary : Time integration of u and v velocity components using
+!           forcing terms and acoustic mode contributions.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - No writes to module/global variables.
+!   - No synchronization constructs.
+!   - Simple arithmetic: uf = uf + dts * (ufrc + usml) / rst8u.
+!   - All grid points are independent (embarrassingly parallel).
+!   - Note: Multiple subroutine calls before/after for boundary conditions
+!     and MPI communication - those need separate GPU handling.
+! Next:
+!   - Direct OpenACC kernels for the time stepping loops.
+!   - Consider fusing u and v updates into single kernel.
+!   - MPI communication calls outside parallel region need GPU-aware MPI.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-2

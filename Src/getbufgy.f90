@@ -133,6 +133,22 @@
 
         if(fproc(1:3).eq.'all'.or.(sbc.eq.1.and.nbc.eq.1)) then
 
+!@llm start meta_info ----------------------------------------------------
+! Location: getbufgy.f90 :: s_getbufgy
+! Summary : Copy received MPI buffer data to south/north halo regions of
+!           variable array for group domain communication in y direction.
+! GPU diff: Medium
+! Findings:
+!   - Multiple conditional branches based on boundary conditions (sbc, nbc)
+!   - Multiple conditional branches based on fproc, jsub, jgrp
+!   - Uses MPI module variables (jsub, njsub, jgrp, njgrp, ebs, ebn)
+!   - Simple 1D copy operations from rbufy to var halo regions
+!   - No reductions or synchronization between threads
+! Next:
+!   - Port with GPU-aware MPI or explicit device-host transfers
+!   - Consider using GPU memcpy for buffer-to-halo copy
+!   - Boundary exchange pattern common in stencil codes
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Fill in the south halo regions with the received value.

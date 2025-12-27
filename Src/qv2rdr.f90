@@ -197,6 +197,23 @@
 ! Perform the analysis nudging to radar data of water vapor mixing
 ! ratio.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: qv2rdr.f90 :: s_qv2rdr
+! Summary : Nudges water vapor mixing ratio toward radar data by computing
+!           surface temperature and adjusting qvfrc based on LCL conditions.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls inside parallel region (intrinsics only: exp, log, min)
+!   - Writes to tsfc (2D array) and qvfrc (3D array inout)
+!   - No sync constructs (barrier, critical, atomic)
+!   - Outer k-loop is serial; inner i,j loops are parallel via omp do
+!   - Module variables accessed: adjqv, rhqp, rd, cp, p0, qvtop from m_comphy/m_temparam
+! Next:
+!   - Collapse j,k loops or restructure to expose more parallelism
+!   - Use OpenMP target or OpenACC for GPU offload
+!   - Ensure tsfc dependency between first omp do and k-loop is handled
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !$omp do schedule(runtime) private(i,j)

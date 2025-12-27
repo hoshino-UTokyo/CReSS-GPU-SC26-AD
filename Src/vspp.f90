@@ -150,6 +150,23 @@
 
 !! Calculate the vertical sponge damping for pressure.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: vspp.f90 :: s_vspp
+! Summary : Applies vertical sponge damping to pressure forcing term,
+!           either relaxing to GPV data or base state value.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Conditional branch (vspopt, gpvvar) selects damping target
+!   - k loop starts from ksp0-1 (variable start index)
+!   - Simple arithmetic update to pfrc array
+!   - No synchronization constructs other than implicit barriers
+! Next:
+!   - Straightforward GPU port with collapse on j,i loops
+!   - Handle variable k-range start with appropriate kernel bounds
+!   - Map pfrc, ppp, ppgpv, pptd, rbct, jcb arrays to device
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Damp to the GPV data.

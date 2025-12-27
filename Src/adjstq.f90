@@ -128,6 +128,22 @@
 
 ! Force the hydrometeor mixing ratio more than user specified value.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: adjstq.f90 :: subroutine s_adjstq
+! Summary : Forces hydrometeor mixing ratios (qv, qwtr, qice) to be
+!           non-negative using max(0) for various cloud physics options.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - Calls getiname() before parallel region (not inside).
+!   - Pure max() operations, all GPU compatible.
+!   - Conditionals on cphopt/haiopt control which arrays are processed.
+!   - All grid points independent (embarrassingly parallel).
+! Next:
+!   - Direct OpenACC kernels with collapse(3) for (k,j,i).
+!   - May split into separate kernels for different cphopt branches.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

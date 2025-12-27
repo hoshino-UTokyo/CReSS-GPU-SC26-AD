@@ -122,6 +122,22 @@
 
 !! Calculate the nucleation rate of the deposition or sorption.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: nuc1stv.f90 :: s_nuc1stv
+! Summary : Calculate nucleation rate of deposition/sorption for ice
+!           based on supersaturation and temperature conditions.
+! GPU diff: Easy
+! Findings:
+!   - Conditional branch for nk.eq.1 vs nk.gt.1 cases
+!   - Simple conditionals on qv, qvsi, t values
+!   - Uses exp, max, min intrinsics - GPU compatible
+!   - Output array nuvi written independently per grid point
+!   - No inter-thread dependencies; fully parallel
+! Next:
+!   - Direct port to GPU kernel with minimal changes
+!   - Branch divergence from conditionals is manageable
+!   - Consider using predication for conditional assignments
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! In the case nk = 1.

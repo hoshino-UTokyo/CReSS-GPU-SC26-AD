@@ -157,6 +157,23 @@
 
 ! Calculate the z components of velocity.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: cnt2phy.f90 :: s_cnt2phy
+! Summary : Convert contravariant vertical velocity (wc) to physical vertical
+!           velocity (w) accounting for terrain and map scale factors
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function/subroutine calls inside parallel region
+!   - No reductions or synchronization constructs
+!   - Multiple conditional branches based on trnopt, sthopt, mfcopt, mpopt
+!   - Intermediate arrays j31u2, j32v2, mf25 computed and used within region
+!   - Simple element-wise arithmetic operations
+! Next:
+!   - Direct OpenMP target offload with collapse(2) for inner loops
+!   - Consider fusing loops where possible to reduce kernel launches
+!   - Data dependencies between j31u2/j32v2 computation and w computation
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       if(trnopt.eq.0) then

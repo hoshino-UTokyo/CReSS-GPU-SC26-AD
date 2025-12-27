@@ -157,6 +157,23 @@
 
 !! Calculate the x and the y coordinates.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: getxy.f90 :: s_getxy
+! Summary : Calculate x and y coordinates for different grid staggering
+!           (scalar, u, v, w points) based on grid spacing and MPI domain.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls within parallel region
+!   - Uses intrinsic real function (GPU compatible)
+!   - Multiple conditional branches for different stagger types
+!   - Separate 1D loops for x and y arrays
+!   - No global writes, only output arrays x and y are modified
+! Next:
+!   - Direct translation to OpenMP target with teams distribute
+!   - 1D arrays are small, consider keeping on CPU or async transfer
+!   - Separate kernels for x and y may be more efficient
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Calculate the x and the y coordinates at the data grid points.

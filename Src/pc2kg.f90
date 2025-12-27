@@ -126,6 +126,26 @@
 
 ! Convert the relative humidity to the water vapor mixing ratio.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: pc2kg.f90 :: subroutine s_pc2kg
+! Summary : Converts relative humidity to water vapor mixing ratio using
+!           saturation vapor pressure formulas (different for T > tlow
+!           vs T <= tlow).
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - Reads module constants (tlow, t0, epsva) from comphy - no writes.
+!   - No synchronization constructs.
+!   - Uses intrinsic exp() and log() - GPU compatible.
+!   - Conditional branch on temperature (thread divergence possible).
+!   - All iterations are independent (embarrassingly parallel).
+! Next:
+!   - Direct OpenACC kernels should work well.
+!   - Temperature-based branching may cause minor warp divergence.
+!   - Consider predicated execution for the if/else.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(kd)
 
       do kd=1,nkd

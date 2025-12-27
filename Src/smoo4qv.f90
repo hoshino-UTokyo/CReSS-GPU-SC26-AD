@@ -183,6 +183,23 @@
 
 ! Calculate the 4th order smoothing.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: smoo4qv.f90 :: s_smoo4qv
+! Summary : Applies 4th order numerical smoothing to water vapor mixing ratio
+!           with horizontal/vertical coefficients and conditional branching
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls inside parallel region
+!   - Multiple !$omp do loops with schedule(runtime)
+!   - Conditional branch with mod(smtopt,10).eq.2 inside parallel region
+!   - Writes to rbrqv, rbrqv2, tmp1, tmp2, tmp3, qvfrc arrays
+!   - No synchronization constructs besides implicit barriers
+! Next:
+!   - Map rbrqv, rbrqv2, tmp1-3, qvfrc to GPU
+!   - Consider separating branches into distinct kernels
+!   - Use collapse(2) for nested loops
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

@@ -296,6 +296,22 @@
 
 !! Set and calculate the terminal velocity.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: termblk.f90 :: s_termblk
+! Summary : Calculate terminal velocities for cloud water, rain, ice, snow,
+!           graupel, and hail based on microphysics options
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - Calls intrinsic functions only (exp, log, sqrt)
+!   - Writes to multiple output arrays (ucq, urq, uiq, usq, ugq, uhq, ucn, urn, uin, usn, ugn, uhn)
+!   - Multiple conditional branches based on flqcqi_opt, cphopt, haiopt
+!   - No synchronization constructs within parallel region
+! Next:
+!   - Use OpenMP target or OpenACC for GPU offloading
+!   - Consider kernel fusion for related velocity calculations
+!   - Map all input/output arrays to device
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the terminal velocity of the cloud water and cloud ice.

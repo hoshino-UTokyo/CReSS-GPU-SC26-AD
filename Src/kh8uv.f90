@@ -129,6 +129,25 @@
 
 ! Set the horizontal eddy diffusivity at the u and v points.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: kh8uv.f90 :: s_kh8uv
+! Summary : Set horizontal eddy diffusivity at u and v points (rkh8u, rkh8v)
+!           by averaging rkh values, with map scale factor corrections
+! GPU diff: Medium
+! Findings:
+!   - Multiple conditional branches (mfcopt, mpopt)
+!   - Simple arithmetic operations (addition, multiplication)
+!   - Private variables: k, i, j
+!   - Reads from rkh, rmf arrays
+!   - Writes to rkh, rkh8u, rkh8v arrays
+!   - rkh is modified in-place then used (potential ordering concern)
+!   - Multiple omp do regions within single parallel block
+!   - No sync constructs between threads
+! Next:
+!   - Can be ported to GPU with OpenACC parallel loop
+!   - Careful attention needed for rkh modification ordering
+!   - Consider separating different mpopt/mfcopt cases into different kernels
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       if(mfcopt.eq.1.and.(mpopt.eq.0.or.mpopt.eq.10)) then

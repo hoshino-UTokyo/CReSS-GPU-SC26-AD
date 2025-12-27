@@ -107,6 +107,22 @@
 ! Calculate the roughness parameter on the sea surface to the next time
 ! step.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: roughnxt.f90 :: s_roughnxt
+! Summary : Update sea surface roughness length for next time step based on friction velocity
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Uses intrinsic max function
+!   - Simple 2D loop with conditional on land use (land < 3)
+!   - Conditional on ust threshold for different roughness formulas
+!   - Writes to z0m and z0h arrays
+!   - No synchronization constructs
+! Next:
+!   - Convert to OpenMP target with teams distribute parallel for
+!   - Straightforward GPU port with collapse(2) clause
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j,ust)

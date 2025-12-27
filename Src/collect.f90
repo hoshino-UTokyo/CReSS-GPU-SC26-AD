@@ -324,6 +324,24 @@
 
 !!!!! Calculate the collection rate.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: collect.f90 :: s_collect
+! Summary : Calculates collection rates between various hydrometeor species
+!           (cloud water, rain, ice, snow, graupel) for bulk microphysics.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls (only intrinsic abs, exp, log, sqrt)
+!   - Complex conditional logic with many if-else branches based on cphopt
+!   - Multiple output arrays written independently per grid point
+!   - Uses module variables from m_commath and m_comphy (read-only constants)
+!   - Large number of private variables for each work item
+!   - nk=1 case handled separately from nk>1 case
+! Next:
+!   - Consider separate kernels for cphopt==2 and cphopt>=3 cases
+!   - May need register pressure optimization due to many local variables
+!   - Collapse loops for better GPU utilization
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !!!! In the case nk = 1.

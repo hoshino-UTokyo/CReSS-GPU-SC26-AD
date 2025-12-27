@@ -96,6 +96,20 @@
 
 ! Force the aerosol mixing ratio more than user specified value.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: adjstqa.f90 :: subroutine s_adjstqa
+! Summary : Forces aerosol mixing ratio to be non-negative using max(0).
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - Pure max() operation, GPU compatible.
+!   - 4D array with aerosol categories in outer loop.
+!   - All grid points independent (embarrassingly parallel).
+! Next:
+!   - Direct OpenACC kernels with collapse for (n,k,j,i).
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k,n)
 
       do n=1,nqa(0)

@@ -156,6 +156,23 @@
 !! Get the z physical coordinates at scalar points and radar echo top
 !! and total precipitation mixing ratio of radar data.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: getetop.f90 :: s_getetop
+! Summary : Computes z-coordinates at scalar points, radar echo top height,
+!           and total precipitation mixing ratio from radar hydrometeor data
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread usage
+!   - Uses intrinsic max() function - GPU compatible
+!   - Multiple conditional branches based on ngropt and haiopt
+!   - Potential race condition on etop(i,j) with max() update across k-loop
+!   - Module variables lim34n, lim35n, lim36n, qpmin used from m_commath
+!   - No synchronization constructs beyond implicit barriers
+! Next:
+!   - Handle etop update carefully - may need atomic or reduction approach
+!   - Consider collapsing i,j loops for better GPU parallelism
+!   - Ensure module constants are accessible on device
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Initialize the array etop with undefined value.

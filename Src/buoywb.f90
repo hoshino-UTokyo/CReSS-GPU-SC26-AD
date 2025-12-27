@@ -155,6 +155,25 @@
 
 !! Calculate the buoyancy in the large time steps integration.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: buoywb.f90 :: s_buoywb
+! Summary : Calculates buoyancy forcing for vertical velocity in large
+!           time step integration for dry/moist air with/without microphysics.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls inside parallel region
+!   - Multiple conditional branches based on fmois, gwmopt, cphopt
+!   - Three phases: compute qvd, compute wb8s, vertically average to wfrc
+!   - Simple arithmetic but significant control flow divergence
+!   - Sequential dependencies between phases (qvd -> wb8s -> wfrc)
+!   - No synchronization constructs beyond implicit barriers
+! Next:
+!   - Convert to OpenMP target with data mapping for all arrays
+!   - Use collapse(2) for nested i,j loops
+!   - Consider separate target regions for each major conditional branch
+!   - Ensure proper data movement for qvd, wb8s work arrays
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! For dry air case.

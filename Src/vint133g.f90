@@ -152,6 +152,22 @@
 
 !! Interpolate the variable to the model grid vertically.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: vint133g.f90 :: s_vint133g
+! Summary : Interpolate horizontally-varying variable to model grid (generic version)
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - getindx() called before parallel region (safe)
+!   - Reads from zph, invar (3D), z1d (1D); writes to outvar (3D)
+!   - First section: extrapolation with k loop serial, i,j parallelized
+!   - Second section: kl,k loops serial, i,j parallelized for interpolation
+!   - Variable arrangement flag (xo) determines loop bounds
+! Next:
+!   - Collapse k,j,i loops for GPU parallelism
+!   - Use OpenMP target teams distribute parallel do collapse(3)
+!   - Consider restructuring to compute kl index per (i,j,k) point directly
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k,kl)
 
 ! Extrapolate the variable.

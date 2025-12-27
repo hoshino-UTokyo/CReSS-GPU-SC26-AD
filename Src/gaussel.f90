@@ -162,6 +162,28 @@
 
 !!! Solve the tridiagonal equation.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: gaussel.f90 :: subroutine s_gaussel
+! Summary : Solves tridiagonal linear systems using Gauss elimination
+!           (Thomas algorithm) or partial pivoting Gauss elimination.
+! GPU diff: Hard
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - No writes to module/global variables.
+!   - No synchronization constructs.
+!   - Uses intrinsic abs(), int() - GPU compatible.
+!   - CRITICAL: Vertical data dependency in forward elimination (k-loop).
+!   - Each (i,j) column is independent, but k iterations are sequential.
+!   - Backward substitution also has vertical dependency.
+!   - Partial pivoting version (impopt=2) has additional index indirection.
+! Next:
+!   - Use batched tridiagonal solver (cuSPARSE gtsv2StridedBatch).
+!   - Or implement custom Thomas algorithm kernel per (i,j) column.
+!   - Each column can be solved independently - batch across (i,j).
+!   - Consider cyclic reduction for better parallelism if needed.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
 !! Solve the tridiagonal equation with the Gauss elimination.

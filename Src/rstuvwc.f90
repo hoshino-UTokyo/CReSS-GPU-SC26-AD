@@ -167,6 +167,24 @@
 
 ! The base state density x the Jacobian is multiplyed by u, v and w.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: rstuvwc.f90 :: s_rstuvwc
+! Summary : Multiply base state density x Jacobian by velocity components u, v, and wc
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Multiple conditional branches based on mfcopt and mpopt
+!   - Outer k loop is serial with inner !$omp do on i,j
+!   - Three separate loop nests for rstxu, rstxv, rstxwc
+!   - Simple element-wise multiplication and assignment
+!   - No synchronization constructs
+! Next:
+!   - Collapse k,j,i loops for better GPU parallelism
+!   - Consider separate kernels for u, v, wc computations
+!   - Use OpenMP target teams distribute parallel for collapse(3)
+!   - Fuse the three loop nests if possible for better memory access
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       if(mfcopt.eq.0) then

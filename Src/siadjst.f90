@@ -154,6 +154,26 @@
 
 ! Perform the saturation adjustment.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: siadjst.f90 :: s_siadjst
+! Summary : Performs saturation adjustment for ice, converting between water vapor
+!           and cloud ice based on saturation conditions at low temperatures.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Uses intrinsic functions: exp, log
+!   - Uses module constants from m_comphy (t0, tlow, es0, epsva, lv0, lf0, etc.)
+!   - Complex thermodynamic calculations with multiple conditional branches
+!   - Two-iteration adjustment loop structure within each grid point
+!   - Updates ptp, qv, qi, nci arrays (multiple output variables)
+!   - All loops independent with private i,j,k and local scalar variables
+!   - No synchronization constructs
+! Next:
+!   - Port exp/log intrinsics directly (GPU-compatible)
+!   - May need to handle thread divergence from nested conditionals
+!   - Consider data regions for the 4 updated 3D arrays
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

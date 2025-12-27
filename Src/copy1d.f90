@@ -92,6 +92,20 @@
 
 ! Copy the invar to the outvar.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: copy1d.f90 :: s_copy1d
+! Summary : Simple 1D array copy from invar to outvar.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls
+!   - Trivial memory copy operation
+!   - Independent element-wise operations
+! Next:
+!   - Straightforward GPU port; consider using cudaMemcpy or similar
+!   - For small arrays, overhead may exceed benefit of GPU execution
+!   - May be better to keep data resident on GPU and avoid copy
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(k)

@@ -117,6 +117,20 @@
 
 ! Fill in the array with the constant value.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: setcst4d.f90 :: s_setcst4d
+! Summary : Fill 4D array with a constant value (real type)
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls
+!   - Simple 4D loop with direct assignment
+!   - No synchronization constructs
+!   - Trivially parallelizable
+! Next:
+!   - Convert to OpenACC with parallel loop collapse(4)
+!   - Consider using memset or array assignment for better performance
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k,n)
 
       do n=nmin,nmax

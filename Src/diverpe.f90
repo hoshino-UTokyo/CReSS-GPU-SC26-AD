@@ -158,6 +158,22 @@
 
 ! Finally get the 3 dimensional divergence in the pressure equation.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: diverpe.f90 :: s_diverpe
+! Summary : Finalize 3D divergence for pressure equation (HEVE method),
+!           multiplying divergence by rcsq (density x sound speed squared).
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - External call to diver3d before this parallel region (already annotated)
+!   - No global/module variable writes
+!   - No synchronization constructs
+!   - Simple 3D loop with element-wise multiplication
+! Next:
+!   - Direct OpenMP target offload with collapse(2) on j-i loops
+!   - diver3d call should also be GPU-ported for full offload
+!   - Very simple kernel, good candidate for early GPU porting
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-2

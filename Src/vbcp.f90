@@ -119,6 +119,23 @@
 
 !! Set the bottom and top boundary conditions.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: vbcp.f90 :: s_vbcp
+! Summary : Sets vertical boundary conditions for pressure perturbation at
+!           bottom and top boundaries with extrapolation or copying.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - No global/module variable writes, only local array writes
+!   - No synchronization constructs (barrier, critical, atomic)
+!   - Conditional branching on bbc value (executed by all threads)
+!   - Multiple separate omp do regions within single parallel region
+! Next:
+!   - Direct conversion to OpenACC parallel loop or OpenMP target
+!   - Consider using OpenACC kernels directive for multiple loops
+!   - Conditionals can remain as they are data-independent
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Set the bottom boundary conditions.

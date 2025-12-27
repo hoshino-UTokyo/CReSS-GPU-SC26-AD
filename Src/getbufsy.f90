@@ -138,6 +138,21 @@
 
         if(fproc(1:3).eq.'all'.or.(sbc.eq.-1.and.nbc.eq.-1)) then
 
+!@llm start meta_info ----------------------------------------------------
+! Location: getbufsy.f90 :: s_getbufsy
+! Summary : Fills south/north halo regions from MPI receive buffer in y direction
+!           for subdomain boundary exchange
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls inside parallel region
+!   - Simple array copy from rbufy to var at boundary indices
+!   - Multiple conditional branches based on boundary conditions (sbc, nbc)
+!   - No synchronization constructs beyond implicit barriers
+! Next:
+!   - Convert to OpenMP target or OpenACC data region
+!   - Ensure rbufy and var are mapped appropriately
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Fill in the south halo regions with the received value.

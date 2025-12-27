@@ -323,6 +323,21 @@
 ! an altitude of 1.5 m, the surface temperature, total cloud cover and
 ! surface fluxes.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: outpbl.f90 :: s_outpbl
+! Summary : Compute 10m wind, 1.5m pressure/temperature/humidity, surface temp,
+!           cloud cover, and surface fluxes for output diagnostics.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region (pure arithmetic)
+!   - No global/module variable writes (only intent(inout) arrays)
+!   - No sync constructs (barrier, critical, atomic)
+!   - Conditional branches based on fmois (dry vs moist) with separate do loops
+! Next:
+!   - Convert to OpenMP target or OpenACC with data directives for arrays
+!   - Collapse nested i,j loops for better GPU occupancy
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
         if(fmois(1:3).eq.'dry') then

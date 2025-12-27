@@ -250,6 +250,20 @@
 
 ! Solve the z components of velocity to the next time step.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: stepwe.f90 :: s_stepwe
+! Summary : Update z-velocity component using forcing and acoustic terms
+!           with explicit time integration
+! GPU diff: Easy
+! Findings:
+!   - Simple array update with element-wise operations
+!   - No function calls within parallel region
+!   - No conditionals within inner loops
+!   - Division by rst8w for density weighting
+! Next:
+!   - Straightforward GPU offloading with collapse clause
+!   - Consider fusing with boundary condition operations
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-1

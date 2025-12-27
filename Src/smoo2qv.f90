@@ -130,6 +130,24 @@
 
 ! Calculate the 2nd order smoothing.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: smoo2qv.f90 :: s_smoo2qv
+! Summary : Applies 2nd order numerical smoothing to water vapor mixing ratio
+!           using density-weighted perturbation and 7-point stencil.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Two-phase computation: first computes rbrqv, then applies stencil
+!   - Simple stencil operation with neighbor access (i+/-1, j+/-1, k+/-1)
+!   - All loops independent with private i,j,k and local temporary a
+!   - No synchronization constructs (implicit barrier between phases)
+!   - Intermediate array rbrqv used between computation phases
+! Next:
+!   - GPU port needs to respect phase ordering (compute rbrqv first)
+!   - Use OpenACC/OpenMP target with collapse(3) for each phase
+!   - Consider explicit barrier or separate kernels for two phases
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

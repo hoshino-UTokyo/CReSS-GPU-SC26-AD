@@ -133,6 +133,22 @@
 
       if(dmpvar(12:12).eq.'+'.or.dmpvar(12:12).eq.'-') then
 
+!@llm start meta_info ----------------------------------------------------
+! Location: instvel.f90 :: s_instvel
+! Summary : Calculate maximum instantaneous wind velocity from u, v, w velocity
+!           components and turbulent kinetic energy (tke)
+! GPU diff: Easy
+! Findings:
+!   - Simple 3D loop with straightforward calculations
+!   - Calls intrinsic max and sqrt functions (GPU-compatible)
+!   - Private variables: k, i, j, u8s2, v8s2, w8s2
+!   - Reads from u, v, w, tke arrays
+!   - Updates maxvl array using max function (reduction-like pattern)
+!   - No sync constructs or complex data dependencies
+! Next:
+!   - Can be directly ported to GPU with OpenACC parallel loop
+!   - The max operation is thread-safe for independent grid points
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
         do k=1,nk-1

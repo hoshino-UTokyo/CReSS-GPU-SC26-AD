@@ -106,6 +106,21 @@
 
 ! Copy the invar to the outvar.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: copy3d.f90 :: s_copy3d
+! Summary : Simple 3D array copy from invar to outvar.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls
+!   - Trivial memory copy operation
+!   - Independent element-wise operations
+!   - Outer k loop is sequential in current OpenMP structure
+! Next:
+!   - Collapse all three loops (k,j,i) for better GPU occupancy
+!   - Consider using device-to-device memcpy for efficiency
+!   - May be better to keep data resident on GPU and avoid copy calls
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=kmin,kmax

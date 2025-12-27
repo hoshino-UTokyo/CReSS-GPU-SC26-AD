@@ -219,6 +219,19 @@
 
 ! Set the common used variables.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: hculs.f90 :: s_hculs
+! Summary : Initialize coefficient arrays for Cubic Lagrange advection scheme.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Simple 1D array initialization loops
+!   - No sync constructs
+! Next:
+!   - Convert to OpenMP target offload
+!   - Consider combining with main advection loop for data locality
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i)
@@ -260,6 +273,23 @@
 
 !!!! Perform Cubic Lagrange scheme.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: hculs.f90 :: s_hculs
+! Summary : Compute horizontal scalar advection using Cubic Lagrange scheme
+!           with 4-point stencil and branch logic for wind direction.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Complex branching based on velocity sign (u8s, v8s directions)
+!   - Reads from sp, writes to advx and sf arrays
+!   - Multiple code paths for mfcopt (map scale factor) options
+!   - No sync constructs
+! Next:
+!   - Convert to OpenMP target offload with collapse(2) on j,i loops
+!   - Consider predicated execution or warp divergence mitigation
+!   - Branch logic may cause GPU thread divergence
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !!! Perform horizontal-vertical seperated Cubic Lagrange scheme.

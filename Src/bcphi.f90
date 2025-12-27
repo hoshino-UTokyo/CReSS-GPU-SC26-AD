@@ -105,6 +105,21 @@
 
 ! Set the bottom and top boundary conditions.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: bcphi.f90 :: s_bcphi
+! Summary : Sets bottom and top boundary conditions for parabolic PDE solver
+!           by copying from adjacent vertical levels.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls inside parallel region
+!   - Simple 2D loop over i,j with fixed k indices
+!   - No external module dependencies inside parallel region
+!   - Straightforward array copy operations
+! Next:
+!   - Convert to OpenMP target offload with collapsed i,j loops
+!   - Very simple kernel, good candidate for GPU porting
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j)

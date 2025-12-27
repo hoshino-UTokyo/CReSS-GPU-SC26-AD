@@ -103,6 +103,21 @@
 
 ! Get the total mixing ratio.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: sumbin.f90 :: s_sumbin
+! Summary : Sum bin mass across all categories to get total mixing ratio
+!           for hydrometeor species
+! GPU diff: Easy
+! Findings:
+!   - Reduction pattern over bin categories (n index)
+!   - Simple multiply-add operations
+!   - No function calls within parallel region
+!   - Outer n-loop not parallelized (serial accumulation)
+! Next:
+!   - Collapse k,j,i loops for GPU parallelization
+!   - Consider parallel reduction over n dimension
+!   - Keep mbin and qall arrays resident on GPU
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k,n)
 
       do k=1,nk-1

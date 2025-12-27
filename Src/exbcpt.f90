@@ -232,6 +232,25 @@
 
 !! Force the lateral boundary value to the external boundary value.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: exbcpt.f90 :: s_exbcpt
+! Summary : Force lateral boundary values to external GPV boundary values
+!           for potential temperature using radiation boundary conditions
+! GPU diff: Hard
+! Findings:
+!   - No omp_get_thread_num usage
+!   - Uses MPI domain decomposition variables (ebw, ebe, ebs, ebn, isub, jsub)
+!   - Many conditional branches based on boundary location and options
+!   - Processes corners, west, east, south, north boundaries separately
+!   - Updates ptpf array at domain boundaries only
+!   - advopt controls time stepping scheme (leapfrog vs other)
+!   - exbvar character flags control which boundaries are active
+! Next:
+!   - Boundary-only operations may not benefit much from GPU
+!   - Consider keeping boundary conditions on CPU if main computation on GPU
+!   - If porting, need separate small kernels for each boundary section
+!   - MPI communication patterns need careful handling with GPU buffers
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Force the boundary value to the external boundary value at the four

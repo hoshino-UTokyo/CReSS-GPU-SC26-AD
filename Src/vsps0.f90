@@ -109,6 +109,23 @@
 ! Calculate the vertical sponge damping for optional scalar variable to
 ! initial.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: vsps0.f90 :: s_vsps0
+! Summary : Applies vertical sponge damping to optional scalar forcing
+!           term, relaxing variable toward zero (initial state).
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - No conditional branches inside parallel region
+!   - k loop starts from ksp0(2)-1 (variable start index)
+!   - Simple arithmetic update to sfrc array
+!   - No synchronization constructs other than implicit barriers
+! Next:
+!   - Straightforward GPU port with collapse on j,i loops
+!   - Handle variable k-range start with appropriate kernel bounds
+!   - Map sfrc, sp, rbct, rst arrays to device
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=ksp0(2)-1,nk-2

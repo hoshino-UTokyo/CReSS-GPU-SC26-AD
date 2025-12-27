@@ -314,6 +314,26 @@
 
 ! Calculate the solved vector.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: stepwi.f90 :: subroutine s_stepwi
+! Summary : Prepares coefficient matrices for vertical implicit solver
+!           of w-equation, computing tridiagonal matrix elements.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region (pure arithmetic only).
+!   - Reads module constant g from comphy.
+!   - No synchronization constructs.
+!   - Conditional on buyopt selects different physics formulation.
+!   - Sets up tridiagonal system (tmp1=lower, tmp2=diag, tmp3=upper).
+!   - Note: gaussel/gseidel solvers called outside parallel region.
+! Next:
+!   - Coefficient setup is embarrassingly parallel - easy to port.
+!   - Tridiagonal solver (gaussel) needs separate GPU implementation
+!     (batched tridiagonal solver or cyclic reduction).
+!   - Consider cuSPARSE gtsv2 or custom kernel for vertical solve.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
       do k=3,nk-2

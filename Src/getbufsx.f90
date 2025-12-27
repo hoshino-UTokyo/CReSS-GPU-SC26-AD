@@ -138,6 +138,21 @@
 
         if(fproc(1:3).eq.'all'.or.(wbc.eq.-1.and.ebc.eq.-1)) then
 
+!@llm start meta_info ----------------------------------------------------
+! Location: getbufsx.f90 :: s_getbufsx
+! Summary : Fills west/east halo regions from MPI receive buffer in x direction
+!           for subdomain boundary exchange
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls inside parallel region
+!   - Simple array copy from rbufx to var at boundary indices
+!   - Multiple conditional branches based on boundary conditions (wbc, ebc)
+!   - No synchronization constructs beyond implicit barriers
+! Next:
+!   - Convert to OpenMP target or OpenACC data region
+!   - Ensure rbufx and var are mapped appropriately
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Fill in the west halo regions with the received value.

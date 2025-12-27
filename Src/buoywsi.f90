@@ -158,6 +158,25 @@
 
 ! Calculate the buoyancy in the small time steps.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: buoywsi.f90 :: s_buoywsi
+! Summary : Calculates buoyancy forcing for vertical velocity in small
+!           time step integration using implicit vertical method.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Simple arithmetic operations only
+!   - Single conditional branch based on gwmopt
+!   - Two phases: compute wb8s, then vertically average to fw
+!   - Sequential dependency between phases
+!   - No synchronization constructs beyond implicit barriers
+! Next:
+!   - Convert to OpenMP target with data mapping for all arrays
+!   - Use collapse(2) for nested i,j loops
+!   - Consider separate target regions for wb8s computation and fw update
+!   - Simple structure well-suited for GPU offload
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       if(gwmopt.eq.0) then

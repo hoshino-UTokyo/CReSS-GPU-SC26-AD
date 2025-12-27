@@ -163,6 +163,26 @@
 
 ! Perform the Gauss-Seidel method.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: gseidel.f90 :: s_gseidel
+! Summary : Solve tridiagonal system using Gauss-Seidel iterative method
+!           with convergence checking at each column.
+! GPU diff: Hard
+! Findings:
+!   - No omp_get_thread usage
+!   - No external function calls within parallel region
+!   - Uses intrinsic abs function (GPU compatible)
+!   - Sequential k-dependency in tridiagonal solve (ff(k) depends on ff(k-1))
+!   - Conditional execution based on dnr(i,j) > gsdeps (divergent branches)
+!   - Multiple omp do regions with implicit barriers between them
+!   - Accumulation into nr array (potential race if k loop were parallelized)
+!   - Iterative algorithm with external convergence check (chkitr)
+! Next:
+!   - Gauss-Seidel has inherent sequential dependency in k-direction
+!   - Consider switching to Thomas algorithm (direct solve) for GPU
+!   - Or use parallel cyclic reduction / PCR algorithm
+!   - Column-wise parallelism (i,j) is safe but k must remain sequential
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !$omp do schedule(runtime) private(i,j)

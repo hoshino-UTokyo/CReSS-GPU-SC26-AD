@@ -512,6 +512,19 @@
 
 ! For the table.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: ini0name.f90 :: s_ini0name
+! Summary : Initialize land-use table arrays (lnduse_lnd, albe_lnd, etc.) to zero
+! GPU diff: Easy
+! Findings:
+!   - Simple loop over 100 elements initializing arrays to zero
+!   - No function calls within the parallel region
+!   - No global writes beyond array initialization
+!   - No sync constructs or thread-dependent logic
+! Next:
+!   - Can be directly ported to GPU with OpenACC parallel loop
+!   - Consider using array syntax for simpler GPU offload
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(iid)

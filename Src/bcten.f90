@@ -120,6 +120,21 @@
 
 !! Set the bottom and top boundary conditions.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: bcten.f90 :: s_bcten
+! Summary : Sets bottom and top boundary conditions for optional tensor array
+!           by copying or negating values at boundary layers.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Simple array assignments to boundary planes (k=1, k=nk)
+!   - No synchronization constructs beyond implicit barriers at omp end do
+!   - Conditional branches based on bbc/tbc values (control flow divergence)
+! Next:
+!   - Convert to OpenMP target offload with data mapping for ten array
+!   - Use collapse(2) for nested i,j loops to increase parallelism
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Set the bottom boundary conditions.

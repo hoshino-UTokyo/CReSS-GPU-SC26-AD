@@ -177,6 +177,25 @@
 
 !! Calculate the lateral sponge damping for optional scalar variable.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: lsps.f90 :: subroutine s_lsps
+! Summary : Applies lateral sponge damping for scalar variables near
+!           domain boundaries, relaxing toward GPV or base state values.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - No writes to module/global variables.
+!   - No synchronization constructs.
+!   - Uses intrinsic mod() for option check (outside parallel).
+!   - Two stages: (1) compute tmp1 (deviation), (2) apply damping.
+!   - Optional smoothing stencil when lspopt >= 10.
+!   - All grid points are independent within each stage.
+! Next:
+!   - Direct OpenACC kernels for each loop nest.
+!   - rbcxy is 2D, can be efficiently accessed on GPU.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
       if(wdnews.ge.1) then

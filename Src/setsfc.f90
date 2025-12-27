@@ -229,6 +229,25 @@
 
 !! Calculate the surface parameters.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: setsfc.f90 :: s_setsfc
+! Summary : Calculates surface parameters including pressure, temperature, virtual potential
+!           temperature, saturation mixing ratio, and velocity magnitude at lowest levels.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Uses intrinsic functions: exp, log, max, min, sqrt
+!   - Uses module constants from m_commath and m_comphy (es0, t0, epsva, etc.)
+!   - Multiple conditional branches based on fmois flag and land type
+!   - Complex saturation vapor pressure calculations with exponentials
+!   - All loops independent with private i,j,k and local scalar variables
+!   - No synchronization constructs beyond implicit barriers
+! Next:
+!   - Port exp/log intrinsics directly (GPU-compatible)
+!   - Consider separate kernels for dry vs moist branches
+!   - Use data regions to minimize transfers of large 3D arrays
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Get the pressure, potential temperature and air temperature.

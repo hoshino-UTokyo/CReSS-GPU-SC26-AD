@@ -292,6 +292,24 @@
 
 !! Calculate the scalar phase speed for the open boundary conditions.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: phvs.f90 :: s_phvs
+! Summary : Calculate scalar phase speed for open boundary conditions on
+!           all four boundaries (west, east, south, north).
+! GPU diff: Hard
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region (only intrinsic abs, sign, min, max)
+!   - Writes to output arrays scpx, scpy
+!   - Uses shared work arrays cpavex, cpavey for vertical averaging
+!   - Complex conditional branching based on boundary condition options
+!   - Multiple sequential k-loops with workshared inner j/i loops
+!   - No explicit barriers but implicit at !$omp end do
+! Next:
+!   - Collapse nested loops where possible for better GPU occupancy
+!   - Consider using OpenACC kernels directive
+!   - Boundary-only computation may benefit from separate small kernels
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Calculate the scalar phase speed on the west boundary.

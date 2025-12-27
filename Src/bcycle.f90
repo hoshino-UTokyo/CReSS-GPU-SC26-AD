@@ -152,6 +152,23 @@
 
 !! Set the periodic boundary conditions.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: bcycle.f90 :: s_bcycle
+! Summary : Sets periodic boundary conditions by copying values between
+!           west/east and south/north boundaries for cyclic domains.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Module variables nisub, njsub from m_commpi used (read-only)
+!   - Simple array copy operations for boundary planes
+!   - Sequential k-loop with parallel j or i loops inside
+!   - No synchronization constructs beyond implicit barriers
+! Next:
+!   - Convert to OpenMP target with data mapping for var array
+!   - Consider collapsing k-loop with inner loop for better GPU utilization
+!   - Ensure nisub, njsub are mapped or use firstprivate
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the west and east boundary conditions.

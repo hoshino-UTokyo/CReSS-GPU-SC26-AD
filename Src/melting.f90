@@ -178,6 +178,22 @@
 !!! Calculate the melting rate from the cloud ice to the cloud water and
 !!! from the snow and graupel to the rain water.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: melting.f90 :: s_melting
+! Summary : Calculate melting rates for cloud ice to cloud water, snow to rain,
+!           and graupel to rain based on temperature and microphysical parameters
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - Uses intrinsic max() function - GPU compatible
+!   - Writes to mlic, mlsr, mlgr output arrays
+!   - Branching on nk==1 for 2D vs 3D handling
+!   - Conditional logic based on thresq threshold and t0cel temperature
+!   - No synchronization constructs besides implicit barriers at !$omp end do
+! Next:
+!   - Convert to OpenMP target offloading with data mapping for rbr, rbv, qi, qs, qg, tcel, qvsst0, lv, lf, kp, dv, vnts, vntg, clcs, clcg, clrs, clrg, mlic, mlsr, mlgr
+!   - Collapse nested i,j loops for better GPU occupancy
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !! In the case nk = 1.

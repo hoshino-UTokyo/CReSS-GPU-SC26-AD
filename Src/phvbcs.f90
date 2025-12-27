@@ -293,6 +293,26 @@
 !! Calculate the diffrential phase speed term between the external
 !! boundary and model grid scalar variables.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: phvbcs.f90 :: s_phvbcs
+! Summary : Calculate differential phase speed terms for scalar variables
+!           at west/east/south/north boundaries for radiation BCs.
+! GPU diff: Hard
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls inside parallel region (uses intrinsics: abs, max, min, sign)
+!   - No global variable writes (outputs to scpx, scpy boundary arrays)
+!   - No explicit sync constructs
+!   - Complex conditional logic based on boundary condition types (wbc, ebc, sbc, nbc)
+!   - Uses MPI domain decomposition variables (ebw, ebe, ebs, ebn, isub, jsub)
+!   - Reduction-like pattern for cpavex, cpavey with nkm3v scaling
+!   - Many conditional branches affecting control flow
+! Next:
+!   - Consider GPU porting only for large domains where boundary computation is significant
+!   - Multiple kernel launches may be needed for different boundary conditions
+!   - Reduction operations for cpavex, cpavey need GPU reduction support
+!   - MPI rank checks (isub, jsub) determine which boundaries are active
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Calculate the differential phase speed term for optional scalar

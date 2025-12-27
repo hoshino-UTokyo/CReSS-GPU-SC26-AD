@@ -103,6 +103,21 @@
 
 !! Set the bottom and top boundary conditions.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: vbcqcg.f90 :: s_vbcqcg
+! Summary : Sets vertical boundary conditions for charging distribution at
+!           bottom (anti-symmetric/zero) and top (copy) boundaries.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - No global/module variable writes, only local array writes
+!   - No synchronization constructs (barrier, critical, atomic)
+!   - Two separate omp do regions for bottom and top boundaries
+! Next:
+!   - Direct conversion to OpenACC parallel loop or OpenMP target
+!   - Consider merging bottom BC loop (k=1,2) into single kernel
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Set the bottom boundary conditions.

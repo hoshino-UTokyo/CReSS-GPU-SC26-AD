@@ -211,6 +211,20 @@
 
 ! Get the minimum time interval.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: fallbw.f90 :: s_fallbw
+! Summary : Find minimum time interval for fall-out integration by reducing
+!           over all grid points using terminal velocity of water bin.
+! GPU diff: Medium
+! Findings:
+!   - Uses min reduction on dtp variable
+!   - Simple nested loop with array read access only
+!   - No function calls inside parallel region
+!   - No global writes other than reduction variable
+! Next:
+!   - Use GPU reduction kernel for min operation
+!   - Consider fusing with termbw3d if possible
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
         do k=1,nk-1

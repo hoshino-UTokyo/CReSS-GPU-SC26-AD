@@ -160,6 +160,21 @@
 
 !! Calculate the 2nd order velocity numerical smoothing.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: smoo2uvw.f90 :: s_smoo2uvw
+! Summary : Applies 2nd order numerical smoothing to u, v, w velocity components
+!           using horizontal and vertical smoothing coefficients
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls inside parallel region
+!   - Multiple nested !$omp do loops with schedule(runtime)
+!   - Writes to tmp1, ufrc, vfrc, wfrc arrays
+!   - No synchronization constructs besides implicit barriers
+! Next:
+!   - Map tmp1, ufrc, vfrc, wfrc to GPU with OpenMP target data
+!   - Convert !$omp do to !$omp target teams distribute parallel do collapse(2)
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Calculate the 2nd order u smoothing.

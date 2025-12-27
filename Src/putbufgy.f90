@@ -133,6 +133,23 @@
 
         if(fproc(1:3).eq.'all'.or.(sbc.eq.1.and.nbc.eq.1)) then
 
+!@llm start meta_info ----------------------------------------------------
+! Location: putbufgy.f90 :: s_putbufgy
+! Summary : Fill sending buffer in y direction for group domain boundary
+!           exchange (south and north halo regions).
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Writes to output array sbufy from input var
+!   - Simple 2D copy operations (i,k loops)
+!   - Conditional execution based on subdomain position (jsub, jgrp)
+!   - No explicit barriers but implicit at !$omp end do
+! Next:
+!   - Use OpenACC parallel loop for buffer packing
+!   - Consider async data transfers for overlap with computation
+!   - May keep on host if buffer sizes are small relative to transfer cost
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Fill in the sending buffer with the value in the south halo regions.

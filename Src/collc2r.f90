@@ -135,6 +135,21 @@
 ! Calculate the collection rate between the cloud water and the rain
 ! water.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: collc2r.f90 :: s_collc2r
+! Summary : Calculates collection rate between cloud water and rain water
+!           using exponential/logarithmic formulas for microphysics.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls inside parallel region (only intrinsic exp, log)
+!   - Simple 3D loop with private loop variables and local temporaries
+!   - No synchronization constructs beyond implicit barrier at end do
+!   - Read/write to qcf and qrf arrays with independent grid points
+! Next:
+!   - Can be ported directly with OpenMP target or OpenACC parallel loop
+!   - Consider collapsing the k,j,i loops for better GPU occupancy
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

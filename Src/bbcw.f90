@@ -135,6 +135,23 @@
 
 ! Set the bottom boundary conditions.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: bbcw.f90 :: s_bbcw
+! Summary : Set bottom boundary conditions for vertical velocity (wf)
+!           using terrain-following coordinate transformations
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Writes to intent(inout) arrays wf, j31u2, j32v2
+!   - Multiple conditional branches based on mfcopt and mpopt options
+!   - Uses work arrays j31u2, j32v2 for intermediate calculations
+! Next:
+!   - GPU port requires handling conditional branches
+!   - Consider separating compute kernels by mfcopt/mpopt case
+!   - Work arrays j31u2, j32v2 should be device-resident
+!   - Branch divergence from mfcopt/mpopt may impact performance
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j)

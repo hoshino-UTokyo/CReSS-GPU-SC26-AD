@@ -227,6 +227,24 @@
 !!! Calculate the relaxed lateral sponge damping coefficients in x and y
 !!! direction.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: lspdmp.f90 :: s_lspdmp (parallel region 1)
+! Summary : Calculate relaxed lateral sponge damping coefficients in x/y
+!           directions and combined 2D field rbcxy using linear interpolation.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - Uses intrinsic functions (cos, max, min, real, abs)
+!   - Multiple sequential loops updating rbcx, rbcy arrays then combining into rbcxy
+!   - Corner calculations (ebsw,ebse,ebnw,ebne) recompute rbcx,rbcy before combining
+!   - Uses module variables from m_commpi (ebw,ebe,ebs,ebn,isub,jsub,nisub,njsub, etc.)
+!   - No explicit synchronization but implicit barriers between omp do sections
+!   - rbcxy depends on rbcx,rbcy; need careful ordering for GPU
+! Next:
+!   - Convert to OpenMP target offload with careful data dependencies
+!   - May need to split into separate kernels or use atomic updates for corners
+!   - Consider restructuring corner logic to avoid recomputing rbcx,rbcy
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !! Set the positive coefficients for damping case.
@@ -619,6 +637,24 @@
 !!! Calculate the relaxed lateral sponge damping coefficients for normal
 !!! direction to lateral boundary.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: lspdmp.f90 :: s_lspdmp (parallel region 2)
+! Summary : Calculate relaxed lateral sponge damping coefficients with cosine
+!           function for normal direction at lateral boundaries.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - Uses intrinsic functions (cos, max, real, abs)
+!   - Independent 1D loops updating rbcx(1:ni) and rbcy(1:nj)
+!   - Final step applies cosine transformation: 0.5*(1-cos(cc*val))
+!   - Uses module variables from m_commpi and m_commath (cc)
+!   - No synchronization constructs besides implicit barrier at omp end do
+!   - Simpler structure than first parallel region; no 2D combination
+! Next:
+!   - Convert to OpenMP target offload or OpenACC kernels
+!   - 1D arrays are small; consider keeping on host or batching with other work
+!   - All loops are independent and embarrassingly parallel
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !! Set the positive coefficients for damping case.

@@ -144,6 +144,21 @@
 
       if(gpvvar(apg:apg).eq.'o') then
 
+!@llm start meta_info ----------------------------------------------------
+! Location: s2gpv.f90 :: s_s2gpv
+! Summary : Apply analysis nudging to scalar forcing term using GPV data
+!           and time tendency for data assimilation
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls inside parallel region
+!   - Simple 3D loop with direct array writes to sfrc
+!   - No synchronization constructs
+!   - No global variable writes (only local sfrc modification)
+! Next:
+!   - Convert to OpenACC with parallel loop collapse(3)
+!   - Data already in arrays, straightforward GPU offload
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
         do k=2,nk-2

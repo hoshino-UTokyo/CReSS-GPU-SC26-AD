@@ -173,6 +173,23 @@
 
 ! Calculate the 4th order pressure numerical smoothing.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: smoo4p.f90 :: s_smoo4p
+! Summary : Applies 4th order numerical smoothing to pressure perturbation
+!           with horizontal/vertical coefficients and conditional branching
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls inside parallel region
+!   - Multiple !$omp do loops with schedule(runtime)
+!   - Conditional branch with mod(smtopt,10).eq.2 inside parallel region
+!   - Writes to pp2, tmp1, tmp2, tmp3, pfrc arrays
+!   - No synchronization constructs besides implicit barriers
+! Next:
+!   - Map pp2, tmp1-3, pfrc to GPU
+!   - Consider separating branches into distinct kernels
+!   - Use collapse(2) for nested loops
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

@@ -442,6 +442,20 @@
 
 ! Get the parameters of reductional entire domain.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: rdgrp.f90 :: s_rdgrp
+! Summary : Find min/max indices of active group domains to determine reductional domain bounds
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Uses min/max reductions on iwred, jsred, iered, jnred
+!   - No synchronization constructs
+!   - Simple 2D loop with conditional bounds checking
+! Next:
+!   - Convert to OpenMP target with teams distribute parallel for and reduction clause
+!   - Alternatively use OpenACC with parallel loop reduction
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(igc_sub,jgc_sub)                     &

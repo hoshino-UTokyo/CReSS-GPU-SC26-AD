@@ -148,6 +148,21 @@
 
 ! Set the boundary conditions at the four corners.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: bc4news.f90 :: s_bc4news
+! Summary : Sets boundary conditions at the four corners (SW, SE, NW, NE) by
+!           averaging adjacent boundary values for optional 3D variable.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls inside parallel region
+!   - Simple 1D loops over k dimension with direct array assignments
+!   - Uses module variables from m_commpi (ebsw, ebse, ebnw, ebne, isub, jsub, nisub, njsub)
+!   - Multiple conditionally executed small loops based on domain decomposition position
+! Next:
+!   - Convert to OpenMP target offload with collapsed loops
+!   - Consider merging the four conditional loops into a single kernel with conditional logic
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
       if(abs(wbc).ne.1.or.abs(ebc).ne.1                                 &

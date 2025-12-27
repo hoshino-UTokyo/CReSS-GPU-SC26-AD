@@ -145,6 +145,23 @@
 
 ! Calculate the base state pressure advection.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: advbspi.f90 :: subroutine s_advbspi
+! Summary : Calculates base state pressure advection for horizontally
+!           explicit and vertically implicit method (forward/backward).
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - Calls getrname() before parallel region (not inside).
+!   - Uses module constant g from comphy.
+!   - Conditional on fproc determines backward vs forward calculation.
+!   - Pure arithmetic, all GPU compatible.
+!   - All grid points independent (embarrassingly parallel).
+! Next:
+!   - Direct OpenACC kernels with collapse(3) for (k,j,i).
+!   - May split into two kernels for back/fore branches.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
       if(fproc(1:4).eq.'back') then

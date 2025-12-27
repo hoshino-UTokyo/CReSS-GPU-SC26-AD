@@ -171,6 +171,24 @@
 
 !! Calculate the relaxed vertical sponge damping coefficients.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: vspdmp.f90 :: s_vspdmp
+! Summary : Calculates relaxed vertical sponge damping coefficients with
+!           maximum z-coordinate search and cosine-based damping profiles.
+! GPU diff: Hard
+! Findings:
+!   - No omp_get_thread_num usage
+!   - Uses max() intrinsic for reduction-like operation on z1dmax
+!   - !$omp single block for sequential ksp0 index search (do_k_1, do_k_2)
+!   - Multiple k loops with different purposes (init, max-find, coef-calc)
+!   - Conditional vspopt branches inside parallel region
+!   - Potential race condition in z1dmax(k)=max(...) without proper reduction
+! Next:
+!   - z1dmax computation needs reduction or atomic operations for GPU
+!   - Sequential ksp0 search should remain on CPU or use parallel reduction
+!   - Split into separate kernels: max-find, ksp0-search, coef-calculation
+!   - Use cosine from device math library
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the maximum z physical coordinates at each plane.

@@ -213,6 +213,22 @@
 
 ! Solve the pressure to the next time step.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: steppe.f90 :: s_steppe
+! Summary : Advances pressure perturbation in time using forcing and acoustic
+!           terms with horizontally explicit/vertically explicit method
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls inside parallel region
+!   - Single !$omp do loop with schedule(runtime)
+!   - Simple element-wise update: ppf += dts*(pfrc+psml)/jcb
+!   - Writes only to ppf array
+!   - No synchronization constructs besides implicit barriers
+! Next:
+!   - Map jcb, pfrc, psml (in), ppf (inout) to GPU
+!   - Convert to !$omp target teams distribute parallel do collapse(2)
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-2

@@ -107,6 +107,23 @@
 ! Calculate the shear production in the turbulent kinetic energy
 ! equation.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: sheartke.f90 :: s_sheartke
+! Summary : Calculates shear production term in TKE equation by adding
+!           Jacobian times eddy viscosity times deformation squared to forcing.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Simple 3D loop with single multiply-add operation per point
+!   - All loops independent with private i,j,k indices
+!   - No synchronization constructs
+!   - Minimal computation per grid point
+! Next:
+!   - Straightforward GPU port with 3D kernel
+!   - Use OpenACC/OpenMP target with collapse(3)
+!   - Good candidate for kernel fusion with other TKE terms
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-2

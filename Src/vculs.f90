@@ -162,6 +162,22 @@
 
 ! Calculate the scalar advection vertically.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: vculs.f90 :: s_vculs
+! Summary : Compute vertical scalar advection using Cubic Lagrange scheme
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Reads from sp, wc8s; writes to sf (all 3D arrays)
+!   - Outer k loop is serial with nested !$omp do for i,j
+!   - Conditional branches (wc8s > 0) for upwind/downwind stencil selection
+!   - Private variables: k (shared among worksharing), i,j,a,b,c (private per iteration)
+! Next:
+!   - Collapse k,j,i loops for GPU parallelism
+!   - Use OpenMP target teams distribute parallel do collapse(3)
+!   - Data mapping: map(to: sp,wc8s) map(from: sf) or use data regions
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=3,nk-3

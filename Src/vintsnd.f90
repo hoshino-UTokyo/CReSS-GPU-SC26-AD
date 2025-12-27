@@ -152,6 +152,22 @@
 
 ! Calculate the interpolated zeta coordinates.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: vintsnd.f90 :: s_vintsnd
+! Summary : Calculates interpolated zeta coordinates for sounding data
+!           at fine interval vertical levels.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Simple 1D loop over vertical levels (kl)
+!   - No synchronization constructs other than implicit barriers
+!   - Linear interpolation formula for z1d coordinates
+! Next:
+!   - Small loop (nlev-2 iterations), may not benefit from GPU
+!   - Consider batching with other 1D operations if available
+!   - Map z1d array to device if porting
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(kl)

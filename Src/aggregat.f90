@@ -194,6 +194,22 @@
 
 !!!! Calculate the aggregation rate.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: aggregat.f90 :: s_aggregat
+! Summary : Calculate aggregation rates for cloud water, rain water,
+!           cloud ice and snow based on cphopt option (2, 3, or 4)
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region (only intrinsic exp, log)
+!   - No global writes; outputs to intent(out) arrays agcn, agrn, agin, agsn
+!   - Multiple conditional branches based on cphopt and nk values
+!   - Uses schedule(runtime) for all do loops
+! Next:
+!   - Collapse nested i,j loops for better GPU occupancy
+!   - Consider using OpenACC data regions to minimize data movement
+!   - Branch divergence from conditionals may impact GPU performance
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !!! In the case nk = 1.

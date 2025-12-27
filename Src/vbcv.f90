@@ -109,6 +109,21 @@
 
 !! Set the bottom and top boundary conditions.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: vbcv.f90 :: s_vbcv
+! Summary : Sets vertical boundary conditions for y-velocity component by
+!           copying values from adjacent levels at bottom and top boundaries.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - No global/module variable writes, only local array writes
+!   - No synchronization constructs (barrier, critical, atomic)
+!   - Two separate omp do regions for bottom and top boundaries
+! Next:
+!   - Direct conversion to OpenACC parallel loop or OpenMP target
+!   - Both loops are independent and can run concurrently on GPU
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Set the bottom boundary conditions.

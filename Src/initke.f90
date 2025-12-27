@@ -233,6 +233,23 @@
 
 !! Set the initial turbulent kinetic energy.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: initke.f90 :: s_initke
+! Summary : Initialize turbulent kinetic energy (tkep) from vertical eddy
+!           viscosity (rkv), with isotropic/anisotropic grid options
+! GPU diff: Medium
+! Findings:
+!   - Multiple conditional branches (isoopt, mfcopt, mpopt)
+!   - Calls intrinsic exp and log functions (GPU-compatible)
+!   - Private variables: k, i, j, sqrtke
+!   - Reads from jcb, rmf, rbr, rst, rkv arrays
+!   - Writes only to tkep array
+!   - No sync constructs or complex data dependencies
+! Next:
+!   - Can be ported to GPU with OpenACC parallel loop
+!   - Conditional branches can be handled with GPU kernels
+!   - Consider separating isotropic and anisotropic cases into different kernels
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Isotropic case.

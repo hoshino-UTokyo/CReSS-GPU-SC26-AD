@@ -135,6 +135,23 @@
 
 !! Interpolate the variable to the model grid vertically.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: vint133r.f90 :: s_vint133r
+! Summary : Interpolate variable to model grid with undefined value handling (radar data)
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - getindx() called before parallel region (safe)
+!   - Uses lim35n, lim34n from m_commath for undefined value markers
+!   - Reads from zph, invar (3D), z1d (1D); writes to outvar (3D)
+!   - First section: fill undefined values outside flat plane range
+!   - Second section: interpolate with validity check on input values
+!   - Conditional branches for level selection and validity checking
+! Next:
+!   - Collapse k,j,i loops for GPU parallelism
+!   - Use OpenMP target teams distribute parallel do collapse(3)
+!   - Ensure lim35n, lim34n constants are accessible on device
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k,kl)
 
 ! Fill in the undifined value outside of the flat plane.

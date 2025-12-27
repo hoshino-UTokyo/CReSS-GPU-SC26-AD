@@ -135,6 +135,22 @@
 
 ! Check the convergence of the iteration in each processor element.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: chkitr.f90 :: s_chkitr
+! Summary : Find maximum absolute value of iteration variations (dvar)
+!           for convergence checking with max reduction
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function/subroutine calls inside parallel region
+!   - Uses reduction(max:) on single variable intitc
+!   - Uses intrinsic functions (abs, max)
+!   - Simple 3D loop with element-wise max computation
+!   - MPI_allreduce called after parallel region (not inside)
+! Next:
+!   - Direct OpenMP target offload with collapse(3) and reduction(max:)
+!   - GPU reduction primitives well-suited for this pattern
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j,k) reduction(max: intitc)

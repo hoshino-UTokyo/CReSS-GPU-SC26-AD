@@ -158,6 +158,22 @@
 
 !!! Calculate the eddy diffusivity.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: eddydif.f90 :: s_eddydif
+! Summary : Calculate eddy diffusivity for turbulence mixing, handling
+!           isotropic/anisotropic cases for Smagorinsky/Deardorff formulations
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls inside parallel region
+!   - Multiple conditional branches based on tubopt, isoopt, mfcopt options
+!   - Writes to output arrays rkh, rkv8w, rkv8s (no race conditions)
+!   - No synchronization constructs besides implicit barrier at omp end do
+! Next:
+!   - Convert to OpenMP target or OpenACC data region with kernels
+!   - Collapse the k and j loops for more parallelism on GPU
+!   - Consider merging conditional branches to reduce kernel launches
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !! Calculate the eddy diffusivity in the case the Smagorinsky

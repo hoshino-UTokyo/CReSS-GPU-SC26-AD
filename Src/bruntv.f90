@@ -196,6 +196,25 @@
 
 !!! Calculate the Brunt-Vaisala frequency squared.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: bruntv.f90 :: s_bruntv
+! Summary : Calculates Brunt-Vaisala frequency squared for atmospheric
+!           stability using potential temperature and moisture fields.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls inside parallel region
+!   - Intrinsic functions used: exp, log (transcendental, may need GPU libs)
+!   - Multiple conditional branches based on fmois and cphopt (divergence)
+!   - Multiple work arrays (pt, ptv, a, t) modified in sequence
+!   - Some data dependencies between loop nests (e.g., pt used to compute ptv)
+!   - 2D temporary array t(i,j) reused across k iterations
+! Next:
+!   - Convert to OpenMP target with data mapping for all arrays
+!   - Use collapse(2) for nested i,j loops
+!   - May need to restructure k-loop to avoid thread-local t array issues
+!   - Consider separating dry/moist cases into different GPU kernels
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Get the potential temperature.

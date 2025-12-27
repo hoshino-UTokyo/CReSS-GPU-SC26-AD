@@ -146,6 +146,23 @@
 
 !! Set the base state variables.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: setbase.f90 :: s_setbase
+! Summary : Set base state variables including z coordinates at scalar points,
+!           Exner function, virtual potential temperature, and density
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No external function calls (only intrinsic exp, log)
+!   - Two separate loop nests with different k ranges
+!   - Writes to zph8s, ptvbr, pibr, rbr arrays
+!   - Uses module constants from m_comphy (rd, cp, p0, epsav)
+!   - No synchronization constructs
+! Next:
+!   - Convert to OpenACC with parallel loop collapse(3) for each loop nest
+!   - Ensure module constants accessible on device
+!   - Note: bcbase call after parallel region needs separate handling
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Calculate the z physical coordinates at the scalar, u and v points.

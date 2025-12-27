@@ -145,6 +145,21 @@
 
       if(qcgopt.eq.1.or.qcgopt.eq.2) then
 
+!@llm start meta_info ----------------------------------------------------
+! Location: charging.f90 :: s_charging
+! Summary : Compute charging distribution for cloud/rain/ice/snow/graupel/hail
+!           mixing ratios scaled by time step dtb
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function/subroutine calls inside parallel region
+!   - No global variable writes; only output arrays qccf,qrcf,qicf,qscf,qgcf,qhcf modified
+!   - No synchronization constructs (barrier, critical, atomic)
+!   - Simple element-wise operations with conditional branching on haiopt and nk
+! Next:
+!   - Direct OpenMP target offload with collapse(2) or collapse(3) for GPU
+!   - Consider data movement optimization with map clauses
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! In the case nk = 1.

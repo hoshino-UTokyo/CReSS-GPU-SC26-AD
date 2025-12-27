@@ -161,6 +161,21 @@
 
 ! Be averaged to u, v and w points.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: var8uvw.f90 :: s_var8uvw
+! Summary : Averages optional variable to u, v, and w staggered grid points
+!           using simple 2-point averaging in each direction.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - No global/module variable writes, only local array writes
+!   - No synchronization constructs (barrier, critical, atomic)
+!   - Simple loop structure with private loop indices
+! Next:
+!   - Direct conversion to OpenACC parallel loop or OpenMP target
+!   - Consider collapsing nested loops for better GPU utilization
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

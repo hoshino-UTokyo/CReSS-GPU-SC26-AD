@@ -126,6 +126,23 @@
 
 !! Get the total water and ice mixing ratio.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: totalqwi.f90 :: s_totalqwi
+! Summary : Calculate total water and ice mixing ratio by summing
+!           water and ice hydrometeor categories based on cphopt/haiopt
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls
+!   - Single output array (qall)
+!   - Multiple conditional branches based on cphopt, haiopt
+!   - Loop over bin categories for cphopt >= 11
+!   - No synchronization constructs
+! Next:
+!   - Straightforward GPU port with conditional branches
+!   - Consider specialized kernels for bulk vs bin microphysics
+!   - Bin category loops can be unrolled or parallelized
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k,n)
 
       if(abs(cphopt).ge.1) then

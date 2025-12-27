@@ -124,6 +124,23 @@
 
 ! Calculate the saturation mixing ratio.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: getqvs.f90 :: s_getqvs
+! Summary : Calculates saturation mixing ratio (qvs) from pressure and
+!           potential temperature using Tetens formula for saturation vapor pressure
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - Uses intrinsic exp(), log() functions - GPU compatible
+!   - Simple element-wise computation at each grid point
+!   - Module constants rd, cp, p0, es0, epsva, t0 used from m_comphy
+!   - No loop-carried dependencies
+!   - No synchronization constructs beyond implicit barriers
+! Next:
+!   - Direct port to OpenMP target teams loop
+!   - Collapse k,j,i loops for better GPU occupancy
+!   - Ensure module constants are accessible on device
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

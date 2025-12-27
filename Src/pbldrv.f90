@@ -234,6 +234,22 @@
 ! Finally convert the virtual potential temperature to the potential
 ! temperature.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: pbldrv.f90 :: s_pbldrv
+! Summary : Convert virtual potential temperature back to potential temperature
+!           perturbation after PBL diffusion calculations.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region (pure arithmetic)
+!   - No global/module variable writes (only intent(inout) ptp array)
+!   - No sync constructs
+!   - Conditional branches based on fmois (dry vs moist) with different formulas
+!   - Loop over k levels with nested i,j loops
+! Next:
+!   - Convert to OpenMP target with collapse for k,j,i loops
+!   - Can be combined with preceding PBL subroutine calls into single kernel
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       if(fmois(1:3).eq.'dry') then

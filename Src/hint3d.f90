@@ -221,6 +221,22 @@
 
 ! Get the distance between data grid points and model grid points.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: hint3d.f90 :: s_hint3d
+! Summary : Calculate distance between data and model grid points for 3D
+!           interpolation, with min/max reduction for bounds checking.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region; uses intrinsics only
+!   - Reduction operations (min/max) on idmin, idmax, jdmin, jdmax
+!   - Different code paths for mpopt < 10 vs >= 10
+!   - No sync constructs beyond implicit barrier at end
+! Next:
+!   - Convert to OpenMP target offload with reduction support
+!   - GPU reduction may require atomic operations or tree reduction
+!   - Consider separating reduction into separate kernel
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
         if(mpopt.lt.10) then
@@ -349,6 +365,24 @@
 
 !! Interpolate the data variables to the model grid horizontally.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: hint3d.f90 :: s_hint3d
+! Summary : Perform 3D horizontal interpolation (linear or parabolic) from
+!           data grid to model grid for each vertical level.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region; uses intrinsics only
+!   - Branching based on intopt (linear vs parabolic) and mpopt
+!   - Parabolic interpolation has more complex stencil access
+!   - Outer k-loop with inner j,i loops parallelized via !$omp do
+!   - Writes to var 3D array (output)
+!   - No sync constructs
+! Next:
+!   - Convert to OpenMP target offload with collapse(3) on k,j,i loops
+!   - Consider separate kernels for linear vs parabolic interpolation
+!   - Parabolic case may benefit from shared memory for stencil
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Interpolate the data variable to the model grid horizontally with the

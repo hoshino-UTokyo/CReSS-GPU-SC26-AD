@@ -125,6 +125,26 @@
 
 ! Calculate the 2nd order scalar numerical smoothing.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: smoo2s.f90 :: subroutine s_smoo2s
+! Summary : Applies 2nd order numerical smoothing to scalar variables
+!           using Laplacian diffusion with separate horizontal/vertical
+!           coefficients.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - No writes to module/global variables.
+!   - No synchronization constructs.
+!   - Two stages: (1) compute rbrs = rbr*s, (2) apply smoothing.
+!   - Classic 7-point stencil (3D Laplacian) operation.
+!   - All grid points are independent within each stage.
+! Next:
+!   - Direct OpenACC kernels for each loop nest.
+!   - Good candidate for kernel fusion to reduce memory traffic.
+!   - Can collapse (k,j,i) loops for better GPU occupancy.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

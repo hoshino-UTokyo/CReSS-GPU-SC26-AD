@@ -94,6 +94,20 @@
 
 ! Be averaged to scalar points.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: var8v8s.f90 :: s_var8v8s
+! Summary : Average optional variable from v-points to scalar points
+!           using simple 2-point stencil in y-direction
+! GPU diff: Easy
+! Findings:
+!   - Serial k-loop wrapping parallel i,j loops (private(k))
+!   - Simple 2-point averaging: (var8v(i,j,k)+var8v(i,j+1,k))*0.5
+!   - No function calls or complex operations
+!   - Output array is independent of input (no race condition)
+! Next:
+!   - Convert to OpenACC with collapse clause
+!   - Straightforward GPU port with good memory access pattern
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

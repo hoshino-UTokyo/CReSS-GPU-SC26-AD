@@ -157,6 +157,21 @@
 
 !! Perform the analysis nudging to radar data of the velocity.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: uvw2rdr.f90 :: s_uvw2rdr
+! Summary : Apply analysis nudging forcing terms for velocity components
+!           (u, v, w) to radar data with validity checks
+! GPU diff: Medium
+! Findings:
+!   - Serial k-loop wrapping parallel i,j loops (private(k))
+!   - Three separate conditional blocks for u, v, w components
+!   - Inner conditional checks for valid radar data (lim34n threshold)
+!   - Uses module variable lim34n from m_commath
+! Next:
+!   - Convert to OpenACC with collapse clause
+!   - Inner conditionals may cause thread divergence on GPU
+!   - Consider masking approach for better GPU efficiency
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Calculate the analysis nudging term for the x components of velocity.

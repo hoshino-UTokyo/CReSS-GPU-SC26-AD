@@ -133,6 +133,23 @@
 
 ! Calculate the air temperature at Lifting Condensation Level.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: gettlcl.f90 :: s_gettlcl
+! Summary : Calculate temperature at Lifting Condensation Level using
+!           Bolton's formula based on mixing ratio or relative humidity.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls within parallel region
+!   - Uses intrinsic exp and log functions (GPU compatible)
+!   - Conditional branch (if/else if) selects calculation method
+!   - No global writes, only output array tlcl is modified
+!   - No synchronization constructs other than implicit barriers
+! Next:
+!   - Direct translation to OpenMP target with teams distribute
+!   - Both branches are simple arithmetic, suitable for GPU
+!   - Consider unifying branches or using separate kernels per datype
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
       if(datype(1:1).eq.'m') then

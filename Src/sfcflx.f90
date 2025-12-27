@@ -152,6 +152,26 @@
 
 ! Finally get the exchange coefficients of surface flux.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: sfcflx.f90 :: subroutine s_sfcflx
+! Summary : Calculates exchange coefficients for surface momentum, heat,
+!           and moisture fluxes from bulk coefficients.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - Reads module constants (da0, dv0, wkappa) from comphy.
+!   - No synchronization constructs.
+!   - Simple 2D loop over (i,j) - surface arrays only.
+!   - Land/sea conditional for moisture exchange coefficient.
+!   - All grid points are independent (embarrassingly parallel).
+!   - Uses intrinsic log() outside parallel region.
+! Next:
+!   - Direct OpenACC kernels should work well.
+!   - 2D arrays only - good memory access pattern.
+!   - Consider fusing with bulksfc call if beneficial.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j,a)

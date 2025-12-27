@@ -214,6 +214,22 @@
 
 !!! Calculate the map scale factors.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: mapfct.f90 :: s_mapfct
+! Summary : Calculate map scale factors for various projection methods (spherical,
+!           polar stereographic, Lambert conformal, Mercator, etc.) at scalar/u/v points
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - Intrinsic math functions (cos, sin, tan, exp, log, sqrt) used inside loops
+!   - Multiple worksharing constructs with branching logic based on mpopt
+!   - Writes to mf, mf8u, mf8v, rmf, rmf8u, rmf8v, tmp1 arrays
+!   - No synchronization constructs besides implicit barriers at !$omp end do
+! Next:
+!   - Convert to OpenMP target offloading with data mapping for x, lat, mf, mf8u, mf8v, rmf, rmf8u, rmf8v, tmp1
+!   - Collapse nested i,j loops for better GPU occupancy
+!   - Math intrinsics are GPU-compatible
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !! Calculate the map scale factor at scalar points.

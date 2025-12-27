@@ -117,6 +117,25 @@
 !! Calculate the Coriolis force in the x and the y components of
 !! velocity equation.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: coriuv.f90 :: subroutine s_coriuv
+! Summary : Calculates Coriolis force terms for u and v velocity equations
+!           using f-plane or beta-plane approximation.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - No writes to module/global variables.
+!   - No synchronization constructs.
+!   - Two-stage calculation: (1) compute tmp1, (2) add to forcing.
+!   - Stencil averaging of velocity for Coriolis term.
+!   - All grid points are independent within each loop nest.
+! Next:
+!   - Direct OpenACC kernels with collapse(2) on i,j loops.
+!   - Consider fusing the two stages into single kernel per component.
+!   - Temporary array tmp1 needed for staggered grid averaging.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
 ! Calculate the Coriolis force in the x components of velocity equation.

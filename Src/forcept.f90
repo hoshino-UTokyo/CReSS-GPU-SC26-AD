@@ -317,6 +317,20 @@
 
       if(tubopt.ge.1) then
 
+!@llm start meta_info ----------------------------------------------------
+! Location: forcept.f90 :: s_forcept
+! Summary : Compute potential temperature pt by adding base state ptbr
+!           and perturbation ptpp for turbulent mixing calculation.
+! GPU diff: Easy
+! Findings:
+!   - Simple element-wise addition of two arrays
+!   - No function calls inside parallel region
+!   - No reductions or synchronization
+!   - Only writes to pt array
+! Next:
+!   - Direct GPU kernel port with straightforward 3D mapping
+!   - Consider fusing with subsequent turbulent mixing kernels
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
         do k=1,nk-1

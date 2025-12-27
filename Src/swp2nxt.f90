@@ -346,6 +346,22 @@
 
 !!!!! Swap the prognostic variables to the next time step.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: swp2nxt.f90 :: s_swp2nxt
+! Summary : Swap prognostic variables (velocity, pressure, temperature,
+!           hydrometeors, aerosols, tracers, TKE) between time levels
+! GPU diff: Medium
+! Findings:
+!   - Many conditional branches based on advopt, cphopt, haiopt, etc.
+!   - Simple array copy operations within loops
+!   - Large number of arrays to swap (u,v,w,pp,ptp,qv,qwtr,qice,etc.)
+!   - No function calls within parallel region
+!   - Different swap patterns for centered vs Lagrange advection
+! Next:
+!   - Consider batching array swaps for GPU memory efficiency
+!   - Use async data transfers if arrays already on GPU
+!   - Collapse loops where possible for better occupancy
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k,n)
 
 !!!! Swap the prognostic variables to the next time step in the case the

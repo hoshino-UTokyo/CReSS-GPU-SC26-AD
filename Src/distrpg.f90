@@ -153,6 +153,22 @@
 !!! Calculate the distribution ratio at which the collisions between
 !!! rain water and snow and reset the collection rate.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: distrpg.f90 :: s_distrpg
+! Summary : Distribute collision rates between rain and snow to graupel,
+!           based on diameter ratios and temperature thresholds.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls inside parallel region (only intrinsic: abs)
+!   - No global/module variable writes
+!   - No synchronization constructs
+!   - Multiple branches (nk, cphopt) but all loops are data-parallel
+!   - Conditional updates per grid point (temperature check, threshold)
+! Next:
+!   - Direct OpenMP target offload with collapse(2) on j-i loops
+!   - Conditionals inside loop are fine for GPU (divergent but manageable)
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !! In the case nk = 1.

@@ -195,6 +195,19 @@
 
 ! Get the constant stretching function.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: stretch.f90 :: s_stretch
+! Summary : Calculate constant vertical stretching z-coordinates when
+!           no stretching is applied
+! GPU diff: Easy
+! Findings:
+!   - Simple 1D loop over k index
+!   - Straightforward arithmetic for uniform grid spacing
+!   - No function calls within parallel region
+! Next:
+!   - Simple parallel loop suitable for GPU offloading
+!   - Small array size (nk), may not benefit significantly from GPU
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(k)
@@ -313,6 +326,21 @@
 
 !! Apply the stretching function.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: stretch.f90 :: s_stretch
+! Summary : Apply cubic or tanh stretching function to calculate variable
+!           vertical grid spacing for stretched coordinates
+! GPU diff: Medium
+! Findings:
+!   - Multiple conditional branches based on sthopt (1=cubic, 2=tanh)
+!   - Uses !$omp single for sequential accumulation to zsth
+!   - Contains tanh and exp/log intrinsic functions
+!   - Serial dependency in final z-coordinate calculation
+! Next:
+!   - Parallelize dzsth calculations, keep zsth sequential
+!   - Small array size (nk), limited GPU benefit
+!   - Consider prefix sum for zsth calculation on GPU
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Calculate the dz of stretching for the low level.

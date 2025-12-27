@@ -118,6 +118,22 @@
 
 ! Calculate the total pressure variable and Exner function.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: getexner.f90 :: s_getexner
+! Summary : Calculates total pressure (p = pbr + pp) and Exner function
+!           (pi = (p/p0)^(rd/cp)) at each grid point
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - Uses intrinsic exp() and log() functions - GPU compatible
+!   - Simple element-wise computation, no dependencies between iterations
+!   - Module constants rd, cp, p0 used from m_comphy
+!   - No synchronization constructs beyond implicit barriers
+! Next:
+!   - Direct port to OpenMP target teams loop
+!   - Ensure module constants are accessible on device
+!   - Consider collapsing k,j,i loops for better GPU occupancy
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

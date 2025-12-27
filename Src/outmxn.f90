@@ -212,6 +212,21 @@
 
 ! Get the maximum and minimum value of optional variable.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: outmxn.f90 :: s_outmxn
+! Summary : Find max/min values of 3D variable using reductions with
+!           eps offset for numerical stability in comparisons.
+! GPU diff: Medium
+! Findings:
+!   - Uses reduction(max/min) for maxvl, maxeps, minvl, mineps
+!   - Triple nested loop over full 3D domain (i,j,k)
+!   - Uses sign intrinsic for eps offset calculation
+!   - No function calls; simple arithmetic operations
+! Next:
+!   - Map reductions to GPU atomic or parallel reduction
+!   - Consider using CUB or Thrust for reduction primitives
+!   - May need two-pass approach for value then indices
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j,k,cvl)                           &
@@ -248,6 +263,21 @@
 
 ! Get the indices of maximum and minimum value of optional variable.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: outmxn.f90 :: s_outmxn
+! Summary : Find grid indices (i,j,k) of max/min values using reductions
+!           after max/min values have been computed in previous region.
+! GPU diff: Medium
+! Findings:
+!   - Uses reduction(max/min) for index arrays maxi,maxj,maxk,mini,minj,mink
+!   - Comparison uses tolerance chkeps for floating point matching
+!   - Depends on maxeps, mineps computed in previous parallel region
+!   - Triple nested loop over full 3D domain
+! Next:
+!   - Can be fused with value-finding kernel using atomic argmax/argmin
+!   - Or use two-pass: first find values, then find indices
+!   - Consider storing linear index then decomposing to i,j,k
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j,k,ipies,jpjes,cvl)               &

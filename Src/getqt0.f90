@@ -272,6 +272,23 @@
 
 ! Get the buble shaped initial tracer to the array qt.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: getqt0.f90 :: s_getqt0
+! Summary : Initializes bubble-shaped tracer distribution using cosine function
+!           based on distance from center points (qt0opt=1 or 2)
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread usage
+!   - Uses intrinsic cos(), sqrt(), real() functions - GPU compatible
+!   - Multiple nested loops: iqt (bubbles), k, j, i
+!   - Conditional write to qt array based on distance check (str < 1.0)
+!   - Module variables xs, ys coordinates accessed
+!   - ctr array populated inside parallel region
+! Next:
+!   - Port inner k,j,i loops to GPU, keep iqt loop on host or unroll
+!   - Ensure xs, ys, ctr arrays are mapped to device
+!   - Conditional writes may cause thread divergence
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k_sub,iqt)
 
         if(qt0opt.eq.1) then
@@ -405,6 +422,23 @@
 
 ! Get the sine curved initial tracer to the array qt.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: getqt0.f90 :: s_getqt0
+! Summary : Initializes sine-curved tracer distribution with vertical cosine
+!           modulation (qt0opt=3 or 4)
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - Uses intrinsic sin(), cos() functions - GPU compatible
+!   - Simple nested k,j,i loops
+!   - Conditional write based on vertical height range (qt0zl to qt0zh)
+!   - Module variables xs, ys coordinates accessed
+!   - No loop-carried dependencies
+! Next:
+!   - Direct port to OpenMP target teams loop
+!   - Collapse k,j,i loops for better GPU occupancy
+!   - Ensure xs, ys arrays and scalar parameters are mapped to device
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k_sub)
 
         if(qt0opt.eq.3) then

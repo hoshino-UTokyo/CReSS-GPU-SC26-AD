@@ -272,6 +272,25 @@
 
 !! Set the radiative lateral boundary conditions.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: rbcq.f90 :: s_rbcq
+! Summary : Sets radiative lateral boundary conditions for optional mixing
+!           ratio at domain corners and edges with non-negative clamping.
+! GPU diff: Hard
+! Findings:
+!   - No omp_get_thread_num usage
+!   - Multiple conditional branches based on MPI subdomain position (ebs, ebn, ebw, ebe, isub, jsub)
+!   - Many omp do regions with k or (j,k)/(i,k) loop nests
+!   - Uses max() intrinsic to clamp values >= 0
+!   - Writes to qf (3D inout array) at boundary points only
+!   - No sync constructs; implicit barriers at omp end do
+!   - Uses module variables from m_commpi for domain decomposition
+!   - Complex conditional logic based on gpvvar, advopt, nggopt, lspopt, vspopt
+! Next:
+!   - Separate boundary kernels for GPU (one per edge/corner)
+!   - MPI conditionals should be evaluated on host before kernel launch
+!   - Consider using atomic operations if boundaries overlap in GPU version
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Set the boundary conditions at the four corners.

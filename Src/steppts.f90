@@ -207,6 +207,22 @@
 
 ! Solve the potential temperature perturbation to the next time step.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: steppts.f90 :: s_steppts
+! Summary : Advances potential temperature perturbation in time using forcing
+!           and gravity wave terms
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls inside parallel region
+!   - Single !$omp do loop with schedule(runtime)
+!   - Simple element-wise update: ptpf += dts*(ptfrc+ptsml)/rst
+!   - Writes only to ptpf array
+!   - No synchronization constructs besides implicit barriers
+! Next:
+!   - Map rst, ptfrc, ptsml (in), ptpf (inout) to GPU
+!   - Convert to !$omp target teams distribute parallel do collapse(2)
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-2

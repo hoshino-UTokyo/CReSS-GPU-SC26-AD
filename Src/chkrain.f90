@@ -125,6 +125,22 @@
 
 !!!! Check the precipitation on the surface.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: chkrain.f90 :: s_chkrain
+! Summary : Set precipitation flag (fall) based on water/ice precipitation
+!           thresholds for various microphysics options (bulk/bin methods)
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function/subroutine calls inside parallel region
+!   - No reductions or synchronization constructs
+!   - Multiple conditional branches based on cphopt, haiopt, fmois flags
+!   - Simple 2D loops setting output array fall to 1.0 or -1.0
+!   - Reads from prwtr and price arrays
+! Next:
+!   - Direct OpenMP target offload with collapse(2) for GPU
+!   - Branching within kernel may cause thread divergence; consider separate kernels
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Fill in the undefined value in the case of dry run.

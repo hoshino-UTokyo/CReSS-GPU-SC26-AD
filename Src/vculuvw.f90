@@ -183,6 +183,23 @@
 
 !! Calculate the velocity advection vertically.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: vculuvw.f90 :: s_vculuvw
+! Summary : Compute vertical velocity (u,v,w) advection using Cubic Lagrange scheme
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Reads from up,vp,wp,wc,wc8s; writes to uf,vf,wf (all 3D arrays)
+!   - Three separate sections for u, v, w advection
+!   - Outer k loops are serial with nested !$omp do for i,j
+!   - wc8u/wc8v computed as local averages (private temporaries)
+!   - Conditional branches for upwind/downwind stencil selection
+! Next:
+!   - Collapse k,j,i loops for each velocity component
+!   - Use OpenMP target teams distribute parallel do collapse(3)
+!   - Map all velocity arrays to device with proper in/out semantics
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Calculate the u advection vertically.

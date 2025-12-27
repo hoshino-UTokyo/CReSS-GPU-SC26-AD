@@ -125,6 +125,21 @@
 
 !! Set the south and north boundary conditions.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: bc8v.f90 :: s_bc8v
+! Summary : Sets south and north boundary conditions for optional variable at v points
+!           by copying from adjacent interior points based on BC type.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls inside parallel region
+!   - Nested loops with outer k-loop serial, inner i-loop parallelized
+!   - Uses module variables from m_commpi (ebs, ebn, jsub, njsub)
+!   - Conditional execution based on BC type (sbc, nbc) and subdomain position
+! Next:
+!   - Convert to OpenMP target offload with collapsed i,k loops
+!   - Restructure loops to have k as inner loop for better GPU coalescing
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the south boundary conditions.

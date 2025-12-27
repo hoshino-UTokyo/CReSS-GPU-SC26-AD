@@ -509,6 +509,26 @@
 
 !! Solve the scalar variables to the next time step.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: steps.f90 :: s_steps
+! Summary : Advances all scalar variables (ptp, qv, hydrometeors, aerosols,
+!           tracers, TKE) to next time step using forcing terms
+! GPU diff: Hard
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls inside parallel region
+!   - Many !$omp do loops with schedule(runtime)
+!   - Complex conditional branching (fmois, cphopt, haiopt, qcgopt, aslopt, etc.)
+!   - Writes to dtdrst, ptpf, qvf, qwtrf, nwtrf, qicef, nicef, qcwtrf, qcicef, qaslf, qtf, tkef
+!   - Uses max/min intrinsics for clipping values
+!   - n_sub loop variable for array dimension iteration
+!   - No synchronization constructs besides implicit barriers
+! Next:
+!   - Map all input/output arrays to GPU
+!   - Consider separating each variable update into distinct kernels
+!   - Branching may require conditional kernel launches or unified kernels
+!   - Use collapse(2) for nested loops
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k,n_sub)
 
 ! Set common used variable.

@@ -119,6 +119,23 @@
 !! Interpolate the 3 dimensional input variable to the 1 dimensional
 !! flat plane.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: vint31s.f90 :: s_vint31s
+! Summary : Interpolates 3D input variable to 1D flat plane at scalar
+!           points with undefined value handling outside range.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Uses module constant lim35n from m_commath
+!   - Nested k/ki loops with !$omp do on inner j,i loops
+!   - No synchronization constructs other than implicit barriers
+!   - Linear interpolation with simple conditionals
+! Next:
+!   - Straightforward GPU port with collapse clause
+!   - Map outvar, zph8s, invar, z1d arrays to device
+!   - Consider loop fusion for fill and interpolate phases
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k,ki)
 
 ! Fill in the undifined value outside of the flat plane.

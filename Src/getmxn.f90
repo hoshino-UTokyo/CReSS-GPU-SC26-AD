@@ -188,6 +188,23 @@
 
 ! Get the maximum value.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: getmxn.f90 :: s_getmxn
+! Summary : Finds maximum value across MPI gathered buffer and identifies
+!           the corresponding index location
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread usage
+!   - Uses intrinsic abs(), max(), sign() functions - GPU compatible
+!   - Contains reduction operations (max: maxvl, maxeps)
+!   - Iterates over MPI processor elements (npe), typically small count
+!   - Accesses module buffers mxnbuf, idxbuf from m_combuf
+!   - Module constant eps used from m_commath
+! Next:
+!   - Small loop size (npe) may not benefit from GPU offloading
+!   - Consider keeping on CPU or using atomic operations
+!   - Reduction clause supported in OpenMP target
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime)                                              &
@@ -217,6 +234,22 @@
 
 ! Get the indices of maximum value.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: getmxn.f90 :: s_getmxn
+! Summary : Identifies grid indices (i,j,k) where the maximum value occurs
+!           by comparing against the found maximum with tolerance
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread usage
+!   - Uses intrinsic abs(), max(), sign() functions - GPU compatible
+!   - Contains reduction operations (max: maxi, maxj, maxk)
+!   - Conditional update inside loop based on value comparison
+!   - Small loop size (npe processors)
+! Next:
+!   - Small loop size may not benefit from GPU offloading
+!   - Integer reductions supported in OpenMP target
+!   - Consider keeping on CPU due to small iteration count
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime)                                              &
@@ -250,6 +283,21 @@
 
 ! Get the minimum value.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: getmxn.f90 :: s_getmxn
+! Summary : Finds minimum value across MPI gathered buffer
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread usage
+!   - Uses intrinsic min(), sign() functions - GPU compatible
+!   - Contains reduction operations (min: minvl, mineps)
+!   - Iterates over MPI processor elements (npe), typically small count
+!   - Accesses module buffers mxnbuf from m_combuf
+! Next:
+!   - Small loop size (npe) may not benefit from GPU offloading
+!   - Consider keeping on CPU or using atomic operations
+!   - Reduction clause supported in OpenMP target
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime)                                              &
@@ -279,6 +327,22 @@
 
 ! Get the indices of minimum value.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: getmxn.f90 :: s_getmxn
+! Summary : Identifies grid indices (i,j,k) where the minimum value occurs
+!           by comparing against the found minimum with tolerance
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread usage
+!   - Uses intrinsic abs(), min(), sign() functions - GPU compatible
+!   - Contains reduction operations (min: mini, minj, mink)
+!   - Conditional update inside loop based on value comparison
+!   - Small loop size (npe processors)
+! Next:
+!   - Small loop size may not benefit from GPU offloading
+!   - Integer reductions supported in OpenMP target
+!   - Consider keeping on CPU due to small iteration count
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime)                                              &

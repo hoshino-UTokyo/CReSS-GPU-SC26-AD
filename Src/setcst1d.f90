@@ -93,6 +93,20 @@
 
 ! Fill in the array with the constant value.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: setcst1d.f90 :: s_setcst1d
+! Summary : Fill 1D array with a constant value (real type)
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls
+!   - Simple 1D loop with direct assignment
+!   - No synchronization constructs
+!   - Trivially parallelizable
+! Next:
+!   - Convert to OpenACC with parallel loop
+!   - Consider using memset or array assignment for better performance
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(k)
@@ -137,6 +151,20 @@
 
 ! Fill in the array with the constant value.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: setcst1d.f90 :: s_setcst1d_r8
+! Summary : Fill 1D array with a constant value (real*8 type)
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls
+!   - Simple 1D loop with direct assignment
+!   - No synchronization constructs
+!   - Trivially parallelizable
+! Next:
+!   - Convert to OpenACC with parallel loop
+!   - Consider using memset or array assignment for better performance
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(k)

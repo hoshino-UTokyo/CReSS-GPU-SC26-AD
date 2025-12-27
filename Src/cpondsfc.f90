@@ -161,6 +161,24 @@
 !! Correspond the surface data to the land use categories and check
 !! errors.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: cpondsfc.f90 :: s_cpondsfc
+! Summary : Maps surface variables to land use categories from lookup table,
+!           then performs error checking with reduction.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls inside parallel region
+!   - First loop: lookup table matching with conditional assignment
+!   - Second loop: reduction(min: rstat) for error checking
+!   - Uses lnduse_lnd and sfcvar_lnd lookup tables (size 100)
+!   - Potential race condition if multiple categories match same grid point
+! Next:
+!   - Lookup tables should be placed in constant memory on GPU
+!   - Reduction can use GPU reduction primitives
+!   - Consider restructuring first loop to avoid potential race condition
+!   - May need atomic operations or different algorithm for category matching
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Correspond the surface data to the land use categories.

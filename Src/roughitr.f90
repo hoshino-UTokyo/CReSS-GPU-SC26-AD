@@ -176,6 +176,23 @@
 ! If the variations of the roughness parameter is greater than z0meps,
 ! perform the iteration.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: roughitr.f90 :: s_roughitr
+! Summary : Calculate sea surface roughness length by iteration using bulk coefficient
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - Located inside iterate: do loop (outer iteration loop is serial)
+!   - Uses intrinsic functions: abs, max
+!   - Conditional logic based on land use (land < 3) and ust threshold
+!   - Updates z0m, z0h, dz0m arrays
+!   - External subroutine calls getrich, bulksfc, chkitr before/after parallel region
+!   - No synchronization constructs inside parallel region
+! Next:
+!   - Convert to OpenMP target with teams distribute parallel for
+!   - Keep iteration control on host, only offload inner 2D loop
+!   - May need to manage z0m, z0h data between iterations on GPU
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j,ust,z0itr)

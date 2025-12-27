@@ -113,6 +113,22 @@
 
 ! Calculate the zeta coordinates.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: getz11.f90 :: s_getz11
+! Summary : Calculate 1D zeta vertical coordinates with 11m offset
+!           from sea surface height for surface layer reference.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls within parallel region
+!   - Uses intrinsic real function (GPU compatible)
+!   - Simple 1D loop with arithmetic: z = zsfc11 + (k-2)*dz
+!   - No global writes, only output array z is modified
+! Next:
+!   - 1D array with nk elements (typically small, <100)
+!   - May not benefit from GPU offload due to small size
+!   - If needed, use OpenMP target with single team
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(k)

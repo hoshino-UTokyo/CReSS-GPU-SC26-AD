@@ -116,6 +116,24 @@
 
 !! Set the interpolated sea surface temperature.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: setsst.f90 :: s_setsst
+! Summary : Sets interpolated sea surface temperature (SST) by computing time tendency
+!           or copying values based on read index.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Simple 2D loops over ni x nj grid
+!   - Only basic arithmetic operations (subtraction, multiplication)
+!   - All loops independent with private i,j indices
+!   - No synchronization constructs
+!   - Minimal computation per grid point
+! Next:
+!   - Straightforward GPU port with 2D kernel
+!   - Use OpenACC/OpenMP target with collapse(2)
+!   - Consider combining both ird branches into single kernel with conditional
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Set the time tendency of sea surface temperature at current marked

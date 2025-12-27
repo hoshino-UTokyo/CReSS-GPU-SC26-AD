@@ -213,6 +213,23 @@
 
 !! Calculate the 4th order velocity numerical smoothing.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: smoo4uvw.f90 :: s_smoo4uvw
+! Summary : Applies 4th order numerical smoothing to u, v, w velocity components
+!           with horizontal/vertical coefficients and conditional branching
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls inside parallel region
+!   - Many !$omp do loops with schedule(runtime) for u, v, w separately
+!   - Conditional branches with mod(smtopt,10).eq.2 for each velocity component
+!   - Writes to tmp1-5, ufrc, vfrc, wfrc arrays
+!   - No synchronization constructs besides implicit barriers
+! Next:
+!   - Map tmp1-5, ufrc, vfrc, wfrc to GPU
+!   - Consider separating u/v/w processing into distinct kernels
+!   - Use collapse(2) for nested loops
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Calculate the 4th order u smoothing.

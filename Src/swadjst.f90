@@ -228,6 +228,22 @@
 
 !! Perform the saturation adjustment.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: swadjst.f90 :: s_swadjst
+! Summary : Perform saturation adjustment for water phase, updating
+!           temperature, vapor, and cloud water with condensation/evaporation
+! GPU diff: Hard
+! Findings:
+!   - Complex conditionals based on cphopt and saturation state
+!   - Multiple exp/log intrinsic function calls per grid point
+!   - Iterative two-pass adjustment for accuracy
+!   - Deep nesting with many local temporary variables
+!   - Conditional updates to ncc (cloud concentration) based on vertical velocity
+! Next:
+!   - Significant thread divergence expected from conditionals
+!   - Consider separating cphopt<=3 and cphopt==4 paths
+!   - Profile exp/log operations for GPU performance
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Perform calculating in the case the option abs(cphopt) is less than 3.

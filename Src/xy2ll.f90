@@ -203,6 +203,24 @@
 !!! Calculate the latitude and the longitude from the x and the y
 !!! coordinates.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: xy2ll.f90 :: s_xy2ll
+! Summary : Convert x,y map coordinates to latitude/longitude using various
+!           map projections (lat-lon, Polar Stereographic, Lambert, Mercator, etc.)
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread usage
+!   - No external function calls; uses intrinsics only (atan, cos, exp, log, sqrt)
+!   - No global variable writes (only output arrays lat, lon)
+!   - No explicit synchronization constructs
+!   - Multiple conditional branches (mpopt) with separate omp do regions
+!   - All omp do regions are mutually exclusive (only one executes per call)
+!   - Element-wise computation with no loop-carried dependencies
+! Next:
+!   - Consider restructuring branches into separate kernels or use runtime selection
+!   - Map x, y, cpj as to, and lat, lon as from
+!   - Intrinsic math functions are GPU-compatible
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !! Calculate the latitude and the longitude with latitude and longitude

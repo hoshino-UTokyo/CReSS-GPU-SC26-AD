@@ -198,6 +198,24 @@
 
 ! Calculate the turbulent kinetic energy mixing.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: turbtke.f90 :: s_turbtke
+! Summary : Calculate TKE mixing term by computing divergence of turbulent
+!           fluxes with terrain and map scale factor corrections
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls within loops
+!   - Writes to tkefrc (in/out), tmp1, tmp2, tmp3 arrays
+!   - Complex conditional structure (trnopt, mfcopt, mpopt)
+!   - Multiple temporary arrays used for intermediate calculations
+!   - No synchronization constructs within parallel region
+! Next:
+!   - GPU port requires handling multiple code paths
+!   - Consider separate kernels for terrain vs non-terrain cases
+!   - Temporary arrays can use shared memory or registers
+!   - Map scale factor combinations may benefit from kernel specialization
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       if(trnopt.eq.0) then

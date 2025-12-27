@@ -121,6 +121,22 @@
 
 ! Calculate the Coriolis parameters x 0.25.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: trilat.f90 :: s_trilat
+! Summary : Calculate Coriolis parameters (fc) from latitude using
+!           sin/sqrt for vertical and horizontal components
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - Calls intrinsic functions only (sin, sqrt)
+!   - Writes to fc array (2 components)
+!   - Conditional branches based on coropt (1 or 2)
+!   - No synchronization constructs
+! Next:
+!   - Straightforward GPU port
+!   - Trigonometric functions available on GPU
+!   - Can be computed once and cached if lat doesn't change
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
       if(coropt.eq.1) then

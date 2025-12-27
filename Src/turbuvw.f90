@@ -234,6 +234,28 @@
 
 !! Calculate the velocity turbulent mixing.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: turbuvw.f90 :: subroutine s_turbuvw
+! Summary : Calculates velocity turbulent mixing for u, v, w components
+!           using stress tensor divergence with terrain and map factors.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - No writes to module/global variables.
+!   - No synchronization constructs.
+!   - Very large parallel region with many conditional branches.
+!   - Multiple code paths based on trnopt, mfcopt, mpopt, advopt.
+!   - Stencil operations on stress tensors (t11, t22, t33, t12, t13, t23).
+!   - Temporary arrays reused (tmp1, t11, t22 as scratch).
+!   - All grid points independent within each loop nest.
+! Next:
+!   - Consider separating into multiple kernels by component (u, v, w).
+!   - Evaluate conditions outside kernel to select specific code path.
+!   - OpenACC kernels with collapse(2) on i,j loops.
+!   - Data region should cover all stress tensors and force arrays.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
 ! Calculate the invers of map scale factor at dot points.

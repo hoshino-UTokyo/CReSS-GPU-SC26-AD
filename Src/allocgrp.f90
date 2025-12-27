@@ -192,6 +192,22 @@
 
 ! Initialize the other table and set boundary conditions.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: allocgrp.f90 :: s_allocgrp
+! Summary : Initialize group domain arrangement tables (grpxy, xgrp, ygrp)
+!           and set boundary conditions based on wbc, ebc, sbc, nbc options
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Writes to module-level arrays grpxy, xgrp, ygrp from m_comgrp
+!   - Simple initialization loops with no data dependencies
+!   - Conditional blocks for cyclic boundary setup
+! Next:
+!   - Straightforward GPU port with OpenACC parallel loops
+!   - Small loop sizes (nigrp, njgrp, nsrl) may not benefit from GPU
+!   - Consider keeping on CPU if domain decomposition is small
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(igc_sub,jgc_sub)

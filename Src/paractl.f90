@@ -473,6 +473,21 @@
 
 ! Calculate the minimum latitude and longitude.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: paractl.f90 :: s_paractl
+! Summary : Find minimum/maximum latitude and longitude from corner points
+!           using reduction operations.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region (pure arithmetic with min/max)
+!   - No global/module variable writes
+!   - Uses reduction(min:) and reduction(max:) for latmin, lonmin, latmax, lonmax
+!   - Small loop iteration count (4-5 iterations) - may not benefit from GPU
+! Next:
+!   - Consider keeping on CPU due to small iteration count
+!   - If porting, use GPU reduction primitives or atomic operations
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
       if(mpopt.eq.1.or.mpopt.eq.2) then
@@ -698,6 +713,21 @@
 
 ! Calculate the latitude with the Mercator projection method.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: paractl.f90 :: s_paractl
+! Summary : Compute latitude array for Mercator projection using exponential
+!           and trigonometric functions.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - Uses intrinsic functions: atan, exp, max, min (GPU-compatible)
+!   - No global/module variable writes (only mlat output array)
+!   - No sync constructs
+!   - Conditional based on uniopt_uni with different loop bounds
+! Next:
+!   - Convert to OpenMP target with device math library
+!   - Ensure atan/exp are available on GPU device
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
       if(mpopt.eq.3.or.mpopt.eq.13) then

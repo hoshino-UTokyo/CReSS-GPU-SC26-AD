@@ -119,6 +119,24 @@
 ! Calculate the auto conversion rate from the cloud water to the rain
 ! water.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: convc2r.f90 :: subroutine s_convc2r
+! Summary : Calculates autoconversion rate from cloud water to rain water
+!           using threshold-based Kessler-type parameterization.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - No module variable access inside loops.
+!   - No synchronization constructs.
+!   - Conditional logic for conversion threshold.
+!   - Both qcf and qrf updated in place - no race conditions.
+!   - All grid points are independent (embarrassingly parallel).
+! Next:
+!   - Direct OpenACC kernels should work well.
+!   - Threshold-based conditionals may cause minor warp divergence.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

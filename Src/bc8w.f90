@@ -123,6 +123,21 @@
 
 !! Set the bottom and top boundary conditions.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: bc8w.f90 :: s_bc8w
+! Summary : Sets bottom and top boundary conditions for optional variable at w points
+!           by copying from adjacent vertical levels based on BC type.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls inside parallel region
+!   - 2D loops over i,j with fixed k indices (boundaries)
+!   - Multiple conditional branches based on BC type (bbc, tbc)
+!   - Simple array copy operations
+! Next:
+!   - Convert to OpenMP target offload with collapsed i,j loops
+!   - Merge bottom and top BC loops into single kernel if both are same type
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Set the bottom boundary conditions.

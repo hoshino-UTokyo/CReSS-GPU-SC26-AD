@@ -190,6 +190,24 @@
 
 ! Set the coefficient matrix.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: pblu.f90 :: s_pblu
+! Summary : Set up tridiagonal coefficient matrix (rr,ss,tt) for implicit
+!           vertical diffusion of x-velocity component in PBL.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region (pure arithmetic)
+!   - No global/module variable writes (only intent(inout) arrays)
+!   - No sync constructs
+!   - Multiple conditional branches based on levpbl value
+!   - Uses tmp1 and tmp2 arrays for intermediate calculations across k levels
+!   - Followed by MPI buffer operations and gaussel call outside parallel region
+! Next:
+!   - Port coefficient matrix setup to GPU
+!   - Consider batched tridiagonal solver for gaussel on GPU
+!   - MPI operations remain on CPU; need data transfer strategy
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       if(levpbl.eq.1) then

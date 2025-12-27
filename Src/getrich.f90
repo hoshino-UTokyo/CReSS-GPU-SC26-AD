@@ -121,6 +121,24 @@
 
 ! Calculate the bulk Richardson number.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: getrich.f90 :: s_getrich
+! Summary : Calculates bulk Richardson number on surface for stability
+!           assessment, with special handling for sea ice regions
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - Uses intrinsic max() function - GPU compatible
+!   - 2D loop over surface grid points (i,j)
+!   - Conditional update for sea ice (land=1) with weighted average
+!   - Module constants g, icz0m, icz0h, rchmin used from m_comphy
+!   - No loop-carried dependencies
+!   - No synchronization constructs beyond implicit barriers
+! Next:
+!   - Direct port to OpenMP target teams loop
+!   - Collapse j,i loops for better GPU occupancy
+!   - Ensure module constants are accessible on device
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j,dz0m,dz0h,a)

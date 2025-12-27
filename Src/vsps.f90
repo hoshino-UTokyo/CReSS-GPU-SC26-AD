@@ -153,6 +153,24 @@
 
 !! Calculate the vertical sponge damping for optional scalar variable.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: vsps.f90 :: subroutine s_vsps
+! Summary : Applies vertical sponge damping near model top for scalar
+!           variables, relaxing toward GPV data or base state.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - No writes to module/global variables.
+!   - No synchronization constructs.
+!   - Simple arithmetic with rbct damping coefficients.
+!   - Only upper levels computed (k >= ksp0 - sparse in k).
+!   - Conditional on vspopt for GPV vs base state damping target.
+! Next:
+!   - Direct OpenACC kernels should work well.
+!   - Upper-level-only computation - consider k-range optimization.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
 ! Damp to the GPV data.

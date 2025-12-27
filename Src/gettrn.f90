@@ -179,6 +179,21 @@
 
 ! Set the flat terrain.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: gettrn.f90 :: s_gettrn (trnopt=0 branch)
+! Summary : Initialize terrain height array with constant flat value
+!           using max of mountain height+base or sea surface height.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls within parallel region
+!   - Uses intrinsic max function (GPU compatible)
+!   - Simple constant assignment to all grid points
+!   - No global writes, only output array ht is modified
+! Next:
+!   - Direct translation to OpenMP target with teams distribute
+!   - Consider using GPU memset-like operation for constant fill
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j)
@@ -222,6 +237,22 @@
 
 ! Set the bell shaped mountain.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: gettrn.f90 :: s_gettrn (trnopt=1 branch)
+! Summary : Generate bell-shaped mountain terrain using Gaussian-like
+!           formula with configurable height, width, and center position.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls within parallel region
+!   - Uses intrinsic max function (GPU compatible)
+!   - Reads from 1D arrays xs(i), ys(j) - need to ensure GPU accessible
+!   - Simple arithmetic with division and max
+!   - No global writes, only output array ht is modified
+! Next:
+!   - Direct translation to OpenMP target with teams distribute
+!   - Ensure xs and ys arrays are mapped to device
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j,a,b)

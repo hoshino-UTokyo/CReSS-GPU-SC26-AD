@@ -236,6 +236,25 @@
 
 !!!! Calculate the evaporation and deposition rate.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: depsit.f90 :: s_depsit
+! Summary : Calculate evaporation rate from rain to vapor and deposition
+!           rates from vapor to ice hydrometeors (cloud ice, snow, graupel).
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - Uses intrinsic exp, int, log, max functions (GPU-compatible)
+!   - Accesses lookup tables ckoe, pkoe indexed by temperature
+!   - Private variable k for outer loop; many private local scalars
+!   - Writes to vdvr, vdvi, vdvs, vdvg output arrays
+!   - Complex conditional logic based on temperature and mixing ratios
+!   - Special case handling for nk=1 vs nk>1
+! Next:
+!   - Convert to OpenMP target with data region for all input/output arrays
+!   - Copy lookup tables ckoe, pkoe to device
+!   - May need to restructure conditionals for GPU efficiency
+!   - Consider separating nk=1 case into distinct kernel
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !!! In the case nk = 1.

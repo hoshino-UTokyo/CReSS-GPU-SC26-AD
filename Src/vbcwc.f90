@@ -123,6 +123,20 @@
 
 !! Set the bottom and top boundary conditions.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: vbcwc.f90 :: s_vbcwc
+! Summary : Set vertical boundary conditions (bottom/top) for zeta contravariant velocity
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Simple array writes to wc (inout) with conditional branches
+!   - Multiple !$omp do regions with private(i,j) and schedule(runtime)
+!   - No synchronization constructs beyond implicit barriers at end do
+! Next:
+!   - Direct OpenMP target offload with data mapping for wc array
+!   - Consider collapsing i,j loops and using teams distribute
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Set the bottom boundary conditions.

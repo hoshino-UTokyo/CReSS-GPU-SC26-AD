@@ -166,6 +166,23 @@
 !! Calculate the curvature of earth in the x and y components of
 !! velocity equation.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: curveuvw.f90 :: s_curveuvw
+! Summary : Calculate earth curvature forcing terms for u, v, w velocity
+!           equations using temporary arrays and map scale factors.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Private variable k used for outer loop
+!   - Writes to ufrc, vfrc, wfrc (forcing terms) and tmp1-tmp5 (temporaries)
+!   - Multiple sequential k-loops with data dependencies between them
+!   - Conditional branches based on mpopt and mfcopt options
+! Next:
+!   - Convert to OpenMP target with data region for all arrays
+!   - May need to fuse some k-loops or restructure for better parallelism
+!   - Handle conditional logic for map projection options on GPU
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the common used array.

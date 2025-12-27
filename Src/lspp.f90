@@ -174,6 +174,21 @@
 
 !! Calculate the lateral sponge damping for pressure.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: lspp.f90 :: s_lspp
+! Summary : Apply lateral sponge damping to pressure perturbation forcing term
+!           with optional smoothing based on GPV data or base state
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Writes to pfrc (output forcing term) and tmp1 (temporary array)
+!   - Multiple worksharing constructs with branching logic
+!   - No synchronization constructs besides implicit barriers at !$omp end do
+! Next:
+!   - Convert to OpenMP target offloading with data mapping for jcb, ppp, ppgpv, pptd, rbcxy, pfrc, tmp1
+!   - Collapse nested i,j loops for better GPU occupancy
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       if(wdnews.ge.1) then

@@ -243,6 +243,28 @@
 
 !!!! Calculate the eddy viscosity.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: eddyvis.f90 :: subroutine s_eddyvis
+! Summary : Calculates eddy viscosity and turbulent length scale using
+!           Smagorinsky or Deardorff (TKE-based) formulations with
+!           stability corrections.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - Reads module constants (oned3, csnum, ckm, ckmin, prnum, kappa, eps)
+!     from commath/comphy.
+!   - No synchronization constructs.
+!   - Uses intrinsic abs(), exp(), log(), max(), min(), sqrt() - all GPU ok.
+!   - Complex nested conditionals (tubopt, isoopt, sfcopt, mfcopt, mpopt).
+!   - Thread divergence likely due to many branching paths.
+!   - All grid points are independent within selected code path.
+! Next:
+!   - Consider restructuring conditionals for GPU - evaluate outside kernel.
+!   - Use template/variant approach for different physics configurations.
+!   - Intrinsic functions are well-supported on GPU.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
 !! Calculate the eddy viscosity with the Smagorinsky formulation.

@@ -95,6 +95,22 @@
 
 !! Convert variable type of the land use categories.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: convland.f90 :: s_convland
+! Summary : Converts land use categories between integer and real types,
+!           either real(land)+0.1 or nint(rland).
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls (only intrinsic nint, real)
+!   - Simple 2D loop with straightforward type conversion
+!   - Two mutually exclusive branches based on fproc string
+!   - Independent grid point operations
+! Next:
+!   - Straightforward GPU port with OpenMP target or OpenACC
+!   - Collapse i,j loops for better occupancy
+!   - Consider data movement optimization if called frequently
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Convert the integer land use categories to real.

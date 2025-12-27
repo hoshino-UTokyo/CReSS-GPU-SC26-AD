@@ -172,6 +172,23 @@
 !!! Adjust the concentrations of the precipitation categories of the ice
 !!! hydrometeor.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: adjstnsg.f90 :: subroutine s_adjstnsg
+! Summary : Adjusts concentrations of ice precipitation (snow, graupel,
+!           hail) to be within physical bounds using diagnostic formulas.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - Calls getiname() before parallel region (not inside).
+!   - Uses module constants from comphy/commath.
+!   - Uses intrinsic sqrt, min, max - all GPU compatible.
+!   - Conditional on haiopt determines if hail is processed.
+!   - All grid points independent (embarrassingly parallel).
+! Next:
+!   - Direct OpenACC kernels with collapse(3) for (k,j,i).
+!   - Module constants can be passed as scalars to device.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
 !! Adjust the concentrations of the snow and graupel.

@@ -211,6 +211,23 @@
 
 !! Set the interpolated GPV variables.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: setgpv.f90 :: s_setgpv
+! Summary : Sets interpolated GPV (Grid Point Value) variables including velocity, pressure,
+!           temperature, and hydrometeor time tendencies or values depending on read index.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Multiple conditional branches based on gpvvar flags and cphopt/haiopt options
+!   - All loops are independent with private i,j,k indices
+!   - Multiple separate do-omp do blocks for different variable categories
+!   - No synchronization constructs beyond implicit barriers at omp end do
+! Next:
+!   - Consider collapsing nested conditionals into unified kernels
+!   - Use OpenACC/OpenMP target with data regions for array transfers
+!   - May benefit from kernel fusion for related variable updates
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the time tendency of variables at current marked time.

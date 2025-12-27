@@ -231,6 +231,20 @@
 
 !! Set the top and bottom boundary conditions and coefficient matrix.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: steptund.f90 :: s_steptund
+! Summary : Set boundary conditions and coefficient matrix for soil/sea
+!           temperature tridiagonal equation solver
+! GPU diff: Medium
+! Findings:
+!   - Multiple conditional branches based on land type and sfcopt
+!   - Nested k-loops with inner i,j loops parallelized
+!   - Array updates depend on land use classification
+!   - No function calls within parallel region
+! Next:
+!   - Consider collapsing k,j,i loops for better GPU occupancy
+!   - Use data directives for tundp, tundf, rr, ss, tt arrays
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the ice and snow surface temperature.
@@ -537,6 +551,19 @@
 !! Set the bottom boundary conditions and convert the unit from Celsius
 !! to Kelvin degrees.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: steptund.f90 :: s_steptund
+! Summary : Set bottom boundary condition and convert Celsius to Kelvin
+!           for soil/sea temperature output
+! GPU diff: Easy
+! Findings:
+!   - Simple conditional for sfcopt and land type
+!   - Straightforward array update with constant offset
+!   - No function calls within parallel region
+! Next:
+!   - Collapse loops for GPU parallelization
+!   - Keep tundf array resident on GPU from previous kernel
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the bottom boundary condition.

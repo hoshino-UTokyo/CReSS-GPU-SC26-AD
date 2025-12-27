@@ -119,6 +119,24 @@
 
 ! Calculate the buoyancy production.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: buoytke.f90 :: s_buoytke
+! Summary : Calculates buoyancy production term for turbulent kinetic
+!           energy equation using Brunt-Vaisala frequency and diffusivity.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Simple arithmetic operations only
+!   - Two sequential loop nests: first computes tmp1, second updates tkefrc
+!   - Data dependency: tmp1 must be computed before tkefrc update
+!   - No synchronization constructs beyond implicit barriers
+! Next:
+!   - Convert to OpenMP target with data mapping for arrays
+!   - Use collapse(2) for nested i,j loops within each k-loop
+!   - Keep two separate target regions or use explicit barrier between phases
+!   - Consider fusing loops if tmp1 dependency can be restructured
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
         do k=2,nk-1

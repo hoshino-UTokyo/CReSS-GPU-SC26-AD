@@ -561,6 +561,20 @@
 
       else if(sfcdat(1:1).eq.'x') then
 
+!@llm start meta_info ----------------------------------------------------
+! Location: rdsfcdmp.f90 :: s_rdsfcdmp
+! Summary : Set constant land use categories based on terrain height and sfcopt setting
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Two separate do loops based on sfcopt condition (conditional inside parallel region)
+!   - Simple element-wise assignment to land array
+!   - No synchronization constructs or reductions
+! Next:
+!   - Convert to OpenMP target with teams distribute parallel for
+!   - Move sfcopt conditional outside kernel for simpler GPU code
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
         if(sfcopt.ge.1) then

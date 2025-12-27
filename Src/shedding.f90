@@ -133,6 +133,24 @@
 
 !!! Calculate the shedding rate.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: shedding.f90 :: s_shedding
+! Summary : Calculates shedding rates of liquid water from snow and graupel to rain,
+!           based on temperature and collection/production rates.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Uses module constant t0 from m_comphy for temperature threshold
+!   - Conditional branches based on mixing ratio thresholds and temperature
+!   - Handles nk=1 case separately (2D) vs nk>1 case (3D)
+!   - All loops independent with private i,j,k indices
+!   - No synchronization constructs
+! Next:
+!   - Straightforward GPU port with conditional logic preserved
+!   - Use OpenACC/OpenMP target with collapse for nested loops
+!   - Consider single kernel handling both nk cases with runtime check
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !! In the case nk = 1.

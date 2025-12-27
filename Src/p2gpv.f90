@@ -116,6 +116,21 @@
 
 ! Calculate the analysis nudging terms for pressure.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: p2gpv.f90 :: s_p2gpv
+! Summary : Add analysis nudging forcing terms to pressure equation based on
+!           GPV data difference.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region (pure arithmetic)
+!   - No global/module variable writes (only intent(inout) pfrc array)
+!   - No sync constructs (barrier, critical, atomic)
+!   - Simple k-loop with nested i,j loops, straightforward data parallelism
+! Next:
+!   - Convert to OpenMP target with collapse(3) for k,j,i loops
+!   - Use map clauses for input/output arrays
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-2

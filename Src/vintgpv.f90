@@ -370,6 +370,22 @@
 
       if(gpvvar(2:2).eq.'o') then
 
+!@llm start meta_info ----------------------------------------------------
+! Location: vintgpv.f90 :: s_vintgpv
+! Summary : Sets constant z coordinates in varef array for base state
+!           variable interpolation preparation.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Simple assignment loop copying z(k) to 2D slice varef(:,:,k)
+!   - No synchronization constructs other than implicit barriers
+!   - Straightforward memory access pattern
+! Next:
+!   - Trivial GPU port with collapse clause on j,i loops
+!   - Consider fusing with subsequent vint13 calls if possible
+!   - Map varef, z arrays to device
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
         do k=1,nk

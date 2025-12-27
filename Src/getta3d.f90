@@ -101,6 +101,21 @@
 
 ! Calculate the air temperature.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: getta3d.f90 :: s_getta3d
+! Summary : Compute air temperature from base state potential temperature,
+!           perturbation, and Exner function at all grid points.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls within parallel region
+!   - Simple element-wise arithmetic: t = (ptbr + ptp) * pi
+!   - No global writes, only output array t is modified
+!   - No synchronization constructs other than implicit barrier at end do
+! Next:
+!   - Direct translation to OpenMP target or OpenACC with collapsed loops
+!   - Consider loop collapse for k,j,i dimensions
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

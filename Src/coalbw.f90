@@ -173,6 +173,25 @@
 
 !! Get current new value.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: coalbw.f90 :: s_coalbw
+! Summary : Perform coalescence processes between water bins including
+!           continuous and stochastic coalescence with bin remapping
+! GPU diff: Hard
+! Findings:
+!   - No omp_get_thread_num usage
+!   - Calls s_remapbw subroutine OUTSIDE parallel region (between parallel blocks)
+!   - No reductions inside parallel region
+!   - Complex conditional logic with nested loops over bin categories (ns, n_sub)
+!   - In-place modifications to mwbin, nwbin arrays
+!   - Multiple intermediate arrays: mwbrs, bmwsc, bmwss, mwsc, nwsc, mwss, nwss, pct
+!   - Loop-carried dependencies through pct accumulation
+!   - Sequential outer loop (ns=nqw,2,-1) with parallel inner loops
+! Next:
+!   - Challenging due to loop-carried dependencies and complex conditionals
+!   - Consider restructuring for better GPU parallelization
+!   - May need to parallelize over (i,j) only, keeping bin loop sequential
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(n_sub)
 
 ! Set the common used variables.
@@ -400,6 +419,21 @@
 
 ! Get the shifted bin boundaries.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: coalbw.f90 :: s_coalbw
+! Summary : Compute shifted bin boundaries (bmwss) for stochastic coalescence
+!           remapping based on coalescence probability
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function/subroutine calls inside parallel region
+!   - No reductions or synchronization constructs
+!   - Simple conditional assignment based on mwss and pct values
+!   - Reads bmwsc, bmw; writes bmwss
+! Next:
+!   - Direct OpenMP target offload with collapse(2) for GPU
+!   - Small kernel; consider fusing with adjacent parallel regions
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j)

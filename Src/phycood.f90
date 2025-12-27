@@ -192,6 +192,21 @@
 
 ! Get the highest mountain height.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: phycood.f90 :: s_phycood
+! Summary : Find the highest terrain height using max reduction over 2D domain.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Uses reduction(max: htmax) clause
+!   - Reads from ht array, no writes to shared arrays
+!   - Simple 2D loop with reduction operation
+! Next:
+!   - Use OpenACC parallel loop with reduction(max:htmax)
+!   - GPU reductions are well supported in OpenACC
+!   - May need atomic or tree-based reduction for performance
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j) reduction(max: htmax)
@@ -248,6 +263,21 @@
 
 ! Get the index of lowest flat level.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: phycood.f90 :: s_phycood
+! Summary : Find the lowest flat level index using min reduction over k levels.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Uses reduction(min: kflat) clause
+!   - Reads from zsth array, no writes to shared arrays
+!   - Simple 1D loop with conditional and reduction
+! Next:
+!   - Use OpenACC parallel loop with reduction(min:kflat)
+!   - Small loop range (nk typically ~50-100), may be better on CPU
+!   - Consider keeping this on host if nk is small
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(k) reduction(min: kflat)
@@ -296,6 +326,23 @@
 
 ! Get the z physical coordinates and reset the stretched z coordinates.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: phycood.f90 :: s_phycood
+! Summary : Calculate 3D z physical coordinates and reset 1D stretched z
+!           coordinates with terrain-following transformation.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Writes to output arrays zph and zsth
+!   - Simple 3D stencil with conditional for flat level check
+!   - Mix of 3D (zph) and 1D (zsth) array operations
+!   - No explicit barriers but implicit at !$omp end do
+! Next:
+!   - Use OpenACC parallel loop with collapse(3) for 3D zph loops
+!   - Keep 1D zsth loop separate or use OpenACC loop
+!   - Straightforward GPU port with data region
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-1

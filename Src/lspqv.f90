@@ -179,6 +179,21 @@
 
 !! Calculate the lateral sponge damping.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: lspqv.f90 :: s_lspqv
+! Summary : Apply lateral sponge damping to water vapor mixing ratio forcing term
+!           with optional smoothing based on GPV data or base state
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Writes to qvfrc (output forcing term) and tmp1 (temporary array)
+!   - Multiple worksharing constructs with branching logic
+!   - No synchronization constructs besides implicit barriers at !$omp end do
+! Next:
+!   - Convert to OpenMP target offloading with data mapping for rst, qvbr, qvp, qvgpv, qvtd, rbcxy, qvfrc, tmp1
+!   - Collapse nested i,j loops for better GPU occupancy
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       if(wdnews.ge.1) then

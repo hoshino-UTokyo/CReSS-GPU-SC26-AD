@@ -202,6 +202,25 @@
 
 !! Force the lateral boundary value to the external boundary value.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: exbcw.f90 :: subroutine s_exbcw
+! Summary : Forces lateral boundary values of w velocity to external
+!           (GPV) boundary values with radiative/relaxation approach.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - Reads module variables (ebw, ebe, ebs, ebn, isub, jsub, etc.).
+!   - No synchronization constructs.
+!   - Uses intrinsic abs() - GPU compatible.
+!   - Complex boundary-position-dependent conditionals (corners, edges).
+!   - Only boundary cells are updated - sparse computation.
+! Next:
+!   - Consider separate kernels for each boundary region.
+!   - Boundary-only work has low arithmetic intensity on GPU.
+!   - Masking approach may be more efficient than conditionals.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared)
 
 ! Force the boundary value to the external boundary value at the four

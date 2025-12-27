@@ -109,6 +109,22 @@
 
 ! Get the total mixing ratio or concentrations of same material.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: totalq.f90 :: s_totalq
+! Summary : Sum mixing ratios or concentrations across categories from
+!           istr to iend into total array qall
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls
+!   - Single output array (qall)
+!   - Simple summation loop over 4th dimension
+!   - No synchronization constructs
+! Next:
+!   - Straightforward GPU port
+!   - Could use reduction pattern if categories are summed in parallel
+!   - Consider using atomic operations or parallel reduction for category sum
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k,n)
 
       do k=1,nk-1

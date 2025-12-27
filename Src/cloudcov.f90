@@ -201,6 +201,25 @@
 
 !!! Calculate the cloud cover.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: cloudcov.f90 :: s_cloudcov
+! Summary : Calculate low/mid/high cloud cover from relative humidity or
+!           hydrometeor mixing ratios with multiple interpolation levels
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function/subroutine calls inside parallel region
+!   - No reductions; only array element writes
+!   - Uses intrinsic functions (abs, aint, exp, int, max, min)
+!   - Complex conditional logic based on fmois, fproc, cphopt flags
+!   - Multiple sequential k-loops with dependencies on zph8s interpolation
+!   - Lookup table access (rcdl, rcdm, rcdh) from module m_comtable
+!   - Accumulation in qsuml, qsumm, qsumh across k-levels
+! Next:
+!   - Split into multiple GPU kernels for different fproc/fmois branches
+!   - k-loop accumulations may need careful handling (scan or atomic)
+!   - Consider data locality for lookup tables
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the no cloud cover in the case of dry air.

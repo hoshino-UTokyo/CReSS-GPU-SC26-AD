@@ -95,6 +95,21 @@
 
 ! Be averaged to v points.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: var8w8v.f90 :: s_var8w8v
+! Summary : Averages variable at w points to v points using 4-point averaging
+!           in y and z directions.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - No global/module variable writes, only local array writes
+!   - No synchronization constructs (barrier, critical, atomic)
+!   - Simple loop structure with private loop indices
+! Next:
+!   - Direct conversion to OpenACC parallel loop or OpenMP target
+!   - Consider collapsing nested loops for better GPU utilization
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

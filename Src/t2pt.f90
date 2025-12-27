@@ -109,6 +109,20 @@
 
 ! Convert the temperature to the potential temperature.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: t2pt.f90 :: s_t2pt
+! Summary : Convert temperature to potential temperature using pressure
+!           and Poisson equation (T * (p0/p)^(rd/cp))
+! GPU diff: Easy
+! Findings:
+!   - Simple element-wise calculation with exp/log
+!   - No conditionals within loops
+!   - No function calls within parallel region
+!   - Independent grid point calculations
+! Next:
+!   - Straightforward GPU offloading with collapse clause
+!   - Consider using fast math for exp/log if accuracy permits
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(kd)
 
       do kd=1,nkd

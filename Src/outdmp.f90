@@ -333,6 +333,22 @@
 
 ! Calculate the constant height.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: outdmp.f90 :: s_outdmp
+! Summary : Calculate constant height z1d array for dump output based
+!           on dmplev option (uniform dz spacing or stretched coords).
+! GPU diff: Easy
+! Findings:
+!   - Small loop over k from 2 to nk-2
+!   - Conditionals on fdmp and dmplev checked outside omp do
+!   - Simple arithmetic: z1d(k) = dz*(real(k)-1.5) or zsth average
+!   - No inter-thread dependencies; each k independent
+!   - Typically small nk dimension
+! Next:
+!   - May not benefit from GPU due to small loop size
+!   - Direct port is straightforward if needed
+!   - Consider keeping on CPU for simplicity
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
         if(fdmp(1:3).eq.'act') then

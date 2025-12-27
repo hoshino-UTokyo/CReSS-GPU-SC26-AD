@@ -175,6 +175,22 @@
 
 !! Calculate the 3 dimensional negative divergence.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: diver3d.f90 :: s_diver3d
+! Summary : Calculate 3D negative divergence using velocity components u,v,wc
+!           weighted by Jacobian and map scale factors in x, y, z directions.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls inside parallel region
+!   - No global/module variable writes
+!   - No synchronization constructs
+!   - Multiple branches (mfcopt, mpopt) but all are simple data-parallel loops
+!   - Three-phase computation: multiply u, multiply v, multiply wc, then combine
+! Next:
+!   - Direct OpenMP target offload with collapse(2) on j-i loops
+!   - tmp1, tmp2, tmp3 are temporary arrays; consider loop fusion for GPU
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Optional variables at u, v and w points are multiplyed by u, v and wc.

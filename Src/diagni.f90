@@ -165,6 +165,23 @@
 !!! Get the diagnostic concentrations of all categories of the ice
 !!! hydrometeor.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: diagni.f90 :: s_diagni
+! Summary : Calculate diagnostic concentrations for all ice hydrometeor
+!           categories (cloud ice, snow, graupel, hail) from mixing ratios.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - Uses intrinsic max, min, sqrt functions (GPU-compatible)
+!   - Private variable k for outer loop; rbv for local scalar
+!   - Writes to nidia output array for multiple ice categories
+!   - Conditional branch based on haiopt (3 vs 4 categories)
+!   - Independent point-wise operations per grid cell
+! Next:
+!   - Direct conversion to OpenMP target with collapsed loops
+!   - Handle haiopt conditional outside kernel or use single kernel with masking
+!   - Simple data mapping for rbr, qice (input) and nidia (output)
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !! Get the diagnostic concentrations of the cloud ice, snow and graupel.

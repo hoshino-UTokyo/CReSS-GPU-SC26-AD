@@ -145,6 +145,21 @@
 
 !! Calculate the stress tensor.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: strsten.f90 :: s_strsten
+! Summary : Calculate stress tensor components (t11-t33, t12, t13, t23,
+!           t31, t32) using eddy viscosity coefficients
+! GPU diff: Easy
+! Findings:
+!   - Multiple independent do-loops over k with i,j parallelization
+!   - Simple arithmetic operations with averaging
+!   - Conditional for sfcopt affecting surface stress terms
+!   - No function calls within parallel region
+! Next:
+!   - Collapse loops for better GPU occupancy
+!   - Keep all tensor arrays resident on GPU
+!   - Fuse diagonal and off-diagonal tensor calculations
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Calculate the diagonal and the x-y components of the stress tensor.

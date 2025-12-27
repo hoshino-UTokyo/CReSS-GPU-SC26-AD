@@ -149,6 +149,22 @@
 
 ! The base state density is multiplyed by the Jacobian.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: baserho.f90 :: s_baserho
+! Summary : Multiply base state density by Jacobian to compute rst array
+!           for use in atmospheric dynamics calculations
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Writes to intent(out) array rst
+!   - Simple element-wise computation: rst = abs(jcb) * rbr
+!   - Outer k loop with inner parallel i,j loops
+! Next:
+!   - Straightforward GPU port with OpenACC parallel loops
+!   - Collapse all three loops (k,j,i) for maximum parallelism
+!   - Intrinsic abs function is GPU-compatible
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

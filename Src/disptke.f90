@@ -172,6 +172,22 @@
 
 !! Calculate the dissipation in the turbulent kinetic energy equation.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: disptke.f90 :: s_disptke
+! Summary : Calculate TKE dissipation term using turbulent length scale,
+!           with different formulations for isotropic/anisotropic cases.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls inside parallel region (only intrinsics: exp, log, sqrt)
+!   - No global/module variable writes
+!   - No synchronization constructs
+!   - Multiple branches (isoopt, mfcopt, mpopt) but all are data-parallel loops
+!   - Accumulation into tkefrc (inout), but each (i,j,k) is independent
+! Next:
+!   - Direct OpenMP target offload with collapse(2) on j-i loops
+!   - Branch conditions can be hoisted outside target region for cleaner GPU code
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Isotropic case.

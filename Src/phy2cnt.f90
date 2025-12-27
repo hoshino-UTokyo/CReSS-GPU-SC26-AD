@@ -188,6 +188,23 @@
 
 ! Get the zeta components of contravariant velocity.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: phy2cnt.f90 :: s_phy2cnt
+! Summary : Calculate zeta components of contravariant velocity from
+!           physical velocity components with terrain-following coordinates.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Writes to output array wc, work arrays j31u2, j32v2, mf25
+!   - Simple 3D stencil computations with straightforward data access
+!   - Multiple conditional paths based on trnopt, sthopt, mfcopt, mpopt
+!   - No explicit barriers but implicit at !$omp end do
+! Next:
+!   - Use OpenACC parallel loop with collapse(3) for 3D loops
+!   - Straightforward GPU port with data region for arrays
+!   - Consider kernel fusion for consecutive loops
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       if(trnopt.eq.0) then

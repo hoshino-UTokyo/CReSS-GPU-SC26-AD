@@ -163,6 +163,23 @@
 
 !!! Interpolate the variable to the flat plane vertically.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: vint31g.f90 :: s_vint31g
+! Summary : Vertically interpolates 3D GPV data to 1D flat plane with
+!           extrapolation handling based on surface reference options.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Multiple conditional branches (refsfc_gpv, etrvar_gpv) control flow
+!   - Nested k/kd loops with !$omp do on inner jd,id loops
+!   - No synchronization constructs other than implicit barriers
+!   - Output array varef written conditionally based on z-level comparisons
+! Next:
+!   - Collapse nested loops where possible for better GPU occupancy
+!   - Consider restructuring conditionals outside parallel region
+!   - Use data directives for varef, zdat, vardat, zlow arrays
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k,kd)
 
 ! Extrapolate the variable.

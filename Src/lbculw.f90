@@ -183,6 +183,23 @@
 
 !! Set the lateral boundary conditions.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: lbculw.f90 :: subroutine s_lbculw
+! Summary : Sets lateral boundary conditions for w velocity component
+!           using cubic extrapolation at domain edges.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region (pure arithmetic only).
+!   - No writes to global/module variables (only local array w modified).
+!   - No synchronization constructs (atomic, critical, etc.).
+!   - Simple stencil-like access pattern on w array.
+!   - Multiple conditional blocks but each is independent.
+! Next:
+!   - Direct OpenACC parallelization should work with minimal changes.
+!   - Consider collapsing k and j/i loops for better GPU occupancy.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
 ! Set the west and east boundary conditions.

@@ -154,6 +154,23 @@
 
 !! Calculate the vertical sponge damping.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: vspqv.f90 :: s_vspqv
+! Summary : Applies vertical sponge damping to water vapor mixing ratio
+!           forcing term, relaxing to GPV data or base state value.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Conditional branch (vspopt, gpvvar) selects damping target
+!   - k loop starts from ksp0-1 (variable start index)
+!   - Simple arithmetic update to qvfrc array
+!   - No synchronization constructs other than implicit barriers
+! Next:
+!   - Straightforward GPU port with collapse on j,i loops
+!   - Handle variable k-range start with appropriate kernel bounds
+!   - Map qvfrc, qvp, qvgpv, qvtd, qvbr, rbct, rst arrays to device
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Damp to the GPV data.

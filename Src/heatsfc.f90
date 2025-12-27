@@ -149,6 +149,23 @@
 
 ! Calculate the sensible and latent heat on the surface.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: heatsfc.f90 :: s_heatsfc
+! Summary : Compute sensible and latent heat fluxes on surface based on
+!           land type, temperature, and moisture conditions.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls; uses intrinsic exp/log
+!   - Complex branching based on fmois (dry/moist) and land type
+!   - Reads from t, qv, qvsfc, ct, cq, kai, tund, tice
+!   - Writes to hs, le arrays (output)
+!   - No sync constructs
+! Next:
+!   - Convert to OpenMP target offload with collapse(2) on j,i loops
+!   - Branch logic based on land type may cause GPU thread divergence
+!   - Consider separating dry/moist cases into different kernels
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
       if(fmois(1:3).eq.'dry') then

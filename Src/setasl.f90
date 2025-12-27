@@ -123,6 +123,22 @@
 
 !! Set the interpolated aerosol variables.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: setasl.f90 :: s_setasl
+! Summary : Set interpolated aerosol variables by computing time tendency
+!           or copying values based on read index (ird)
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls inside parallel region
+!   - Simple 4D loops with direct array operations
+!   - Conditional execution based on ird (if ird==1 or ird==2)
+!   - Writes to qatd and qagpv arrays
+!   - No synchronization constructs
+! Next:
+!   - Convert to OpenACC with parallel loop collapse(4)
+!   - Single parallel region can be offloaded with appropriate data clauses
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k,n)
 
 ! Set the time tendency of variables at current marked time.

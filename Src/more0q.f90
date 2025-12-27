@@ -234,6 +234,24 @@
 
 !!!! Force the mixing ratio to not being less than 0.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: more0q.f90 :: s_more0q
+! Summary : Force mixing ratios to be non-negative by scaling microphysical process
+!           rates when sink exceeds available mass for cloud water, ice, rain, snow, graupel
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - Uses intrinsic max() function - GPU compatible
+!   - Uses module variable evapor_opt from m_temparam
+!   - Complex conditional logic with multiple branching per hydrometeor type
+!   - Writes to many microphysical rate arrays (nuvi, nuci, clcr, clcs, ... etc)
+!   - Branching on nk==1 for 2D vs 3D handling
+!   - No synchronization constructs besides implicit barriers at !$omp end do
+! Next:
+!   - Convert to OpenMP target offloading with extensive data mapping for all input/output arrays
+!   - May need to restructure conditionals for better GPU branch divergence
+!   - Collapse nested i,j loops for better GPU occupancy
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !!! In the case nk = 1.

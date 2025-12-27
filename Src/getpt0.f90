@@ -309,6 +309,24 @@
 ! Get the buble shaped initial potential temperature perturbation to the
 ! array ptp.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: getpt0.f90 :: subroutine s_getpt0 (bubble perturbation)
+! Summary : Sets bubble-shaped initial potential temperature perturbation
+!           using cosine-squared profile for thermal bubble experiments.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - Reads module constant cc from commath.
+!   - No synchronization constructs.
+!   - Uses intrinsic sqrt(), cos() - GPU compatible.
+!   - Outer loop over bubble number (pt0num, typically small).
+!   - Conditional update based on distance from bubble center.
+! Next:
+!   - Direct OpenACC kernels for inner (i,j,k) loops.
+!   - Outer bubble loop can remain sequential (small iteration count).
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k_sub,ipt)
 
         if(pt0opt.eq.1) then
@@ -443,6 +461,23 @@
 
 ! Get the sine curved initial potential temperature perturbation to the
 ! array ptp.
+
+!@llm start meta_info ----------------------------------------------------
+! Location: getpt0.f90 :: subroutine s_getpt0 (sine perturbation)
+! Summary : Sets sine-curved initial potential temperature perturbation
+!           for wave-like thermal initialization experiments.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - Reads module constant cc from commath.
+!   - No synchronization constructs.
+!   - Uses intrinsic sin(), cos() - GPU compatible.
+!   - Height-based conditional for perturbation region.
+!   - All grid points independent (embarrassingly parallel).
+! Next:
+!   - Direct OpenACC kernels with collapse(3) for (k,j,i) loops.
+!@llm end meta_info ------------------------------------------------------
 
 !$omp parallel default(shared) private(k_sub)
 

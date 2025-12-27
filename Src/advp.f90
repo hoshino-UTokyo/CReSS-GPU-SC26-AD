@@ -242,6 +242,27 @@
 
 !!! Calculate the pressure advection.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: advp.f90 :: subroutine s_advp
+! Summary : Calculates pressure advection using 2nd or 4th order finite
+!           difference methods with Jacobian weighting for terrain-following
+!           coordinates.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region (pure arithmetic only).
+!   - Reads module variable fourd3 (constant) from commath.
+!   - No synchronization constructs.
+!   - Multiple code paths based on advopt, mpopt, mfcopt, diaopt options.
+!   - Stencil computations with temporary arrays (tmp1, tmp2, tmp3).
+!   - Data dependency: 2nd order results feed into 4th order computation.
+!   - All loops are embarrassingly parallel within each k-level.
+! Next:
+!   - Can use OpenACC parallel loop with collapse for (i,j) loops.
+!   - Temporary arrays already allocated - good for GPU data management.
+!   - Consider fusing kernels where possible to reduce memory traffic.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
 !! Perform the centered fdm scheme.

@@ -94,6 +94,22 @@
 
 ! Calculate the z physical coordinates at lowest plane.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: getzlow.f90 :: s_getzlow
+! Summary : Calculate height of lowest model level above terrain by
+!           averaging vertical spacing between levels 2 and 3.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread usage
+!   - No function calls within parallel region
+!   - Simple 2D loop with element-wise arithmetic
+!   - Reads from 3D zph array at fixed k indices (2,3)
+!   - No global writes, only output array za is modified
+!   - No synchronization constructs
+! Next:
+!   - Direct translation to OpenMP target with teams distribute
+!   - Consider loop collapse for j,i dimensions
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j)

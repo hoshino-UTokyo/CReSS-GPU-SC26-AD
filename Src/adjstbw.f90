@@ -108,6 +108,23 @@
 
 ! Adjust the mean water mass to be between their boundaries.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: adjstbw.f90 :: subroutine s_adjstbw
+! Summary : Adjusts mean water mass for bin microphysics to stay within
+!           bin boundaries, resetting concentration if mass is invalid.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - Pure arithmetic and conditional logic only.
+!   - All grid points independent (embarrassingly parallel).
+!   - 4D array access with bin categories in outer loop.
+!   - Uses intrinsic conditionals, no sync constructs.
+! Next:
+!   - Direct OpenACC kernels with collapse for (n,k,j,i).
+!   - bmw array is small and can be copied to device.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k,n)
 
       do n=1,nqw

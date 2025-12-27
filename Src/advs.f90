@@ -198,6 +198,26 @@
 
 !!! Calculate the scalar advection.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: advs.f90 :: subroutine s_advs
+! Summary : Calculates scalar variable advection using 2nd or 4th order
+!           centered finite difference schemes with mass-weighted fluxes.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - Reads module constants (oned24, fourd3) from commath.
+!   - No synchronization constructs.
+!   - Multiple code paths based on advopt (1=2nd order full, 2=2nd+4th,
+!     3=2nd+4th+vadv separated).
+!   - Multi-stage stencil with temporary arrays (tmp1, tmp2, tmp3, vadv).
+!   - All loops are embarrassingly parallel within each stage.
+! Next:
+!   - Split into kernels matching the loop structure.
+!   - Temporary arrays already allocated - good for GPU data management.
+!   - Consider fusing stages for reduced memory traffic.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
 !! Perform the centered fdm scheme.

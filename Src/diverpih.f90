@@ -193,6 +193,24 @@
 !! Calculate the divergence horizontally in the pressure equation with
 !! the horizontally explicit and vertically explicit method.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: diverpih.f90 :: s_diverpih
+! Summary : Calculate horizontal divergence for pressure equation (HEVI method),
+!           including terrain-following coordinate contributions when trnopt>0.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - External call to diver2d before this parallel region (already annotated)
+!   - No global/module variable writes
+!   - No synchronization constructs
+!   - Multiple branches (trnopt, mfcopt, mpopt) with different loop structures
+!   - Flat terrain case is simple; curved grid has multi-stage computation
+!   - Uses pdiv(i,j,nk) as temporary storage in one branch
+! Next:
+!   - Direct OpenMP target offload with collapse(2) on j-i loops
+!   - tmp1, tmp2, tmp3 temporaries need GPU allocation
+!   - diver2d call should also be GPU-ported for full offload
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! For the flat terrain case.

@@ -126,6 +126,21 @@
 
 !! Get the diagnostic concentrations of the water hydrometeor.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: diagnw.f90 :: s_diagnw
+! Summary : Compute diagnostic concentrations of cloud water and rain water
+!           based on base state density and water hydrometeor mixing ratios.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls inside parallel region (only intrinsics: sqrt, min, max)
+!   - No global/module variable writes
+!   - No synchronization constructs (barriers, critical, atomic)
+!   - Simple 3D loop with k-loop outside, j-i loops inside with schedule(runtime)
+! Next:
+!   - Direct OpenMP target offload with collapse(2) on j-i loops
+!   - Consider collapse(3) after loop restructuring for better GPU utilization
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

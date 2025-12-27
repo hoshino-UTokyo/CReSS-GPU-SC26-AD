@@ -294,6 +294,23 @@
 ! Calculate the 2.0 x total difference between bottom and top pressure
 ! and the flux on lateral boundary.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: adjstuv.f90 :: subroutine s_adjstuv (first parallel region)
+! Summary : Calculates total pressure difference and boundary fluxes
+!           for velocity adjustment using reduction operations.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - Uses MPI-related module variables (ebw, ebe, isub, nisub, etc.).
+!   - Multiple reduction(+:) operations for dpsp2, dpsf2, dflw, dfle, dfls, dfln.
+!   - Followed by MPI reduction calls (reducevb, reducelb) outside parallel.
+!   - Complex conditional branching based on mfcopt, mpopt, wbc, ebc.
+! Next:
+!   - OpenACC supports reductions; can use atomic or reduction clause.
+!   - Need to ensure MPI variables are available on device or passed in.
+!   - Consider fusing all reduction loops into single kernel with atomics.
+!@llm end meta_info ------------------------------------------------------
+
 !$omp parallel default(shared)
 
       if(mfcopt.eq.0) then
@@ -514,6 +531,22 @@
 ! -----
 
 ! Finally adjust the x and y components of velocity.
+
+!@llm start meta_info ----------------------------------------------------
+! Location: adjstuv.f90 :: subroutine s_adjstuv (second parallel region)
+! Summary : Applies adjustment value to u and v velocity components
+!           at boundary faces.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - Pure arithmetic operations, all GPU compatible.
+!   - Operates only on boundary faces (limited extent).
+!   - Uses MPI-related module variables for boundary conditions.
+! Next:
+!   - Direct OpenACC kernels for each boundary face.
+!   - May be more efficient to keep on CPU due to small extent.
+!@llm end meta_info ------------------------------------------------------
 
 !$omp parallel default(shared)
 

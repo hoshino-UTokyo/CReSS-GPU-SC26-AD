@@ -116,6 +116,23 @@
 
 ! Calculate the magnitude of the deformation squared.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: defomssq.f90 :: s_defomssq
+! Summary : Calculate magnitude of deformation tensor squared from diagonal
+!           and off-diagonal strain rate components using stencil averaging.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Private variable k for outer loop
+!   - Writes to ssq output array
+!   - Stencil operations averaging s12, s31, s32 at neighboring points
+!   - Independent operations for each grid point
+! Next:
+!   - Direct conversion to OpenMP target with collapsed loops
+!   - Simple data mapping for input s11-s32 and output ssq arrays
+!   - Good candidate for GPU due to arithmetic intensity
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1

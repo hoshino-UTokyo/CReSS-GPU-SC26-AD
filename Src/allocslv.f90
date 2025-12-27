@@ -1909,6 +1909,22 @@
 
       if(savmem.eq.0.or.sfcopt.ge.1) then
 
+!@llm start meta_info ----------------------------------------------------
+! Location: allocslv.f90 :: s_allocslv
+! Summary : Initialize the land use integer array to zero when surface
+!           physics option (sfcopt) is enabled
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Writes to module-level array land from m_comslv
+!   - Simple 2D initialization loop with no data dependencies
+!   - Conditional execution based on savmem and sfcopt options
+! Next:
+!   - Straightforward GPU port with OpenACC parallel loop
+!   - Collapse nested i,j loops for better occupancy
+!   - Consider combining with other initialization in setcst3d calls
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j)

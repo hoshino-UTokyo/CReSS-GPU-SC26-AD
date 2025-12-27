@@ -154,6 +154,21 @@
 
 !! Get the surface flux to bottom boundary.
 
+!@llm start meta_info ----------------------------------------------------
+! Location: forcesfc.f90 :: s_forcesfc
+! Summary : Compute surface flux forcing terms for potential temperature,
+!           water vapor, and velocity components at bottom boundary.
+! GPU diff: Easy
+! Findings:
+!   - Multiple omp do regions for ptfrc, qvfrc, ufrc, vfrc calculations
+!   - Conditional branches based on fmois (dry/moist) flag
+!   - Uses sqrt intrinsic function for velocity calculations
+!   - All operations are on 2D surface layer (k=1 or k=2)
+!   - No reductions or synchronization
+! Next:
+!   - Port as 2D GPU kernels for surface layer
+!   - Handle dry/moist branching with separate kernels or compile-time flag
+!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Get the surface flux for the potential tempeture.
