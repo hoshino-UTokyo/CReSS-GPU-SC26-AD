@@ -1,0 +1,26 @@
+# Compiled object files
+*.o
+
+# Fortran module files
+*.mod
+
+# Executable files
+*.exe
+solver
+
+# Backup files
+*.bak
+*~
+
+# Editor files
+*.swp
+*.swo
+.*.swp
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Build directories (if any)
+build/
+obj/
