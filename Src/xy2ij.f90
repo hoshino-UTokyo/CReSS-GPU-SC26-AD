@@ -153,7 +153,7 @@
 !   - No synchronization constructs beyond implicit barrier at end do
 !   - Simple element-wise computation with no data dependencies
 ! Next:
-!   - Direct translation to OpenMP target offload or OpenACC parallel loop
+!   - Direct translation to OpenACC or OpenACC parallel loop
 !   - Map x2d, y2d as to, and ri, rj as from
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)

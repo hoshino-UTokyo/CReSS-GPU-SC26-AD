@@ -135,8 +135,8 @@
 !   - Simple conditional (threshold check)
 !   - No synchronization constructs
 ! Next:
-!   - Straightforward GPU port with OpenMP target or OpenACC
-!   - Single kernel with simple data mapping
+!   - Straightforward GPU port with OpenACC or OpenACC
+!   - Single kernel (data managed via Unified Memory)
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 

@@ -435,7 +435,7 @@
 !   - Module variables xs, ys coordinates accessed
 !   - No loop-carried dependencies
 ! Next:
-!   - Direct port to OpenMP target teams loop
+!   - Direct port to OpenACC parallel loop
 !   - Collapse k,j,i loops for better GPU occupancy
 !   - Ensure xs, ys arrays and scalar parameters are mapped to device
 !@llm end meta_info ------------------------------------------------------

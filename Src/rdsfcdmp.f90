@@ -572,7 +572,7 @@
 !   - Simple element-wise assignment to land array
 !   - No synchronization constructs or reductions
 ! Next:
-!   - Convert to OpenMP target with teams distribute parallel for
+!   - Convert to OpenACC with teams distribute parallel for
 !   - Move sfcopt conditional outside kernel for simpler GPU code
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)

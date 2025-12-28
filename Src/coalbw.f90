@@ -431,7 +431,7 @@
 !   - Simple conditional assignment based on mwss and pct values
 !   - Reads bmwsc, bmw; writes bmwss
 ! Next:
-!   - Direct OpenMP target offload with collapse(2) for GPU
+!   - Direct OpenACC with collapse(2) for GPU
 !   - Small kernel; consider fusing with adjacent parallel regions
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)

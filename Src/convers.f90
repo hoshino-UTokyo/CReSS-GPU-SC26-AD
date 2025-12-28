@@ -232,7 +232,7 @@
 !   - Separate paths for nk=1 and nk>1 cases
 !   - Multiple output arrays (cncr, cnis, cnsg, cnsgn)
 ! Next:
-!   - Can be ported with OpenMP target with loop collapse
+!   - Can be ported with OpenACC with loop collapse
 !   - May benefit from separating cphopt==2 and cphopt>=3 into distinct kernels
 !   - Consider constant memory for module physical constants
 !@llm end meta_info ------------------------------------------------------

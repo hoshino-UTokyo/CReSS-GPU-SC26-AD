@@ -121,8 +121,8 @@
 !   - Writes only to rcsq array
 !   - No synchronization constructs besides implicit barriers
 ! Next:
-!   - Map pbr (in), rcsq (out) to GPU
-!   - Convert to !$omp target teams distribute parallel do collapse(3)
+!   - Data managed automatically via Unified Memory
+!   - Convert to !$acc parallel loop collapse(3)
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 

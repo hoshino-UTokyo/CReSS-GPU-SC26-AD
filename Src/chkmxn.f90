@@ -192,7 +192,7 @@
 !   - Conditional processing based on fproc flag and undefined value range
 !   - Simple 3D loop with element-wise min/max computation
 ! Next:
-!   - Direct OpenMP target offload with collapse(3) and multiple reductions
+!   - Direct OpenACC with collapse(3) and multiple reductions
 !   - GPU reduction primitives well-suited for this pattern
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)

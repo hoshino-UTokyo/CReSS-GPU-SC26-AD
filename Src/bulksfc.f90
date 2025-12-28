@@ -222,7 +222,7 @@
 !   - Many local temporary variables (a through f, cmice, chice, dz0m, dz0h)
 !   - Single 2D loop over surface grid points
 ! Next:
-!   - Convert to OpenMP target with collapse(2) for i,j loops
+!   - Convert to OpenACC with collapse(2) for i,j loops
 !   - Map all 2D input/output arrays to device
 !   - GPU divergence may reduce efficiency; consider separating cases
 !   - Transcendental functions may benefit from fast-math approximations

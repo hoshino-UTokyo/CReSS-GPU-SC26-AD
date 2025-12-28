@@ -196,7 +196,7 @@
 !   - Writes to rbrqv, rbrqv2, tmp1, tmp2, tmp3, qvfrc arrays
 !   - No synchronization constructs besides implicit barriers
 ! Next:
-!   - Map rbrqv, rbrqv2, tmp1-3, qvfrc to GPU
+!   - Data managed automatically via Unified Memory
 !   - Consider separating branches into distinct kernels
 !   - Use collapse(2) for nested loops
 !@llm end meta_info ------------------------------------------------------

@@ -179,7 +179,7 @@
 !   - Multiple sequential k-loops with data dependencies between them
 !   - Conditional branches based on mpopt and mfcopt options
 ! Next:
-!   - Convert to OpenMP target with data region for all arrays
+!   - Convert to OpenACC with data region for all arrays
 !   - May need to fuse some k-loops or restructure for better parallelism
 !   - Handle conditional logic for map projection options on GPU
 !@llm end meta_info ------------------------------------------------------

@@ -117,7 +117,7 @@
 !   - No external module dependencies inside parallel region
 !   - Straightforward array copy operations
 ! Next:
-!   - Convert to OpenMP target offload with collapsed i,j loops
+!   - Convert to OpenACC with collapsed i,j loops
 !   - Very simple kernel, good candidate for GPU porting
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)

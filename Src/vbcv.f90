@@ -121,7 +121,7 @@
 !   - No synchronization constructs (barrier, critical, atomic)
 !   - Two separate omp do regions for bottom and top boundaries
 ! Next:
-!   - Direct conversion to OpenACC parallel loop or OpenMP target
+!   - Direct conversion to OpenACC parallel loop or OpenACC
 !   - Both loops are independent and can run concurrently on GPU
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)

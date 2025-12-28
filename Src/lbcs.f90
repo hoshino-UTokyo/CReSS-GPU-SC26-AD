@@ -164,8 +164,8 @@
 !   - Uses module variables from m_commpi (ebw,ebe,ebs,ebn,isub,jsub,nisub,njsub)
 !   - No synchronization constructs besides implicit barrier at omp end do
 ! Next:
-!   - Convert to OpenMP target offload or OpenACC kernels
-!   - Data should already be on device; add data mapping if needed
+!   - Convert to OpenACC or OpenACC kernels
+!   - Data managed automatically via Unified Memory
 !   - Consider collapsing k and j/i loops for better GPU utilization
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

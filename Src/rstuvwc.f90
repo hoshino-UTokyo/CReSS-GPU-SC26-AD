@@ -182,7 +182,7 @@
 ! Next:
 !   - Collapse k,j,i loops for better GPU parallelism
 !   - Consider separate kernels for u, v, wc computations
-!   - Use OpenMP target teams distribute parallel for collapse(3)
+!   - Use OpenACC teams distribute parallel for collapse(3)
 !   - Fuse the three loop nests if possible for better memory access
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

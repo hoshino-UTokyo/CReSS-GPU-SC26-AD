@@ -376,7 +376,7 @@
 !   - Multiple nested conditionals checking thresq thresholds
 !   - No synchronization constructs besides implicit barriers at !$omp end do
 ! Next:
-!   - Convert to OpenMP target offloading with extensive data mapping
+!   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
 !   - Consider restructuring to reduce branch divergence on GPU
 !   - May benefit from separating cphopt cases into different kernels
 !   - Collapse nested i,j loops for better GPU occupancy

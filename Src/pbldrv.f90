@@ -247,7 +247,7 @@
 !   - Conditional branches based on fmois (dry vs moist) with different formulas
 !   - Loop over k levels with nested i,j loops
 ! Next:
-!   - Convert to OpenMP target with collapse for k,j,i loops
+!   - Convert to OpenACC with collapse for k,j,i loops
 !   - Can be combined with preceding PBL subroutine calls into single kernel
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

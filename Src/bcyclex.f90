@@ -136,7 +136,7 @@
 !   - Sequential k-loop with parallel j loops inside
 !   - No synchronization constructs beyond implicit barriers
 ! Next:
-!   - Convert to OpenMP target with data mapping for var array
+!   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
 !   - Consider collapsing k-loop with j-loop for better GPU utilization
 !   - Ensure nisub is mapped or use firstprivate
 !@llm end meta_info ------------------------------------------------------

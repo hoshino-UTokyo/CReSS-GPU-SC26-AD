@@ -132,7 +132,7 @@
 !   - Conditional branching on bbc value (executed by all threads)
 !   - Multiple separate omp do regions within single parallel region
 ! Next:
-!   - Direct conversion to OpenACC parallel loop or OpenMP target
+!   - Direct conversion to OpenACC parallel loop or OpenACC
 !   - Consider using OpenACC kernels directive for multiple loops
 !   - Conditionals can remain as they are data-independent
 !@llm end meta_info ------------------------------------------------------

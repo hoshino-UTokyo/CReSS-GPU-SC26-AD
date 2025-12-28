@@ -211,7 +211,7 @@
 !   - Module variables accessed: adjqv, rhqp, rd, cp, p0, qvtop from m_comphy/m_temparam
 ! Next:
 !   - Collapse j,k loops or restructure to expose more parallelism
-!   - Use OpenMP target or OpenACC for GPU offload
+!   - Use OpenACC or OpenACC for GPU offload
 !   - Ensure tsfc dependency between first omp do and k-loop is handled
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

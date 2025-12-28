@@ -223,7 +223,7 @@
 !   - Uses sign intrinsic for eps offset calculation
 !   - No function calls; simple arithmetic operations
 ! Next:
-!   - Map reductions to GPU atomic or parallel reduction
+!   - Data managed automatically via Unified Memory atomic or parallel reduction
 !   - Consider using CUB or Thrust for reduction primitives
 !   - May need two-pass approach for value then indices
 !@llm end meta_info ------------------------------------------------------

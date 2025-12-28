@@ -113,7 +113,7 @@
 !   - No global writes, only output array t is modified
 !   - No synchronization constructs other than implicit barrier at end do
 ! Next:
-!   - Direct translation to OpenMP target or OpenACC with collapsed loops
+!   - Direct translation to OpenACC or OpenACC with collapsed loops
 !   - Consider loop collapse for k,j,i dimensions
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

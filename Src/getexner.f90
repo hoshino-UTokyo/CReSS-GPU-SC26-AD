@@ -130,7 +130,7 @@
 !   - Module constants rd, cp, p0 used from m_comphy
 !   - No synchronization constructs beyond implicit barriers
 ! Next:
-!   - Direct port to OpenMP target teams loop
+!   - Direct port to OpenACC parallel loop
 !   - Ensure module constants are accessible on device
 !   - Consider collapsing k,j,i loops for better GPU occupancy
 !@llm end meta_info ------------------------------------------------------

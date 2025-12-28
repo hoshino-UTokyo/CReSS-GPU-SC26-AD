@@ -183,7 +183,7 @@
 !   - No global writes, only local variable updates
 !   - Conditional branch (mpopt.lt.10) outside omp do regions
 ! Next:
-!   - Map reductions to GPU atomic or warp-level reductions
+!   - Data managed automatically via Unified Memory atomic or warp-level reductions
 !   - Consider fusing the two branches into one kernel with masking
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)

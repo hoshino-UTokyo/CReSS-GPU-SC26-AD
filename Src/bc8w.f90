@@ -135,7 +135,7 @@
 !   - Multiple conditional branches based on BC type (bbc, tbc)
 !   - Simple array copy operations
 ! Next:
-!   - Convert to OpenMP target offload with collapsed i,j loops
+!   - Convert to OpenACC with collapsed i,j loops
 !   - Merge bottom and top BC loops into single kernel if both are same type
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)

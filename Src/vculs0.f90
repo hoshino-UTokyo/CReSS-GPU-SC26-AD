@@ -175,7 +175,7 @@
 !   - Private variables: k (shared among worksharing), i,j,a,b,c (private per iteration)
 ! Next:
 !   - Collapse k,j,i loops for GPU parallelism
-!   - Use OpenMP target teams distribute parallel do collapse(3)
+!   - Use OpenACC teams distribute parallel do collapse(3)
 !   - max() intrinsic is device-compatible
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

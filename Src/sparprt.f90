@@ -153,8 +153,8 @@
 !   - Writes to ppdat, ptpdat arrays (in-place update)
 !   - No synchronization constructs besides implicit barriers
 ! Next:
-!   - Map pbdat, ptbdat (in), ppdat, ptpdat (inout) to GPU
-!   - Convert to !$omp target teams distribute parallel do collapse(3)
+!   - Data managed automatically via Unified Memory
+!   - Convert to !$acc parallel loop collapse(3)
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(kd)
 

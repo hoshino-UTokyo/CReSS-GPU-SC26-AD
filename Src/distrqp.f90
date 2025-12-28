@@ -180,7 +180,7 @@
 !   - Multiple branches (datype_rdr, cphopt, haiopt) but all are data-parallel
 !   - Conditional distribution based on thresholds
 ! Next:
-!   - Direct OpenMP target offload with collapse(2) on j-i loops
+!   - Direct OpenACC with collapse(2) on j-i loops
 !   - Conditionals per grid point are fine for GPU
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

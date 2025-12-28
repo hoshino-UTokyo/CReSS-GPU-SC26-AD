@@ -151,7 +151,7 @@
 !   - Two separate k-loops: first computes fpdvj, second updates fw
 !   - Second loop has k-1 dependency on fpdvj (read from previous level)
 ! Next:
-!   - Convert to OpenMP target with collapse for k,j,i loops
+!   - Convert to OpenACC with collapse for k,j,i loops
 !   - First loop is independent; second loop needs fpdvj from k-1 level
 !   - Can fuse loops or ensure proper synchronization between them
 !@llm end meta_info ------------------------------------------------------

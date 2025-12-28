@@ -147,7 +147,7 @@
 !   - No synchronization constructs beyond implicit barrier at end do
 !   - Read/write to qcf and qrf arrays with independent grid points
 ! Next:
-!   - Can be ported directly with OpenMP target or OpenACC parallel loop
+!   - Can be ported directly with OpenACC or OpenACC parallel loop
 !   - Consider collapsing the k,j,i loops for better GPU occupancy
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

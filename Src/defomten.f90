@@ -279,7 +279,7 @@
 !   - Writes to s11, s22 arrays (temporary storage for u, v at w-points)
 !   - Simple stencil averaging in vertical direction
 ! Next:
-!   - Direct conversion to OpenMP target with data region
+!   - Direct conversion to OpenACC with data region
 !   - Can collapse k and j loops for better GPU occupancy
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

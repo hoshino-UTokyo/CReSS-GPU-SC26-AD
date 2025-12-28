@@ -138,7 +138,7 @@
 !   - No synchronization constructs (barriers, critical, atomic)
 !   - Simple 3D loop with k-loop outside, j-i loops inside with schedule(runtime)
 ! Next:
-!   - Direct OpenMP target offload with collapse(2) on j-i loops
+!   - Direct OpenACC with collapse(2) on j-i loops
 !   - Consider collapse(3) after loop restructuring for better GPU utilization
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

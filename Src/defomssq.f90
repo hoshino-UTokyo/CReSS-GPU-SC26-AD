@@ -129,8 +129,8 @@
 !   - Stencil operations averaging s12, s31, s32 at neighboring points
 !   - Independent operations for each grid point
 ! Next:
-!   - Direct conversion to OpenMP target with collapsed loops
-!   - Simple data mapping for input s11-s32 and output ssq arrays
+!   - Direct conversion to OpenACC with collapsed loops
+!   - Data managed automatically via Unified Memory
 !   - Good candidate for GPU due to arithmetic intensity
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

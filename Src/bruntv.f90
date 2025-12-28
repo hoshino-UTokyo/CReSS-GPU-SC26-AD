@@ -210,7 +210,7 @@
 !   - Some data dependencies between loop nests (e.g., pt used to compute ptv)
 !   - 2D temporary array t(i,j) reused across k iterations
 ! Next:
-!   - Convert to OpenMP target with data mapping for all arrays
+!   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
 !   - Use collapse(2) for nested i,j loops
 !   - May need to restructure k-loop to avoid thread-local t array issues
 !   - Consider separating dry/moist cases into different GPU kernels

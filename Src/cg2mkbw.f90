@@ -125,7 +125,7 @@
 !   - Independent updates to mwbin, nwbin, prr arrays
 !   - No synchronization constructs beyond implicit barriers
 ! Next:
-!   - Convert to OpenMP target with data mapping for mwbin, nwbin, prr, rbv
+!   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
 !   - Use collapse for nested loops (consider collapse(3) or collapse(4))
 !   - May need to handle n-loop separately if nqw varies at runtime
 !   - Simple structure well-suited for GPU offload

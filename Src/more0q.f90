@@ -248,7 +248,7 @@
 !   - Branching on nk==1 for 2D vs 3D handling
 !   - No synchronization constructs besides implicit barriers at !$omp end do
 ! Next:
-!   - Convert to OpenMP target offloading with extensive data mapping for all input/output arrays
+!   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
 !   - May need to restructure conditionals for better GPU branch divergence
 !   - Collapse nested i,j loops for better GPU occupancy
 !@llm end meta_info ------------------------------------------------------

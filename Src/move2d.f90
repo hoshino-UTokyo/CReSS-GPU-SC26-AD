@@ -120,7 +120,7 @@
 !   - Single worksharing construct with 1D loop
 !   - No synchronization constructs besides implicit barriers at !$omp end do
 ! Next:
-!   - Convert to OpenMP target offloading with data mapping for u1d, v1d
+!   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
 !   - Small array size (nlev) may not benefit significantly from GPU offloading
 !   - Consider keeping on CPU if nlev is small
 !@llm end meta_info ------------------------------------------------------

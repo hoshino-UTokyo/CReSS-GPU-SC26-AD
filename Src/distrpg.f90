@@ -166,7 +166,7 @@
 !   - Multiple branches (nk, cphopt) but all loops are data-parallel
 !   - Conditional updates per grid point (temperature check, threshold)
 ! Next:
-!   - Direct OpenMP target offload with collapse(2) on j-i loops
+!   - Direct OpenACC with collapse(2) on j-i loops
 !   - Conditionals inside loop are fine for GPU (divergent but manageable)
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

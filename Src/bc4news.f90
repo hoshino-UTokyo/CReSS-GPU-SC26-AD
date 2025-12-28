@@ -160,7 +160,7 @@
 !   - Uses module variables from m_commpi (ebsw, ebse, ebnw, ebne, isub, jsub, nisub, njsub)
 !   - Multiple conditionally executed small loops based on domain decomposition position
 ! Next:
-!   - Convert to OpenMP target offload with collapsed loops
+!   - Convert to OpenACC with collapsed loops
 !   - Consider merging the four conditional loops into a single kernel with conditional logic
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)

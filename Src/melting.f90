@@ -191,7 +191,7 @@
 !   - Conditional logic based on thresq threshold and t0cel temperature
 !   - No synchronization constructs besides implicit barriers at !$omp end do
 ! Next:
-!   - Convert to OpenMP target offloading with data mapping for rbr, rbv, qi, qs, qg, tcel, qvsst0, lv, lf, kp, dv, vnts, vntg, clcs, clcg, clrs, clrg, mlic, mlsr, mlgr
+!   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
 !   - Collapse nested i,j loops for better GPU occupancy
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

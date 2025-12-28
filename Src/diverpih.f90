@@ -207,7 +207,7 @@
 !   - Flat terrain case is simple; curved grid has multi-stage computation
 !   - Uses pdiv(i,j,nk) as temporary storage in one branch
 ! Next:
-!   - Direct OpenMP target offload with collapse(2) on j-i loops
+!   - Direct OpenACC with collapse(2) on j-i loops
 !   - tmp1, tmp2, tmp3 temporaries need GPU allocation
 !   - diver2d call should also be GPU-ported for full offload
 !@llm end meta_info ------------------------------------------------------

@@ -725,7 +725,7 @@
 !   - No sync constructs
 !   - Conditional based on uniopt_uni with different loop bounds
 ! Next:
-!   - Convert to OpenMP target with device math library
+!   - Convert to OpenACC with device math library
 !   - Ensure atan/exp are available on GPU device
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)

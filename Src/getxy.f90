@@ -170,7 +170,7 @@
 !   - Separate 1D loops for x and y arrays
 !   - No global writes, only output arrays x and y are modified
 ! Next:
-!   - Direct translation to OpenMP target with teams distribute
+!   - Direct translation to OpenACC with teams distribute
 !   - 1D arrays are small, consider keeping on CPU or async transfer
 !   - Separate kernels for x and y may be more efficient
 !@llm end meta_info ------------------------------------------------------

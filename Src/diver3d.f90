@@ -188,7 +188,7 @@
 !   - Multiple branches (mfcopt, mpopt) but all are simple data-parallel loops
 !   - Three-phase computation: multiply u, multiply v, multiply wc, then combine
 ! Next:
-!   - Direct OpenMP target offload with collapse(2) on j-i loops
+!   - Direct OpenACC with collapse(2) on j-i loops
 !   - tmp1, tmp2, tmp3 are temporary arrays; consider loop fusion for GPU
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

@@ -169,7 +169,7 @@
 !   - Sequential dependencies between phases (qvd -> wb8s -> wfrc)
 !   - No synchronization constructs beyond implicit barriers
 ! Next:
-!   - Convert to OpenMP target with data mapping for all arrays
+!   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
 !   - Use collapse(2) for nested i,j loops
 !   - Consider separate target regions for each major conditional branch
 !   - Ensure proper data movement for qvd, wb8s work arrays

@@ -128,8 +128,8 @@
 !   - No sync constructs (barrier, critical, atomic)
 !   - Simple k-loop with nested i,j loops, straightforward data parallelism
 ! Next:
-!   - Convert to OpenMP target with collapse(3) for k,j,i loops
-!   - Use map clauses for input/output arrays
+!   - Convert to OpenACC with collapse(3) for k,j,i loops
+!   - Data managed automatically via Unified Memory
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 

@@ -308,7 +308,7 @@
 !   - Multiple conditional branches based on flqcqi_opt, cphopt, haiopt
 !   - No synchronization constructs within parallel region
 ! Next:
-!   - Use OpenMP target or OpenACC for GPU offloading
+!   - Use OpenACC or OpenACC for GPU offloading
 !   - Consider kernel fusion for related velocity calculations
 !   - Map all input/output arrays to device
 !@llm end meta_info ------------------------------------------------------

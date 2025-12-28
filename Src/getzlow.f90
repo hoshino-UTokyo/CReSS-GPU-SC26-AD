@@ -107,7 +107,7 @@
 !   - No global writes, only output array za is modified
 !   - No synchronization constructs
 ! Next:
-!   - Direct translation to OpenMP target with teams distribute
+!   - Direct translation to OpenACC with teams distribute
 !   - Consider loop collapse for j,i dimensions
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)

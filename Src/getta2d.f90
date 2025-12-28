@@ -110,7 +110,7 @@
 !   - No loop-carried dependencies
 !   - No synchronization constructs beyond implicit barriers
 ! Next:
-!   - Direct port to OpenMP target teams loop
+!   - Direct port to OpenACC parallel loop
 !   - Collapse j,i loops for better GPU occupancy
 !   - Trivial computation, ensure data is already on device
 !@llm end meta_info ------------------------------------------------------

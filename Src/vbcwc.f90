@@ -134,7 +134,7 @@
 !   - Multiple !$omp do regions with private(i,j) and schedule(runtime)
 !   - No synchronization constructs beyond implicit barriers at end do
 ! Next:
-!   - Direct OpenMP target offload with data mapping for wc array
+!   - Direct OpenACC with Unified Memory (no explicit data transfer needed)
 !   - Consider collapsing i,j loops and using teams distribute
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)

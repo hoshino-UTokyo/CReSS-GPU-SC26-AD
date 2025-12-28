@@ -173,7 +173,7 @@
 !   - No synchronization constructs (barrier, critical, atomic)
 !   - Simple loop structure with private loop indices
 ! Next:
-!   - Direct conversion to OpenACC parallel loop or OpenMP target
+!   - Direct conversion to OpenACC parallel loop or OpenACC
 !   - Consider collapsing nested loops for better GPU utilization
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

@@ -145,7 +145,7 @@
 !   - Intermediate array rbrqv used between computation phases
 ! Next:
 !   - GPU port needs to respect phase ordering (compute rbrqv first)
-!   - Use OpenACC/OpenMP target with collapse(3) for each phase
+!   - Use OpenACC/OpenACC with collapse(3) for each phase
 !   - Consider explicit barrier or separate kernels for two phases
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

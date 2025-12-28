@@ -226,7 +226,7 @@
 !   - Writes to tmp1-5, ufrc, vfrc, wfrc arrays
 !   - No synchronization constructs besides implicit barriers
 ! Next:
-!   - Map tmp1-5, ufrc, vfrc, wfrc to GPU
+!   - Data managed automatically via Unified Memory
 !   - Consider separating u/v/w processing into distinct kernels
 !   - Use collapse(2) for nested loops
 !@llm end meta_info ------------------------------------------------------

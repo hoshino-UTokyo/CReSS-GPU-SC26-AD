@@ -172,8 +172,8 @@
 !   - Writes to tmp1, ufrc, vfrc, wfrc arrays
 !   - No synchronization constructs besides implicit barriers
 ! Next:
-!   - Map tmp1, ufrc, vfrc, wfrc to GPU with OpenMP target data
-!   - Convert !$omp do to !$omp target teams distribute parallel do collapse(2)
+!   - Data managed automatically via Unified Memory with OpenACC data
+!   - Convert !$omp do to !$acc parallel loop collapse(2)
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 

@@ -170,7 +170,7 @@
 !   - No synchronization constructs
 !   - Simple 3D loop with element-wise multiplication
 ! Next:
-!   - Direct OpenMP target offload with collapse(2) on j-i loops
+!   - Direct OpenACC with collapse(2) on j-i loops
 !   - diver3d call should also be GPU-ported for full offload
 !   - Very simple kernel, good candidate for early GPU porting
 !@llm end meta_info ------------------------------------------------------

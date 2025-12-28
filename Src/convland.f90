@@ -107,7 +107,7 @@
 !   - Two mutually exclusive branches based on fproc string
 !   - Independent grid point operations
 ! Next:
-!   - Straightforward GPU port with OpenMP target or OpenACC
+!   - Straightforward GPU port with OpenACC or OpenACC
 !   - Collapse i,j loops for better occupancy
 !   - Consider data movement optimization if called frequently
 !@llm end meta_info ------------------------------------------------------

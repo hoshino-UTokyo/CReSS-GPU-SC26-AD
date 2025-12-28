@@ -200,7 +200,7 @@
 ! Next:
 !   - Collapse k,j,i loops for better GPU parallelism
 !   - Consider separate kernels for each mpopt case
-!   - Use OpenMP target teams distribute parallel for collapse(3)
+!   - Use OpenACC teams distribute parallel for collapse(3)
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 

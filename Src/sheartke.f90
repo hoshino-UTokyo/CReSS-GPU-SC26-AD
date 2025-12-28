@@ -121,7 +121,7 @@
 !   - Minimal computation per grid point
 ! Next:
 !   - Straightforward GPU port with 3D kernel
-!   - Use OpenACC/OpenMP target with collapse(3)
+!   - Use OpenACC/OpenACC with collapse(3)
 !   - Good candidate for kernel fusion with other TKE terms
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

@@ -172,7 +172,7 @@
 !   - Multiple branches (mfcopt, mpopt) but all are simple data-parallel loops
 !   - Two-phase computation: multiply then difference
 ! Next:
-!   - Direct OpenMP target offload with collapse(2) on j-i loops
+!   - Direct OpenACC with collapse(2) on j-i loops
 !   - tmp1, tmp2 are temporary arrays that can be fused or kept on GPU
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

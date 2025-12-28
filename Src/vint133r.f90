@@ -149,7 +149,7 @@
 !   - Conditional branches for level selection and validity checking
 ! Next:
 !   - Collapse k,j,i loops for GPU parallelism
-!   - Use OpenMP target teams distribute parallel do collapse(3)
+!   - Use OpenACC teams distribute parallel do collapse(3)
 !   - Ensure lim35n, lim34n constants are accessible on device
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k,kl)

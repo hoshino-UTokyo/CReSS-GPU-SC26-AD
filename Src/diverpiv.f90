@@ -125,7 +125,7 @@
 !   - No synchronization constructs
 !   - Simple 3D loop with straightforward vertical differencing
 ! Next:
-!   - Direct OpenMP target offload with collapse(2) on j-i loops
+!   - Direct OpenACC with collapse(2) on j-i loops
 !   - Very simple kernel, good candidate for early GPU porting
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

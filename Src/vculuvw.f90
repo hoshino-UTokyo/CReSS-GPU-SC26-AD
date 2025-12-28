@@ -197,7 +197,7 @@
 !   - Conditional branches for upwind/downwind stencil selection
 ! Next:
 !   - Collapse k,j,i loops for each velocity component
-!   - Use OpenMP target teams distribute parallel do collapse(3)
+!   - Use OpenACC teams distribute parallel do collapse(3)
 !   - Map all velocity arrays to device with proper in/out semantics
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

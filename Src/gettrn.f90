@@ -191,7 +191,7 @@
 !   - Simple constant assignment to all grid points
 !   - No global writes, only output array ht is modified
 ! Next:
-!   - Direct translation to OpenMP target with teams distribute
+!   - Direct translation to OpenACC with teams distribute
 !   - Consider using GPU memset-like operation for constant fill
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
@@ -250,7 +250,7 @@
 !   - Simple arithmetic with division and max
 !   - No global writes, only output array ht is modified
 ! Next:
-!   - Direct translation to OpenMP target with teams distribute
+!   - Direct translation to OpenACC with teams distribute
 !   - Ensure xs and ys arrays are mapped to device
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)

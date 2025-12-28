@@ -178,7 +178,7 @@
 !   - Conditional branches based on fproc flag and temperature threshold (tlow)
 !   - Saturation vapor pressure computed using Clausius-Clapeyron approximation
 ! Next:
-!   - Direct OpenMP target offload with collapse(2) for inner loops
+!   - Direct OpenACC with collapse(2) for inner loops
 !   - exp/log functions have GPU intrinsic support
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

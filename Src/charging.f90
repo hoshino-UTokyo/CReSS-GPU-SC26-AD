@@ -157,8 +157,8 @@
 !   - No synchronization constructs (barrier, critical, atomic)
 !   - Simple element-wise operations with conditional branching on haiopt and nk
 ! Next:
-!   - Direct OpenMP target offload with collapse(2) or collapse(3) for GPU
-!   - Consider data movement optimization with map clauses
+!   - Direct OpenACC with collapse(2) or collapse(3) for GPU
+!   - Consider data management handled automatically via Unified Memory
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 

@@ -259,7 +259,7 @@
 !   - Complex conditional logic based on boundary flags (ebw, ebe, ebs, ebn, etc.)
 !   - Multiple sequential do loops with dependencies between them
 ! Next:
-!   - Convert to OpenMP target or OpenACC with data region for dfx, dfy, dfxy, ht
+!   - Convert to OpenACC or OpenACC with data region for dfx, dfy, dfxy, ht
 !   - Consider collapsing 2D loops for better GPU occupancy
 !   - Handle conditional branches carefully on GPU
 !@llm end meta_info ------------------------------------------------------

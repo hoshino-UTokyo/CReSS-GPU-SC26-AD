@@ -453,7 +453,7 @@
 !   - No synchronization constructs
 !   - Simple 2D loop with conditional bounds checking
 ! Next:
-!   - Convert to OpenMP target with teams distribute parallel for and reduction clause
+!   - Convert to OpenACC with teams distribute parallel for and reduction clause
 !   - Alternatively use OpenACC with parallel loop reduction
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)

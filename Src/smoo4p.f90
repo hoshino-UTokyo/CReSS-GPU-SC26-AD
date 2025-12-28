@@ -186,7 +186,7 @@
 !   - Writes to pp2, tmp1, tmp2, tmp3, pfrc arrays
 !   - No synchronization constructs besides implicit barriers
 ! Next:
-!   - Map pp2, tmp1-3, pfrc to GPU
+!   - Data managed automatically via Unified Memory
 !   - Consider separating branches into distinct kernels
 !   - Use collapse(2) for nested loops
 !@llm end meta_info ------------------------------------------------------

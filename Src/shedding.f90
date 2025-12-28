@@ -148,7 +148,7 @@
 !   - No synchronization constructs
 ! Next:
 !   - Straightforward GPU port with conditional logic preserved
-!   - Use OpenACC/OpenMP target with collapse for nested loops
+!   - Use OpenACC/OpenACC with collapse for nested loops
 !   - Consider single kernel handling both nk cases with runtime check
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

@@ -162,7 +162,7 @@
 !   - Writes to hs, le arrays (output)
 !   - No sync constructs
 ! Next:
-!   - Convert to OpenMP target offload with collapse(2) on j,i loops
+!   - Convert to OpenACC with collapse(2) on j,i loops
 !   - Branch logic based on land type may cause GPU thread divergence
 !   - Consider separating dry/moist cases into different kernels
 !@llm end meta_info ------------------------------------------------------

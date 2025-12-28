@@ -131,7 +131,7 @@
 !   - Minimal computation per grid point
 ! Next:
 !   - Straightforward GPU port with 2D kernel
-!   - Use OpenACC/OpenMP target with collapse(2)
+!   - Use OpenACC/OpenACC with collapse(2)
 !   - Consider combining both ird branches into single kernel with conditional
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)

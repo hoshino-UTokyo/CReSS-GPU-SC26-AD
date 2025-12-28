@@ -172,7 +172,7 @@
 !   - Sequential dependency between phases
 !   - No synchronization constructs beyond implicit barriers
 ! Next:
-!   - Convert to OpenMP target with data mapping for all arrays
+!   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
 !   - Use collapse(2) for nested i,j loops
 !   - Consider separate target regions for wb8s computation and fw update
 !   - Simple structure well-suited for GPU offload

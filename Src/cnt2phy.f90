@@ -170,7 +170,7 @@
 !   - Intermediate arrays j31u2, j32v2, mf25 computed and used within region
 !   - Simple element-wise arithmetic operations
 ! Next:
-!   - Direct OpenMP target offload with collapse(2) for inner loops
+!   - Direct OpenACC with collapse(2) for inner loops
 !   - Consider fusing loops where possible to reduce kernel launches
 !   - Data dependencies between j31u2/j32v2 computation and w computation
 !@llm end meta_info ------------------------------------------------------

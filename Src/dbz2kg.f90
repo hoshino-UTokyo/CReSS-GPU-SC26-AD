@@ -126,8 +126,8 @@
 !   - Writes to qpdat array (in-place modification)
 !   - Conditional check on lim34n threshold
 ! Next:
-!   - Direct conversion to OpenMP target or OpenACC with collapsed loops
-!   - Straightforward data mapping for qpdat array
+!   - Direct conversion to OpenACC or OpenACC with collapsed loops
+!   - Data managed automatically via Unified Memory
 !   - No synchronization needed between iterations
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(kd)

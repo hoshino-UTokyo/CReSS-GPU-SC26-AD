@@ -170,7 +170,7 @@
 !   - Writes to output arrays rkh, rkv8w, rkv8s (no race conditions)
 !   - No synchronization constructs besides implicit barrier at omp end do
 ! Next:
-!   - Convert to OpenMP target or OpenACC data region with kernels
+!   - Convert to OpenACC or OpenACC data region with kernels
 !   - Collapse the k and j loops for more parallelism on GPU
 !   - Consider merging conditional branches to reduce kernel launches
 !@llm end meta_info ------------------------------------------------------

@@ -136,7 +136,7 @@
 !   - Second loop: serial kd with nested !$omp do over kl for interpolation
 !   - Simple conditional branches for extrapolation vs interpolation
 ! Next:
-!   - Use OpenMP target teams distribute parallel do for 1D loops
+!   - Use OpenACC teams distribute parallel do for 1D loops
 !   - Small arrays - may benefit from explicit device memory management
 !   - Consider loop restructuring to avoid redundant searches
 !@llm end meta_info ------------------------------------------------------

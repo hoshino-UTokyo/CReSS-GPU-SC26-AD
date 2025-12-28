@@ -524,7 +524,7 @@
 !   - n_sub loop variable for array dimension iteration
 !   - No synchronization constructs besides implicit barriers
 ! Next:
-!   - Map all input/output arrays to GPU
+!   - Data managed automatically via Unified Memory
 !   - Consider separating each variable update into distinct kernels
 !   - Branching may require conditional kernel launches or unified kernels
 !   - Use collapse(2) for nested loops

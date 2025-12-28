@@ -152,7 +152,7 @@
 !   - No global writes, only output array dfs is modified
 !   - No synchronization constructs other than implicit barriers
 ! Next:
-!   - Direct translation to OpenMP target with collapsed loops
+!   - Direct translation to OpenACC with collapsed loops
 !   - Standard stencil pattern, well-suited for GPU
 !   - Consider shared memory tiling for better cache utilization
 !@llm end meta_info ------------------------------------------------------
@@ -248,7 +248,7 @@
 !   - No global writes other than sgpv array
 !   - No synchronization constructs
 ! Next:
-!   - Direct translation to OpenMP target with collapsed loops
+!   - Direct translation to OpenACC with collapsed loops
 !   - Can be fused with diffusion calculation if boundary exchange
 !     can be performed on GPU or overlapped with computation
 !@llm end meta_info ------------------------------------------------------

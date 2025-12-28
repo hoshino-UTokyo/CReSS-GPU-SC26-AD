@@ -188,7 +188,7 @@
 !   - Exner function BC requires exp/log calculations
 !   - Pressure and density BCs depend on previously computed pibr and ptvbr
 ! Next:
-!   - Convert to OpenMP target offload with collapsed i,j loops
+!   - Convert to OpenACC with collapsed i,j loops
 !   - Ensure data dependencies between loops are respected (ptvbr before pibr, pibr before pbr/rbr)
 !   - Consider fusing independent loops for better kernel efficiency
 !@llm end meta_info ------------------------------------------------------

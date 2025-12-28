@@ -216,7 +216,7 @@
 !   - No synchronization constructs besides implicit barrier at omp end do
 !   - All loops are embarrassingly parallel
 ! Next:
-!   - Convert to OpenMP target offload or OpenACC kernels
+!   - Convert to OpenACC or OpenACC kernels
 !   - All math intrinsics have GPU equivalents
 !   - Perfect candidate for GPU; collapse i,j loops for maximum parallelism
 !@llm end meta_info ------------------------------------------------------

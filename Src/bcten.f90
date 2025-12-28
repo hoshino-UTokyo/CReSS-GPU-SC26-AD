@@ -132,7 +132,7 @@
 !   - No synchronization constructs beyond implicit barriers at omp end do
 !   - Conditional branches based on bbc/tbc values (control flow divergence)
 ! Next:
-!   - Convert to OpenMP target offload with data mapping for ten array
+!   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
 !   - Use collapse(2) for nested i,j loops to increase parallelism
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)

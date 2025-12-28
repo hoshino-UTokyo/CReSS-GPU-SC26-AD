@@ -219,8 +219,8 @@
 !   - Writes only to ppf array
 !   - No synchronization constructs besides implicit barriers
 ! Next:
-!   - Map jcb, fp (in), ppf (inout) to GPU
-!   - Convert to !$omp target teams distribute parallel do collapse(2)
+!   - Data managed automatically via Unified Memory
+!   - Convert to !$acc parallel loop collapse(2)
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 

@@ -220,8 +220,8 @@
 !   - Writes only to ptpf array
 !   - No synchronization constructs besides implicit barriers
 ! Next:
-!   - Map rst, ptfrc, ptsml (in), ptpf (inout) to GPU
-!   - Convert to !$omp target teams distribute parallel do collapse(2)
+!   - Data managed automatically via Unified Memory
+!   - Convert to !$acc parallel loop collapse(2)
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 

@@ -303,7 +303,7 @@
 !   - Multiple worksharing constructs with different k-loop ranges
 !   - No synchronization constructs besides implicit barriers at !$omp end do
 ! Next:
-!   - Convert to OpenMP target offloading with data mapping for jcb8u, jcb8v, jcb8w, up, vp, wc, tmp1, tmp2, tmp3, known
+!   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
 !   - Collapse nested i,j loops for better GPU occupancy
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

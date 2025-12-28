@@ -164,7 +164,7 @@
 !   - Different code paths for mpopt < 10 vs >= 10
 !   - No sync constructs beyond implicit barrier at end
 ! Next:
-!   - Convert to OpenMP target offload with reduction support
+!   - Convert to OpenACC with reduction support
 !   - GPU reduction may require atomic operations or tree reduction
 !   - Consider separating reduction into separate kernel
 !@llm end meta_info ------------------------------------------------------
@@ -272,7 +272,7 @@
 !   - Writes to land integer array (output)
 !   - No sync constructs
 ! Next:
-!   - Convert to OpenMP target offload with collapse(2) on j,i loops
+!   - Convert to OpenACC with collapse(2) on j,i loops
 !   - Simple operation suitable for GPU execution
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)

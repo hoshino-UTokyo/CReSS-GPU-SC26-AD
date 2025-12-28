@@ -163,7 +163,7 @@
 !   - Uses module variables from m_commpi (ebw,ebe,ebs,ebn,isub,jsub,nisub,njsub)
 !   - No synchronization constructs besides implicit barrier at omp end do
 ! Next:
-!   - Convert to OpenMP target offload or OpenACC kernels
+!   - Convert to OpenACC or OpenACC kernels
 !   - Consider collapsing k and j/i loops for better GPU parallelism
 !   - Boundary conditions are independent; can run concurrently on GPU
 !@llm end meta_info ------------------------------------------------------

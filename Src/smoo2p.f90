@@ -133,7 +133,7 @@
 !   - Read-only access to pp array, update to pfrc array
 ! Next:
 !   - Straightforward GPU port with 3D kernel
-!   - Use OpenACC/OpenMP target with collapse(3)
+!   - Use OpenACC/OpenACC with collapse(3)
 !   - Good memory access pattern for GPU (regular stencil)
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

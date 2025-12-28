@@ -141,7 +141,7 @@
 !   - Conditional branches for vertical level selection
 ! Next:
 !   - Collapse k,j,i loops for GPU parallelism
-!   - Use OpenMP target teams distribute parallel do collapse(3)
+!   - Use OpenACC teams distribute parallel do collapse(3)
 !   - Consider restructuring to compute kl index per (i,j,k) point directly
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k,kl)

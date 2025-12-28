@@ -132,7 +132,7 @@
 !   - Data dependency: tmp1 must be computed before tkefrc update
 !   - No synchronization constructs beyond implicit barriers
 ! Next:
-!   - Convert to OpenMP target with data mapping for arrays
+!   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
 !   - Use collapse(2) for nested i,j loops within each k-loop
 !   - Keep two separate target regions or use explicit barrier between phases
 !   - Consider fusing loops if tmp1 dependency can be restructured

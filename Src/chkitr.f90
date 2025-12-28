@@ -148,7 +148,7 @@
 !   - Simple 3D loop with element-wise max computation
 !   - MPI_allreduce called after parallel region (not inside)
 ! Next:
-!   - Direct OpenMP target offload with collapse(3) and reduction(max:)
+!   - Direct OpenACC with collapse(3) and reduction(max:)
 !   - GPU reduction primitives well-suited for this pattern
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)

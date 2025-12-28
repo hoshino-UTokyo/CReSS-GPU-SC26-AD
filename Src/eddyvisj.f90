@@ -129,7 +129,7 @@
 !   - Writes to rkh, rkv arrays (no race conditions)
 !   - No synchronization constructs besides implicit barrier
 ! Next:
-!   - Straightforward conversion to OpenMP target or OpenACC kernels
+!   - Straightforward conversion to OpenACC or OpenACC kernels
 !   - Collapse k,j,i loops for maximum parallelism
 !   - Consider using a single kernel with conditional inside for both paths
 !@llm end meta_info ------------------------------------------------------

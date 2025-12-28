@@ -175,8 +175,8 @@
 !   - Private variables: k (shared among worksharing), i,j,a,b,c (private per iteration)
 ! Next:
 !   - Collapse k,j,i loops for GPU parallelism
-!   - Use OpenMP target teams distribute parallel do collapse(3)
-!   - Data mapping: map(to: sp,wc8s) map(from: sf) or use data regions
+!   - Use OpenACC teams distribute parallel do collapse(3)
+!   - Data managed automatically via Unified Memory
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 

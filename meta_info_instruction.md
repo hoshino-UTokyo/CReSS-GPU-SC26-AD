@@ -3,6 +3,26 @@
 ## Ultimate Goal
 The final goal is to port an existing **MPI + OpenMP** weather simulation codebase to run efficiently on **GPUs**.
 
+---
+
+## GPU Porting Strategy
+
+### Programming Model
+- Use **OpenACC** for GPU offloading (not OpenMP target directives).
+- OpenACC provides a more portable and mature ecosystem for Fortran GPU programming.
+
+### Data Management
+- Use **Unified Memory (CUDA Managed Memory)** for CPU-GPU data transfers.
+- With Unified Memory, explicit data movement directives (`!$acc data`, `!$acc enter data`, etc.) are **not required**.
+- The CUDA runtime automatically handles page migration between CPU and GPU.
+- This simplifies the porting process and reduces the risk of data management errors.
+
+### Implications for Annotations
+- In the "Next:" section of annotations, recommend **OpenACC directives** (e.g., `!$acc parallel loop`, `!$acc kernels`).
+- Do **not** suggest explicit data mapping clauses; instead note that data is managed automatically via Unified Memory.
+
+---
+
 ## Project-Wide Phases (High-Level Roadmap)
 1. **meta_info phase**
    - For every OpenMP `parallel` region (especially `parallel for` loops), perform **GPU-oriented loop analysis**.

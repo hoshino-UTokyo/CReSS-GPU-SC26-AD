@@ -250,7 +250,7 @@
 !   - Complex conditional logic based on temperature and mixing ratios
 !   - Special case handling for nk=1 vs nk>1
 ! Next:
-!   - Convert to OpenMP target with data region for all input/output arrays
+!   - Convert to OpenACC with data region for all input/output arrays
 !   - Copy lookup tables ckoe, pkoe to device
 !   - May need to restructure conditionals for GPU efficiency
 !   - Consider separating nk=1 case into distinct kernel

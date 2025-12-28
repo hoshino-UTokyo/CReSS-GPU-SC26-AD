@@ -185,7 +185,7 @@
 !   - Multiple branches (isoopt, mfcopt, mpopt) but all are data-parallel loops
 !   - Accumulation into tkefrc (inout), but each (i,j,k) is independent
 ! Next:
-!   - Direct OpenMP target offload with collapse(2) on j-i loops
+!   - Direct OpenACC with collapse(2) on j-i loops
 !   - Branch conditions can be hoisted outside target region for cleaner GPU code
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

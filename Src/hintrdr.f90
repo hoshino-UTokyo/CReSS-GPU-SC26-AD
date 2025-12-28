@@ -190,7 +190,7 @@
 !   - Writes to di, dj (distances) and var (interpolated values)
 !   - No sync constructs
 ! Next:
-!   - Convert to OpenMP target offload with collapse(2) or collapse(3)
+!   - Convert to OpenACC with collapse(2) or collapse(3)
 !   - Missing value conditionals may cause GPU thread divergence
 !   - Consider masking approach for missing values
 !@llm end meta_info ------------------------------------------------------

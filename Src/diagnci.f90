@@ -130,7 +130,7 @@
 !   - Simple point-wise multiplication operation
 !   - Completely independent iterations
 ! Next:
-!   - Direct conversion to OpenMP target with collapsed loops
+!   - Direct conversion to OpenACC with collapsed loops
 !   - Minimal data transfer: input qice, output nidia
 !   - Excellent GPU candidate due to simplicity
 !@llm end meta_info ------------------------------------------------------

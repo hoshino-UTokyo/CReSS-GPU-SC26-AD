@@ -138,7 +138,7 @@
 !   - Simple 2D loops setting output array fall to 1.0 or -1.0
 !   - Reads from prwtr and price arrays
 ! Next:
-!   - Direct OpenMP target offload with collapse(2) for GPU
+!   - Direct OpenACC with collapse(2) for GPU
 !   - Branching within kernel may cause thread divergence; consider separate kernels
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)

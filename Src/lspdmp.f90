@@ -241,7 +241,7 @@
 !   - No explicit synchronization but implicit barriers between omp do sections
 !   - rbcxy depends on rbcx,rbcy; need careful ordering for GPU
 ! Next:
-!   - Convert to OpenMP target offload with careful data dependencies
+!   - Convert to OpenACC with careful data dependencies
 !   - May need to split into separate kernels or use atomic updates for corners
 !   - Consider restructuring corner logic to avoid recomputing rbcx,rbcy
 !@llm end meta_info ------------------------------------------------------
@@ -651,7 +651,7 @@
 !   - No synchronization constructs besides implicit barrier at omp end do
 !   - Simpler structure than first parallel region; no 2D combination
 ! Next:
-!   - Convert to OpenMP target offload or OpenACC kernels
+!   - Convert to OpenACC or OpenACC kernels
 !   - 1D arrays are small; consider keeping on host or batching with other work
 !   - All loops are independent and embarrassingly parallel
 !@llm end meta_info ------------------------------------------------------

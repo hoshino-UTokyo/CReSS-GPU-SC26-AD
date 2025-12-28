@@ -226,7 +226,7 @@
 !   - Writes to mf, mf8u, mf8v, rmf, rmf8u, rmf8v, tmp1 arrays
 !   - No synchronization constructs besides implicit barriers at !$omp end do
 ! Next:
-!   - Convert to OpenMP target offloading with data mapping for x, lat, mf, mf8u, mf8v, rmf, rmf8u, rmf8v, tmp1
+!   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
 !   - Collapse nested i,j loops for better GPU occupancy
 !   - Math intrinsics are GPU-compatible
 !@llm end meta_info ------------------------------------------------------

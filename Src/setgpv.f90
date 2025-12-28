@@ -225,7 +225,7 @@
 !   - No synchronization constructs beyond implicit barriers at omp end do
 ! Next:
 !   - Consider collapsing nested conditionals into unified kernels
-!   - Use OpenACC/OpenMP target with data regions for array transfers
+!   - Use OpenACC/OpenACC with data regions for array transfers
 !   - May benefit from kernel fusion for related variable updates
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

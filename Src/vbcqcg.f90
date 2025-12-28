@@ -115,7 +115,7 @@
 !   - No synchronization constructs (barrier, critical, atomic)
 !   - Two separate omp do regions for bottom and top boundaries
 ! Next:
-!   - Direct conversion to OpenACC parallel loop or OpenMP target
+!   - Direct conversion to OpenACC parallel loop or OpenACC
 !   - Consider merging bottom BC loop (k=1,2) into single kernel
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)

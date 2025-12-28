@@ -120,7 +120,7 @@
 !   - Writes to z0m and z0h arrays
 !   - No synchronization constructs
 ! Next:
-!   - Convert to OpenMP target with teams distribute parallel for
+!   - Convert to OpenACC with teams distribute parallel for
 !   - Straightforward GPU port with collapse(2) clause
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)

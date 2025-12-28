@@ -137,7 +137,7 @@
 !   - Uses module variables from m_commpi (ebw, ebe, isub, nisub)
 !   - Conditional execution based on BC type (wbc, ebc) and subdomain position
 ! Next:
-!   - Convert to OpenMP target offload with collapsed j,k loops
+!   - Convert to OpenACC with collapsed j,k loops
 !   - Restructure loops to have k as inner loop for better GPU coalescing
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

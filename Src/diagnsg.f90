@@ -175,9 +175,9 @@
 !   - Conditional branch based on haiopt (2 vs 3 precipitation categories)
 !   - Independent point-wise operations per grid cell
 ! Next:
-!   - Direct conversion to OpenMP target with collapsed loops
+!   - Direct conversion to OpenACC with collapsed loops
 !   - Handle haiopt conditional outside kernel or use unified kernel
-!   - Simple data mapping for rbr, rbv, qice (input) and nidia (output)
+!   - Data managed automatically via Unified Memory
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 

@@ -150,7 +150,7 @@
 !   - Multiple conditional branches based on boundary conditions (wbc, ebc)
 !   - No synchronization constructs beyond implicit barriers
 ! Next:
-!   - Convert to OpenMP target or OpenACC data region
+!   - Convert to OpenACC or OpenACC data region
 !   - Ensure rbufx and var are mapped appropriately
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

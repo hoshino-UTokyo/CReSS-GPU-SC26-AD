@@ -203,7 +203,7 @@
 ! Next:
 !   - Small loop size (npe) may not benefit from GPU offloading
 !   - Consider keeping on CPU or using atomic operations
-!   - Reduction clause supported in OpenMP target
+!   - Reduction clause supported in OpenACC
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
@@ -247,7 +247,7 @@
 !   - Small loop size (npe processors)
 ! Next:
 !   - Small loop size may not benefit from GPU offloading
-!   - Integer reductions supported in OpenMP target
+!   - Integer reductions supported in OpenACC
 !   - Consider keeping on CPU due to small iteration count
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
@@ -296,7 +296,7 @@
 ! Next:
 !   - Small loop size (npe) may not benefit from GPU offloading
 !   - Consider keeping on CPU or using atomic operations
-!   - Reduction clause supported in OpenMP target
+!   - Reduction clause supported in OpenACC
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
@@ -340,7 +340,7 @@
 !   - Small loop size (npe processors)
 ! Next:
 !   - Small loop size may not benefit from GPU offloading
-!   - Integer reductions supported in OpenMP target
+!   - Integer reductions supported in OpenACC
 !   - Consider keeping on CPU due to small iteration count
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)

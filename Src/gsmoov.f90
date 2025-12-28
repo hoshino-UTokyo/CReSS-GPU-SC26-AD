@@ -161,8 +161,8 @@
 !   - No sync constructs (barriers, critical sections)
 !   - Simple stencil computation with k-loop parallelized
 ! Next:
-!   - Convert to OpenMP target offload with collapse(2) on j,i loops
-!   - Use data mapping for vgpv (read) and dfv (write)
+!   - Convert to OpenACC with collapse(2) on j,i loops
+!   - Data managed automatically via Unified Memory
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
@@ -255,8 +255,8 @@
 !   - No sync constructs
 !   - Simple element-wise update operation
 ! Next:
-!   - Convert to OpenMP target offload with collapse(2) on j,i loops
-!   - Use data mapping for vgpv (read/write) and dfv (read)
+!   - Convert to OpenACC with collapse(2) on j,i loops
+!   - Data managed automatically via Unified Memory
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 

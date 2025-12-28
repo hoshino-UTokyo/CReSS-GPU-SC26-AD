@@ -189,7 +189,7 @@
 !   - External subroutine calls getrich, bulksfc, chkitr before/after parallel region
 !   - No synchronization constructs inside parallel region
 ! Next:
-!   - Convert to OpenMP target with teams distribute parallel for
+!   - Convert to OpenACC with teams distribute parallel for
 !   - Keep iteration control on host, only offload inner 2D loop
 !   - May need to manage z0m, z0h data between iterations on GPU
 !@llm end meta_info ------------------------------------------------------

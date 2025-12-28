@@ -191,7 +191,7 @@
 !   - Multiple worksharing constructs with branching logic
 !   - No synchronization constructs besides implicit barriers at !$omp end do
 ! Next:
-!   - Convert to OpenMP target offloading with data mapping for rst, qvbr, qvp, qvgpv, qvtd, rbcxy, qvfrc, tmp1
+!   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
 !   - Collapse nested i,j loops for better GPU occupancy
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

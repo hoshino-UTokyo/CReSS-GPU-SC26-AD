@@ -229,7 +229,7 @@
 !   - Simple 1D array initialization loops
 !   - No sync constructs
 ! Next:
-!   - Convert to OpenMP target offload
+!   - Convert to OpenACC
 !   - Consider combining with main advection loop for data locality
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
@@ -286,7 +286,7 @@
 !   - Multiple code paths for mfcopt (map scale factor) options
 !   - No sync constructs
 ! Next:
-!   - Convert to OpenMP target offload with collapse(2) on j,i loops
+!   - Convert to OpenACC with collapse(2) on j,i loops
 !   - Consider predicated execution or warp divergence mitigation
 !   - Branch logic may cause GPU thread divergence
 !@llm end meta_info ------------------------------------------------------

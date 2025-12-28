@@ -136,7 +136,7 @@
 !   - No synchronization constructs
 ! Next:
 !   - Collapse k,j,i loops for better GPU parallelism
-!   - Use OpenMP target teams distribute parallel for collapse(3)
+!   - Use OpenACC teams distribute parallel for collapse(3)
 !   - Consider separate kernels for each xo case
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

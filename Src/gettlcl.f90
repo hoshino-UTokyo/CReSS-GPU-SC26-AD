@@ -146,7 +146,7 @@
 !   - No global writes, only output array tlcl is modified
 !   - No synchronization constructs other than implicit barriers
 ! Next:
-!   - Direct translation to OpenMP target with teams distribute
+!   - Direct translation to OpenACC with teams distribute
 !   - Both branches are simple arithmetic, suitable for GPU
 !   - Consider unifying branches or using separate kernels per datype
 !@llm end meta_info ------------------------------------------------------

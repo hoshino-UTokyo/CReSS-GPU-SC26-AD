@@ -149,7 +149,7 @@
 !   - Uses module variables from m_commpi (ebw,ebe,ebs,ebn,isub,jsub,nisub,njsub)
 !   - No synchronization constructs besides implicit barrier at omp end do
 ! Next:
-!   - Convert to OpenMP target offload or OpenACC kernels
+!   - Convert to OpenACC or OpenACC kernels
 !   - Consider collapsing k and j/i loops for better GPU utilization
 !   - Simpler structure than lbcw (no advopt branching)
 !@llm end meta_info ------------------------------------------------------

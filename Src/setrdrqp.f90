@@ -165,7 +165,7 @@
 !   - No synchronization constructs beyond implicit barriers
 ! Next:
 !   - Port conditionals as-is to GPU kernels
-!   - Use OpenACC/OpenMP target with data regions
+!   - Use OpenACC/OpenACC with data regions
 !   - Consider merging snow/graupel/hail loops into single kernel
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)

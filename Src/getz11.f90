@@ -127,7 +127,7 @@
 ! Next:
 !   - 1D array with nk elements (typically small, <100)
 !   - May not benefit from GPU offload due to small size
-!   - If needed, use OpenMP target with single team
+!   - If needed, use OpenACC with single team
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 

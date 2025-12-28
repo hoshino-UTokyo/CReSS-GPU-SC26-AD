@@ -157,7 +157,7 @@
 !   - Conditional execution based on subdomain position and BC type
 !   - Bottom/top BC uses 2D loop over i,j
 ! Next:
-!   - Convert to OpenMP target offload with collapsed loops
+!   - Convert to OpenACC with collapsed loops
 !   - Restructure nested loops to expose more parallelism in k dimension
 !@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
