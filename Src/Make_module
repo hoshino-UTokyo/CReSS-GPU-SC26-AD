@@ -10,6 +10,7 @@
 #                                                                              #
 ################################################################################
 
+m_comprofile.mod    : comprofile.o
 m_abortslv.mod      : abortslv.o
 m_adjstbw.mod       : adjstbw.o
 m_adjstnci.mod      : adjstnci.o

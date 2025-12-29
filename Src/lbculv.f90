@@ -18,6 +18,7 @@
 ! Module reference
 
       use m_commpi
+      use m_comprofile
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -131,6 +132,11 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -202,6 +208,15 @@
 !   - Collapse k and j/i loops for improved GPU occupancy
 !   - Simple stencil operation suitable for GPU vectorization
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('lbculv.f90', 's_lbculv', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-1)-(1)+1,8) * int((nj+1)-(0)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
 ! Set the west and east boundary conditions.
@@ -285,6 +300,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

@@ -26,6 +26,7 @@
 ! Module reference
 
       use m_getcname
+      use m_comprofile
       use m_getiname
       use m_inichar
 
@@ -140,6 +141,11 @@
       real dk          ! Distance in z direction
                        ! between flat plane and data points
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variable.
@@ -180,6 +186,15 @@
 !   - Consider restructuring conditionals outside parallel region
 !   - Use data directives for varef, zdat, vardat, zlow arrays
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('vint31g.f90', 's_vint31g', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk)-(1)+1,8) * int((njd)-(1)+1,8) * int((nid)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k,kd)
 
 ! Extrapolate the variable.
@@ -422,6 +437,8 @@
 !! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

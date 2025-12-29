@@ -25,6 +25,7 @@
 ! Module reference
 
       use m_comphy
+      use m_comprofile
       use m_getrname
 
 !-----7--------------------------------------------------------------7--
@@ -149,6 +150,11 @@
 
       real evrv        ! Evaporation rate from rain water to water vapor
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -177,6 +183,17 @@
 !   - Nested conditionals may cause thread divergence on GPU
 !   - Consider restructuring conditionals for better GPU efficiency
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('evapr2v.f90', 's_evapr2v', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-1)-(1)+1,8) &
+     & * int((nj-1)-(1)+1,8) &
+     & * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1
@@ -234,6 +251,8 @@
       end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

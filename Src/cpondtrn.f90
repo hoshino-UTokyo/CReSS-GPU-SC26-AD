@@ -23,6 +23,7 @@
 ! Module reference
 
       use m_commpi
+      use m_comprofile
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -131,6 +132,11 @@
 
       integer igc      ! Current index in group domain in x direction
       integer jgc      ! Current index in group domain in y direction
+
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
 
 !-----7--------------------------------------------------------------7--
 
@@ -263,6 +269,15 @@
 !   - Consider collapsing 2D loops for better GPU occupancy
 !   - Handle conditional branches carefully on GPU
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('cpondtrn.f90', 's_cpondtrn', &
+   & 'OMP section 1')
+end if
+loop_len = int((ni)-(0)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
       if(exbwid.ge.1) then
@@ -585,6 +600,8 @@
       end if
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

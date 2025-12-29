@@ -18,7 +18,8 @@
 
 MAINOBJ = unite.o
 
-OBJS    = allocgrp.o\
+OBJS    = comprofile.o\
+          allocgrp.o\
           allociot.o\
           allocuni.o\
           castgrp_single.o\

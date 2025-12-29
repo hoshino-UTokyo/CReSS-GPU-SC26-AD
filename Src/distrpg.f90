@@ -22,6 +22,7 @@
 ! Module reference
 
       use m_comphy
+      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -141,6 +142,11 @@
       real a           ! Temporary variable
       real b           ! Temporary variable
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variables.
@@ -169,6 +175,15 @@
 !   - Direct OpenACC with collapse(2) on j-i loops
 !   - Conditionals inside loop are fine for GPU (divergent but manageable)
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('distrpg.f90', 's_distrpg', &
+   & 'OMP section 1')
+end if
+loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
 !! In the case nk = 1.
@@ -402,6 +417,8 @@
 !! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

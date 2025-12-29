@@ -28,6 +28,7 @@
 ! Module reference
 
       use m_commath
+      use m_comprofile
       use m_commpi
       use m_getcname
       use m_getiname
@@ -305,6 +306,11 @@
       real bc1         ! Temporary variable
       real bc2         ! Temporary variable
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variable.
@@ -406,6 +412,15 @@
 !   - Consider using OpenACC kernels with private scalars bc0, bc1, bc2
 !   - Boundary-only computation may benefit from separate small kernels
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('phvbcuvw.f90', 's_phvbcuvw', &
+   & 'OMP section 1')
+end if
+loop_len = 1_8
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
 !!! Calculate the differential phase speed term for x components of
@@ -2328,6 +2343,8 @@
 !! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !!!! -----
 

@@ -19,6 +19,7 @@
 ! Module reference
 
       use m_getrname
+      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -96,6 +97,11 @@
 
       integer kl       ! Array index in z direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -124,6 +130,15 @@
 !   - Small array size (nlev) may not benefit significantly from GPU offloading
 !   - Consider keeping on CPU if nlev is small
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('move2d.f90', 's_move2d', &
+   & 'OMP section 1')
+end if
+loop_len = int((nlev)-(0)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(kl)
@@ -136,6 +151,8 @@
 !$omp end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

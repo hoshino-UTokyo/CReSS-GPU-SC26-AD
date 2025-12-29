@@ -37,6 +37,7 @@
 
 ! Module reference
 
+      use m_comprofile
       use m_allocbuf
       use m_allociot
       use m_allocmph
@@ -234,6 +235,12 @@
      &            qttmp,tketmp,tutmp,nid_rdr,njd_rdr,nkd_rdr,           &
      &            km_rdr,lon_rdr,z_rdr,u_rdr,v_rdr,w_rdr,qp_rdr,        &
      &            tmp1_rdr)
+
+! -----
+
+! Output profiling results.
+
+      call profile_finalize()
 
 ! -----
 

@@ -26,6 +26,7 @@
 ! Module reference
 
       use m_getcname
+      use m_comprofile
       use m_getiname
       use m_getrname
       use m_inichar
@@ -154,6 +155,11 @@
 
       real a           ! Temporary variable
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variable.
@@ -189,6 +195,17 @@
 !   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
 !   - Collapse nested i,j loops for better GPU occupancy
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('lspp.f90', 's_lspp', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-2)-(2)+1,8) &
+     & * int((nj-1)-(1)+1,8) &
+     & * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
       if(wdnews.ge.1) then
@@ -282,6 +299,8 @@
       end if
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

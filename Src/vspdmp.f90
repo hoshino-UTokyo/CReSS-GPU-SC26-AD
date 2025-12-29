@@ -23,6 +23,7 @@
 ! Module reference
 
       use m_commath
+      use m_comprofile
       use m_getiname
       use m_getrname
 
@@ -141,6 +142,11 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -189,6 +195,15 @@
 !   - Split into separate kernels: max-find, ksp0-search, coef-calculation
 !   - Use cosine from device math library
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('vspdmp.f90', 's_vspdmp', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk)-(3)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
 ! Set the maximum z physical coordinates at each plane.
@@ -312,6 +327,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

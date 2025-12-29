@@ -24,7 +24,8 @@
 
 MAINOBJ = gridata.o
 
-OBJS    = allocgpv.o\
+OBJS    = comprofile.o\
+          allocgpv.o\
           allocgrp.o\
           allociot.o\
           bc2d.o\

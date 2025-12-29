@@ -20,6 +20,7 @@
 ! Module reference
 
       use m_combin
+      use m_comprofile
       use m_commath
       use m_comphy
       use m_comtable
@@ -128,6 +129,11 @@
 
       real aa          ! Temporary array
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -177,6 +183,15 @@
 !   - Coalescence efficiency loop has complex branching affecting GPU performance
 !   - Module arrays need explicit data management on GPU
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('setbin.f90', 's_setbin', &
+   & 'OMP section 1')
+end if
+loop_len = int((nqw+1)-(2)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 ! Set the common used variables and calculate the radius and mass at
@@ -379,6 +394,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

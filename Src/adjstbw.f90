@@ -21,6 +21,7 @@
 !-----7--------------------------------------------------------------7--
 
 ! Implicit typing
+      use m_comprofile
 
       implicit none
 
@@ -104,6 +105,11 @@
 
       real mwbr        ! Mean water mass
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Adjust the mean water mass to be between their boundaries.
@@ -124,6 +130,18 @@
 !   - Direct OpenACC kernels with collapse for (n,k,j,i).
 !   - bmw array is small and can be copied to device.
 !@llm end meta_info ------------------------------------------------------
+
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('adjstbw.f90', 's_adjstbw', &
+   & 'OMP section 1')
+end if
+loop_len = int((nqw)-(1)+1,8) &
+     & * int((nk-1)-(1)+1,8) &
+     & * int((nj-1)-(1)+1,8) &
+     & * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k,n)
 
@@ -169,6 +187,8 @@
       end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

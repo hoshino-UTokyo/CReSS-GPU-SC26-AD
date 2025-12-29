@@ -22,6 +22,7 @@
 ! Module reference
 
       use m_chksat
+      use m_comprofile
       use m_comindx
       use m_comkind
       use m_copy2d
@@ -190,6 +191,11 @@
       integer jd       ! Array index in y direction
 
       integer k        ! Array index in z direction
+
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
 
 !-----7--------------------------------------------------------------7--
 
@@ -386,6 +392,15 @@
 !   - Consider fusing with subsequent vint13 calls if possible
 !   - Map varef, z arrays to device
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('vintgpv.f90', 's_vintgpv', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk)-(1)+1,8) * int((njd)-(1)+1,8) * int((nid)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
         do k=1,nk
@@ -403,6 +418,8 @@
         end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

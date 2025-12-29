@@ -21,6 +21,7 @@
 ! Module reference
 
       use m_defdim
+      use m_comprofile
       use m_defname
       use m_inichar
 
@@ -75,6 +76,11 @@
 ! Internal private variable
 
       integer iid      ! Index of do loops
+
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
 
 !-----7--------------------------------------------------------------7--
 
@@ -589,6 +595,15 @@
 !   - Can be directly ported to GPU with OpenACC parallel loop
 !   - Consider using array syntax for simpler GPU offload
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('inidef.f90', 's_inidef', &
+   & 'OMP section 1')
+end if
+loop_len = int((100)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(iid)
@@ -608,6 +623,8 @@
 !$omp end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

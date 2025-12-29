@@ -19,6 +19,7 @@
 ! Module reference
 
       use m_commpi
+      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -134,6 +135,11 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Reposition the restructed boundary variables form original restart
@@ -155,6 +161,15 @@
 !   - Consider separate kernels for each boundary condition
 !   - Ensure boundary condition variables are accessible on GPU
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('repsit2d.f90', 's_repsit2d', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk)-(1)+1,8) * int((jendb)-(jstrb)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
       if(xo(1:2).eq.'ox') then
@@ -358,6 +373,8 @@
       end if
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

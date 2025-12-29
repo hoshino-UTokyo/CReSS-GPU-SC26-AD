@@ -23,6 +23,7 @@
 ! Module reference
 
       use m_advp
+      use m_comprofile
       use m_comindx
       use m_comphy
       use m_getiname
@@ -246,6 +247,12 @@
 !     qall,qallp,qallf: These variables are also temporary, because they
 !                       are not used again.
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer, save :: prof_id2 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -286,6 +293,17 @@
 !@llm end meta_info ------------------------------------------------------
 
 ! Cauculate the virtual potential temperature.
+
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('diabat.f90', 's_diabat', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-1)-(1)+1,8) &
+     & * int((nj-jnorth)-(jsouth)+1,8) &
+     & * int((ni-ieast)-(iwest)+1,8)
+call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -364,6 +382,8 @@
       end if
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

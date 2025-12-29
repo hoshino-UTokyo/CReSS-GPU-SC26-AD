@@ -18,6 +18,7 @@
 ! Module reference
 
       use m_getiname
+      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -115,6 +116,11 @@
 
       integer n        ! Array index in bin categories
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -143,6 +149,17 @@
 !   - Consider specialized kernels for bulk vs bin microphysics
 !   - Bin category loops can be unrolled or parallelized
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('totalqwi.f90', 's_totalqwi', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-1)-(1)+1,8) &
+     & * int((nj-1)-(1)+1,8) &
+     & * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k,n)
 
       if(abs(cphopt).ge.1) then
@@ -308,6 +325,8 @@
       end if
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

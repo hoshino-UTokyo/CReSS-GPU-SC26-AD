@@ -19,6 +19,7 @@
 ! Module reference
 
       use m_bcycle
+      use m_comprofile
       use m_combuf
       use m_comindx
       use m_commath
@@ -228,6 +229,12 @@
       real b           ! Temporary variable
       real c           ! Temporary variable
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer, save :: prof_id2 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -289,6 +296,15 @@
 !   - Ensure xs, ys, ctr arrays are mapped to device
 !   - Conditional writes may cause thread divergence
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('getqt0.f90', 's_getqt0', &
+   & 'OMP section 1')
+end if
+loop_len = int((qt0num)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k_sub,iqt)
 
         if(qt0opt.eq.1) then
@@ -380,6 +396,8 @@
         end if
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

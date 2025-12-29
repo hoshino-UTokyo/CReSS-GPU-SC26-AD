@@ -23,6 +23,7 @@
 ! Module reference
 
       use m_copy1d
+      use m_comprofile
       use m_getcname
       use m_inichar
       use m_vint11
@@ -123,6 +124,11 @@
 
       integer kl       ! Array index in z direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variable.
@@ -168,6 +174,15 @@
 !   - Consider batching with other 1D operations if available
 !   - Map z1d array to device if porting
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('vintsnd.f90', 's_vintsnd', &
+   & 'OMP section 1')
+end if
+loop_len = int((nlev-1)-(2)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(kl)
@@ -179,6 +194,8 @@
 !$omp end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

@@ -21,6 +21,7 @@
 !-----7--------------------------------------------------------------7--
 
 ! Implicit typing
+      use m_comprofile
 
       implicit none
 
@@ -119,6 +120,11 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Reposition the restructed variable form original restart variable.
@@ -139,6 +145,17 @@
 !   - Use OpenACC teams distribute parallel for collapse(3)
 !   - Consider separate kernels for each xo case
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('repsit3d.f90', 's_repsit3d', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk)-(1)+1,8) &
+     & * int((jend)-(jstr)+1,8) &
+     & * int((iend+1)-(istr)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
       if(xo(1:2).eq.'ox') then
@@ -192,6 +209,8 @@
       end if
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

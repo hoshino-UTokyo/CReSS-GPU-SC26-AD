@@ -39,6 +39,7 @@
 ! Module reference
 
       use m_comindx
+      use m_comprofile
       use m_commath
       use m_destroy
 
@@ -157,6 +158,11 @@
 
       real crn_sub     ! Substitute for crn
       real crrn_sub    ! Substitute for crrn
+
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
 
 !-----7--------------------------------------------------------------7--
 
@@ -3296,6 +3302,15 @@
 !   - Use atomic operations or device-side reduction for error counts
 !   - Small loop iteration count (numctg_lnd) may not benefit from GPU
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('chkfile.f90', 's_chkfile', &
+   & 'OMP section 1')
+end if
+loop_len = int((riname(idnumctg_lnd)-1)-(0)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(iid) reduction(+: ierr_lnd)
@@ -3425,6 +3440,8 @@
 !$omp end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

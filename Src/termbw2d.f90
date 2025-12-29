@@ -18,6 +18,7 @@
 ! Module reference
 
       use m_commath
+      use m_comprofile
       use m_comphy
 
 !-----7--------------------------------------------------------------7--
@@ -147,6 +148,11 @@
       real c           ! Temporary variable
       real d           ! Temporary variable
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variable.
@@ -183,6 +189,15 @@
 !   - Consider separating size regimes to reduce divergence
 !   - Keep coefficient arrays on GPU for reuse
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('termbw2d.f90', 's_termbw2d', &
+   & 'OMP section 1')
+end if
+loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(n)
 
 ! Set the common used variable.
@@ -273,6 +288,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

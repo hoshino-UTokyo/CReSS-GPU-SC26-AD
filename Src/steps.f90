@@ -35,6 +35,7 @@
 ! Module reference
 
       use m_bc4news
+      use m_comprofile
       use m_bcycle
       use m_combuf
       use m_comindx
@@ -476,6 +477,11 @@
 
       integer n_sub    ! Substitute for n
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variables.
@@ -529,6 +535,17 @@
 !   - Branching may require conditional kernel launches or unified kernels
 !   - Use collapse(2) for nested loops
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('steps.f90', 's_steps', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-2)-(2)+1,8) &
+     & * int((nj-2)-(2)+1,8) &
+     & * int((ni-2)-(2)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k,n_sub)
 
 ! Set common used variable.
@@ -1038,6 +1055,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

@@ -20,6 +20,7 @@
 ! Module reference
 
       use m_chkerr
+      use m_comprofile
       use m_commath
       use m_commpi
       use m_cpondpe
@@ -132,6 +133,11 @@
 
       integer ic       ! Index of user specified land use namelist table
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -179,6 +185,17 @@
 !   - Consider restructuring first loop to avoid potential race condition
 !   - May need atomic operations or different algorithm for category matching
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('cpondsfc.f90', 's_cpondsfc', &
+   & 'OMP section 1')
+end if
+loop_len = int((numctg_lnd)-(1)+1,8) &
+     & * int((jend)-(jstr)+1,8) &
+     & * int((iend)-(istr)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 ! Correspond the surface data to the land use categories.
@@ -220,6 +237,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

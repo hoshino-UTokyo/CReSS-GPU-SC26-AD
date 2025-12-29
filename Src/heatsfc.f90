@@ -22,6 +22,7 @@
 ! Module reference
 
       use m_comphy
+      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -139,6 +140,11 @@
       real lva         ! Latent heat of evaporation at lowest plane
       real lsa         ! Latent heat of sublimation at lowest plane
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variable.
@@ -166,6 +172,15 @@
 !   - Branch logic based on land type may cause GPU thread divergence
 !   - Consider separating dry/moist cases into different kernels
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('heatsfc.f90', 's_heatsfc', &
+   & 'OMP section 1')
+end if
+loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
       if(fmois(1:3).eq.'dry') then
@@ -246,6 +261,8 @@
       end if
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

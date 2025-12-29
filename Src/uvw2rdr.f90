@@ -19,6 +19,7 @@
 ! Module reference
 
       use m_commath
+      use m_comprofile
       use m_getcname
       use m_inichar
 
@@ -141,6 +142,11 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variable.
@@ -172,6 +178,17 @@
 !   - Inner conditionals may cause thread divergence on GPU
 !   - Consider masking approach for better GPU efficiency
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('uvw2rdr.f90', 's_uvw2rdr', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-2)-(2)+1,8) &
+     & * int((nj-2)-(2)+1,8) &
+     & * int((ni-1)-(2)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
 ! Calculate the analysis nudging term for the x components of velocity.
@@ -262,6 +279,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

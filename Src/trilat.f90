@@ -21,6 +21,7 @@
 ! Module reference
 
       use m_commath
+      use m_comprofile
       use m_comphy
       use m_getiname
 
@@ -105,6 +106,11 @@
 
       real sinlat      ! sin(latitude)
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -137,6 +143,15 @@
 !   - Trigonometric functions available on GPU
 !   - Can be computed once and cached if lat doesn't change
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('trilat.f90', 's_trilat', &
+   & 'OMP section 1')
+end if
+loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
       if(coropt.eq.1) then
@@ -174,6 +189,8 @@
       end if
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

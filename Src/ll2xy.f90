@@ -25,6 +25,7 @@
 ! Module reference
 
       use m_commath
+      use m_comprofile
       use m_getindx
       use m_getiname
       use m_getrname
@@ -168,6 +169,11 @@
 
       real rr          ! Radius on map coordinates system
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -220,6 +226,15 @@
 !   - All math intrinsics have GPU equivalents
 !   - Perfect candidate for GPU; collapse i,j loops for maximum parallelism
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('ll2xy.f90', 's_ll2xy', &
+   & 'OMP section 1')
+end if
+loop_len = int((jend)-(jstr)+1,8) * int((iend)-(istr)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 !! Calculate the reference latitude and longitude with the latitude and
@@ -380,6 +395,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

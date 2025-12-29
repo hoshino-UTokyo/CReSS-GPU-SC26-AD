@@ -21,6 +21,7 @@
 ! Module reference
 
       use m_comphy
+      use m_comprofile
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -136,6 +137,11 @@
 
 !     rkv8s: This variable is also temporary.
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -174,6 +180,15 @@
 !   - Collapse the k and j loops for more parallelism on GPU
 !   - Consider merging conditional branches to reduce kernel launches
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('eddydif.f90', 's_eddydif', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
 !! Calculate the eddy diffusivity in the case the Smagorinsky
@@ -381,6 +396,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

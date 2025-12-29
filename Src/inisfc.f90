@@ -25,6 +25,7 @@
 ! Module reference
 
       use m_bc2d
+      use m_comprofile
       use m_bcycle
       use m_bcyclex
       use m_combuf
@@ -243,6 +244,11 @@
       integer i_sub    ! Substitute for i
       integer j_sub    ! Substitute for j
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variable.
@@ -369,6 +375,15 @@
 !   - Direct OpenACC kernels directive should work.
 !   - Module constants can be copied to device as scalars.
 !@llm end meta_info ------------------------------------------------------
+
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('inisfc.f90', 's_inisfc', &
+   & 'OMP section 1')
+end if
+loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
 
 !$omp parallel default(shared)
 
@@ -631,6 +646,8 @@
 ! ----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

@@ -26,6 +26,7 @@
 ! Module reference
 
       use m_bc8w
+      use m_comprofile
       use m_bc8u
       use m_bc8v
       use m_bcten
@@ -236,6 +237,12 @@
 
 !     s11,s22,s33,s13,s23: These variables are also temporary.
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer, save :: prof_id2 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -282,6 +289,17 @@
 !   - Direct conversion to OpenACC with data region
 !   - Can collapse k and j loops for better GPU occupancy
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('defomten.f90', 's_defomten', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-1)-(2)+1,8) &
+     & * int((nj-jnorth)-(jsouth)+1,8) &
+     & * int((ni)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
         do k=2,nk-1
@@ -309,6 +327,8 @@
         end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
         call bc8w(idbbc,idtbc,ni,nj,nk,s11)
         call bc8w(idbbc,idtbc,ni,nj,nk,s22)

@@ -25,6 +25,7 @@
 !-----7--------------------------------------------------------------7--
 
 ! Implicit typing
+      use m_comprofile
 
       implicit none
 
@@ -122,6 +123,11 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 !!! Calculate the Coriolis force in the x, the y and the z components
@@ -145,6 +151,17 @@
 !   - May need explicit synchronization between kernel sections
 !   - Collapse k,j,i loops within each section for better occupancy
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('coriuvw.f90', 's_coriuvw', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-2)-(2)+1,8) &
+     & * int((nj-2)-(2)+1,8) &
+     & * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
 ! Calculate the Coriolis force in the x components of velocity equation.
@@ -268,6 +285,8 @@
 !! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

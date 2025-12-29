@@ -21,6 +21,7 @@
 ! Module reference
 
       use m_getiname
+      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -145,6 +146,11 @@
 
 !     ss: This variable is also temporary, because it is not used again.
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -183,6 +189,15 @@
 !   - Each column can be solved independently - batch across (i,j).
 !   - Consider cyclic reduction for better parallelism if needed.
 !@llm end meta_info ------------------------------------------------------
+
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('gaussel.f90', 's_gaussel', &
+   & 'OMP section 1')
+end if
+loop_len = int((jend)-(jstr)+1,8) * int((iend)-(istr)+1,8)
+call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -411,6 +426,8 @@
 !! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

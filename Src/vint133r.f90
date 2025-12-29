@@ -18,6 +18,7 @@
 ! Module reference
 
       use m_commath
+      use m_comprofile
       use m_getindx
 
 !-----7--------------------------------------------------------------7--
@@ -119,6 +120,11 @@
       real dk          ! Distance in z direction
                        ! between model and averaged points
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the maximum and minimim indices of do loops.
@@ -152,6 +158,17 @@
 !   - Use OpenACC teams distribute parallel do collapse(3)
 !   - Ensure lim35n, lim34n constants are accessible on device
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('vint133r.f90', 's_vint133r', &
+   & 'OMP section 1')
+end if
+loop_len = int((kend)-(2)+1,8) &
+     & * int((jend)-(jstr)+1,8) &
+     & * int((iend)-(istr)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k,kl)
 
 ! Fill in the undifined value outside of the flat plane.
@@ -218,6 +235,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

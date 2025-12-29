@@ -22,6 +22,7 @@
 ! Module reference
 
       use m_commpi
+      use m_comprofile
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -117,6 +118,11 @@
       integer i        ! Array index in x direction
       integer j        ! Array index in y direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -162,6 +168,15 @@
 !   - Small loop sizes (boundary points only) may favor CPU
 !   - Corner updates done sequentially outside parallel region
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('bc2d.f90', 's_bc2d', &
+   & 'OMP section 1')
+end if
+loop_len = int((nj+1)-(0)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 ! Set the west boundary conditions.
@@ -297,6 +312,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

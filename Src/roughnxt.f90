@@ -21,6 +21,7 @@
 ! Module reference
 
       use m_comphy
+      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -102,6 +103,11 @@
 
       real ust         ! Friction velocity
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Calculate the roughness parameter on the sea surface to the next time
@@ -123,6 +129,15 @@
 !   - Convert to OpenACC with teams distribute parallel for
 !   - Straightforward GPU port with collapse(2) clause
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('roughnxt.f90', 's_roughnxt', &
+   & 'OMP section 1')
+end if
+loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j,ust)
@@ -154,6 +169,8 @@
 !$omp end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

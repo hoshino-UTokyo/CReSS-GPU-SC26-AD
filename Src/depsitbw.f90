@@ -19,6 +19,7 @@
 ! Module reference
 
       use m_commath
+      use m_comprofile
       use m_comphy
       use m_remapbw
 
@@ -237,6 +238,11 @@
 
       real a           ! Temporary variable
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Set the substituted variables.
@@ -298,6 +304,15 @@
 !   - Handle remapbw call separately (may need separate GPU port)
 !   - Profile to identify bottleneck loops
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('depsitbw.f90', 's_depsitbw', &
+   & 'OMP section 1')
+end if
+loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(n)
 
 ! Set the common used variables.
@@ -457,6 +472,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

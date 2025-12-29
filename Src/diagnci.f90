@@ -23,6 +23,7 @@
 ! Module reference
 
       use m_comphy
+      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -107,6 +108,11 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variable.
@@ -134,6 +140,17 @@
 !   - Minimal data transfer: input qice, output nidia
 !   - Excellent GPU candidate due to simplicity
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('diagnci.f90', 's_diagnci', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-1)-(1)+1,8) &
+     & * int((nj-1)-(1)+1,8) &
+     & * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1
@@ -151,6 +168,8 @@
       end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

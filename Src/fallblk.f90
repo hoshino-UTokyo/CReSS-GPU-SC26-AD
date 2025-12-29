@@ -27,6 +27,7 @@
 ! Module reference
 
       use m_chkfall
+      use m_comprofile
       use m_comindx
       use m_commath
       use m_getiname
@@ -280,6 +281,11 @@
 
       real dzjcb       ! dz x jcb
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -325,6 +331,17 @@
 !   - Consider computing reductions in separate kernel before main loop.
 !   - The upwqp/upwnp/upwqcg calls need separate GPU porting.
 !@llm end meta_info ------------------------------------------------------
+
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('fallblk.f90', 's_fallblk', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-1)-(1)+1,8) &
+     & * int((nj-1)-(1)+1,8) &
+     & * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -433,6 +450,8 @@
       end if
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

@@ -23,6 +23,7 @@
 !-----7--------------------------------------------------------------7--
 
 ! Implicit typing
+      use m_comprofile
 
       implicit none
 
@@ -112,6 +113,11 @@
       real s328s       ! s32 at scalar points
       real s318s       ! s31 at scalar points
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Calculate the magnitude of the deformation squared.
@@ -133,6 +139,17 @@
 !   - Data managed automatically via Unified Memory
 !   - Good candidate for GPU due to arithmetic intensity
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('defomssq.f90', 's_defomssq', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-1)-(1)+1,8) &
+     & * int((nj-1)-(1)+1,8) &
+     & * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1
@@ -157,6 +174,8 @@
       end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

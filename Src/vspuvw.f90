@@ -23,6 +23,7 @@
 ! Module reference
 
       use m_getcname
+      use m_comprofile
       use m_getiname
       use m_inichar
 
@@ -186,6 +187,11 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variables.
@@ -224,6 +230,17 @@
 !   - Evaluate conditions outside kernel to select code path.
 !   - Consider fusing loops for same component if beneficial.
 !@llm end meta_info ------------------------------------------------------
+
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('vspuvw.f90', 's_vspuvw', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-2)-(ksp0(1)-1)+1,8) &
+     & * int((nj-1)-(1)+1,8) &
+     & * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -428,6 +445,8 @@
       end if
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

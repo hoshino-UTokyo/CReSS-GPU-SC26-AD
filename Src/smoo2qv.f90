@@ -21,6 +21,7 @@
 ! Module reference
 
       use m_getrname
+      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -119,6 +120,11 @@
 
       real a           ! Temporary variable
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -148,6 +154,17 @@
 !   - Use OpenACC/OpenACC with collapse(3) for each phase
 !   - Consider explicit barrier or separate kernels for two phases
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('smoo2qv.f90', 's_smoo2qv', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-1)-(1)+1,8) &
+     & * int((nj-1)-(1)+1,8) &
+     & * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1
@@ -185,6 +202,8 @@
       end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

@@ -22,6 +22,7 @@
 ! Module reference
 
       use m_castname
+      use m_comprofile
       use m_comindx
       use m_commpi
       use m_comname
@@ -78,6 +79,11 @@
 ! Internal private variable
 
       integer iid      ! Index of do loops
+
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
 
 !-----7--------------------------------------------------------------7--
 
@@ -554,6 +560,15 @@
 !   - Consider keeping on CPU due to small loop count
 !   - If porting, use single kernel for all table copies
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('setname.f90', 's_setname', &
+   & 'OMP section 1')
+end if
+loop_len = int((numctg_lnd-1)-(0)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(iid)
@@ -613,6 +628,8 @@
 !$omp end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

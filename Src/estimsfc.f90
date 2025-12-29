@@ -18,6 +18,7 @@
 ! Module reference
 
       use m_getiname
+      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -105,6 +106,11 @@
 
       integer ic       ! Index of user specified land use namelist table
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -134,6 +140,17 @@
 !   - Small lookup tables can be in constant memory on GPU
 !   - Collapse i,j loops after restructuring
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('estimsfc.f90', 's_estimsfc', &
+   & 'OMP section 1')
+end if
+loop_len = int((numctg_lnd)-(1)+1,8) &
+     & * int((nj-1)-(1)+1,8) &
+     & * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j,ic)
@@ -161,6 +178,8 @@
 !$omp end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

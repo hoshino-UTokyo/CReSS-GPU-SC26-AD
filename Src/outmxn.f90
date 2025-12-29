@@ -26,6 +26,7 @@
 ! Module reference
 
       use m_chkstd
+      use m_comprofile
       use m_comkind
       use m_commath
       use m_commpi
@@ -168,6 +169,12 @@
 
       real cvl         ! Temporary variable
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer, save :: prof_id2 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 !! Calculate and read in the maximum and minimum value of optional
@@ -227,6 +234,17 @@
 !   - Consider using CUB or Thrust for reduction primitives
 !   - May need two-pass approach for value then indices
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('outmxn.f90', 's_outmxn', &
+   & 'OMP section 1')
+end if
+loop_len = int((kend)-(kstr)+1,8) &
+     & * int((jend)-(jstr)+1,8) &
+     & * int((iend)-(istr)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j,k,cvl)                           &
@@ -251,6 +269,8 @@
 !$omp end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

@@ -18,6 +18,7 @@
 ! Module reference
 
       use m_getiname
+      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -124,6 +125,11 @@
       integer i        ! Array index in x direction
       integer j        ! Array index in y direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -152,6 +158,15 @@
 !   - Work arrays j31u2, j32v2 should be device-resident
 !   - Branch divergence from mfcopt/mpopt may impact performance
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('bbcw.f90', 's_bbcw', &
+   & 'OMP section 1')
+end if
+loop_len = int((nj-1)-(1)+1,8) * int((ni)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j)
@@ -235,6 +250,8 @@
       end if
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

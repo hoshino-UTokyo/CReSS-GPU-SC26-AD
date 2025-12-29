@@ -20,6 +20,7 @@
 ! Module reference
 
       use m_comphy
+      use m_comprofile
       use m_getrname
 
 !-----7--------------------------------------------------------------7--
@@ -148,6 +149,11 @@
       real a           ! Temporary variable
       real b           ! Temporary variable
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -181,6 +187,17 @@
 !   - Ensure m_comphy module constants are accessible on device
 !   - Consider branch divergence impact on GPU performance
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('sadjstbw.f90', 's_sadjstbw', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-1)-(2)+1,8) &
+     & * int((nj-1)-(1)+1,8) &
+     & * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-1
@@ -289,6 +306,8 @@
       end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

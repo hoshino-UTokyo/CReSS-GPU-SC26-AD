@@ -22,6 +22,7 @@
 ! Module reference
 
       use m_bulksfc
+      use m_comprofile
       use m_comphy
 
 !-----7--------------------------------------------------------------7--
@@ -136,6 +137,11 @@
 
       real a           ! Temporary variable
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variable.
@@ -172,6 +178,15 @@
 !   - Consider fusing with bulksfc call if beneficial.
 !@llm end meta_info ------------------------------------------------------
 
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('sfcflx.f90', 's_sfcflx', &
+   & 'OMP section 1')
+end if
+loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j,a)
@@ -200,6 +215,8 @@
 !$omp end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

@@ -28,6 +28,7 @@
 ! Module reference
 
       use m_bulksfc
+      use m_comprofile
       use m_comcapt
       use m_comdmp
       use m_comindx
@@ -274,6 +275,11 @@
 
       real a           ! Temporary variable
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variable.
@@ -338,6 +344,15 @@
 !   - Convert to OpenACC or OpenACC with data directives for arrays
 !   - Collapse nested i,j loops for better GPU occupancy
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('outpbl.f90', 's_outpbl', &
+   & 'OMP section 1')
+end if
+loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
         if(fmois(1:3).eq.'dry') then
@@ -433,6 +448,8 @@
         end if
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

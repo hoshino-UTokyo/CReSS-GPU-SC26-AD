@@ -25,6 +25,7 @@
 !-----7--------------------------------------------------------------7--
 
 ! Implicit typing
+      use m_comprofile
 
       implicit none
 
@@ -112,6 +113,11 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 !! Calculate the Coriolis force in the x and the y components of
@@ -135,6 +141,17 @@
 !   - Consider fusing the two stages into single kernel per component.
 !   - Temporary array tmp1 needed for staggered grid averaging.
 !@llm end meta_info ------------------------------------------------------
+
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('coriuv.f90', 's_coriuv', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-2)-(2)+1,8) &
+     & * int((nj-2)-(2)+1,8) &
+     & * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -203,6 +220,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

@@ -17,6 +17,7 @@
 ! Module reference
 
       use m_comphy
+      use m_comprofile
       use m_getindx
 
 !-----7--------------------------------------------------------------7--
@@ -138,6 +139,11 @@
 
       real qvs         ! Saturation mixing ratio
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the maximum and minimim indices of do loops.
@@ -181,6 +187,17 @@
 !   - Direct OpenACC with collapse(2) for inner loops
 !   - exp/log functions have GPU intrinsic support
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('chksat.f90', 's_chksat', &
+   & 'OMP section 1')
+end if
+loop_len = int((kend)-(kstr)+1,8) &
+     & * int((jend)-(jstr)+1,8) &
+     & * int((iend)-(istr)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
       if(fproc(1:3).eq.'bar') then
@@ -255,6 +272,8 @@
       end if
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

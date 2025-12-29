@@ -19,6 +19,7 @@
 ! Module reference
 
       use m_commath
+      use m_comprofile
       use m_copy3d
       use m_getrname
 
@@ -147,6 +148,11 @@
       real b           ! Temporary variable
       real c           ! Temporary variable
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -200,6 +206,17 @@
 !   - Use OpenACC teams distribute parallel do collapse(3)
 !   - Map all velocity arrays to device with proper in/out semantics
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('vculuvw.f90', 's_vculuvw', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-3)-(3)+1,8) &
+     & * int((nj-2)-(2)+1,8) &
+     & * int((ni-1)-(2)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
 ! Calculate the u advection vertically.
@@ -492,6 +509,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

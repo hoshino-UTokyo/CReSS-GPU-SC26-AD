@@ -18,6 +18,7 @@
 ! Module reference
 
       use m_comindx
+      use m_comprofile
       use m_commath
       use m_getiname
       use m_getrname
@@ -170,6 +171,11 @@
       real b           ! Temporary variable
       real c           ! Temporary variable
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -228,6 +234,15 @@
 !   - Consider separate kernels for qt0opt=1 and qt0opt=2 paths
 !   - May need to privatize qtfrc accumulation or use atomic operations
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('emitqt.f90', 's_emitqt', &
+   & 'OMP section 1')
+end if
+loop_len = int((qt0num)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k,iqt)
 
         if(qt0opt.eq.1) then
@@ -315,6 +330,8 @@
         end if
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

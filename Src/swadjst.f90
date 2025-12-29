@@ -25,6 +25,7 @@
 ! Module reference
 
       use m_commath
+      use m_comprofile
       use m_comphy
       use m_getgamma
       use m_getiname
@@ -184,6 +185,11 @@
       real a           ! Temporary variable
       real b           ! Temporary variable
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -244,6 +250,17 @@
 !   - Consider separating cphopt<=3 and cphopt==4 paths
 !   - Profile exp/log operations for GPU performance
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('swadjst.f90', 's_swadjst', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-1)-(1)+1,8) &
+     & * int((nj-1)-(1)+1,8) &
+     & * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
 ! Perform calculating in the case the option abs(cphopt) is less than 3.
@@ -554,6 +571,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

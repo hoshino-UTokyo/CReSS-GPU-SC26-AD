@@ -22,6 +22,7 @@
 ! Module reference
 
       use m_commpi
+      use m_comprofile
       use m_getcname
       use m_getiname
       use m_getrname
@@ -166,6 +167,11 @@
       real radwe       ! Temporary variable
       real radsn       ! Temporary variable
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variable.
@@ -234,6 +240,15 @@
 !   - MPI conditionals should be evaluated on host before kernel launch
 !   - Can share kernel structure with rbcs but with max() clamping added
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('rbcs0.f90', 's_rbcs0', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-2)-(2)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 ! Set the boundary conditions at the four corners.
@@ -579,6 +594,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

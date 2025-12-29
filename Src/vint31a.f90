@@ -21,6 +21,7 @@
 !-----7--------------------------------------------------------------7--
 
 ! Implicit typing
+      use m_comprofile
 
       implicit none
 
@@ -109,6 +110,11 @@
       real dk          ! Distance in z direction
                        ! between flat plane and data points
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variable.
@@ -135,6 +141,15 @@
 !   - Use OpenACC teams distribute parallel do collapse(3)
 !   - Consider restructuring to compute kd index per (id,jd,k) point directly
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('vint31a.f90', 's_vint31a', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk)-(1)+1,8) * int((njd)-(1)+1,8) * int((nid)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k,kd)
 
 ! Extrapolate the variable.
@@ -203,6 +218,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

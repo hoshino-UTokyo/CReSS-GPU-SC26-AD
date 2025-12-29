@@ -27,6 +27,7 @@
 ! Module reference
 
       use m_commath
+      use m_comprofile
       use m_commpi
       use m_getiname
       use m_getrname
@@ -236,6 +237,11 @@
       real bc1         ! Temporary variable
       real bc2         ! Temporary variable
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -313,6 +319,15 @@
 !   - Reduction operations for cpavex, cpavey need GPU reduction support
 !   - MPI rank checks (isub, jsub) determine which boundaries are active
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('phvbcs.f90', 's_phvbcs', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-2)-(2)+1,8) * int((nj-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
 ! Calculate the differential phase speed term for optional scalar
@@ -980,6 +995,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

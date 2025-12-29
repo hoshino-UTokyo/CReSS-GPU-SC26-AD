@@ -25,6 +25,7 @@
 ! Module reference
 
       use m_comindx
+      use m_comprofile
       use m_comphy
       use m_diver3d
       use m_getiname
@@ -229,6 +230,11 @@
 
 !     wpg: This variable is also temporary.
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -287,6 +293,17 @@
 !   - Use multiple kernels matching the loop structure.
 !   - Map scale factor conditionals can be evaluated outside kernel.
 !@llm end meta_info ------------------------------------------------------
+
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('pgrad.f90', 's_pgrad', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-1)-(1)+1,8) &
+     & * int((nj-1)-(1)+1,8) &
+     & * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -662,6 +679,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

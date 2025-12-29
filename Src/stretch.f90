@@ -24,6 +24,7 @@
 ! Module reference
 
       use m_chkerr
+      use m_comprofile
       use m_commath
       use m_commpi
       use m_cpondpe
@@ -157,6 +158,12 @@
 
       real tmp         ! Temporary variable
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer, save :: prof_id2 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -208,6 +215,15 @@
 !   - Simple parallel loop suitable for GPU offloading
 !   - Small array size (nk), may not benefit significantly from GPU
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('stretch.f90', 's_stretch', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(k)
@@ -219,6 +235,8 @@
 !$omp end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

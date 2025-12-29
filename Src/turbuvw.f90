@@ -23,6 +23,7 @@
 ! Module reference
 
       use m_getiname
+      use m_comprofile
       use m_getrname
 
 !-----7--------------------------------------------------------------7--
@@ -209,6 +210,11 @@
 !     t11,t22,t33,t13,t23: These variables are also temporary, because
 !                          they are not used again.
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -255,6 +261,15 @@
 !   - OpenACC kernels with collapse(2) on i,j loops.
 !   - Data region should cover all stress tensors and force arrays.
 !@llm end meta_info ------------------------------------------------------
+
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('turbuvw.f90', 's_turbuvw', &
+   & 'OMP section 1')
+end if
+loop_len = int((nj-1)-(2)+1,8) * int((ni-1)-(2)+1,8)
+call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -1835,6 +1850,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

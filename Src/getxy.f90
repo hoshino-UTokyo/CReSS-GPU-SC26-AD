@@ -21,6 +21,7 @@
 ! Module reference
 
       use m_commpi
+      use m_comprofile
       use m_getrname
 
 !-----7--------------------------------------------------------------7--
@@ -118,6 +119,11 @@
       integer i        ! Array index in x direction
       integer j        ! Array index in y direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -174,6 +180,15 @@
 !   - 1D arrays are small, consider keeping on CPU or async transfer
 !   - Separate kernels for x and y may be more efficient
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('getxy.f90', 's_getxy', &
+   & 'OMP section 1')
+end if
+loop_len = int((imax)-(imin)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 ! Calculate the x and the y coordinates at the data grid points.
@@ -267,6 +282,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

@@ -29,6 +29,7 @@
 ! Module reference
 
       use m_chkerr
+      use m_comprofile
       use m_commath
       use m_commpi
       use m_comphy
@@ -196,6 +197,18 @@
 
 !     pt1d: This variable is also temporary.
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer, save :: prof_id2 = -1
+      integer, save :: prof_id3 = -1
+      integer, save :: prof_id4 = -1
+      integer, save :: prof_id5 = -1
+      integer, save :: prof_id6 = -1
+      integer, save :: prof_id7 = -1
+      integer, save :: prof_id8 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variable.
@@ -259,6 +272,15 @@
 !   - Or compute on host since nlev is typically small.
 !@llm end meta_info ------------------------------------------------------
 
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('set1d.f90', 's_set1d', &
+   & 'OMP section 1')
+end if
+loop_len = int((nlev)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(kl) reduction(max: qvmax)
@@ -270,6 +292,8 @@
 !$omp end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

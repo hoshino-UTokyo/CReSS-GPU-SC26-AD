@@ -28,6 +28,7 @@
 ! Module reference
 
       use m_chkerr
+      use m_comprofile
       use m_comindx
       use m_commath
       use m_commpi
@@ -223,6 +224,13 @@
 
 !     p1d,pt1d: These variables are also temporary.
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer, save :: prof_id2 = -1
+      integer, save :: prof_id3 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variables.
@@ -298,6 +306,15 @@
 !   - May need multiple kernel launches for different conditional branches
 !   - Consider restructuring to reduce conditional complexity
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('get1d.f90', 's_get1d', &
+   & 'OMP section 1')
+end if
+loop_len = int((4*kref-3)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 ! Calculate the interpolated zeta coordinates.
@@ -779,6 +796,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

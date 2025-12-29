@@ -24,6 +24,7 @@
 ! Module reference
 
       use m_getiname
+      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -325,6 +326,11 @@
 
       integer n        ! Array index in 4th direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -362,6 +368,17 @@
 !   - Use async data transfers if arrays already on GPU
 !   - Collapse loops where possible for better occupancy
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('swp2nxt.f90', 's_swp2nxt', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-1)-(1)+1,8) &
+     & * int((nj-jnorth)-(jsouth)+1,8) &
+     & * int((ni+1-ieast)-(iwest)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k,n)
 
 !!!! Swap the prognostic variables to the next time step in the case the
@@ -1459,6 +1476,8 @@
 !!!! ----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !!!!! -----
 

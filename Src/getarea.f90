@@ -19,6 +19,7 @@
 ! Module reference
 
       use m_commpi
+      use m_comprofile
       use m_getiname
       use m_getrname
       use m_reducelb
@@ -162,6 +163,11 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -240,6 +246,15 @@
 !   - May need separate kernels for each boundary plane
 !   - Consider whether GPU overhead is worthwhile for boundary-only computation
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('getarea.f90', 's_getarea', &
+   & 'OMP section 1')
+end if
+loop_len = int((jend)-(jstr)+1,8) * int((iend)-(istr)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
       if(mfcopt.eq.0) then
@@ -405,6 +420,8 @@
       end if
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

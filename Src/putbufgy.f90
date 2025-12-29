@@ -17,6 +17,7 @@
 ! Module reference
 
       use m_commpi
+      use m_comprofile
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -118,6 +119,11 @@
       integer i        ! Array index in x direction
       integer k        ! Array index in z direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -150,6 +156,15 @@
 !   - Consider async data transfers for overlap with computation
 !   - May keep on host if buffer sizes are small relative to transfer cost
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('putbufgy.f90', 's_putbufgy', &
+   & 'OMP section 1')
+end if
+loop_len = int((kmax)-(1)+1,8) * int((ni+1)-(0)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
 ! Fill in the sending buffer with the value in the south halo regions.
@@ -281,6 +296,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
         end if
 

@@ -17,6 +17,7 @@
 ! Module reference
 
       use m_commpi
+      use m_comprofile
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -125,6 +126,11 @@
 
       integer k        ! Array index in z direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -163,6 +169,15 @@
 !   - Convert to OpenACC with collapsed loops
 !   - Consider merging the four conditional loops into a single kernel with conditional logic
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('bc4news.f90', 's_bc4news', &
+   & 'OMP section 1')
+end if
+loop_len = int((kmax)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
       if(abs(wbc).ne.1.or.abs(ebc).ne.1                                 &
@@ -219,6 +234,8 @@
       end if
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

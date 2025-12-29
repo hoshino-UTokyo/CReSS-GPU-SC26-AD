@@ -30,6 +30,7 @@
 ! Module reference
 
       use m_comblk
+      use m_comprofile
       use m_comcapt
       use m_comdmp
       use m_comindx
@@ -295,6 +296,11 @@
 
       integer k        ! Array index in z drection
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 !!!! Control the inferior procedures to read in the variables to the
@@ -349,6 +355,15 @@
 !   - Direct port is straightforward if needed
 !   - Consider keeping on CPU for simplicity
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('outdmp.f90', 's_outdmp', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-2)-(2)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
         if(fdmp(1:3).eq.'act') then
@@ -378,6 +393,8 @@
         end if
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

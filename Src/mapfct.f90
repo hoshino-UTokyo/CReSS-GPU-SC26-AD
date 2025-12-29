@@ -25,6 +25,7 @@
 ! Module reference
 
       use m_bcyclex
+      use m_comprofile
       use m_bcycley
       use m_combuf
       use m_comindx
@@ -188,6 +189,11 @@
       integer i        ! Array index in x direction
       integer j        ! Array index in y direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -230,6 +236,15 @@
 !   - Collapse nested i,j loops for better GPU occupancy
 !   - Math intrinsics are GPU-compatible
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('mapfct.f90', 's_mapfct', &
+   & 'OMP section 1')
+end if
+loop_len = int((nj)-(0)+1,8) * int((ni)-(0)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 !! Calculate the map scale factor at scalar points.
@@ -447,6 +462,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

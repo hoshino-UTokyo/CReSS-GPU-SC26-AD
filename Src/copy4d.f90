@@ -23,6 +23,7 @@
 !-----7--------------------------------------------------------------7--
 
 ! Implicit typing
+      use m_comprofile
 
       implicit none
 
@@ -112,6 +113,11 @@
 
       integer n        ! Array index in 4th direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Copy the invar to the outvar.
@@ -131,6 +137,18 @@
 !   - Consider using device-to-device memcpy for efficiency
 !   - May be better to keep data resident on GPU and avoid copy calls
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('copy4d.f90', 's_copy4d', &
+   & 'OMP section 1')
+end if
+loop_len = int((nmax)-(nmin)+1,8) &
+     & * int((kmax)-(kmin)+1,8) &
+     & * int((jmax)-(jmin)+1,8) &
+     & * int((imax)-(imin)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k,n)
 
       do n=nmin,nmax
@@ -152,6 +170,8 @@
       end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

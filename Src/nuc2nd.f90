@@ -23,6 +23,7 @@
 ! Module reference
 
       use m_commath
+      use m_comprofile
       use m_comphy
 
 !-----7--------------------------------------------------------------7--
@@ -120,6 +121,11 @@
 
       real a           ! Temporary variable
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variables.
@@ -147,6 +153,15 @@
 !   - Branch divergence from temperature conditionals
 !   - Consider using select case or predicated assignments
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('nuc2nd.f90', 's_nuc2nd', &
+   & 'OMP section 1')
+end if
+loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
 ! In the case nk = 1.
@@ -300,6 +315,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

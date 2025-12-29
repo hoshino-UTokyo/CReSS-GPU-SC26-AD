@@ -20,6 +20,7 @@
 ! Module reference
 
       use m_chkerr
+      use m_comprofile
       use m_commpi
       use m_cpondpe
       use m_destroy
@@ -150,6 +151,11 @@
       integer id       ! Data array index in x direction
       integer jd       ! Data array index in y direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -186,6 +192,15 @@
 !   - Data managed automatically via Unified Memory atomic or warp-level reductions
 !   - Consider fusing the two branches into one kernel with masking
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('newsindx.f90', 's_newsindx', &
+   & 'OMP section 1')
+end if
+loop_len = int((nj)-(0)+1,8) * int((ni)-(0)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
       if(mpopt.lt.10) then
@@ -229,6 +244,8 @@
       end if
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

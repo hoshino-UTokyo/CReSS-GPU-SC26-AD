@@ -22,6 +22,7 @@
 ! Module reference
 
       use m_commath
+      use m_comprofile
       use m_comphy
       use m_comtable
       use m_getiname
@@ -184,6 +185,11 @@
 
       real dk          ! Weighting distance for interpolating
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -220,6 +226,15 @@
 !   - k-loop accumulations may need careful handling (scan or atomic)
 !   - Consider data locality for lookup tables
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('cloudcov.f90', 's_cloudcov', &
+   & 'OMP section 1')
+end if
+loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
 ! Set the no cloud cover in the case of dry air.
@@ -560,6 +575,8 @@
 !! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

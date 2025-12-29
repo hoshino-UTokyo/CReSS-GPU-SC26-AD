@@ -18,6 +18,7 @@
 ! Module reference
 
       use m_getiname
+      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -118,6 +119,11 @@
 !     rkh: This variable is also temporary, because it is not used
 !          again.
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -148,6 +154,17 @@
 !   - Careful attention needed for rkh modification ordering
 !   - Consider separating different mpopt/mfcopt cases into different kernels
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('kh8uv.f90', 's_kh8uv', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-1)-(1)+1,8) &
+     & * int((nj-1)-(1)+1,8) &
+     & * int((ni-1)-(2)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
       if(mfcopt.eq.1.and.(mpopt.eq.0.or.mpopt.eq.10)) then
@@ -267,6 +284,8 @@
       end if
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

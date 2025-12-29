@@ -19,6 +19,7 @@
 ! Module reference
 
       use m_comkind
+      use m_comprofile
       use m_commath
       use m_destroy
       use m_outstd12
@@ -149,6 +150,12 @@
 
       real cvl         ! Temporary variable
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer, save :: prof_id2 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the processed variables.
@@ -195,6 +202,15 @@
 !   - Direct OpenACC with collapse(3) and multiple reductions
 !   - GPU reduction primitives well-suited for this pattern
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('chkmxn.f90', 's_chkmxn', &
+   & 'OMP section 1')
+end if
+loop_len = int((nkd)-(1)+1,8) * int((njd)-(1)+1,8) * int((nid)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
       if(fproc(1:3).eq.'all') then
@@ -251,6 +267,8 @@
       end if
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

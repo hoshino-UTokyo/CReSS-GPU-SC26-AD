@@ -24,6 +24,7 @@
 ! Module reference
 
       use m_commath
+      use m_comprofile
       use m_comphy
       use m_getiname
 
@@ -135,6 +136,11 @@
 
       real rbv         ! Inverse of base state density
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -182,6 +188,17 @@
 !   - Handle haiopt conditional outside kernel or use single kernel with masking
 !   - Data managed automatically via Unified Memory
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('diagni.f90', 's_diagni', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-1)-(1)+1,8) &
+     & * int((nj-1)-(1)+1,8) &
+     & * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
 !! Get the diagnostic concentrations of the cloud ice, snow and graupel.
@@ -302,6 +319,8 @@
 !! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

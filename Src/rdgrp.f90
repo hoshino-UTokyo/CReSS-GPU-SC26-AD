@@ -20,6 +20,7 @@
 ! Module reference
 
       use m_castgrp
+      use m_comprofile
       use m_chkerr
       use m_chkstd
       use m_comgrp
@@ -131,6 +132,11 @@
 
       integer igc_sub  ! Substitute for igc
       integer jgc_sub  ! Substitute for jgc
+
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
 
 !-----7--------------------------------------------------------------7--
 
@@ -456,6 +462,15 @@
 !   - Convert to OpenACC with teams distribute parallel for and reduction clause
 !   - Alternatively use OpenACC with parallel loop reduction
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('rdgrp.f90', 's_rdgrp', &
+   & 'OMP section 1')
+end if
+loop_len = int((njgrp)-(1)+1,8) * int((nigrp)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(igc_sub,jgc_sub)                     &
@@ -490,6 +505,8 @@
 !$omp end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

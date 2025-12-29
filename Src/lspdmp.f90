@@ -25,6 +25,7 @@
 ! Module reference
 
       use m_commath
+      use m_comprofile
       use m_commpi
       use m_getiname
 
@@ -171,6 +172,12 @@
       real rbcy8s      ! Relaxed lateral sponge damping coefficient
                        ! in y direction at scalar points
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer, save :: prof_id2 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -245,6 +252,15 @@
 !   - May need to split into separate kernels or use atomic updates for corners
 !   - Consider restructuring corner logic to avoid recomputing rbcx,rbcy
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('lspdmp.f90', 's_lspdmp', &
+   & 'OMP section 1')
+end if
+loop_len = int((ni)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 !! Set the positive coefficients for damping case.
@@ -631,6 +647,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

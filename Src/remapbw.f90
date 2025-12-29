@@ -19,6 +19,7 @@
 ! Module reference
 
       use m_commath
+      use m_comprofile
       use m_comphy
 
 !-----7--------------------------------------------------------------7--
@@ -177,6 +178,11 @@
 
       real mwbr        ! Mean water mass
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variable.
@@ -207,6 +213,17 @@
 !   - Careful data management needed for work arrays on GPU
 !   - Consider kernel fusion to reduce memory traffic
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('remapbw.f90', 's_remapbw', &
+   & 'OMP section 1')
+end if
+loop_len = int((nqws)-(1)+1,8) &
+     & * int((nj-1)-(1)+1,8) &
+     & * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(n,ns)
 
 !!! Remap the shifted water mass and concentrations for original
@@ -556,6 +573,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !!!! -----
 

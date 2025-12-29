@@ -24,6 +24,7 @@
 !-----7--------------------------------------------------------------7--
 
 ! Implicit typing
+      use m_comprofile
 
       implicit none
 
@@ -110,6 +111,11 @@
       real dk          ! Distance in z direction
                        ! between averaged levels and data points
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variables.
@@ -140,6 +146,15 @@
 !   - Small arrays - may benefit from explicit device memory management
 !   - Consider loop restructuring to avoid redundant searches
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('vint11.f90', 's_vint11', &
+   & 'OMP section 1')
+end if
+loop_len = int((nlev)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(kd)
 
 ! Extrapolate the data to the averaged levels vertically.
@@ -193,6 +208,8 @@
 ! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !! -----
 

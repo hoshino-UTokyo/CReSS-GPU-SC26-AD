@@ -20,6 +20,7 @@
 ! Module reference
 
       use m_chkerr
+      use m_comprofile
       use m_comionum
       use m_commpi
       use m_comuni
@@ -117,6 +118,11 @@
       integer i        ! Array index in x direction
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
+
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
 
 !-----7--------------------------------------------------------------7--
 
@@ -233,6 +239,15 @@
 !   - Collapse nested loops in var initialization
 !   - Small arrays (nk, nio_uni) may not benefit from GPU offload
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('allocuni.f90', 's_allocuni', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(k)
@@ -272,6 +287,8 @@
 !$omp end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

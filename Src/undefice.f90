@@ -21,6 +21,7 @@
 ! Module reference
 
       use m_commath
+      use m_comprofile
       use m_destroy
 
 !-----7--------------------------------------------------------------7--
@@ -122,6 +123,13 @@
       real sumwei      ! weiw + weie + weis + wein
                        ! + weiws + weiwn + weies + weien
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer, save :: prof_id2 = -1
+      integer, save :: prof_id3 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variables.
@@ -152,6 +160,15 @@
 !   - Convert to OpenACC with reduction clause
 !   - Data should be present on GPU from caller
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('undefice.f90', 's_undefice', &
+   & 'OMP section 1')
+end if
+loop_len = int((njd)-(1)+1,8) * int((nid)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(id,jd) reduction(+: rstat)
@@ -169,6 +186,8 @@
 !$omp end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

@@ -18,6 +18,7 @@
 ! Module reference
 
       use m_chkerr
+      use m_comprofile
       use m_comgrp
       use m_commpi
       use m_cpondpe
@@ -109,6 +110,11 @@
 
       integer igc_sub  ! Substitute for igc
       integer jgc_sub  ! Substitute for jgc
+
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
 
 !-----7--------------------------------------------------------------7--
 
@@ -208,6 +214,15 @@
 !   - Small loop sizes (nigrp, njgrp, nsrl) may not benefit from GPU
 !   - Consider keeping on CPU if domain decomposition is small
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('allocgrp.f90', 's_allocgrp', &
+   & 'OMP section 1')
+end if
+loop_len = int((njgrp+1)-(0)+1,8) * int((nigrp+1)-(0)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(igc_sub,jgc_sub)
@@ -256,6 +271,8 @@
 !$omp end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

@@ -115,3 +115,11 @@ After completing annotations:
 1. Review changes (`git status`, `git diff`)
 2. Commit with a clear message, e.g.:
    - `meta_info: annotate OpenMP regions for GPU porting`
+
+---
+
+## Related Documents
+
+- **[meta_info_instruction2.md](./meta_info_instruction2.md)**: Runtime profiling instructions
+  - Adds execution count, loop length, and timing measurements to OpenMP sections
+  - Use after meta_info phase to collect runtime characteristics

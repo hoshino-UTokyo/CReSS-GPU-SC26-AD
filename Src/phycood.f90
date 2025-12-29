@@ -25,6 +25,7 @@
 ! Module reference
 
       use m_chkerr
+      use m_comprofile
       use m_comindx
       use m_commath
       use m_commpi
@@ -152,6 +153,13 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer, save :: prof_id2 = -1
+      integer, save :: prof_id3 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -207,6 +215,15 @@
 !   - GPU reductions are well supported in OpenACC
 !   - May need atomic or tree-based reduction for performance
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('phycood.f90', 's_phycood', &
+   & 'OMP section 1')
+end if
+loop_len = int((nj)-(0)+1,8) * int((ni)-(0)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j) reduction(max: htmax)
@@ -220,6 +237,8 @@
 !$omp end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

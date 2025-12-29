@@ -25,6 +25,7 @@
 ! Module reference
 
       use m_chkerr
+      use m_comprofile
       use m_commpi
       use m_cpondpe
       use m_destroy
@@ -185,6 +186,12 @@
       real a           ! Temporary variable
       real b           ! Temporary variable
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer, save :: prof_id2 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -233,6 +240,15 @@
 !   - GPU reduction may require atomic operations or tree reduction
 !   - Consider separating reduction into separate kernel
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('hint2d.f90', 's_hint2d', &
+   & 'OMP section 1')
+end if
+loop_len = int((jend)-(jstr)+1,8) * int((iend)-(istr)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
         if(mpopt.lt.10) then
@@ -282,6 +298,8 @@
         end if
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

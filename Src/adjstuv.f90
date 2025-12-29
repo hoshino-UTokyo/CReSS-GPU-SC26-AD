@@ -20,6 +20,7 @@
 ! Module reference
 
       use m_commpi
+      use m_comprofile
       use m_comphy
       use m_getiname
       use m_getrname
@@ -217,6 +218,12 @@
 
       real a           ! Temporary variable
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer, save :: prof_id2 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -310,6 +317,15 @@
 !   - Need to ensure MPI variables are available on device or passed in.
 !   - Consider fusing all reduction loops into single kernel with atomics.
 !@llm end meta_info ------------------------------------------------------
+
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('adjstuv.f90', 's_adjstuv', &
+   & 'OMP section 1')
+end if
+loop_len = int((jend)-(jstr)+1,8) * int((iend)-(istr)+1,8)
+call profile_start(prof_id1)
 
 !$omp parallel default(shared)
 
@@ -506,6 +522,8 @@
       end if
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

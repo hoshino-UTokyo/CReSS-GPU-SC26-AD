@@ -29,6 +29,7 @@
 ! Module reference
 
       use m_chkerr
+      use m_comprofile
       use m_chkopen
       use m_chkstd
       use m_comdmp
@@ -191,6 +192,11 @@
 
       integer k        ! Array index in z drection
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -293,6 +299,15 @@
 !   - Could run on CPU or use GPU only if part of larger kernel
 !   - Direct port is straightforward if needed
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('opendmp.f90', 's_opendmp', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-2)-(2)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
         if(fdmp(1:3).eq.'act') then
@@ -322,6 +337,8 @@
         end if
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

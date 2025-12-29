@@ -19,6 +19,7 @@
 ! Module reference
 
       use m_commath
+      use m_comprofile
       use m_getrname
 
 !-----7--------------------------------------------------------------7--
@@ -103,6 +104,11 @@
       integer jd       ! Array index in y direction
       integer kd       ! Array index in z direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -130,6 +136,15 @@
 !   - Data managed automatically via Unified Memory
 !   - No synchronization needed between iterations
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('dbz2kg.f90', 's_dbz2kg', &
+   & 'OMP section 1')
+end if
+loop_len = int((nkd)-(1)+1,8) * int((njd)-(1)+1,8) * int((nid)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(kd)
 
       do kd=1,nkd
@@ -154,6 +169,8 @@
       end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

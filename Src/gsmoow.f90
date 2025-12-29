@@ -18,6 +18,7 @@
 
 ! Module reference
 
+      use m_comprofile
       use m_bc4news
       use m_bcgsmw
       use m_bcycle
@@ -123,6 +124,11 @@
 
       real a           ! Temporary variable
 
+! Profiling variables
+      integer, save :: prof_id1 = -1   ! Section ID for 1st parallel region
+      integer, save :: prof_id2 = -1   ! Section ID for 2nd parallel region
+      integer(8) :: loop_len           ! Loop length
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -156,6 +162,15 @@
 !   - Convert to OpenACC with collapse(2) on j,i loops
 !   - Data managed automatically via Unified Memory
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+      if (prof_id1 < 0) then
+        prof_id1 = profile_register('gsmoow.f90', 's_gsmoow',           &
+     &    'diffusion term calculation')
+      end if
+      loop_len = int((nk-2-3+1),8) * int((nj-2-2+1),8) * int((ni-2-2+1),8)
+      call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
       do k=3,nk-2
@@ -178,6 +193,8 @@
       end do
 
 !$omp end parallel
+
+      call profile_stop(prof_id1, loop_len)
 
 ! -----
 
@@ -250,6 +267,15 @@
 !   - Convert to OpenACC with collapse(2) on j,i loops
 !   - Data managed automatically via Unified Memory
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+      if (prof_id2 < 0) then
+        prof_id2 = profile_register('gsmoow.f90', 's_gsmoow',           &
+     &    'GPV update')
+      end if
+      loop_len = int((nk-1-2+1),8) * int((nj-1-1+1),8) * int((ni-1-1+1),8)
+      call profile_start(prof_id2)
+
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-1
@@ -267,6 +293,8 @@
       end do
 
 !$omp end parallel
+
+      call profile_stop(prof_id2, loop_len)
 
 ! -----
 

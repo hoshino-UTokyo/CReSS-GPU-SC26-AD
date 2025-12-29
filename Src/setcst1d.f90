@@ -20,6 +20,7 @@
 ! Module reference
 
       use m_comkind
+      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -89,6 +90,11 @@
 
       integer k        ! Array index in z direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Fill in the array with the constant value.
@@ -107,6 +113,15 @@
 !   - Convert to OpenACC with parallel loop
 !   - Consider using memset or array assignment for better performance
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('setcst1d.f90', 's_setcst1d', &
+   & 'OMP section 1')
+end if
+loop_len = int((kmax)-(kmin)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(k)
@@ -118,6 +133,8 @@
 !$omp end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 
@@ -147,6 +164,11 @@
 
       integer k        ! Array index in z direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Fill in the array with the constant value.
@@ -165,6 +187,15 @@
 !   - Convert to OpenACC with parallel loop
 !   - Consider using memset or array assignment for better performance
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('setcst1d.f90', 's_setcst1d_r8', &
+   & 'OMP section 1')
+end if
+loop_len = int((kmax)-(kmin)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(k)
@@ -176,6 +207,8 @@
 !$omp end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

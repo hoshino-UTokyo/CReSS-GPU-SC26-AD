@@ -20,6 +20,7 @@
 ! Module reference
 
       use m_comkind
+      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -103,6 +104,11 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Fill in the array with the constant value.
@@ -121,6 +127,17 @@
 !   - Convert to OpenACC with parallel loop collapse(3)
 !   - Consider using memset or array assignment for better performance
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('setcst3d.f90', 's_setcst3d', &
+   & 'OMP section 1')
+end if
+loop_len = int((kmax)-(kmin)+1,8) &
+     & * int((jmax)-(jmin)+1,8) &
+     & * int((imax)-(imin)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
       do k=kmin,kmax
@@ -138,6 +155,8 @@
       end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 
@@ -183,6 +202,11 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Fill in the array with the constant value.
@@ -201,6 +225,17 @@
 !   - Convert to OpenACC with parallel loop collapse(3)
 !   - Consider using memset or array assignment for better performance
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('setcst3d.f90', 's_setcst3d_r8', &
+   & 'OMP section 1')
+end if
+loop_len = int((kmax)-(kmin)+1,8) &
+     & * int((jmax)-(jmin)+1,8) &
+     & * int((imax)-(imin)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
       do k=kmin,kmax
@@ -218,6 +253,8 @@
       end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

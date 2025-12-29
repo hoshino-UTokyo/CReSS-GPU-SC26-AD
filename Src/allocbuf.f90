@@ -23,6 +23,7 @@
 ! Module reference
 
       use m_chkerr
+      use m_comprofile
       use m_combuf
       use m_comgrp
       use m_commpi
@@ -183,6 +184,11 @@
 
       integer igc_sub  ! Substitute for igc
       integer jgc_sub  ! Substitute for jgc
+
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
 
 !-----7--------------------------------------------------------------7--
 
@@ -386,6 +392,15 @@
 !   - Consider async data transfers for buffer initialization
 !   - May combine multiple initialization loops into single kernel
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('allocbuf.f90', 's_allocbuf', &
+   & 'OMP section 1')
+end if
+loop_len = int((npe-1)-(0)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(ijpe)
@@ -456,6 +471,8 @@
 !$omp end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

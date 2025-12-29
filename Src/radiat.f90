@@ -25,6 +25,7 @@
 ! Module reference
 
       use m_comdays
+      use m_comprofile
       use m_commath
       use m_comphy
       use m_getiname
@@ -233,6 +234,11 @@
       real a           ! Temporary variable
       real b           ! Temporary variable
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -310,6 +316,15 @@
 !   - Consider separating dry/moist code paths for GPU kernels
 !   - Hoist conditional checks outside parallel region if feasible
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('radiat.f90', 's_radiat', &
+   & 'OMP section 1')
+end if
+loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
 ! Calculte the zenith angle.
@@ -721,6 +736,8 @@
 !!!! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !!!!! -----
 

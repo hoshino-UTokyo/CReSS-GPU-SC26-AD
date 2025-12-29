@@ -23,6 +23,7 @@
 !-----7--------------------------------------------------------------7--
 
 ! Implicit typing
+      use m_comprofile
 
       implicit none
 
@@ -108,6 +109,11 @@
 
       integer n        ! Array index in bin categories
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Change measurement from [c] [g] to [m] [k].
@@ -130,6 +136,18 @@
 !   - May need to handle n-loop separately if nqw varies at runtime
 !   - Simple structure well-suited for GPU offload
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('cg2mkbw.f90', 's_cg2mkbw', &
+   & 'OMP section 1')
+end if
+loop_len = int((nqw)-(1)+1,8) &
+     & * int((nk-1)-(1)+1,8) &
+     & * int((nj-1)-(1)+1,8) &
+     & * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k,n)
 
       do n=1,nqw
@@ -163,6 +181,8 @@
 !$omp end do
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 ! -----
 

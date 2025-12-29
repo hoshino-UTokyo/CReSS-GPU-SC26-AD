@@ -24,6 +24,7 @@
 #                                                                              #
 ################################################################################
 
+comprofile.o     :
 abortslv.o       : m_chkerr.mod m_comfile.mod m_comkind.mod m_commpi.mod\
                    m_cpondpe.mod m_destroy.mod m_getcname.mod m_getiname.mod\
                    m_getrname.mod m_inichar.mod
@@ -929,11 +930,11 @@ soildrv.o        : m_chkrain.mod m_cloudcov.mod m_comindx.mod m_comkind.mod\
                    m_roughitr.mod m_roughnxt.mod m_setsfc.mod m_sfcflx.mod\
                    m_steptund.mod
 solver.o         : m_allocbuf.mod m_allociot.mod m_allocmph.mod m_allocslv.mod\
-                   m_chkbyte.mod m_chkkind.mod m_comindx.mod m_comslv.mod\
-                   m_currpe.mod m_defdim.mod m_endmpi.mod m_inidef.mod\
-                   m_inimod.mod m_inimpi.mod m_inivar.mod m_rdgrp.mod\
-                   m_setdim.mod m_setgrid.mod m_sethalo.mod m_setnlslv.mod\
-                   m_setref.mod m_slvdrv.mod
+                   m_chkbyte.mod m_chkkind.mod m_comindx.mod m_comprofile.mod\
+                   m_comslv.mod m_currpe.mod m_defdim.mod m_endmpi.mod\
+                   m_inidef.mod m_inimod.mod m_inimpi.mod m_inivar.mod\
+                   m_rdgrp.mod m_setdim.mod m_setgrid.mod m_sethalo.mod\
+                   m_setnlslv.mod m_setref.mod m_slvdrv.mod
 sparprt.o        : m_vint13.mod
 srcblk.o         : m_aggregat.mod m_charging.mod m_collect.mod m_convers.mod\
                    m_copy3d.mod m_depsit.mod m_distrpg.mod m_freezing.mod\

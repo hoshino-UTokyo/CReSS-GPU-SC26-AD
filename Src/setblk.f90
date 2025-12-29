@@ -28,6 +28,7 @@
 ! Module reference
 
       use m_commath
+      use m_comprofile
       use m_comphy
 
 !-----7--------------------------------------------------------------7--
@@ -262,6 +263,11 @@
 
       real cvnt        ! Coefficient of ventilation facter
 
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variables.
@@ -318,6 +324,15 @@
 !   - Large number of output arrays requires careful data management
 !   - Branch structure may benefit from separate GPU kernels per case
 !@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('setblk.f90', 's_setblk', &
+   & 'OMP section 1')
+end if
+loop_len = 1_8
+call profile_start(prof_id1)
+
 !$omp parallel default(shared) private(k)
 
 !!!! In the case nk = 1.
@@ -967,6 +982,8 @@
 !!!! -----
 
 !$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
 
 !!!!! -----
 
