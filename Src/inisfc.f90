@@ -26,6 +26,7 @@
 
       use m_bc2d
       use m_comprofile
+      use m_dump_kernel
       use m_bcycle
       use m_bcyclex
       use m_combuf
@@ -249,6 +250,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_inisfc = 0
+      integer, parameter :: DUMP_TARGET_inisfc = 1
+      logical, save :: dump_done_inisfc = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variable.
@@ -374,6 +381,11 @@
 ! Next:
 !   - Direct OpenACC kernels directive should work.
 !   - Module constants can be copied to device as scalars.
+! Runtime:
+!   - Calls: 1
+!   - AvgLoops: 806.4K
+!   - TotalTime: 0.000s (0.00%)
+!   - AvgTime: 0.115ms
 !@llm end meta_info ------------------------------------------------------
 
 
@@ -384,6 +396,31 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_inisfc = dump_call_count_inisfc + 1
+if (dump_call_count_inisfc == DUMP_TARGET_inisfc .and. .not. dump_done_inisfc) then
+  call dump_init('inisfc')
+  call dump_scalar_i('fpsfcdat', fpsfcdat)
+  call dump_scalar_i('fpwbc', fpwbc)
+  call dump_scalar_i('fpebc', fpebc)
+  call dump_scalar_i('fpexbopt', fpexbopt)
+  call dump_scalar_i('fplnduse', fplnduse)
+  call dump_scalar_i('fpdstopt', fpdstopt)
+  call dump_scalar_i('fpzsfc', fpzsfc)
+  call dump_scalar_i('fpgralbe', fpgralbe)
+  call dump_scalar_i('fpgrbeta', fpgrbeta)
+  call dump_scalar_i('fpgrz0m', fpgrz0m)
+  call dump_scalar_i('fpgrz0h', fpgrz0h)
+  call dump_scalar_i('fpgrcap', fpgrcap)
+  call dump_scalar_i('fpgrnuu', fpgrnuu)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_3d('zph.bin', zph, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d('rland_in.bin', rland, 0, ni+1, 0, nj+1)
+end if
 
 !$omp parallel default(shared)
 
@@ -646,6 +683,22 @@ call profile_start(prof_id1)
 ! ----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_inisfc == DUMP_TARGET_inisfc .and. .not. dump_done_inisfc) then
+  call dump_array_2d_int('land_ref.bin', land, 0, ni+1, 0, nj+1)
+  call dump_array_2d('albe_ref.bin', albe, 0, ni+1, 0, nj+1)
+  call dump_array_2d('beta_ref.bin', beta, 0, ni+1, 0, nj+1)
+  call dump_array_2d('z0m_ref.bin', z0m, 0, ni+1, 0, nj+1)
+  call dump_array_2d('z0h_ref.bin', z0h, 0, ni+1, 0, nj+1)
+  call dump_array_2d('cap_ref.bin', cap, 0, ni+1, 0, nj+1)
+  call dump_array_2d('nuu_ref.bin', nuu, 0, ni+1, 0, nj+1)
+  call dump_array_2d('kai_ref.bin', kai, 0, ni+1, 0, nj+1)
+  call dump_array_2d('rland_ref.bin', rland, 0, ni+1, 0, nj+1)
+  call dump_finalize()
+  dump_done_inisfc = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

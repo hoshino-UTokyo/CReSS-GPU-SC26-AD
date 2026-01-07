@@ -29,6 +29,7 @@
 
       use m_commath
       use m_comprofile
+      use m_dump_kernel
       use m_comphy
 
 !-----7--------------------------------------------------------------7--
@@ -268,6 +269,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_setblk = 0
+      integer, parameter :: DUMP_TARGET_setblk = 45720
+      logical, save :: dump_done_setblk = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variables.
@@ -323,6 +330,11 @@
 !   - Consider restructuring to avoid nu dependency between loop nests
 !   - Large number of output arrays requires careful data management
 !   - Branch structure may benefit from separate GPU kernels per case
+! Runtime:
+!   - Calls: 45720
+!   - AvgLoops: 1
+!   - TotalTime: 26.486s (0.89%)
+!   - AvgTime: 0.579ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -332,6 +344,43 @@ if (prof_id1 < 0) then
 end if
 loop_len = 1_8
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_setblk = dump_call_count_setblk + 1
+if (dump_call_count_setblk == DUMP_TARGET_setblk .and. .not. dump_done_setblk) then
+  call dump_init('setblk')
+  call dump_scalar_i('cphopt', cphopt)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_r('thresq', thresq)
+  call dump_array_3d('p.bin', p, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t.bin', t, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('t0', t0)
+  call dump_scalar_r('epsva', epsva)
+  call dump_scalar_r('es0', es0)
+  call dump_scalar_r('lv0', lv0)
+  call dump_scalar_r('lf0', lf0)
+  call dump_scalar_r('r0', r0)
+  call dump_array_3d('ptbr.bin', ptbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rbv.bin', rbv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('pi.bin', pi, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ptp.bin', ptp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qv.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qc.bin', qc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qr.bin', qr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qi.bin', qi, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qs.bin', qs, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qg.bin', qg, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncc.bin', ncc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncr.bin', ncr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('nci.bin', nci, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncs.bin', ncs, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncg.bin', ncg, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d('nu_in.bin', nu, 0, ni+1, 0, nj+1)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -982,6 +1031,33 @@ call profile_start(prof_id1)
 !!!! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_setblk == DUMP_TARGET_setblk .and. .not. dump_done_setblk) then
+  call dump_array_3d('tcel_ref.bin', tcel, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qvsst0_ref.bin', qvsst0, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qvsw_ref.bin', qvsw, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qvsi_ref.bin', qvsi, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('lv_ref.bin', lv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ls_ref.bin', ls, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('lf_ref.bin', lf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('kp_ref.bin', kp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('mu_ref.bin', mu, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('dv_ref.bin', dv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('mi_ref.bin', mi, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('diaqc_ref.bin', diaqc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('diaqr_ref.bin', diaqr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('diaqi_ref.bin', diaqi, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('diaqs_ref.bin', diaqs, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('diaqg_ref.bin', diaqg, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vntr_ref.bin', vntr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vnts_ref.bin', vnts, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vntg_ref.bin', vntg, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d('nu_ref.bin', nu, 0, ni+1, 0, nj+1)
+  call dump_finalize()
+  dump_done_setblk = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

@@ -24,6 +24,7 @@
       use m_commpi
       use m_comprofile
       use m_getiname
+      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -145,6 +146,11 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_bcycle = 0
+      integer, parameter :: DUMP_TARGET_bcycle = 72374
+      logical, save :: dump_done_bcycle = .false.
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -174,6 +180,11 @@
 !   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
 !   - Consider collapsing k-loop with inner loop for better GPU utilization
 !   - Ensure nisub, njsub are mapped or use firstprivate
+! Runtime:
+!   - Calls: 72374
+!   - AvgLoops: 115.3K
+!   - TotalTime: 0.301s (0.01%)
+!   - AvgTime: 0.004ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -182,6 +193,29 @@ if (prof_id1 < 0) then
    & 'OMP section 1')
 end if
 loop_len = int((kmax)-(1)+1,8) * int((nj+1)-(0)+1,8)
+
+! Dump input data at target call
+dump_call_count_bcycle = dump_call_count_bcycle + 1
+if (dump_call_count_bcycle == DUMP_TARGET_bcycle .and. .not. dump_done_bcycle) then
+  call dump_init('bcycle')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('kmax', kmax)
+  call dump_scalar_i('wbc', wbc)
+  call dump_scalar_i('ebc', ebc)
+  call dump_scalar_i('sbc', sbc)
+  call dump_scalar_i('nbc', nbc)
+  call dump_scalar_i('iwsnd', iwsnd)
+  call dump_scalar_i('iwrcv', iwrcv)
+  call dump_scalar_i('iesnd', iesnd)
+  call dump_scalar_i('iercv', iercv)
+  call dump_scalar_i('jssnd', jssnd)
+  call dump_scalar_i('jsrcv', jsrcv)
+  call dump_scalar_i('jnsnd', jnsnd)
+  call dump_scalar_i('jnrcv', jnrcv)
+  call dump_array_3d('var_in.bin', var, 0, ni+1, 0, nj+1, 1, kmax)
+end if
+
 call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
@@ -261,6 +295,13 @@ call profile_start(prof_id1)
 !$omp end parallel
 
 call profile_stop(prof_id1, loop_len)
+
+! Dump output data at target call
+if (dump_call_count_bcycle == DUMP_TARGET_bcycle .and. .not. dump_done_bcycle) then
+  call dump_array_3d('var_ref.bin', var, 0, ni+1, 0, nj+1, 1, kmax)
+  call dump_finalize()
+  dump_done_bcycle = .true.
+end if
 
 !! -----
 

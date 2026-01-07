@@ -22,6 +22,7 @@
 
       use m_bcten
       use m_comprofile
+      use m_dump_kernel
       use m_comindx
       use m_getiname
 
@@ -141,6 +142,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_strsten = 0
+      integer, parameter :: DUMP_TARGET_strsten = 360
+      logical, save :: dump_done_strsten = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -165,6 +172,11 @@
 !   - Collapse loops for better GPU occupancy
 !   - Keep all tensor arrays resident on GPU
 !   - Fuse diagonal and off-diagonal tensor calculations
+! Runtime:
+!   - Calls: 360
+!   - AvgLoops: 102.4M
+!   - TotalTime: 8.868s (0.30%)
+!   - AvgTime: 24.632ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -176,6 +188,29 @@ loop_len = int((nk-1)-(1)+1,8) &
      & * int((nj-1)-(1)+1,8) &
      & * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_strsten = dump_call_count_strsten + 1
+if (dump_call_count_strsten == DUMP_TARGET_strsten .and. .not. dump_done_strsten) then
+  call dump_init('strsten')
+  call dump_scalar_i('fpsfcopt', fpsfcopt)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_3d('ufrc.bin', ufrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vfrc.bin', vfrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rkh.bin', rkh, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rkv.bin', rkv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t11_in.bin', t11, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t22_in.bin', t22, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t33_in.bin', t33, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t12_in.bin', t12, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t13_in.bin', t13, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t23_in.bin', t23, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t31_in.bin', t31, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t32_in.bin', t32, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -295,6 +330,21 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_strsten == DUMP_TARGET_strsten .and. .not. dump_done_strsten) then
+  call dump_array_3d('t11_ref.bin', t11, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t22_ref.bin', t22, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t33_ref.bin', t33, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t12_ref.bin', t12, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t13_ref.bin', t13, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t23_ref.bin', t23, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t31_ref.bin', t31, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t32_ref.bin', t32, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_strsten = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

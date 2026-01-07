@@ -24,6 +24,7 @@
 
       use m_chkerr
       use m_comprofile
+      use m_dump_kernel
       use m_combuf
       use m_comgrp
       use m_commpi
@@ -189,6 +190,12 @@
       ! Profiling variables
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
+
+      ! Dump variables
+      integer, save :: dump_call_count_allocbuf = 0
+      integer, parameter :: DUMP_TARGET_allocbuf = 1
+      logical, save :: dump_done_allocbuf = .false.
+
 
 !-----7--------------------------------------------------------------7--
 
@@ -391,6 +398,11 @@
 !   - Straightforward GPU port with OpenACC parallel loops
 !   - Consider async data transfers for buffer initialization
 !   - May combine multiple initialization loops into single kernel
+! Runtime:
+!   - Calls: 1
+!   - AvgLoops: 1
+!   - TotalTime: 0.000s (0.00%)
+!   - AvgTime: 0.043ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -400,6 +412,32 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((npe-1)-(0)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_allocbuf = dump_call_count_allocbuf + 1
+if (dump_call_count_allocbuf == DUMP_TARGET_allocbuf .and. .not. dump_done_allocbuf) then
+  call dump_init('allocbuf')
+  call dump_scalar_i('fpwbc', fpwbc)
+  call dump_scalar_i('fpebc', fpebc)
+  call dump_scalar_i('fpsbc', fpsbc)
+  call dump_scalar_i('fpnbc', fpnbc)
+  call dump_scalar_i('fpgwmopt', fpgwmopt)
+  call dump_scalar_i('fpadvopt', fpadvopt)
+  call dump_scalar_i('fpsmtopt', fpsmtopt)
+  call dump_scalar_i('fpcphopt', fpcphopt)
+  call dump_scalar_i('fpqcgopt', fpqcgopt)
+  call dump_scalar_i('fpaslopt', fpaslopt)
+  call dump_scalar_i('fptrkopt', fptrkopt)
+  call dump_scalar_i('fptubopt', fptubopt)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('nqw', nqw)
+  call dump_scalar_i('nnw', nnw)
+  call dump_scalar_i('nqi', nqi)
+  call dump_scalar_i('nni', nni)
+end if
 
 !$omp parallel default(shared)
 
@@ -471,6 +509,13 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_allocbuf == DUMP_TARGET_allocbuf .and. .not. dump_done_allocbuf) then
+  call dump_finalize()
+  dump_done_allocbuf = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

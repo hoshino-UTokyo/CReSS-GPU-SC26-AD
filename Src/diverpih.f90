@@ -24,6 +24,7 @@
 
       use m_comindx
       use m_comprofile
+      use m_dump_kernel
       use m_diver2d
       use m_getiname
       use m_getrname
@@ -172,6 +173,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_diverpih = 0
+      integer, parameter :: DUMP_TARGET_diverpih = 14400
+      logical, save :: dump_done_diverpih = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -216,6 +223,11 @@
 !   - Direct OpenACC with collapse(2) on j-i loops
 !   - tmp1, tmp2, tmp3 temporaries need GPU allocation
 !   - diver2d call should also be GPU-ported for full offload
+! Runtime:
+!   - Calls: 14400
+!   - AvgLoops: 100.4M
+!   - TotalTime: 48.758s (1.64%)
+!   - AvgTime: 3.386ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -227,6 +239,34 @@ loop_len = int((nk-2)-(2)+1,8) &
      & * int((nj-2)-(2)+1,8) &
      & * int((ni-2)-(2)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_diverpih = dump_call_count_diverpih + 1
+if (dump_call_count_diverpih == DUMP_TARGET_diverpih .and. .not. dump_done_diverpih) then
+  call dump_init('diverpih')
+  call dump_scalar_i('fptrnopt', fptrnopt)
+  call dump_scalar_i('fpmpopt', fpmpopt)
+  call dump_scalar_i('fpmfcopt', fpmfcopt)
+  call dump_scalar_i('fpdziv', fpdziv)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_3d('j31.bin', j31, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('j32.bin', j32, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('jcb8u.bin', jcb8u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('jcb8v.bin', jcb8v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d('mf.bin', mf, 0, ni+1, 0, nj+1)
+  call dump_array_3d('rmf.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
+  call dump_array_3d('rmf8u.bin', rmf8u, 0, ni+1, 0, nj+1, 1, 3)
+  call dump_array_3d('rmf8v.bin', rmf8v, 0, ni+1, 0, nj+1, 1, 3)
+  call dump_array_3d('rcsq.bin', rcsq, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp1_in.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp2_in.bin', tmp2, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp3_in.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -392,6 +432,17 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_diverpih == DUMP_TARGET_diverpih .and. .not. dump_done_diverpih) then
+  call dump_array_3d('pdiv_ref.bin', pdiv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp1_ref.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp2_ref.bin', tmp2, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp3_ref.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_diverpih = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

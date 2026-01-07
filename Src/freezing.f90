@@ -26,6 +26,7 @@
 
       use m_commath
       use m_comprofile
+      use m_dump_kernel
       use m_comphy
 
 !-----7--------------------------------------------------------------7--
@@ -144,6 +145,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_freezing = 0
+      integer, parameter :: DUMP_TARGET_freezing = 45720
+      logical, save :: dump_done_freezing = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variables.
@@ -171,6 +178,11 @@
 ! Next:
 !   - Port with GPU kernels handling conditionals via masks or separate kernels
 !   - Consider separating cphopt==2 and cphopt>=3 cases for clarity
+! Runtime:
+!   - Calls: 45720
+!   - AvgLoops: 806.4K
+!   - TotalTime: 1.296s (0.04%)
+!   - AvgTime: 0.028ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -180,6 +192,23 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_freezing = dump_call_count_freezing + 1
+if (dump_call_count_freezing == DUMP_TARGET_freezing .and. .not. dump_done_freezing) then
+  call dump_init('freezing')
+  call dump_scalar_i('cphopt', cphopt)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_r('dtb', dtb)
+  call dump_scalar_r('thresq', thresq)
+  call dump_array_3d('qr.bin', qr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncr.bin', ncr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tcel.bin', tcel, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('diaqr.bin', diaqr, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -402,6 +431,15 @@ call profile_start(prof_id1)
 !! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_freezing == DUMP_TARGET_freezing .and. .not. dump_done_freezing) then
+  call dump_array_3d('frrg_ref.bin', frrg, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('frrgn_ref.bin', frrgn, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_freezing = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

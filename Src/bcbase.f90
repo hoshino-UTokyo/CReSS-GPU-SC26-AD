@@ -26,6 +26,7 @@
 
       use m_bcyclex
       use m_comprofile
+      use m_dump_kernel
       use m_bcycley
       use m_combuf
       use m_comindx
@@ -159,6 +160,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_bcbase = 0
+      integer, parameter :: DUMP_TARGET_bcbase = 1
+      logical, save :: dump_done_bcbase = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -197,6 +204,11 @@
 !   - Convert to OpenACC with collapsed i,j loops
 !   - Ensure data dependencies between loops are respected (ptvbr before pibr, pibr before pbr/rbr)
 !   - Consider fusing independent loops for better kernel efficiency
+! Runtime:
+!   - Calls: 1
+!   - AvgLoops: 809.1K
+!   - TotalTime: 0.000s (0.00%)
+!   - AvgTime: 0.447ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -206,6 +218,30 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nj)-(0)+1,8) * int((ni)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_bcbase = dump_call_count_bcbase + 1
+if (dump_call_count_bcbase == DUMP_TARGET_bcbase .and. .not. dump_done_bcbase) then
+  call dump_init('bcbase')
+  call dump_scalar_i('fpsmtopt', fpsmtopt)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_r('g', g)
+  call dump_scalar_r('cp', cp)
+  call dump_scalar_r('rd', rd)
+  call dump_scalar_r('p0', p0)
+  call dump_array_3d('zph8s.bin', zph8s, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ubr_in.bin', ubr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vbr_in.bin', vbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('pbr_in.bin', pbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ptbr_in.bin', ptbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qvbr_in.bin', qvbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rbr_in.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('pibr_in.bin', pibr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ptvbr_in.bin', ptvbr, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared)
 
@@ -313,6 +349,21 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_bcbase == DUMP_TARGET_bcbase .and. .not. dump_done_bcbase) then
+  call dump_array_3d('ubr_ref.bin', ubr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vbr_ref.bin', vbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('pbr_ref.bin', pbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ptbr_ref.bin', ptbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qvbr_ref.bin', qvbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rbr_ref.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('pibr_ref.bin', pibr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ptvbr_ref.bin', ptvbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_bcbase = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

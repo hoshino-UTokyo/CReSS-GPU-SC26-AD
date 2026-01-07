@@ -22,6 +22,7 @@
 
       use m_getiname
       use m_comprofile
+      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -123,6 +124,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_adjstq = 0
+      integer, parameter :: DUMP_TARGET_adjstq = 3
+      logical, save :: dump_done_adjstq = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -148,6 +155,11 @@
 ! Next:
 !   - Direct OpenACC kernels with collapse(3) for (k,j,i).
 !   - May split into separate kernels for different cphopt branches.
+! Runtime:
+!   - Calls: 3
+!   - AvgLoops: 102.4M
+!   - TotalTime: 0.043s (0.00%)
+!   - AvgTime: 14.438ms
 !@llm end meta_info ------------------------------------------------------
 
 
@@ -160,6 +172,23 @@ loop_len = int((nk-1)-(1)+1,8) &
      & * int((nj-1)-(1)+1,8) &
      & * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_adjstq = dump_call_count_adjstq + 1
+if (dump_call_count_adjstq == DUMP_TARGET_adjstq .and. .not. dump_done_adjstq) then
+  call dump_init('adjstq')
+  call dump_scalar_i('fpcphopt', fpcphopt)
+  call dump_scalar_i('fphaiopt', fphaiopt)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('nqw', nqw)
+  call dump_scalar_i('nqi', nqi)
+  call dump_array_3d('qv_in.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_4d('qwtr_in.bin', qwtr, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
+  call dump_array_4d('qice_in.bin', qice, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -244,6 +273,16 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_adjstq == DUMP_TARGET_adjstq .and. .not. dump_done_adjstq) then
+  call dump_array_3d('qv_ref.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_4d('qwtr_ref.bin', qwtr, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
+  call dump_array_4d('qice_ref.bin', qice, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+  call dump_finalize()
+  dump_done_adjstq = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

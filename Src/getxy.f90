@@ -22,6 +22,7 @@
 
       use m_commpi
       use m_comprofile
+      use m_dump_kernel
       use m_getrname
 
 !-----7--------------------------------------------------------------7--
@@ -124,6 +125,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_getxy = 0
+      integer, parameter :: DUMP_TARGET_getxy = 2
+      logical, save :: dump_done_getxy = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -179,6 +186,11 @@
 !   - Direct translation to OpenACC with teams distribute
 !   - 1D arrays are small, consider keeping on CPU or async transfer
 !   - Separate kernels for x and y may be more efficient
+! Runtime:
+!   - Calls: 2
+!   - AvgLoops: 901
+!   - TotalTime: 0.000s (0.00%)
+!   - AvgTime: 0.113ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -188,6 +200,19 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((imax)-(imin)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_getxy = dump_call_count_getxy + 1
+if (dump_call_count_getxy == DUMP_TARGET_getxy .and. .not. dump_done_getxy) then
+  call dump_init('getxy')
+  call dump_scalar_i('fpdx', fpdx)
+  call dump_scalar_i('fpdy', fpdy)
+  call dump_scalar_i('imin', imin)
+  call dump_scalar_i('imax', imax)
+  call dump_scalar_i('jmin', jmin)
+  call dump_scalar_i('jmax', jmax)
+end if
 
 !$omp parallel default(shared)
 
@@ -282,6 +307,13 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_getxy == DUMP_TARGET_getxy .and. .not. dump_done_getxy) then
+  call dump_finalize()
+  dump_done_getxy = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

@@ -19,6 +19,7 @@
 
       use m_getiname
       use m_comprofile
+      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -124,6 +125,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_kh8uv = 0
+      integer, parameter :: DUMP_TARGET_kh8uv = 360
+      logical, save :: dump_done_kh8uv = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -153,6 +160,11 @@
 !   - Can be ported to GPU with OpenACC parallel loop
 !   - Careful attention needed for rkh modification ordering
 !   - Consider separating different mpopt/mfcopt cases into different kernels
+! Runtime:
+!   - Calls: 360
+!   - AvgLoops: 102.3M
+!   - TotalTime: 3.068s (0.10%)
+!   - AvgTime: 8.522ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -164,6 +176,20 @@ loop_len = int((nk-1)-(1)+1,8) &
      & * int((nj-1)-(1)+1,8) &
      & * int((ni-1)-(2)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_kh8uv = dump_call_count_kh8uv + 1
+if (dump_call_count_kh8uv == DUMP_TARGET_kh8uv .and. .not. dump_done_kh8uv) then
+  call dump_init('kh8uv')
+  call dump_scalar_i('fpmpopt', fpmpopt)
+  call dump_scalar_i('fpmfcopt', fpmfcopt)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_3d('rmf.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
+  call dump_array_3d('rkh_in.bin', rkh, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -284,6 +310,16 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_kh8uv == DUMP_TARGET_kh8uv .and. .not. dump_done_kh8uv) then
+  call dump_array_3d('rkh8u_ref.bin', rkh8u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rkh8v_ref.bin', rkh8v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rkh_ref.bin', rkh, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_kh8uv = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

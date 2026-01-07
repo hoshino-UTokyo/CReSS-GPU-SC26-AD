@@ -22,6 +22,7 @@
 
       use m_chkerr
       use m_comprofile
+      use m_dump_kernel
       use m_comfile
       use m_comionum
       use m_commpi
@@ -95,6 +96,12 @@
       ! Profiling variables
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
+
+      ! Dump variables
+      integer, save :: dump_call_count_allociot = 0
+      integer, parameter :: DUMP_TARGET_allociot = 1
+      logical, save :: dump_done_allociot = .false.
+
 
 !-----7--------------------------------------------------------------7--
 
@@ -235,6 +242,11 @@
 !   - Trivial GPU port but likely not worth offloading
 !   - Small array size means CPU execution is faster
 !   - Keep on CPU; initialization is one-time cost
+! Runtime:
+!   - Calls: 1
+!   - AvgLoops: 2
+!   - TotalTime: 0.000s (0.00%)
+!   - AvgTime: 0.061ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -244,6 +256,13 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nio)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_allociot = dump_call_count_allociot + 1
+if (dump_call_count_allociot == DUMP_TARGET_allociot .and. .not. dump_done_allociot) then
+  call dump_init('allociot')
+end if
 
 !$omp parallel default(shared)
 
@@ -256,6 +275,13 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_allociot == DUMP_TARGET_allociot .and. .not. dump_done_allociot) then
+  call dump_finalize()
+  dump_done_allociot = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

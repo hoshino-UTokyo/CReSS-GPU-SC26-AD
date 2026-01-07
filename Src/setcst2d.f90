@@ -20,6 +20,7 @@
 
       use m_comkind
       use m_comprofile
+      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -101,6 +102,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_setcst2d = 0
+      integer, parameter :: DUMP_TARGET_setcst2d = 41
+      logical, save :: dump_done_setcst2d = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Fill in the array with the constant value.
@@ -118,6 +125,11 @@
 ! Next:
 !   - Convert to OpenACC with parallel loop collapse(2)
 !   - Consider using memset or array assignment for better performance
+! Runtime:
+!   - Calls: 41
+!   - AvgLoops: 811.8K
+!   - TotalTime: 0.002s (0.00%)
+!   - AvgTime: 0.054ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -127,6 +139,18 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((jmax)-(jmin)+1,8) * int((imax)-(imin)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_setcst2d = dump_call_count_setcst2d + 1
+if (dump_call_count_setcst2d == DUMP_TARGET_setcst2d .and. .not. dump_done_setcst2d) then
+  call dump_init('setcst2d')
+  call dump_scalar_i('imin', imin)
+  call dump_scalar_i('imax', imax)
+  call dump_scalar_i('jmin', jmin)
+  call dump_scalar_i('jmax', jmax)
+  call dump_scalar_r('invar', invar)
+end if
 
 !$omp parallel default(shared)
 
@@ -141,6 +165,14 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_setcst2d == DUMP_TARGET_setcst2d .and. .not. dump_done_setcst2d) then
+  call dump_array_2d('outvar_ref.bin', outvar, imin, imax, jmin, jmax)
+  call dump_finalize()
+  dump_done_setcst2d = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

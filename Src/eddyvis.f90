@@ -27,6 +27,7 @@
 
       use m_commath
       use m_comprofile
+      use m_dump_kernel
       use m_comphy
       use m_getiname
       use m_getrname
@@ -210,6 +211,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_eddyvis = 0
+      integer, parameter :: DUMP_TARGET_eddyvis = 360
+      logical, save :: dump_done_eddyvis = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -269,6 +276,11 @@
 !   - Consider restructuring conditionals for GPU - evaluate outside kernel.
 !   - Use template/variant approach for different physics configurations.
 !   - Intrinsic functions are well-supported on GPU.
+! Runtime:
+!   - Calls: 360
+!   - AvgLoops: 127
+!   - TotalTime: 5.280s (0.18%)
+!   - AvgTime: 14.667ms
 !@llm end meta_info ------------------------------------------------------
 
 
@@ -279,6 +291,33 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nk-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_eddyvis = dump_call_count_eddyvis + 1
+if (dump_call_count_eddyvis == DUMP_TARGET_eddyvis .and. .not. dump_done_eddyvis) then
+  call dump_init('eddyvis')
+  call dump_scalar_i('fpmpopt', fpmpopt)
+  call dump_scalar_i('fpmfcopt', fpmfcopt)
+  call dump_scalar_i('fpsfcopt', fpsfcopt)
+  call dump_scalar_i('fptubopt', fptubopt)
+  call dump_scalar_i('fpisoopt', fpisoopt)
+  call dump_scalar_i('fpdx', fpdx)
+  call dump_scalar_i('fpdy', fpdy)
+  call dump_scalar_i('fpdz', fpdz)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_r('dtb', dtb)
+  call dump_scalar_r('kappa', kappa)
+  call dump_array_3d('zph.bin', zph, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('jcb.bin', jcb, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rmf.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
+  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tke.bin', tke, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ssq.bin', ssq, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('nsq8w.bin', nsq8w, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -1163,6 +1202,16 @@ call profile_start(prof_id1)
 !!! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_eddyvis == DUMP_TARGET_eddyvis .and. .not. dump_done_eddyvis) then
+  call dump_array_3d('rkh_ref.bin', rkh, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rkv_ref.bin', rkv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('priv_ref.bin', priv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_eddyvis = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

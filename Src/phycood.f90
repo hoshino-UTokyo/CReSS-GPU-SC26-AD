@@ -26,6 +26,7 @@
 
       use m_chkerr
       use m_comprofile
+      use m_dump_kernel
       use m_comindx
       use m_commath
       use m_commpi
@@ -160,6 +161,12 @@
       integer, save :: prof_id3 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_phycood = 0
+      integer, parameter :: DUMP_TARGET_phycood = 1
+      logical, save :: dump_done_phycood = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -214,6 +221,11 @@
 !   - Use OpenACC parallel loop with reduction(max:htmax)
 !   - GPU reductions are well supported in OpenACC
 !   - May need atomic or tree-based reduction for performance
+! Runtime:
+!   - Calls: 1
+!   - AvgLoops: 810.0K
+!   - TotalTime: 0.000s (0.00%)
+!   - AvgTime: 0.016ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -223,6 +235,20 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nj)-(0)+1,8) * int((ni)-(0)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_phycood = dump_call_count_phycood + 1
+if (dump_call_count_phycood == DUMP_TARGET_phycood .and. .not. dump_done_phycood) then
+  call dump_init('phycood')
+  call dump_scalar_i('fpsthopt', fpsthopt)
+  call dump_scalar_i('fpzsfc', fpzsfc)
+  call dump_scalar_i('fpzflat', fpzflat)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_2d('ht.bin', ht, 0, ni+1, 0, nj+1)
+end if
 
 !$omp parallel default(shared)
 
@@ -237,6 +263,14 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_phycood == DUMP_TARGET_phycood .and. .not. dump_done_phycood) then
+  call dump_array_3d('zph_ref.bin', zph, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_phycood = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

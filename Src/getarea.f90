@@ -20,6 +20,7 @@
 
       use m_commpi
       use m_comprofile
+      use m_dump_kernel
       use m_getiname
       use m_getrname
       use m_reducelb
@@ -168,6 +169,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_getarea = 0
+      integer, parameter :: DUMP_TARGET_getarea = 1
+      logical, save :: dump_done_getarea = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -245,6 +252,11 @@
 !   - Use GPU reduction kernels for area summation
 !   - May need separate kernels for each boundary plane
 !   - Consider whether GPU overhead is worthwhile for boundary-only computation
+! Runtime:
+!   - Calls: 1
+!   - AvgLoops: 806.4K
+!   - TotalTime: 0.000s (0.00%)
+!   - AvgTime: 0.120ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -254,6 +266,28 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((jend)-(jstr)+1,8) * int((iend)-(istr)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_getarea = dump_call_count_getarea + 1
+if (dump_call_count_getarea == DUMP_TARGET_getarea .and. .not. dump_done_getarea) then
+  call dump_init('getarea')
+  call dump_scalar_i('fpwbc', fpwbc)
+  call dump_scalar_i('fpebc', fpebc)
+  call dump_scalar_i('fpmpopt', fpmpopt)
+  call dump_scalar_i('fpmfcopt', fpmfcopt)
+  call dump_scalar_i('fpdx', fpdx)
+  call dump_scalar_i('fpdy', fpdy)
+  call dump_scalar_i('fpdz', fpdz)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_3d('jcb8u.bin', jcb8u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('jcb8v.bin', jcb8v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rmf.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
+  call dump_array_3d('rmf8u.bin', rmf8u, 0, ni+1, 0, nj+1, 1, 3)
+  call dump_array_3d('rmf8v.bin', rmf8v, 0, ni+1, 0, nj+1, 1, 3)
+end if
 
 !$omp parallel default(shared)
 
@@ -420,6 +454,13 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_getarea == DUMP_TARGET_getarea .and. .not. dump_done_getarea) then
+  call dump_finalize()
+  dump_done_getarea = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

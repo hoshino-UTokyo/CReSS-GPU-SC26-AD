@@ -30,6 +30,7 @@
 
       use m_chkerr
       use m_comprofile
+      use m_dump_kernel
       use m_chkopen
       use m_chkstd
       use m_comdmp
@@ -197,6 +198,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_opendmp = 0
+      integer, parameter :: DUMP_TARGET_opendmp = 4
+      logical, save :: dump_done_opendmp = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -298,6 +305,11 @@
 !   - May not benefit from GPU due to small loop size
 !   - Could run on CPU or use GPU only if part of larger kernel
 !   - Direct port is straightforward if needed
+! Runtime:
+!   - Calls: 4
+!   - AvgLoops: 125
+!   - TotalTime: 0.000s (0.00%)
+!   - AvgTime: 0.004ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -307,6 +319,29 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nk-2)-(2)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_opendmp = dump_call_count_opendmp + 1
+if (dump_call_count_opendmp == DUMP_TARGET_opendmp .and. .not. dump_done_opendmp) then
+  call dump_init('opendmp')
+  call dump_scalar_i('fpexprim', fpexprim)
+  call dump_scalar_i('fpcrsdir', fpcrsdir)
+  call dump_scalar_i('fpncexp', fpncexp)
+  call dump_scalar_i('fpnccrs', fpnccrs)
+  call dump_scalar_i('fpwlngth', fpwlngth)
+  call dump_scalar_i('fpdmpfmt', fpdmpfmt)
+  call dump_scalar_i('fpdmplev', fpdmplev)
+  call dump_scalar_i('fpdmpmon', fpdmpmon)
+  call dump_scalar_i('fpetime', fpetime)
+  call dump_scalar_i('fpdmpitv', fpdmpitv)
+  call dump_scalar_i('fpmonitv', fpmonitv)
+  call dump_scalar_i('fpdz', fpdz)
+  call dump_scalar_i8('ctime', ctime)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+end if
 
 !$omp parallel default(shared)
 
@@ -337,6 +372,13 @@ call profile_start(prof_id1)
         end if
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_opendmp == DUMP_TARGET_opendmp .and. .not. dump_done_opendmp) then
+  call dump_finalize()
+  dump_done_opendmp = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

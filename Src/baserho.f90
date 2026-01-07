@@ -23,6 +23,7 @@
 
       use m_bcyclex
       use m_comprofile
+      use m_dump_kernel
       use m_bcycley
       use m_combuf
       use m_comindx
@@ -144,6 +145,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_baserho = 0
+      integer, parameter :: DUMP_TARGET_baserho = 1
+      logical, save :: dump_done_baserho = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -170,6 +177,11 @@
 !   - Straightforward GPU port with OpenACC parallel loops
 !   - Collapse all three loops (k,j,i) for maximum parallelism
 !   - Intrinsic abs function is GPU-compatible
+! Runtime:
+!   - Calls: 1
+!   - AvgLoops: 102.9M
+!   - TotalTime: 0.004s (0.00%)
+!   - AvgTime: 3.750ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -179,6 +191,20 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nk-1)-(1)+1,8) * int((nj)-(0)+1,8) * int((ni)-(0)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_baserho = dump_call_count_baserho + 1
+if (dump_call_count_baserho == DUMP_TARGET_baserho .and. .not. dump_done_baserho) then
+  call dump_init('baserho')
+  call dump_scalar_i('fpadvopt', fpadvopt)
+  call dump_scalar_i('fpsmtopt', fpsmtopt)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_3d('jcb.bin', jcb, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -197,6 +223,17 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_baserho == DUMP_TARGET_baserho .and. .not. dump_done_baserho) then
+  call dump_array_3d('rst_ref.bin', rst, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rst8u_ref.bin', rst8u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rst8v_ref.bin', rst8v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rst8w_ref.bin', rst8w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_baserho = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

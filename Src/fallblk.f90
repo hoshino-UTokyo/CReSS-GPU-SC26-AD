@@ -28,6 +28,7 @@
 
       use m_chkfall
       use m_comprofile
+      use m_dump_kernel
       use m_comindx
       use m_commath
       use m_getiname
@@ -286,6 +287,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_fallblk = 0
+      integer, parameter :: DUMP_TARGET_fallblk = 360
+      logical, save :: dump_done_fallblk = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -330,6 +337,11 @@
 !   - Use atomicMin or warp-level reduction for CFL check.
 !   - Consider computing reductions in separate kernel before main loop.
 !   - The upwqp/upwnp/upwqcg calls need separate GPU porting.
+! Runtime:
+!   - Calls: 360
+!   - AvgLoops: 102.4M
+!   - TotalTime: 2.581s (0.09%)
+!   - AvgTime: 7.169ms
 !@llm end meta_info ------------------------------------------------------
 
 
@@ -342,6 +354,61 @@ loop_len = int((nk-1)-(1)+1,8) &
      & * int((nj-1)-(1)+1,8) &
      & * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_fallblk = dump_call_count_fallblk + 1
+if (dump_call_count_fallblk == DUMP_TARGET_fallblk .and. .not. dump_done_fallblk) then
+  call dump_init('fallblk')
+  call dump_scalar_i('fpcphopt', fpcphopt)
+  call dump_scalar_i('fphaiopt', fphaiopt)
+  call dump_scalar_i('fpqcgopt', fpqcgopt)
+  call dump_scalar_i('fpdz', fpdz)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_r('dtb', dtb)
+  call dump_array_3d('jcb.bin', jcb, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rst.bin', rst, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ucq.bin', ucq, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('urq.bin', urq, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('uiq.bin', uiq, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('usq.bin', usq, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ugq.bin', ugq, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('uhq.bin', uhq, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ucn.bin', ucn, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('urn.bin', urn, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('uin.bin', uin, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('usn.bin', usn, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ugn.bin', ugn, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('uhn.bin', uhn, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qcf_in.bin', qcf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qrf_in.bin', qrf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qif_in.bin', qif, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qsf_in.bin', qsf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qgf_in.bin', qgf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qhf_in.bin', qhf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('nccf_in.bin', nccf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncrf_in.bin', ncrf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncif_in.bin', ncif, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncsf_in.bin', ncsf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncgf_in.bin', ncgf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('nchf_in.bin', nchf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qccf_in.bin', qccf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qrcf_in.bin', qrcf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qicf_in.bin', qicf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qscf_in.bin', qscf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qgcf_in.bin', qgcf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qhcf_in.bin', qhcf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('prc_in.bin', prc, 0, ni+1, 0, nj+1, 1, 2)
+  call dump_array_3d('prr_in.bin', prr, 0, ni+1, 0, nj+1, 1, 2)
+  call dump_array_3d('pri_in.bin', pri, 0, ni+1, 0, nj+1, 1, 2)
+  call dump_array_3d('prs_in.bin', prs, 0, ni+1, 0, nj+1, 1, 2)
+  call dump_array_3d('prg_in.bin', prg, 0, ni+1, 0, nj+1, 1, 2)
+  call dump_array_3d('prh_in.bin', prh, 0, ni+1, 0, nj+1, 1, 2)
+  call dump_array_3d('tmp1_in.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -450,6 +517,38 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_fallblk == DUMP_TARGET_fallblk .and. .not. dump_done_fallblk) then
+  call dump_array_3d('qcf_ref.bin', qcf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qrf_ref.bin', qrf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qif_ref.bin', qif, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qsf_ref.bin', qsf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qgf_ref.bin', qgf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qhf_ref.bin', qhf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('nccf_ref.bin', nccf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncrf_ref.bin', ncrf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncif_ref.bin', ncif, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncsf_ref.bin', ncsf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncgf_ref.bin', ncgf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('nchf_ref.bin', nchf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qccf_ref.bin', qccf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qrcf_ref.bin', qrcf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qicf_ref.bin', qicf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qscf_ref.bin', qscf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qgcf_ref.bin', qgcf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qhcf_ref.bin', qhcf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('prc_ref.bin', prc, 0, ni+1, 0, nj+1, 1, 2)
+  call dump_array_3d('prr_ref.bin', prr, 0, ni+1, 0, nj+1, 1, 2)
+  call dump_array_3d('pri_ref.bin', pri, 0, ni+1, 0, nj+1, 1, 2)
+  call dump_array_3d('prs_ref.bin', prs, 0, ni+1, 0, nj+1, 1, 2)
+  call dump_array_3d('prg_ref.bin', prg, 0, ni+1, 0, nj+1, 1, 2)
+  call dump_array_3d('prh_ref.bin', prh, 0, ni+1, 0, nj+1, 1, 2)
+  call dump_array_3d('tmp1_ref.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_fallblk = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

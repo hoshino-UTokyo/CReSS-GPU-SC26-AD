@@ -58,6 +58,7 @@
       use m_shiftsy
       use m_vbcu
       use m_vbcv
+      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -222,6 +223,11 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_stepuv = 0
+      integer, parameter :: DUMP_TARGET_stepuv = 14400
+      logical, save :: dump_done_stepuv = .false.
+
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variable.
@@ -307,6 +313,11 @@
 !   - Direct OpenACC kernels for the time stepping loops.
 !   - Consider fusing u and v updates into single kernel.
 !   - MPI communication calls outside parallel region need GPU-aware MPI.
+! Runtime:
+!   - Calls: 14400
+!   - AvgLoops: 100.5M
+!   - TotalTime: 155.820s (5.23%)
+!   - AvgTime: 10.821ms
 !@llm end meta_info ------------------------------------------------------
 
 
@@ -318,6 +329,25 @@ end if
 loop_len = int((nk-2)-(2)+1,8) &
      & * int((nj-2)-(2)+1,8) &
      & * int((ni-1)-(2)+1,8)
+
+! Dump input data at target call
+dump_call_count_stepuv = dump_call_count_stepuv + 1
+if (dump_call_count_stepuv == DUMP_TARGET_stepuv .and. .not. dump_done_stepuv) then
+  call dump_init('stepuv')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_r('dts', dts)
+  call dump_array_3d('rst8u.bin', rst8u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rst8v.bin', rst8v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ufrc.bin', ufrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vfrc.bin', vfrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('usml.bin', usml, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vsml.bin', vsml, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('uf_in.bin', uf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vf_in.bin', vf, 0, ni+1, 0, nj+1, 1, nk)
+end if
+
 call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
@@ -349,6 +379,14 @@ call profile_start(prof_id1)
 !$omp end parallel
 
 call profile_stop(prof_id1, loop_len)
+
+! Dump output data at target call
+if (dump_call_count_stepuv == DUMP_TARGET_stepuv .and. .not. dump_done_stepuv) then
+  call dump_array_3d('uf_ref.bin', uf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vf_ref.bin', vf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_stepuv = .true.
+end if
 
 ! -----
 

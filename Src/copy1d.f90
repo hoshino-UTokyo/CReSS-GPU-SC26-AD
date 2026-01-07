@@ -24,6 +24,7 @@
 
 ! Implicit typing
       use m_comprofile
+      use m_dump_kernel
 
       implicit none
 
@@ -94,6 +95,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_copy1d = 0
+      integer, parameter :: DUMP_TARGET_copy1d = 1
+      logical, save :: dump_done_copy1d = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Copy the invar to the outvar.
@@ -111,6 +118,11 @@
 !   - Straightforward GPU port; consider using cudaMemcpy or similar
 !   - For small arrays, overhead may exceed benefit of GPU execution
 !   - May be better to keep data resident on GPU and avoid copy
+! Runtime:
+!   - Calls: 1
+!   - AvgLoops: 128
+!   - TotalTime: 0.000s (0.00%)
+!   - AvgTime: 0.012ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -120,6 +132,15 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((kmax)-(kmin)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_copy1d = dump_call_count_copy1d + 1
+if (dump_call_count_copy1d == DUMP_TARGET_copy1d .and. .not. dump_done_copy1d) then
+  call dump_init('copy1d')
+  call dump_scalar_i('kmin', kmin)
+  call dump_scalar_i('kmax', kmax)
+end if
 
 !$omp parallel default(shared)
 
@@ -132,6 +153,13 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_copy1d == DUMP_TARGET_copy1d .and. .not. dump_done_copy1d) then
+  call dump_finalize()
+  dump_done_copy1d = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

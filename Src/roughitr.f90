@@ -25,6 +25,7 @@
 
       use m_bulksfc
       use m_comprofile
+      use m_dump_kernel
       use m_chkitr
       use m_comphy
       use m_getrich
@@ -146,6 +147,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_roughitr = 0
+      integer, parameter :: DUMP_TARGET_roughitr = 16
+      logical, save :: dump_done_roughitr = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 !!! Calculate the roughness length on the sea surface by iteration at
@@ -198,6 +205,11 @@
 !   - Convert to OpenACC with teams distribute parallel for
 !   - Keep iteration control on host, only offload inner 2D loop
 !   - May need to manage z0m, z0h data between iterations on GPU
+! Runtime:
+!   - Calls: 16
+!   - AvgLoops: 806.4K
+!   - TotalTime: 0.001s (0.00%)
+!   - AvgTime: 0.033ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -207,6 +219,27 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_roughitr = dump_call_count_roughitr + 1
+if (dump_call_count_roughitr == DUMP_TARGET_roughitr .and. .not. dump_done_roughitr) then
+  call dump_init('roughitr')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_2d('za.bin', za, 0, ni+1, 0, nj+1)
+  call dump_array_2d_int('land.bin', land, 0, ni+1, 0, nj+1)
+  call dump_array_2d('kai.bin', kai, 0, ni+1, 0, nj+1)
+  call dump_array_3d('ptv.bin', ptv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d('va.bin', va, 0, ni+1, 0, nj+1)
+  call dump_array_2d('z0m_in.bin', z0m, 0, ni+1, 0, nj+1)
+  call dump_array_2d('z0h_in.bin', z0h, 0, ni+1, 0, nj+1)
+  call dump_array_2d('rch_in.bin', rch, 0, ni+1, 0, nj+1)
+  call dump_array_2d('cm_in.bin', cm, 0, ni+1, 0, nj+1)
+  call dump_array_2d('ch_in.bin', ch, 0, ni+1, 0, nj+1)
+  call dump_array_2d('dz0m_in.bin', dz0m, 0, ni+1, 0, nj+1)
+end if
 
 !$omp parallel default(shared)
 
@@ -246,6 +279,19 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_roughitr == DUMP_TARGET_roughitr .and. .not. dump_done_roughitr) then
+  call dump_array_2d('z0m_ref.bin', z0m, 0, ni+1, 0, nj+1)
+  call dump_array_2d('z0h_ref.bin', z0h, 0, ni+1, 0, nj+1)
+  call dump_array_2d('rch_ref.bin', rch, 0, ni+1, 0, nj+1)
+  call dump_array_2d('cm_ref.bin', cm, 0, ni+1, 0, nj+1)
+  call dump_array_2d('ch_ref.bin', ch, 0, ni+1, 0, nj+1)
+  call dump_array_2d('dz0m_ref.bin', dz0m, 0, ni+1, 0, nj+1)
+  call dump_finalize()
+  dump_done_roughitr = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

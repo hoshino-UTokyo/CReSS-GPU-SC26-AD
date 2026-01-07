@@ -19,6 +19,7 @@
 
       use m_commath
       use m_comprofile
+      use m_dump_kernel
       use m_comphy
 
 !-----7--------------------------------------------------------------7--
@@ -119,6 +120,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_diagnw = 0
+      integer, parameter :: DUMP_TARGET_diagnw = 360
+      logical, save :: dump_done_diagnw = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variables.
@@ -146,6 +153,11 @@
 ! Next:
 !   - Direct OpenACC with collapse(2) on j-i loops
 !   - Consider collapse(3) after loop restructuring for better GPU utilization
+! Runtime:
+!   - Calls: 360
+!   - AvgLoops: 102.4M
+!   - TotalTime: 2.073s (0.07%)
+!   - AvgTime: 5.759ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -157,6 +169,20 @@ loop_len = int((nk-1)-(1)+1,8) &
      & * int((nj-1)-(1)+1,8) &
      & * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_diagnw = dump_call_count_diagnw + 1
+if (dump_call_count_diagnw == DUMP_TARGET_diagnw .and. .not. dump_done_diagnw) then
+  call dump_init('diagnw')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('nqw', nqw)
+  call dump_scalar_i('nnw', nnw)
+  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_4d('qwtr.bin', qwtr, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -197,6 +223,14 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_diagnw == DUMP_TARGET_diagnw .and. .not. dump_done_diagnw) then
+  call dump_array_4d('nwdia_ref.bin', nwdia, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
+  call dump_finalize()
+  dump_done_diagnw = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

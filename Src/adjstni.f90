@@ -25,6 +25,7 @@
 
       use m_commath
       use m_comprofile
+      use m_dump_kernel
       use m_comphy
       use m_getiname
 
@@ -159,6 +160,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_adjstni = 0
+      integer, parameter :: DUMP_TARGET_adjstni = 1080
+      logical, save :: dump_done_adjstni = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -206,6 +213,11 @@
 ! Next:
 !   - Direct OpenACC kernels with collapse(3) for (k,j,i) loops.
 !   - Module constants can be passed as scalars to device.
+! Runtime:
+!   - Calls: 1080
+!   - AvgLoops: 102.4M
+!   - TotalTime: 13.236s (0.44%)
+!   - AvgTime: 12.255ms
 !@llm end meta_info ------------------------------------------------------
 
 
@@ -218,6 +230,29 @@ loop_len = int((nk-1)-(1)+1,8) &
      & * int((nj-1)-(1)+1,8) &
      & * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_adjstni = dump_call_count_adjstni + 1
+if (dump_call_count_adjstni == DUMP_TARGET_adjstni .and. .not. dump_done_adjstni) then
+  call dump_init('adjstni')
+  call dump_scalar_i('fphaiopt', fphaiopt)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_r('rhog', rhog)
+  call dump_scalar_r('rhos', rhos)
+  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rbv.bin', rbv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qi.bin', qi, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qs.bin', qs, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qg.bin', qg, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qh.bin', qh, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('nci_in.bin', nci, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncs_in.bin', ncs, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncg_in.bin', ncg, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('nch_in.bin', nch, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -323,6 +358,17 @@ call profile_start(prof_id1)
 !! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_adjstni == DUMP_TARGET_adjstni .and. .not. dump_done_adjstni) then
+  call dump_array_3d('nci_ref.bin', nci, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncs_ref.bin', ncs, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncg_ref.bin', ncg, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('nch_ref.bin', nch, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_adjstni = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

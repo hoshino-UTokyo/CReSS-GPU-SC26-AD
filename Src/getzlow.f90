@@ -22,6 +22,7 @@
 
 ! Implicit typing
       use m_comprofile
+      use m_dump_kernel
 
       implicit none
 
@@ -96,6 +97,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_getzlow = 0
+      integer, parameter :: DUMP_TARGET_getzlow = 361
+      logical, save :: dump_done_getzlow = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Calculate the z physical coordinates at lowest plane.
@@ -115,6 +122,11 @@
 ! Next:
 !   - Direct translation to OpenACC with teams distribute
 !   - Consider loop collapse for j,i dimensions
+! Runtime:
+!   - Calls: 361
+!   - AvgLoops: 806.4K
+!   - TotalTime: 0.012s (0.00%)
+!   - AvgTime: 0.032ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -124,6 +136,17 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_getzlow = dump_call_count_getzlow + 1
+if (dump_call_count_getzlow == DUMP_TARGET_getzlow .and. .not. dump_done_getzlow) then
+  call dump_init('getzlow')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_3d('zph.bin', zph, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared)
 
@@ -138,6 +161,14 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_getzlow == DUMP_TARGET_getzlow .and. .not. dump_done_getzlow) then
+  call dump_array_2d('za_ref.bin', za, 0, ni+1, 0, nj+1)
+  call dump_finalize()
+  dump_done_getzlow = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

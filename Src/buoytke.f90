@@ -32,6 +32,7 @@
 
 ! Implicit typing
       use m_comprofile
+      use m_dump_kernel
 
       implicit none
 
@@ -121,6 +122,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_buoytke = 0
+      integer, parameter :: DUMP_TARGET_buoytke = 360
+      logical, save :: dump_done_buoytke = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Calculate the buoyancy production.
@@ -142,6 +149,11 @@
 !   - Use collapse(2) for nested i,j loops within each k-loop
 !   - Keep two separate target regions or use explicit barrier between phases
 !   - Consider fusing loops if tmp1 dependency can be restructured
+! Runtime:
+!   - Calls: 360
+!   - AvgLoops: 101.2M
+!   - TotalTime: 3.027s (0.10%)
+!   - AvgTime: 8.409ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -153,6 +165,21 @@ loop_len = int((nk-1)-(2)+1,8) &
      & * int((nj-2)-(2)+1,8) &
      & * int((ni-2)-(2)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_buoytke = dump_call_count_buoytke + 1
+if (dump_call_count_buoytke == DUMP_TARGET_buoytke .and. .not. dump_done_buoytke) then
+  call dump_init('buoytke')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_3d('jcb8w.bin', jcb8w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('nsq8w.bin', nsq8w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rkv8s.bin', rkv8s, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tkefrc_in.bin', tkefrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp1_in.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -186,6 +213,15 @@ call profile_start(prof_id1)
         end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_buoytke == DUMP_TARGET_buoytke .and. .not. dump_done_buoytke) then
+  call dump_array_3d('tkefrc_ref.bin', tkefrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp1_ref.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_buoytke = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

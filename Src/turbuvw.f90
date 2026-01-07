@@ -24,6 +24,7 @@
 
       use m_getiname
       use m_comprofile
+      use m_dump_kernel
       use m_getrname
 
 !-----7--------------------------------------------------------------7--
@@ -215,6 +216,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_turbuvw = 0
+      integer, parameter :: DUMP_TARGET_turbuvw = 360
+      logical, save :: dump_done_turbuvw = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -260,6 +267,11 @@
 !   - Evaluate conditions outside kernel to select specific code path.
 !   - OpenACC kernels with collapse(2) on i,j loops.
 !   - Data region should cover all stress tensors and force arrays.
+! Runtime:
+!   - Calls: 360
+!   - AvgLoops: 804.6K
+!   - TotalTime: 13.603s (0.46%)
+!   - AvgTime: 37.786ms
 !@llm end meta_info ------------------------------------------------------
 
 
@@ -270,6 +282,46 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nj-1)-(2)+1,8) * int((ni-1)-(2)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_turbuvw = dump_call_count_turbuvw + 1
+if (dump_call_count_turbuvw == DUMP_TARGET_turbuvw .and. .not. dump_done_turbuvw) then
+  call dump_init('turbuvw')
+  call dump_scalar_i('fptrnopt', fptrnopt)
+  call dump_scalar_i('fpmpopt', fpmpopt)
+  call dump_scalar_i('fpmfcopt', fpmfcopt)
+  call dump_scalar_i('fpadvopt', fpadvopt)
+  call dump_scalar_i('fpdxiv', fpdxiv)
+  call dump_scalar_i('fpdyiv', fpdyiv)
+  call dump_scalar_i('fpdziv', fpdziv)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_3d('j31.bin', j31, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('j32.bin', j32, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('jcb.bin', jcb, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('jcb8u.bin', jcb8u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('jcb8v.bin', jcb8v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d('mf.bin', mf, 0, ni+1, 0, nj+1)
+  call dump_array_2d('mf8u.bin', mf8u, 0, ni+1, 0, nj+1)
+  call dump_array_2d('mf8v.bin', mf8v, 0, ni+1, 0, nj+1)
+  call dump_array_3d('rmf.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
+  call dump_array_3d('rmf8u.bin', rmf8u, 0, ni+1, 0, nj+1, 1, 3)
+  call dump_array_3d('rmf8v.bin', rmf8v, 0, ni+1, 0, nj+1, 1, 3)
+  call dump_array_3d('t11_in.bin', t11, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t22_in.bin', t22, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t33_in.bin', t33, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t12_in.bin', t12, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t13_in.bin', t13, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t23_in.bin', t23, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t31_in.bin', t31, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t32_in.bin', t32, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ufrc_in.bin', ufrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vfrc_in.bin', vfrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('wfrc_in.bin', wfrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp1_in.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -1850,6 +1902,25 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_turbuvw == DUMP_TARGET_turbuvw .and. .not. dump_done_turbuvw) then
+  call dump_array_3d('t11_ref.bin', t11, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t22_ref.bin', t22, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t33_ref.bin', t33, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t12_ref.bin', t12, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t13_ref.bin', t13, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t23_ref.bin', t23, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t31_ref.bin', t31, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t32_ref.bin', t32, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ufrc_ref.bin', ufrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vfrc_ref.bin', vfrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('wfrc_ref.bin', wfrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp1_ref.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_turbuvw = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

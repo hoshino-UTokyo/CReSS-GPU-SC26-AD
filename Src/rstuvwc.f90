@@ -20,6 +20,7 @@
 
       use m_getiname
       use m_comprofile
+      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -158,6 +159,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_rstuvwc = 0
+      integer, parameter :: DUMP_TARGET_rstuvwc = 360
+      logical, save :: dump_done_rstuvwc = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -190,6 +197,11 @@
 !   - Consider separate kernels for u, v, wc computations
 !   - Use OpenACC teams distribute parallel for collapse(3)
 !   - Fuse the three loop nests if possible for better memory access
+! Runtime:
+!   - Calls: 360
+!   - AvgLoops: 102.5M
+!   - TotalTime: 4.050s (0.14%)
+!   - AvgTime: 11.251ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -201,6 +213,30 @@ loop_len = int((nk-1)-(1)+1,8) &
      & * int((nj-1)-(1)+1,8) &
      & * int((ni+1-ieast)-(iwest)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_rstuvwc = dump_call_count_rstuvwc + 1
+if (dump_call_count_rstuvwc == DUMP_TARGET_rstuvwc .and. .not. dump_done_rstuvwc) then
+  call dump_init('rstuvwc')
+  call dump_scalar_i('fpmpopt', fpmpopt)
+  call dump_scalar_i('fpmfcopt', fpmfcopt)
+  call dump_scalar_i('fpiwest', fpiwest)
+  call dump_scalar_i('fpieast', fpieast)
+  call dump_scalar_i('fpjsouth', fpjsouth)
+  call dump_scalar_i('fpjnorth', fpjnorth)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_2d('mf8u.bin', mf8u, 0, ni+1, 0, nj+1)
+  call dump_array_2d('mf8v.bin', mf8v, 0, ni+1, 0, nj+1)
+  call dump_array_3d('rst8u.bin', rst8u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rst8v.bin', rst8v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rst8w.bin', rst8w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('wc.bin', wc, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -343,6 +379,16 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_rstuvwc == DUMP_TARGET_rstuvwc .and. .not. dump_done_rstuvwc) then
+  call dump_array_3d('rstxu_ref.bin', rstxu, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rstxv_ref.bin', rstxv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rstxwc_ref.bin', rstxwc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_rstuvwc = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

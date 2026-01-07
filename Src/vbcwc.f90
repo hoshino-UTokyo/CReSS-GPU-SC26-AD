@@ -22,6 +22,7 @@
 
       use m_getiname
       use m_comprofile
+      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -111,6 +112,11 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_vbcwc = 0
+      integer, parameter :: DUMP_TARGET_vbcwc = 15121
+      logical, save :: dump_done_vbcwc = .false.
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -142,6 +148,11 @@
 ! Next:
 !   - Direct OpenACC with Unified Memory (no explicit data transfer needed)
 !   - Consider collapsing i,j loops and using teams distribute
+! Runtime:
+!   - Calls: 15121
+!   - AvgLoops: 806.4K
+!   - TotalTime: 0.833s (0.03%)
+!   - AvgTime: 0.055ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -150,6 +161,19 @@ if (prof_id1 < 0) then
    & 'OMP section 1')
 end if
 loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
+
+! Dump input data at target call
+dump_call_count_vbcwc = dump_call_count_vbcwc + 1
+if (dump_call_count_vbcwc == DUMP_TARGET_vbcwc .and. .not. dump_done_vbcwc) then
+  call dump_init('vbcwc')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('bbc', bbc)
+  call dump_scalar_i('tbc', tbc)
+  call dump_array_3d('wc_in.bin', wc, 0, ni+1, 0, nj+1, 1, nk)
+end if
+
 call profile_start(prof_id1)
 
 !$omp parallel default(shared)
@@ -219,6 +243,13 @@ call profile_start(prof_id1)
 !$omp end parallel
 
 call profile_stop(prof_id1, loop_len)
+
+! Dump output data at target call
+if (dump_call_count_vbcwc == DUMP_TARGET_vbcwc .and. .not. dump_done_vbcwc) then
+  call dump_array_3d('wc_ref.bin', wc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_vbcwc = .true.
+end if
 
 !! -----
 

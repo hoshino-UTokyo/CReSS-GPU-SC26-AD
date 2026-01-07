@@ -25,6 +25,7 @@
 
       use m_comindx
       use m_comprofile
+      use m_dump_kernel
       use m_getiname
       use m_getrname
       use m_rdtrn
@@ -163,6 +164,12 @@
       integer, save :: prof_id2 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_gettrn = 0
+      integer, parameter :: DUMP_TARGET_gettrn = 1
+      logical, save :: dump_done_gettrn = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -200,6 +207,11 @@
 ! Next:
 !   - Direct translation to OpenACC with teams distribute
 !   - Consider using GPU memset-like operation for constant fill
+! Runtime:
+!   - Calls: 1
+!   - AvgLoops: 810.0K
+!   - TotalTime: 0.000s (0.00%)
+!   - AvgTime: 0.015ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -209,6 +221,24 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nj)-(0)+1,8) * int((ni)-(0)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_gettrn = dump_call_count_gettrn + 1
+if (dump_call_count_gettrn == DUMP_TARGET_gettrn .and. .not. dump_done_gettrn) then
+  call dump_init('gettrn')
+  call dump_scalar_i('fptrnopt', fptrnopt)
+  call dump_scalar_i('fpzsfc', fpzsfc)
+  call dump_scalar_i('fpmnthgh', fpmnthgh)
+  call dump_scalar_i('fpmntwx', fpmntwx)
+  call dump_scalar_i('fpmntwy', fpmntwy)
+  call dump_scalar_i('fpmntcx', fpmntcx)
+  call dump_scalar_i('fpmntcy', fpmntcy)
+  call dump_scalar_i('ncdvn', ncdvn)
+  call dump_scalar_i('fmsg', fmsg)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+end if
 
 !$omp parallel default(shared)
 
@@ -223,6 +253,14 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_gettrn == DUMP_TARGET_gettrn .and. .not. dump_done_gettrn) then
+  call dump_array_2d('ht_ref.bin', ht, 0, ni+1, 0, nj+1)
+  call dump_finalize()
+  dump_done_gettrn = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

@@ -20,6 +20,7 @@
 
       use m_comphy
       use m_comprofile
+      use m_dump_kernel
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -120,6 +121,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_chkrain = 0
+      integer, parameter :: DUMP_TARGET_chkrain = 361
+      logical, save :: dump_done_chkrain = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -146,6 +153,11 @@
 ! Next:
 !   - Direct OpenACC with collapse(2) for GPU
 !   - Branching within kernel may cause thread divergence; consider separate kernels
+! Runtime:
+!   - Calls: 361
+!   - AvgLoops: 806.4K
+!   - TotalTime: 0.025s (0.00%)
+!   - AvgTime: 0.069ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -155,6 +167,21 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_chkrain = dump_call_count_chkrain + 1
+if (dump_call_count_chkrain == DUMP_TARGET_chkrain .and. .not. dump_done_chkrain) then
+  call dump_init('chkrain')
+  call dump_scalar_i('fpcphopt', fpcphopt)
+  call dump_scalar_i('fphaiopt', fphaiopt)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nqw', nqw)
+  call dump_scalar_i('nqi', nqi)
+  call dump_array_4d('prwtr.bin', prwtr, 0, ni+1, 0, nj+1, 1, 2, 1, nqw)
+  call dump_array_4d('price.bin', price, 0, ni+1, 0, nj+1, 1, 2, 1, nqi)
+end if
 
 !$omp parallel default(shared)
 
@@ -346,6 +373,14 @@ call profile_start(prof_id1)
 !!! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_chkrain == DUMP_TARGET_chkrain .and. .not. dump_done_chkrain) then
+  call dump_array_2d('fall_ref.bin', fall, 0, ni+1, 0, nj+1)
+  call dump_finalize()
+  dump_done_chkrain = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

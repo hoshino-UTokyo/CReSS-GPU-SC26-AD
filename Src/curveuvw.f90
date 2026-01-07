@@ -21,6 +21,7 @@
 
       use m_comphy
       use m_comprofile
+      use m_dump_kernel
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -154,6 +155,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_curveuvw = 0
+      integer, parameter :: DUMP_TARGET_curveuvw = 360
+      logical, save :: dump_done_curveuvw = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -188,6 +195,11 @@
 !   - Convert to OpenACC with data region for all arrays
 !   - May need to fuse some k-loops or restructure for better parallelism
 !   - Handle conditional logic for map projection options on GPU
+! Runtime:
+!   - Calls: 360
+!   - AvgLoops: 102.4M
+!   - TotalTime: 17.817s (0.60%)
+!   - AvgTime: 49.492ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -199,6 +211,33 @@ loop_len = int((nk-1)-(1)+1,8) &
      & * int((nj-1)-(1)+1,8) &
      & * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_curveuvw = dump_call_count_curveuvw + 1
+if (dump_call_count_curveuvw == DUMP_TARGET_curveuvw .and. .not. dump_done_curveuvw) then
+  call dump_init('curveuvw')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('mpopt', mpopt)
+  call dump_scalar_i('mfcopt', mfcopt)
+  call dump_scalar_r('rearth', rearth)
+  call dump_array_3d('rmf8u.bin', rmf8u, 0, ni+1, 0, nj+1, 1, 3)
+  call dump_array_3d('rmf8v.bin', rmf8v, 0, ni+1, 0, nj+1, 1, 3)
+  call dump_array_3d('rst.bin', rst, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('w.bin', w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ufrc_in.bin', ufrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vfrc_in.bin', vfrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('wfrc_in.bin', wfrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp1_in.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp2_in.bin', tmp2, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp3_in.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp4_in.bin', tmp4, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp5_in.bin', tmp5, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -460,6 +499,21 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_curveuvw == DUMP_TARGET_curveuvw .and. .not. dump_done_curveuvw) then
+  call dump_array_3d('ufrc_ref.bin', ufrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vfrc_ref.bin', vfrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('wfrc_ref.bin', wfrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp1_ref.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp2_ref.bin', tmp2, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp3_ref.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp4_ref.bin', tmp4, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp5_ref.bin', tmp5, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_curveuvw = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

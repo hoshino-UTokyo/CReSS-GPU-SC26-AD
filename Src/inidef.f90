@@ -22,6 +22,7 @@
 
       use m_defdim
       use m_comprofile
+      use m_dump_kernel
       use m_defname
       use m_inichar
 
@@ -81,6 +82,12 @@
       ! Profiling variables
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
+
+      ! Dump variables
+      integer, save :: dump_call_count_inidef = 0
+      integer, parameter :: DUMP_TARGET_inidef = 1
+      logical, save :: dump_done_inidef = .false.
+
 
 !-----7--------------------------------------------------------------7--
 
@@ -594,6 +601,11 @@
 ! Next:
 !   - Can be directly ported to GPU with OpenACC parallel loop
 !   - Consider using array syntax for simpler GPU offload
+! Runtime:
+!   - Calls: 1
+!   - AvgLoops: 100
+!   - TotalTime: 0.003s (0.00%)
+!   - AvgTime: 3.142ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -603,6 +615,13 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((100)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_inidef = dump_call_count_inidef + 1
+if (dump_call_count_inidef == DUMP_TARGET_inidef .and. .not. dump_done_inidef) then
+  call dump_init('inidef')
+end if
 
 !$omp parallel default(shared)
 
@@ -623,6 +642,13 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_inidef == DUMP_TARGET_inidef .and. .not. dump_done_inidef) then
+  call dump_finalize()
+  dump_done_inidef = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

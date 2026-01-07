@@ -27,6 +27,7 @@
 
       use m_chkstd
       use m_comprofile
+      use m_dump_kernel
       use m_comkind
       use m_commath
       use m_commpi
@@ -175,6 +176,12 @@
       integer, save :: prof_id2 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_outmxn = 0
+      integer, parameter :: DUMP_TARGET_outmxn = 5415
+      logical, save :: dump_done_outmxn = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 !! Calculate and read in the maximum and minimum value of optional
@@ -233,6 +240,11 @@
 !   - Data managed automatically via Unified Memory atomic or parallel reduction
 !   - Consider using CUB or Thrust for reduction primitives
 !   - May need two-pass approach for value then indices
+! Runtime:
+!   - Calls: 5415
+!   - AvgLoops: 102.5M
+!   - TotalTime: 5.493s (0.18%)
+!   - AvgTime: 1.014ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -244,6 +256,26 @@ loop_len = int((kend)-(kstr)+1,8) &
      & * int((jend)-(jstr)+1,8) &
      & * int((iend)-(istr)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_outmxn = dump_call_count_outmxn + 1
+if (dump_call_count_outmxn == DUMP_TARGET_outmxn .and. .not. dump_done_outmxn) then
+  call dump_init('outmxn')
+  call dump_scalar_i('ncvn', ncvn)
+  call dump_scalar_i8('ctime', ctime)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('istr', istr)
+  call dump_scalar_i('iend', iend)
+  call dump_scalar_i('jstr', jstr)
+  call dump_scalar_i('jend', jend)
+  call dump_scalar_i('kstr', kstr)
+  call dump_scalar_i('kend', kend)
+  call dump_scalar_i('outcnt', outcnt)
+  call dump_array_3d('var.bin', var, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared)
 
@@ -269,6 +301,13 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_outmxn == DUMP_TARGET_outmxn .and. .not. dump_done_outmxn) then
+  call dump_finalize()
+  dump_done_outmxn = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

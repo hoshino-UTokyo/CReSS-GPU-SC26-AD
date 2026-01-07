@@ -20,6 +20,7 @@
 
       use m_getrname
       use m_comprofile
+      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -109,6 +110,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_diverpiv = 0
+      integer, parameter :: DUMP_TARGET_diverpiv = 28800
+      logical, save :: dump_done_diverpiv = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -133,6 +140,11 @@
 ! Next:
 !   - Direct OpenACC with collapse(2) on j-i loops
 !   - Very simple kernel, good candidate for early GPU porting
+! Runtime:
+!   - Calls: 28800
+!   - AvgLoops: 100.4M
+!   - TotalTime: 105.301s (3.53%)
+!   - AvgTime: 3.656ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -144,6 +156,19 @@ loop_len = int((nk-2)-(2)+1,8) &
      & * int((nj-2)-(2)+1,8) &
      & * int((ni-2)-(2)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_diverpiv = dump_call_count_diverpiv + 1
+if (dump_call_count_diverpiv == DUMP_TARGET_diverpiv .and. .not. dump_done_diverpiv) then
+  call dump_init('diverpiv')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_r('dziv', dziv)
+  call dump_array_3d('rcsq.bin', rcsq, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('w.bin', w, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -162,6 +187,14 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_diverpiv == DUMP_TARGET_diverpiv .and. .not. dump_done_diverpiv) then
+  call dump_array_3d('pdiv_ref.bin', pdiv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_diverpiv = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

@@ -27,6 +27,7 @@
       use m_comprofile
       use m_comphy
       use m_getiname
+      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -141,6 +142,11 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_diagni = 0
+      integer, parameter :: DUMP_TARGET_diagni = 1
+      logical, save :: dump_done_diagni = .false.
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -187,6 +193,11 @@
 !   - Direct conversion to OpenACC with collapsed loops
 !   - Handle haiopt conditional outside kernel or use single kernel with masking
 !   - Data managed automatically via Unified Memory
+! Runtime:
+!   - Calls: 1
+!   - AvgLoops: 102.4M
+!   - TotalTime: 0.012s (0.00%)
+!   - AvgTime: 11.720ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -197,6 +208,21 @@ end if
 loop_len = int((nk-1)-(1)+1,8) &
      & * int((nj-1)-(1)+1,8) &
      & * int((ni-1)-(1)+1,8)
+
+! Dump input data at target call
+dump_call_count_diagni = dump_call_count_diagni + 1
+if (dump_call_count_diagni == DUMP_TARGET_diagni .and. .not. dump_done_diagni) then
+  call dump_init('diagni')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('nqi', nqi)
+  call dump_scalar_i('nni', nni)
+  call dump_scalar_i('haiopt', haiopt)
+  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_4d('qice.bin', qice, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+end if
+
 call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
@@ -321,6 +347,13 @@ call profile_start(prof_id1)
 !$omp end parallel
 
 call profile_stop(prof_id1, loop_len)
+
+! Dump output data at target call
+if (dump_call_count_diagni == DUMP_TARGET_diagni .and. .not. dump_done_diagni) then
+  call dump_array_4d('nidia_ref.bin', nidia, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
+  call dump_finalize()
+  dump_done_diagni = .true.
+end if
 
 !!! -----
 

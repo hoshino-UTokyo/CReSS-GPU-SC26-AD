@@ -26,6 +26,7 @@
 
 ! Implicit typing
       use m_comprofile
+      use m_dump_kernel
 
       implicit none
 
@@ -110,6 +111,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_vsps0 = 0
+      integer, parameter :: DUMP_TARGET_vsps0 = 1440
+      logical, save :: dump_done_vsps0 = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Calculate the vertical sponge damping for optional scalar variable to
@@ -131,6 +138,11 @@
 !   - Straightforward GPU port with collapse on j,i loops
 !   - Handle variable k-range start with appropriate kernel bounds
 !   - Map sfrc, sp, rbct, rst arrays to device
+! Runtime:
+!   - Calls: 1440
+!   - AvgLoops: 101.2M
+!   - TotalTime: 7.870s (0.26%)
+!   - AvgTime: 5.466ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -142,6 +154,20 @@ loop_len = int((nk-2)-(ksp0(2)-1)+1,8) &
      & * int((nj-2)-(2)+1,8) &
      & * int((ni-2)-(2)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_vsps0 = dump_call_count_vsps0 + 1
+if (dump_call_count_vsps0 == DUMP_TARGET_vsps0 .and. .not. dump_done_vsps0) then
+  call dump_init('vsps0')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_3d('rst.bin', rst, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('sp.bin', sp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_4d('rbct.bin', rbct, 1, ni, 1, nj, 1, nk, 1, 2)
+  call dump_array_3d('sfrc_in.bin', sfrc, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -161,6 +187,14 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_vsps0 == DUMP_TARGET_vsps0 .and. .not. dump_done_vsps0) then
+  call dump_array_3d('sfrc_ref.bin', sfrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_vsps0 = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

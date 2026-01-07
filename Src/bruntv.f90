@@ -27,6 +27,7 @@
 
       use m_comphy
       use m_comprofile
+      use m_dump_kernel
       use m_getiname
       use m_getrname
 
@@ -175,6 +176,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_bruntv = 0
+      integer, parameter :: DUMP_TARGET_bruntv = 360
+      logical, save :: dump_done_bruntv = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -220,6 +227,11 @@
 !   - Use collapse(2) for nested i,j loops
 !   - May need to restructure k-loop to avoid thread-local t array issues
 !   - Consider separating dry/moist cases into different GPU kernels
+! Runtime:
+!   - Calls: 360
+!   - AvgLoops: 102.4M
+!   - TotalTime: 12.063s (0.40%)
+!   - AvgTime: 33.508ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -231,6 +243,45 @@ loop_len = int((nk-1)-(1)+1,8) &
      & * int((nj-1)-(1)+1,8) &
      & * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_bruntv = dump_call_count_bruntv + 1
+if (dump_call_count_bruntv == DUMP_TARGET_bruntv .and. .not. dump_done_bruntv) then
+  call dump_init('bruntv')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('cphopt', cphopt)
+  call dump_scalar_r('dziv', dziv)
+  call dump_scalar_r('thresq', thresq)
+  call dump_scalar_c('fmois', fmois)
+  ! Comphy constants
+  call dump_scalar_r('g', g)
+  call dump_scalar_r('rd', rd)
+  call dump_scalar_r('cp', cp)
+  call dump_scalar_r('cw', cw)
+  call dump_scalar_r('ci', ci)
+  call dump_scalar_r('p0', p0)
+  call dump_scalar_r('lv0', lv0)
+  call dump_scalar_r('lf0', lf0)
+  call dump_scalar_r('t0', t0)
+  call dump_scalar_r('tlow', tlow)
+  call dump_scalar_r('epsav', epsav)
+  call dump_scalar_r('epsva', epsva)
+  ! Arrays
+  call dump_array_3d('jcb8w.bin', jcb8w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('pbr.bin', pbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ptbr.bin', ptbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('pp.bin', pp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ptp.bin', ptp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qv.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qall.bin', qall, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('pt_in.bin', pt, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ptv_in.bin', ptv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('a_in.bin', a, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d('t_in.bin', t, 0, ni+1, 0, nj+1)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -419,6 +470,17 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_bruntv == DUMP_TARGET_bruntv .and. .not. dump_done_bruntv) then
+  call dump_array_3d('nsq8w_ref.bin', nsq8w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ptv_ref.bin', ptv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('a_ref.bin', a, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d('t_ref.bin', t, 0, ni+1, 0, nj+1)
+  call dump_finalize()
+  dump_done_bruntv = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

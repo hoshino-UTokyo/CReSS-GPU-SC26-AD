@@ -27,6 +27,7 @@
 
       use m_commath
       use m_comprofile
+      use m_dump_kernel
       use m_comphy
 
 !-----7--------------------------------------------------------------7--
@@ -171,6 +172,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_nuc1stc = 0
+      integer, parameter :: DUMP_TARGET_nuc1stc = 45720
+      logical, save :: dump_done_nuc1stc = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variables.
@@ -207,6 +214,11 @@
 !   - Branch divergence may reduce GPU efficiency
 !   - Consider precomputing masks for temperature conditions
 !   - Can port as single kernel with good occupancy
+! Runtime:
+!   - Calls: 45720
+!   - AvgLoops: 806.4K
+!   - TotalTime: 1.366s (0.05%)
+!   - AvgTime: 0.030ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -216,6 +228,29 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_nuc1stc = dump_call_count_nuc1stc + 1
+if (dump_call_count_nuc1stc == DUMP_TARGET_nuc1stc .and. .not. dump_done_nuc1stc) then
+  call dump_init('nuc1stc')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_r('dtb', dtb)
+  call dump_scalar_r('thresq', thresq)
+  call dump_array_3d('t.bin', t, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('t0', t0)
+  call dump_scalar_r('rv', rv)
+  call dump_array_3d('p.bin', p, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qc.bin', qc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncc.bin', ncc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tcel.bin', tcel, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('lv.bin', lv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('kp.bin', kp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('mu.bin', mu, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('diaqc.bin', diaqc, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -446,6 +481,14 @@ call profile_start(prof_id1)
 !!! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_nuc1stc == DUMP_TARGET_nuc1stc .and. .not. dump_done_nuc1stc) then
+  call dump_array_3d('nuci_ref.bin', nuci, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_nuc1stc = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

@@ -22,6 +22,7 @@
 
       use m_comphy
       use m_comprofile
+      use m_dump_kernel
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -142,6 +143,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_eddydif = 0
+      integer, parameter :: DUMP_TARGET_eddydif = 360
+      logical, save :: dump_done_eddydif = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -179,6 +186,11 @@
 !   - Convert to OpenACC or OpenACC data region with kernels
 !   - Collapse the k and j loops for more parallelism on GPU
 !   - Consider merging conditional branches to reduce kernel launches
+! Runtime:
+!   - Calls: 360
+!   - AvgLoops: 127
+!   - TotalTime: 4.442s (0.15%)
+!   - AvgTime: 12.339ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -188,6 +200,24 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nk-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_eddydif = dump_call_count_eddydif + 1
+if (dump_call_count_eddydif == DUMP_TARGET_eddydif .and. .not. dump_done_eddydif) then
+  call dump_init('eddydif')
+  call dump_scalar_i('fpmfcopt', fpmfcopt)
+  call dump_scalar_i('fptubopt', fptubopt)
+  call dump_scalar_i('fpisoopt', fpisoopt)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_3d('jcb.bin', jcb, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d('mf.bin', mf, 0, ni+1, 0, nj+1)
+  call dump_array_3d('priv.bin', priv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rkh_in.bin', rkh, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rkv8w_in.bin', rkv8w, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -396,6 +426,16 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_eddydif == DUMP_TARGET_eddydif .and. .not. dump_done_eddydif) then
+  call dump_array_3d('rkv8s_ref.bin', rkv8s, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rkh_ref.bin', rkh, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rkv8w_ref.bin', rkv8w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_eddydif = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

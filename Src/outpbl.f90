@@ -29,6 +29,7 @@
 
       use m_bulksfc
       use m_comprofile
+      use m_dump_kernel
       use m_comcapt
       use m_comdmp
       use m_comindx
@@ -280,6 +281,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_outpbl = 0
+      integer, parameter :: DUMP_TARGET_outpbl = 4
+      logical, save :: dump_done_outpbl = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variable.
@@ -343,6 +350,11 @@
 ! Next:
 !   - Convert to OpenACC or OpenACC with data directives for arrays
 !   - Collapse nested i,j loops for better GPU occupancy
+! Runtime:
+!   - Calls: 4
+!   - AvgLoops: 806.4K
+!   - TotalTime: 0.001s (0.00%)
+!   - AvgTime: 0.215ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -352,6 +364,65 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_outpbl = dump_call_count_outpbl + 1
+if (dump_call_count_outpbl == DUMP_TARGET_outpbl .and. .not. dump_done_outpbl) then
+  call dump_init('outpbl')
+  call dump_scalar_i('fpdmpvar', fpdmpvar)
+  call dump_scalar_i('fpdmplev', fpdmplev)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('nund', nund)
+  call dump_scalar_r('epsav', epsav)
+  call dump_array_2d('za.bin', za, 0, ni+1, 0, nj+1)
+  call dump_array_2d('lon.bin', lon, 0, ni+1, 0, nj+1)
+  call dump_array_3d('p.bin', p, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qv.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ufrc.bin', ufrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vfrc.bin', vfrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ptfrc.bin', ptfrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qvfrc.bin', qvfrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d_int('land.bin', land, 0, ni+1, 0, nj+1)
+  call dump_array_2d('kai.bin', kai, 0, ni+1, 0, nj+1)
+  call dump_array_2d('z0m.bin', z0m, 0, ni+1, 0, nj+1)
+  call dump_array_2d('z0h.bin', z0h, 0, ni+1, 0, nj+1)
+  call dump_array_3d('ptv.bin', ptv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d('qvsfc.bin', qvsfc, 0, ni+1, 0, nj+1)
+  call dump_array_2d('rch.bin', rch, 0, ni+1, 0, nj+1)
+  call dump_array_2d('cm.bin', cm, 0, ni+1, 0, nj+1)
+  call dump_array_2d('ch.bin', ch, 0, ni+1, 0, nj+1)
+  call dump_array_3d('tund.bin', tund, 0, ni+1, 0, nj+1, 1, nund)
+  call dump_array_2d('tice.bin', tice, 0, ni+1, 0, nj+1)
+  call dump_array_2d('hs.bin', hs, 0, ni+1, 0, nj+1)
+  call dump_array_2d('le.bin', le, 0, ni+1, 0, nj+1)
+  call dump_array_2d('rgd.bin', rgd, 0, ni+1, 0, nj+1)
+  call dump_array_2d('rsd.bin', rsd, 0, ni+1, 0, nj+1)
+  call dump_array_2d('rld.bin', rld, 0, ni+1, 0, nj+1)
+  call dump_array_2d('rlu.bin', rlu, 0, ni+1, 0, nj+1)
+  call dump_array_2d('cdl.bin', cdl, 0, ni+1, 0, nj+1)
+  call dump_array_2d('cdm.bin', cdm, 0, ni+1, 0, nj+1)
+  call dump_array_2d('cdh.bin', cdh, 0, ni+1, 0, nj+1)
+  call dump_array_2d('z10_in.bin', z10, 0, ni+1, 0, nj+1)
+  call dump_array_2d('z15_in.bin', z15, 0, ni+1, 0, nj+1)
+  call dump_array_2d('cm10_in.bin', cm10, 0, ni+1, 0, nj+1)
+  call dump_array_2d('ch15_in.bin', ch15, 0, ni+1, 0, nj+1)
+  call dump_array_2d('u10_in.bin', u10, 0, ni+1, 0, nj+1)
+  call dump_array_2d('v10_in.bin', v10, 0, ni+1, 0, nj+1)
+  call dump_array_2d('p15_in.bin', p15, 0, ni+1, 0, nj+1)
+  call dump_array_2d('pt15_in.bin', pt15, 0, ni+1, 0, nj+1)
+  call dump_array_2d('qv15_in.bin', qv15, 0, ni+1, 0, nj+1)
+  call dump_array_2d('tsfc_in.bin', tsfc, 0, ni+1, 0, nj+1)
+  call dump_array_2d('cdave_in.bin', cdave, 0, ni+1, 0, nj+1)
+  call dump_array_2d('usflx_in.bin', usflx, 0, ni+1, 0, nj+1)
+  call dump_array_2d('vsflx_in.bin', vsflx, 0, ni+1, 0, nj+1)
+  call dump_array_2d('ptsflx_in.bin', ptsflx, 0, ni+1, 0, nj+1)
+  call dump_array_2d('qvsflx_in.bin', qvsflx, 0, ni+1, 0, nj+1)
+end if
 
 !$omp parallel default(shared)
 
@@ -448,6 +519,28 @@ call profile_start(prof_id1)
         end if
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_outpbl == DUMP_TARGET_outpbl .and. .not. dump_done_outpbl) then
+  call dump_array_2d('z10_ref.bin', z10, 0, ni+1, 0, nj+1)
+  call dump_array_2d('z15_ref.bin', z15, 0, ni+1, 0, nj+1)
+  call dump_array_2d('cm10_ref.bin', cm10, 0, ni+1, 0, nj+1)
+  call dump_array_2d('ch15_ref.bin', ch15, 0, ni+1, 0, nj+1)
+  call dump_array_2d('u10_ref.bin', u10, 0, ni+1, 0, nj+1)
+  call dump_array_2d('v10_ref.bin', v10, 0, ni+1, 0, nj+1)
+  call dump_array_2d('p15_ref.bin', p15, 0, ni+1, 0, nj+1)
+  call dump_array_2d('pt15_ref.bin', pt15, 0, ni+1, 0, nj+1)
+  call dump_array_2d('qv15_ref.bin', qv15, 0, ni+1, 0, nj+1)
+  call dump_array_2d('tsfc_ref.bin', tsfc, 0, ni+1, 0, nj+1)
+  call dump_array_2d('cdave_ref.bin', cdave, 0, ni+1, 0, nj+1)
+  call dump_array_2d('usflx_ref.bin', usflx, 0, ni+1, 0, nj+1)
+  call dump_array_2d('vsflx_ref.bin', vsflx, 0, ni+1, 0, nj+1)
+  call dump_array_2d('ptsflx_ref.bin', ptsflx, 0, ni+1, 0, nj+1)
+  call dump_array_2d('qvsflx_ref.bin', qvsflx, 0, ni+1, 0, nj+1)
+  call dump_finalize()
+  dump_done_outpbl = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

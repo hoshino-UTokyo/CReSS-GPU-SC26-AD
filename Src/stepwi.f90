@@ -61,6 +61,7 @@
       use m_shiftsx
       use m_shiftsy
       use m_vbcw
+      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -266,6 +267,11 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_stepwi = 0
+      integer, parameter :: DUMP_TARGET_stepwi = 14400
+      logical, save :: dump_done_stepwi = .false.
+
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variable.
@@ -338,6 +344,11 @@
 !   - Tridiagonal solver (gaussel) needs separate GPU implementation
 !     (batched tridiagonal solver or cyclic reduction).
 !   - Consider cuSPARSE gtsv2 or custom kernel for vertical solve.
+! Runtime:
+!   - Calls: 14400
+!   - AvgLoops: 99.5M
+!   - TotalTime: 417.326s (14.01%)
+!   - AvgTime: 28.981ms
 !@llm end meta_info ------------------------------------------------------
 
 
@@ -349,6 +360,28 @@ end if
 loop_len = int((nk-2)-(3)+1,8) &
      & * int((nj-2)-(2)+1,8) &
      & * int((ni-2)-(2)+1,8)
+
+! Dump input data at target call
+dump_call_count_stepwi = dump_call_count_stepwi + 1
+if (dump_call_count_stepwi == DUMP_TARGET_stepwi .and. .not. dump_done_stepwi) then
+  call dump_init('stepwi')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('buyopt', buyopt)
+  call dump_scalar_r('dts', dts)
+  call dump_scalar_r('dziv', dziv)
+  call dump_scalar_r('weicoe', weicoe)
+  call dump_scalar_r('g', g)
+  call dump_array_3d('jcb.bin', jcb, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rst.bin', rst, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rst8w.bin', rst8w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rcsq.bin', rcsq, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('fw_in.bin', fw, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('wf_in.bin', wf, 0, ni+1, 0, nj+1, 1, nk)
+end if
+
 call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
@@ -457,6 +490,16 @@ call profile_start(prof_id1)
 !$omp end parallel
 
 call profile_stop(prof_id1, loop_len)
+
+! Dump output data at target call
+if (dump_call_count_stepwi == DUMP_TARGET_stepwi .and. .not. dump_done_stepwi) then
+  call dump_array_3d('wf_ref.bin', wf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp1_ref.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp2_ref.bin', tmp2, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp3_ref.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_stepwi = .true.
+end if
 
 ! -----
 

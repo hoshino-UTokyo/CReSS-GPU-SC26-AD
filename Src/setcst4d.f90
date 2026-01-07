@@ -25,6 +25,7 @@
 
 ! Implicit typing
       use m_comprofile
+      use m_dump_kernel
 
       implicit none
 
@@ -119,6 +120,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_setcst4d = 0
+      integer, parameter :: DUMP_TARGET_setcst4d = 25
+      logical, save :: dump_done_setcst4d = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Fill in the array with the constant value.
@@ -136,6 +143,11 @@
 ! Next:
 !   - Convert to OpenACC with parallel loop collapse(4)
 !   - Consider using memset or array assignment for better performance
+! Runtime:
+!   - Calls: 25
+!   - AvgLoops: 158.7M
+!   - TotalTime: 0.797s (0.03%)
+!   - AvgTime: 31.877ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -148,6 +160,22 @@ loop_len = int((nmax)-(nmin)+1,8) &
      & * int((jmax)-(jmin)+1,8) &
      & * int((imax)-(imin)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_setcst4d = dump_call_count_setcst4d + 1
+if (dump_call_count_setcst4d == DUMP_TARGET_setcst4d .and. .not. dump_done_setcst4d) then
+  call dump_init('setcst4d')
+  call dump_scalar_i('imin', imin)
+  call dump_scalar_i('imax', imax)
+  call dump_scalar_i('jmin', jmin)
+  call dump_scalar_i('jmax', jmax)
+  call dump_scalar_i('kmin', kmin)
+  call dump_scalar_i('kmax', kmax)
+  call dump_scalar_i('nmin', nmin)
+  call dump_scalar_i('nmax', nmax)
+  call dump_scalar_r('invar', invar)
+end if
 
 !$omp parallel default(shared) private(k,n)
 
@@ -170,6 +198,13 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_setcst4d == DUMP_TARGET_setcst4d .and. .not. dump_done_setcst4d) then
+  call dump_finalize()
+  dump_done_setcst4d = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

@@ -28,6 +28,7 @@
 
 ! Implicit typing
       use m_comprofile
+      use m_dump_kernel
 
       implicit none
 
@@ -104,6 +105,11 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_vbcu = 0
+      integer, parameter :: DUMP_TARGET_vbcu = 14401
+      logical, save :: dump_done_vbcu = .false.
+
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variables.
@@ -129,6 +135,11 @@
 ! Next:
 !   - Direct conversion to OpenACC parallel loop or OpenACC
 !   - Both loops are independent and can run concurrently on GPU
+! Runtime:
+!   - Calls: 14401
+!   - AvgLoops: 807.3K
+!   - TotalTime: 0.590s (0.02%)
+!   - AvgTime: 0.041ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -137,6 +148,17 @@ if (prof_id1 < 0) then
    & 'OMP section 1')
 end if
 loop_len = int((nj-1)-(1)+1,8) * int((ni)-(1)+1,8)
+
+! Dump input data at target call
+dump_call_count_vbcu = dump_call_count_vbcu + 1
+if (dump_call_count_vbcu == DUMP_TARGET_vbcu .and. .not. dump_done_vbcu) then
+  call dump_init('vbcu')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_3d('uf_in.bin', uf, 0, ni+1, 0, nj+1, 1, nk)
+end if
+
 call profile_start(prof_id1)
 
 !$omp parallel default(shared)
@@ -172,6 +194,13 @@ call profile_start(prof_id1)
 !$omp end parallel
 
 call profile_stop(prof_id1, loop_len)
+
+! Dump output data at target call
+if (dump_call_count_vbcu == DUMP_TARGET_vbcu .and. .not. dump_done_vbcu) then
+  call dump_array_3d('uf_ref.bin', uf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_vbcu = .true.
+end if
 
 !! -----
 

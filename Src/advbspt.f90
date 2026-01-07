@@ -22,6 +22,7 @@
 
       use m_getiname
       use m_comprofile
+      use m_dump_kernel
       use m_getrname
 
 !-----7--------------------------------------------------------------7--
@@ -127,6 +128,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_advbspt = 0
+      integer, parameter :: DUMP_TARGET_advbspt = 360
+      logical, save :: dump_done_advbspt = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -160,6 +167,11 @@
 ! Next:
 !   - Direct OpenACC kernels for each loop nest.
 !   - Consider fusing stages if pta8w is temporary.
+! Runtime:
+!   - Calls: 360
+!   - AvgLoops: 101.2M
+!   - TotalTime: 3.017s (0.10%)
+!   - AvgTime: 8.380ms
 !@llm end meta_info ------------------------------------------------------
 
 
@@ -172,6 +184,23 @@ loop_len = int((nk-1)-(2)+1,8) &
      & * int((nj-2)-(2)+1,8) &
      & * int((ni-2)-(2)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_advbspt = dump_call_count_advbspt + 1
+if (dump_call_count_advbspt == DUMP_TARGET_advbspt .and. .not. dump_done_advbspt) then
+  call dump_init('advbspt')
+  call dump_scalar_i('fpgwmopt', fpgwmopt)
+  call dump_scalar_i('fpdziv', fpdziv)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_3d('ptbr.bin', ptbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('w.bin', w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ptadv_in.bin', ptadv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('pta8w_in.bin', pta8w, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -225,6 +254,15 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_advbspt == DUMP_TARGET_advbspt .and. .not. dump_done_advbspt) then
+  call dump_array_3d('ptadv_ref.bin', ptadv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('pta8w_ref.bin', pta8w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_advbspt = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

@@ -20,6 +20,7 @@
 
       use m_getrname
       use m_comprofile
+      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -125,6 +126,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_upwnp = 0
+      integer, parameter :: DUMP_TARGET_upwnp = 1080
+      logical, save :: dump_done_upwnp = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -157,6 +164,11 @@
 ! Next:
 !   - Collapse loops or use OpenACC kernels with loop directive
 !   - Can potentially fuse kernels for better performance
+! Runtime:
+!   - Calls: 1080
+!   - AvgLoops: 102.4M
+!   - TotalTime: 10.226s (0.34%)
+!   - AvgTime: 9.468ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -168,6 +180,23 @@ loop_len = int((nk-1)-(1)+1,8) &
      & * int((nj-1)-(1)+1,8) &
      & * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_upwnp = dump_call_count_upwnp + 1
+if (dump_call_count_upwnp == DUMP_TARGET_upwnp .and. .not. dump_done_upwnp) then
+  call dump_init('upwnp')
+  call dump_scalar_i('fpdziv', fpdziv)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_r('dtp', dtp)
+  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rst.bin', rst, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('un.bin', un, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncf_in.bin', ncf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncflx_in.bin', ncflx, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -211,6 +240,15 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_upwnp == DUMP_TARGET_upwnp .and. .not. dump_done_upwnp) then
+  call dump_array_3d('ncf_ref.bin', ncf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncflx_ref.bin', ncflx, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_upwnp = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

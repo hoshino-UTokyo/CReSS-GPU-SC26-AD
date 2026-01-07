@@ -24,6 +24,7 @@
 
       use m_commath
       use m_comprofile
+      use m_dump_kernel
       use m_comphy
 
 !-----7--------------------------------------------------------------7--
@@ -205,6 +206,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_prodctwg = 0
+      integer, parameter :: DUMP_TARGET_prodctwg = 45720
+      logical, save :: dump_done_prodctwg = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variable.
@@ -236,6 +243,11 @@
 !   - Thread divergence from conditionals may reduce GPU efficiency
 !   - Consider restructuring conditionals to minimize divergence
 !   - Ensure all read/write arrays are in data region
+! Runtime:
+!   - Calls: 45720
+!   - AvgLoops: 806.4K
+!   - TotalTime: 0.986s (0.03%)
+!   - AvgTime: 0.022ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -245,6 +257,42 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_prodctwg = dump_call_count_prodctwg + 1
+if (dump_call_count_prodctwg == DUMP_TARGET_prodctwg .and. .not. dump_done_prodctwg) then
+  call dump_init('prodctwg')
+  call dump_scalar_i('cphopt', cphopt)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_r('dtb', dtb)
+  call dump_scalar_r('thresq', thresq)
+  call dump_scalar_r('ci', ci)
+  call dump_scalar_r('cw', cw)
+  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qi.bin', qi, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qs.bin', qs, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qg.bin', qg, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncs.bin', ncs, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tcel.bin', tcel, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qvsst0.bin', qvsst0, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('lv.bin', lv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('lf.bin', lf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('kp.bin', kp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('dv.bin', dv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vntg.bin', vntg, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('clcg.bin', clcg, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('clrg.bin', clrg, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('clir_in.bin', clir, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('clis_in.bin', clis, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('clig_in.bin', clig, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('clsr_in.bin', clsr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('clsg_in.bin', clsg, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('clsrn_in.bin', clsrn, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('clsgn_in.bin', clsgn, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -617,6 +665,21 @@ call profile_start(prof_id1)
 !! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_prodctwg == DUMP_TARGET_prodctwg .and. .not. dump_done_prodctwg) then
+  call dump_array_3d('pgwet_ref.bin', pgwet, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('clir_ref.bin', clir, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('clis_ref.bin', clis, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('clig_ref.bin', clig, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('clsr_ref.bin', clsr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('clsg_ref.bin', clsg, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('clsrn_ref.bin', clsrn, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('clsgn_ref.bin', clsgn, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_prodctwg = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

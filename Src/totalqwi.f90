@@ -19,6 +19,7 @@
 
       use m_getiname
       use m_comprofile
+      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -121,6 +122,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_totalqwi = 0
+      integer, parameter :: DUMP_TARGET_totalqwi = 720
+      logical, save :: dump_done_totalqwi = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -148,6 +155,11 @@
 !   - Straightforward GPU port with conditional branches
 !   - Consider specialized kernels for bulk vs bin microphysics
 !   - Bin category loops can be unrolled or parallelized
+! Runtime:
+!   - Calls: 720
+!   - AvgLoops: 102.4M
+!   - TotalTime: 4.982s (0.17%)
+!   - AvgTime: 6.920ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -159,6 +171,22 @@ loop_len = int((nk-1)-(1)+1,8) &
      & * int((nj-1)-(1)+1,8) &
      & * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_totalqwi = dump_call_count_totalqwi + 1
+if (dump_call_count_totalqwi == DUMP_TARGET_totalqwi .and. .not. dump_done_totalqwi) then
+  call dump_init('totalqwi')
+  call dump_scalar_i('fpcphopt', fpcphopt)
+  call dump_scalar_i('fphaiopt', fphaiopt)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('nqw', nqw)
+  call dump_scalar_i('nqi', nqi)
+  call dump_array_4d('qwtr.bin', qwtr, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
+  call dump_array_4d('qice.bin', qice, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+end if
 
 !$omp parallel default(shared) private(k,n)
 
@@ -325,6 +353,14 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_totalqwi == DUMP_TARGET_totalqwi .and. .not. dump_done_totalqwi) then
+  call dump_array_3d('qall_ref.bin', qall, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_totalqwi = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

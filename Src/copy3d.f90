@@ -24,6 +24,7 @@
 
 ! Implicit typing
       use m_comprofile
+      use m_dump_kernel
 
       implicit none
 
@@ -108,6 +109,11 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_copy3d = 0
+      integer, parameter :: DUMP_TARGET_copy3d = 1446
+      logical, save :: dump_done_copy3d = .false.
+
 !-----7--------------------------------------------------------------7--
 
 ! Copy the invar to the outvar.
@@ -126,6 +132,11 @@
 !   - Collapse all three loops (k,j,i) for better GPU occupancy
 !   - Consider using device-to-device memcpy for efficiency
 !   - May be better to keep data resident on GPU and avoid copy calls
+! Runtime:
+!   - Calls: 1446
+!   - AvgLoops: 103.9M
+!   - TotalTime: 3.996s (0.13%)
+!   - AvgTime: 2.764ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -136,6 +147,20 @@ end if
 loop_len = int((kmax)-(kmin)+1,8) &
      & * int((jmax)-(jmin)+1,8) &
      & * int((imax)-(imin)+1,8)
+
+! Dump input data at target call
+dump_call_count_copy3d = dump_call_count_copy3d + 1
+if (dump_call_count_copy3d == DUMP_TARGET_copy3d .and. .not. dump_done_copy3d) then
+  call dump_init('copy3d')
+  call dump_scalar_i('imin', imin)
+  call dump_scalar_i('imax', imax)
+  call dump_scalar_i('jmin', jmin)
+  call dump_scalar_i('jmax', jmax)
+  call dump_scalar_i('kmin', kmin)
+  call dump_scalar_i('kmax', kmax)
+  call dump_array_3d('invar.bin', invar, imin, imax, jmin, jmax, kmin, kmax)
+end if
+
 call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
@@ -157,6 +182,13 @@ call profile_start(prof_id1)
 !$omp end parallel
 
 call profile_stop(prof_id1, loop_len)
+
+! Dump output data at target call
+if (dump_call_count_copy3d == DUMP_TARGET_copy3d .and. .not. dump_done_copy3d) then
+  call dump_array_3d('outvar_ref.bin', outvar, imin, imax, jmin, jmax, kmin, kmax)
+  call dump_finalize()
+  dump_done_copy3d = .true.
+end if
 
 ! -----
 

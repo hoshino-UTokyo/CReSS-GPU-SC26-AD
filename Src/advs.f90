@@ -27,6 +27,7 @@
       use m_comprofile
       use m_getiname
       use m_getrname
+      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -175,6 +176,11 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_advs = 0
+      integer, parameter :: DUMP_TARGET_advs = 3960
+      logical, save :: dump_done_advs = .false.
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -222,6 +228,11 @@
 !   - Split into kernels matching the loop structure.
 !   - Temporary arrays already allocated - good for GPU data management.
 !   - Consider fusing stages for reduced memory traffic.
+! Runtime:
+!   - Calls: 3960
+!   - AvgLoops: 100.5M
+!   - TotalTime: 155.185s (5.21%)
+!   - AvgTime: 39.188ms
 !@llm end meta_info ------------------------------------------------------
 
 
@@ -233,6 +244,29 @@ end if
 loop_len = int((nk-2)-(2)+1,8) &
      & * int((nj-2)-(2)+1,8) &
      & * int((ni-1)-(2)+1,8)
+
+! Dump input data at target call
+dump_call_count_advs = dump_call_count_advs + 1
+if (dump_call_count_advs == DUMP_TARGET_advs .and. .not. dump_done_advs) then
+  call dump_init('advs')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('advopt', advopt)
+  call dump_scalar_i('iwest', iwest)
+  call dump_scalar_i('ieast', ieast)
+  call dump_scalar_i('jsouth', jsouth)
+  call dump_scalar_i('jnorth', jnorth)
+  call dump_scalar_r('dxiv', dxiv)
+  call dump_scalar_r('dyiv', dyiv)
+  call dump_scalar_r('dziv', dziv)
+  call dump_array_3d('rstxu.bin', rstxu, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rstxv.bin', rstxv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rstxwc.bin', rstxwc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('s.bin', s, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('sfrc_in.bin', sfrc, 0, ni+1, 0, nj+1, 1, nk)
+end if
+
 call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
@@ -486,6 +520,13 @@ call profile_start(prof_id1)
 !$omp end parallel
 
 call profile_stop(prof_id1, loop_len)
+
+! Dump output data at target call
+if (dump_call_count_advs == DUMP_TARGET_advs .and. .not. dump_done_advs) then
+  call dump_array_3d('sfrc_ref.bin', sfrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_advs = .true.
+end if
 
 !!! -----
 

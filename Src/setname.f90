@@ -23,6 +23,7 @@
 
       use m_castname
       use m_comprofile
+      use m_dump_kernel
       use m_comindx
       use m_commpi
       use m_comname
@@ -84,6 +85,12 @@
       ! Profiling variables
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
+
+      ! Dump variables
+      integer, save :: dump_call_count_setname = 0
+      integer, parameter :: DUMP_TARGET_setname = 1
+      logical, save :: dump_done_setname = .false.
+
 
 !-----7--------------------------------------------------------------7--
 
@@ -559,6 +566,11 @@
 !   - Straightforward GPU port with simple 1D kernel
 !   - Consider keeping on CPU due to small loop count
 !   - If porting, use single kernel for all table copies
+! Runtime:
+!   - Calls: 1
+!   - AvgLoops: 10
+!   - TotalTime: 0.000s (0.00%)
+!   - AvgTime: 0.122ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -568,6 +580,13 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((numctg_lnd-1)-(0)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_setname = dump_call_count_setname + 1
+if (dump_call_count_setname == DUMP_TARGET_setname .and. .not. dump_done_setname) then
+  call dump_init('setname')
+end if
 
 !$omp parallel default(shared)
 
@@ -628,6 +647,13 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_setname == DUMP_TARGET_setname .and. .not. dump_done_setname) then
+  call dump_finalize()
+  dump_done_setname = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

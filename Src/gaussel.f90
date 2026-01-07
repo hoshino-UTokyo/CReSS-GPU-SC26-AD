@@ -22,6 +22,7 @@
 
       use m_getiname
       use m_comprofile
+      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -151,6 +152,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_gaussel = 0
+      integer, parameter :: DUMP_TARGET_gaussel = 14418
+      logical, save :: dump_done_gaussel = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -188,6 +195,11 @@
 !   - Or implement custom Thomas algorithm kernel per (i,j) column.
 !   - Each column can be solved independently - batch across (i,j).
 !   - Consider cyclic reduction for better parallelism if needed.
+! Runtime:
+!   - Calls: 14418
+!   - AvgLoops: 802.8K
+!   - TotalTime: 136.847s (4.59%)
+!   - AvgTime: 9.491ms
 !@llm end meta_info ------------------------------------------------------
 
 
@@ -198,6 +210,28 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((jend)-(jstr)+1,8) * int((iend)-(istr)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_gaussel = dump_call_count_gaussel + 1
+if (dump_call_count_gaussel == DUMP_TARGET_gaussel .and. .not. dump_done_gaussel) then
+  call dump_init('gaussel')
+  call dump_scalar_i('fpimpopt', fpimpopt)
+  call dump_scalar_i('istr', istr)
+  call dump_scalar_i('iend', iend)
+  call dump_scalar_i('jstr', jstr)
+  call dump_scalar_i('jend', jend)
+  call dump_scalar_i('kstr', kstr)
+  call dump_scalar_i('kend', kend)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('kmax', kmax)
+  call dump_array_3d('rr_in.bin', rr, 0, ni+1, 0, nj+1, 1, kmax)
+  call dump_array_3d('ss_in.bin', ss, 0, ni+1, 0, nj+1, 1, kmax)
+  call dump_array_3d('tt_in.bin', tt, 0, ni+1, 0, nj+1, 1, kmax)
+  call dump_array_3d('ff_in.bin', ff, 0, ni+1, 0, nj+1, 1, kmax)
+  call dump_array_3d('pv_in.bin', pv, 0, ni+1, 0, nj+1, 1, kmax)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -426,6 +460,18 @@ call profile_start(prof_id1)
 !! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_gaussel == DUMP_TARGET_gaussel .and. .not. dump_done_gaussel) then
+  call dump_array_3d('rr_ref.bin', rr, 0, ni+1, 0, nj+1, 1, kmax)
+  call dump_array_3d('ss_ref.bin', ss, 0, ni+1, 0, nj+1, 1, kmax)
+  call dump_array_3d('tt_ref.bin', tt, 0, ni+1, 0, nj+1, 1, kmax)
+  call dump_array_3d('ff_ref.bin', ff, 0, ni+1, 0, nj+1, 1, kmax)
+  call dump_array_3d('pv_ref.bin', pv, 0, ni+1, 0, nj+1, 1, kmax)
+  call dump_finalize()
+  dump_done_gaussel = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

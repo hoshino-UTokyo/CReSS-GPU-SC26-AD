@@ -26,6 +26,7 @@
 
       use m_comdays
       use m_comprofile
+      use m_dump_kernel
       use m_commath
       use m_comphy
       use m_getiname
@@ -239,6 +240,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_radiat = 0
+      integer, parameter :: DUMP_TARGET_radiat = 361
+      logical, save :: dump_done_radiat = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -315,6 +322,11 @@
 !   - Collapse k-loop with i,j loops if possible
 !   - Consider separating dry/moist code paths for GPU kernels
 !   - Hoist conditional checks outside parallel region if feasible
+! Runtime:
+!   - Calls: 361
+!   - AvgLoops: 806.4K
+!   - TotalTime: 1.831s (0.06%)
+!   - AvgTime: 5.071ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -324,6 +336,37 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_radiat = dump_call_count_radiat + 1
+if (dump_call_count_radiat == DUMP_TARGET_radiat .and. .not. dump_done_radiat) then
+  call dump_init('radiat')
+  call dump_scalar_i('fpcphopt', fpcphopt)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('nund', nund)
+  call dump_scalar_r('epsva', epsva)
+  call dump_array_3d('zph.bin', zph, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d('lat.bin', lat, 0, ni+1, 0, nj+1)
+  call dump_array_2d('lon.bin', lon, 0, ni+1, 0, nj+1)
+  call dump_array_3d('p.bin', p, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t.bin', t, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qv.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d_int('land.bin', land, 0, ni+1, 0, nj+1)
+  call dump_array_2d('albe.bin', albe, 0, ni+1, 0, nj+1)
+  call dump_array_2d('kai.bin', kai, 0, ni+1, 0, nj+1)
+  call dump_array_3d('tund.bin', tund, 0, ni+1, 0, nj+1, 1, nund)
+  call dump_array_2d('tice.bin', tice, 0, ni+1, 0, nj+1)
+  call dump_array_2d('cdl.bin', cdl, 0, ni+1, 0, nj+1)
+  call dump_array_2d('cdm.bin', cdm, 0, ni+1, 0, nj+1)
+  call dump_array_2d('cdh.bin', cdh, 0, ni+1, 0, nj+1)
+  call dump_array_2d('fall.bin', fall, 0, ni+1, 0, nj+1)
+  call dump_array_3d('zph8s_in.bin', zph8s, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d('zref_in.bin', zref, 0, ni+1, 0, nj+1)
+  call dump_array_2d('coseta_in.bin', coseta, 0, ni+1, 0, nj+1)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -736,6 +779,20 @@ call profile_start(prof_id1)
 !!!! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_radiat == DUMP_TARGET_radiat .and. .not. dump_done_radiat) then
+  call dump_array_2d('rgd_ref.bin', rgd, 0, ni+1, 0, nj+1)
+  call dump_array_2d('rsd_ref.bin', rsd, 0, ni+1, 0, nj+1)
+  call dump_array_2d('rld_ref.bin', rld, 0, ni+1, 0, nj+1)
+  call dump_array_2d('rlu_ref.bin', rlu, 0, ni+1, 0, nj+1)
+  call dump_array_3d('zph8s_ref.bin', zph8s, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d('zref_ref.bin', zref, 0, ni+1, 0, nj+1)
+  call dump_array_2d('coseta_ref.bin', coseta, 0, ni+1, 0, nj+1)
+  call dump_finalize()
+  dump_done_radiat = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

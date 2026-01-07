@@ -29,6 +29,7 @@
 
       use m_commath
       use m_comprofile
+      use m_dump_kernel
       use m_commpi
       use m_getcname
       use m_getiname
@@ -311,6 +312,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_phvbcuvw = 0
+      integer, parameter :: DUMP_TARGET_phvbcuvw = 360
+      logical, save :: dump_done_phvbcuvw = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variable.
@@ -411,6 +418,11 @@
 !   - Collapse nested loops where possible for better GPU occupancy
 !   - Consider using OpenACC kernels with private scalars bc0, bc1, bc2
 !   - Boundary-only computation may benefit from separate small kernels
+! Runtime:
+!   - Calls: 360
+!   - AvgLoops: 1
+!   - TotalTime: 10.499s (0.35%)
+!   - AvgTime: 29.163ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -420,6 +432,49 @@ if (prof_id1 < 0) then
 end if
 loop_len = 1_8
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_phvbcuvw = dump_call_count_phvbcuvw + 1
+if (dump_call_count_phvbcuvw == DUMP_TARGET_phvbcuvw .and. .not. dump_done_phvbcuvw) then
+  call dump_init('phvbcuvw')
+  call dump_scalar_i('fpexbvar', fpexbvar)
+  call dump_scalar_i('fpwbc', fpwbc)
+  call dump_scalar_i('fpebc', fpebc)
+  call dump_scalar_i('fpsbc', fpsbc)
+  call dump_scalar_i('fpnbc', fpnbc)
+  call dump_scalar_i('fpmpopt', fpmpopt)
+  call dump_scalar_i('fpmfcopt', fpmfcopt)
+  call dump_scalar_i('fpdxiv', fpdxiv)
+  call dump_scalar_i('fpdyiv', fpdyiv)
+  call dump_scalar_i('fpgwave', fpgwave)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_r('dtb', dtb)
+  call dump_scalar_r('dts', dts)
+  call dump_scalar_r('gtinc', gtinc)
+  call dump_array_3d('rmf.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
+  call dump_array_3d('rmf8u.bin', rmf8u, 0, ni+1, 0, nj+1, 1, 3)
+  call dump_array_3d('rmf8v.bin', rmf8v, 0, ni+1, 0, nj+1, 1, 3)
+  call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('up.bin', up, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('uf.bin', uf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vp.bin', vp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vf.bin', vf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('w.bin', w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('wp.bin', wp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('wf.bin', wf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ugpv.bin', ugpv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('utd.bin', utd, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vgpv.bin', vgpv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vtd.bin', vtd, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('wgpv.bin', wgpv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('wtd.bin', wtd, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d('u8v_in.bin', u8v, 0, nj+1, 1, nk)
+  call dump_array_2d('v8u_in.bin', v8u, 0, ni+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -2343,6 +2398,21 @@ call profile_start(prof_id1)
 !! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_phvbcuvw == DUMP_TARGET_phvbcuvw .and. .not. dump_done_phvbcuvw) then
+  call dump_array_3d('ucpx_ref.bin', ucpx, 1, nj, 1, nk, 1, 2)
+  call dump_array_3d('ucpy_ref.bin', ucpy, 1, ni, 1, nk, 1, 2)
+  call dump_array_3d('vcpx_ref.bin', vcpx, 1, nj, 1, nk, 1, 2)
+  call dump_array_3d('vcpy_ref.bin', vcpy, 1, ni, 1, nk, 1, 2)
+  call dump_array_3d('wcpx_ref.bin', wcpx, 1, nj, 1, nk, 1, 2)
+  call dump_array_3d('wcpy_ref.bin', wcpy, 1, ni, 1, nk, 1, 2)
+  call dump_array_2d('u8v_ref.bin', u8v, 0, nj+1, 1, nk)
+  call dump_array_2d('v8u_ref.bin', v8u, 0, ni+1, 1, nk)
+  call dump_finalize()
+  dump_done_phvbcuvw = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

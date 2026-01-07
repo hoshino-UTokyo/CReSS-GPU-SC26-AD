@@ -44,6 +44,7 @@
       use m_shiftsx
       use m_shiftsy
       use m_vbcwc
+      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -178,6 +179,11 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_phy2cnt = 0
+      integer, parameter :: DUMP_TARGET_phy2cnt = 15121
+      logical, save :: dump_done_phy2cnt = .false.
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -210,6 +216,11 @@
 !   - Use OpenACC parallel loop with collapse(3) for 3D loops
 !   - Straightforward GPU port with data region for arrays
 !   - Consider kernel fusion for consecutive loops
+! Runtime:
+!   - Calls: 15121
+!   - AvgLoops: 101.6M
+!   - TotalTime: 42.305s (1.42%)
+!   - AvgTime: 2.798ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -220,6 +231,27 @@ end if
 loop_len = int((nk-1)-(2)+1,8) &
      & * int((nj-1)-(1)+1,8) &
      & * int((ni-1)-(1)+1,8)
+
+! Dump input data at target call
+dump_call_count_phy2cnt = dump_call_count_phy2cnt + 1
+if (dump_call_count_phy2cnt == DUMP_TARGET_phy2cnt .and. .not. dump_done_phy2cnt) then
+  call dump_init('phy2cnt')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('sthopt', sthopt)
+  call dump_scalar_i('trnopt', trnopt)
+  call dump_scalar_i('mpopt', mpopt)
+  call dump_scalar_i('mfcopt', mfcopt)
+  call dump_array_3d('j31.bin', j31, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('j32.bin', j32, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('jcb8w.bin', jcb8w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d('mf.bin', mf, 0, ni+1, 0, nj+1)
+  call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('w.bin', w, 0, ni+1, 0, nj+1, 1, nk)
+end if
+
 call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
@@ -376,6 +408,13 @@ call profile_start(prof_id1)
 !$omp end parallel
 
 call profile_stop(prof_id1, loop_len)
+
+! Dump output data at target call
+if (dump_call_count_phy2cnt == DUMP_TARGET_phy2cnt .and. .not. dump_done_phy2cnt) then
+  call dump_array_3d('wc_ref.bin', wc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_phy2cnt = .true.
+end if
 
 ! -----
 

@@ -30,6 +30,7 @@
 
       use m_commath
       use m_comprofile
+      use m_dump_kernel
       use m_comphy
 
 !-----7--------------------------------------------------------------7--
@@ -200,6 +201,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_convers = 0
+      integer, parameter :: DUMP_TARGET_convers = 45720
+      logical, save :: dump_done_convers = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variables.
@@ -241,6 +248,11 @@
 !   - Can be ported with OpenACC with loop collapse
 !   - May benefit from separating cphopt==2 and cphopt>=3 into distinct kernels
 !   - Consider constant memory for module physical constants
+! Runtime:
+!   - Calls: 45720
+!   - AvgLoops: 806.4K
+!   - TotalTime: 4.885s (0.16%)
+!   - AvgTime: 0.107ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -250,6 +262,36 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_convers = dump_call_count_convers + 1
+if (dump_call_count_convers == DUMP_TARGET_convers .and. .not. dump_done_convers) then
+  call dump_init('convers')
+  call dump_scalar_i('cphopt', cphopt)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_r('dtb', dtb)
+  call dump_scalar_r('thresq', thresq)
+  call dump_array_3d('t.bin', t, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('t0', t0)
+  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rbv.bin', rbv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qc.bin', qc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qi.bin', qi, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qs.bin', qs, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncc.bin', ncc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncs.bin', ncs, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('mu.bin', mu, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('mi.bin', mi, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('diaqi.bin', diaqi, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('diaqs.bin', diaqs, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('clcs.bin', clcs, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vdvi.bin', vdvi, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vdvs.bin', vdvs, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ecs.bin', ecs, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -768,6 +810,17 @@ call profile_start(prof_id1)
 !!!! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_convers == DUMP_TARGET_convers .and. .not. dump_done_convers) then
+  call dump_array_3d('cncr_ref.bin', cncr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('cnis_ref.bin', cnis, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('cnsg_ref.bin', cnsg, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('cnsgn_ref.bin', cnsgn, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_convers = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

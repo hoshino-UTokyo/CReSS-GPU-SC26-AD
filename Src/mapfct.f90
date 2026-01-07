@@ -26,6 +26,7 @@
 
       use m_bcyclex
       use m_comprofile
+      use m_dump_kernel
       use m_bcycley
       use m_combuf
       use m_comindx
@@ -194,6 +195,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_mapfct = 0
+      integer, parameter :: DUMP_TARGET_mapfct = 1
+      logical, save :: dump_done_mapfct = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -235,6 +242,11 @@
 !   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
 !   - Collapse nested i,j loops for better GPU occupancy
 !   - Math intrinsics are GPU-compatible
+! Runtime:
+!   - Calls: 1
+!   - AvgLoops: 810.0K
+!   - TotalTime: 0.001s (0.00%)
+!   - AvgTime: 0.646ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -244,6 +256,24 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nj)-(0)+1,8) * int((ni)-(0)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_mapfct = dump_call_count_mapfct + 1
+if (dump_call_count_mapfct == DUMP_TARGET_mapfct .and. .not. dump_done_mapfct) then
+  call dump_init('mapfct')
+  call dump_scalar_i('fpmpopt', fpmpopt)
+  call dump_scalar_i('fpnspol', fpnspol)
+  call dump_scalar_i('fpadvopt', fpadvopt)
+  call dump_scalar_i('fptubopt', fptubopt)
+  call dump_scalar_i('fpdisr', fpdisr)
+  call dump_scalar_i('fpdxiv', fpdxiv)
+  call dump_scalar_i('fpdyiv', fpdyiv)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_array_2d('lat.bin', lat, 0, ni+1, 0, nj+1)
+  call dump_array_2d('tmp1_in.bin', tmp1, 0, ni+1, 0, nj+1)
+end if
 
 !$omp parallel default(shared)
 
@@ -462,6 +492,20 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_mapfct == DUMP_TARGET_mapfct .and. .not. dump_done_mapfct) then
+  call dump_array_2d('mf_ref.bin', mf, 0, ni+1, 0, nj+1)
+  call dump_array_2d('mf8u_ref.bin', mf8u, 0, ni+1, 0, nj+1)
+  call dump_array_2d('mf8v_ref.bin', mf8v, 0, ni+1, 0, nj+1)
+  call dump_array_3d('rmf_ref.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
+  call dump_array_3d('rmf8u_ref.bin', rmf8u, 0, ni+1, 0, nj+1, 1, 3)
+  call dump_array_3d('rmf8v_ref.bin', rmf8v, 0, ni+1, 0, nj+1, 1, 3)
+  call dump_array_2d('tmp1_ref.bin', tmp1, 0, ni+1, 0, nj+1)
+  call dump_finalize()
+  dump_done_mapfct = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

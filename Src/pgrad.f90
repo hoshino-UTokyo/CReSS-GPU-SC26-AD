@@ -30,6 +30,7 @@
       use m_diver3d
       use m_getiname
       use m_getrname
+      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -235,6 +236,11 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_pgrad = 0
+      integer, parameter :: DUMP_TARGET_pgrad = 14400
+      logical, save :: dump_done_pgrad = .false.
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -292,6 +298,11 @@
 !   - Ensure diver3d is GPU-ready before porting this routine.
 !   - Use multiple kernels matching the loop structure.
 !   - Map scale factor conditionals can be evaluated outside kernel.
+! Runtime:
+!   - Calls: 14400
+!   - AvgLoops: 102.4M
+!   - TotalTime: 292.883s (9.83%)
+!   - AvgTime: 20.339ms
 !@llm end meta_info ------------------------------------------------------
 
 
@@ -303,6 +314,48 @@ end if
 loop_len = int((nk-1)-(1)+1,8) &
      & * int((nj-1)-(1)+1,8) &
      & * int((ni-1)-(1)+1,8)
+
+! Dump input data at target call
+dump_call_count_pgrad = dump_call_count_pgrad + 1
+if (dump_call_count_pgrad == DUMP_TARGET_pgrad .and. .not. dump_done_pgrad) then
+  call dump_init('pgrad')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('trnopt', trnopt)
+  call dump_scalar_i('mpopt', mpopt)
+  call dump_scalar_i('mfcopt', mfcopt)
+  call dump_scalar_i('divopt', divopt)
+  call dump_scalar_r('dxiv', dxiv)
+  call dump_scalar_r('dyiv', dyiv)
+  call dump_scalar_r('dziv', dziv)
+  call dump_scalar_r('dx', dx)
+  call dump_scalar_r('dy', dy)
+  call dump_scalar_r('dz', dz)
+  call dump_scalar_r('dts', dts)
+  call dump_scalar_r('divndc', divndc)
+  call dump_array_3d('j31.bin', j31, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('j32.bin', j32, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('jcb.bin', jcb, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d('mf.bin', mf, 0, ni+1, 0, nj+1)
+  call dump_array_2d('mf8u.bin', mf8u, 0, ni+1, 0, nj+1)
+  call dump_array_2d('mf8v.bin', mf8v, 0, ni+1, 0, nj+1)
+  call dump_array_3d('rmf.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
+  call dump_array_3d('rmf8u.bin', rmf8u, 0, ni+1, 0, nj+1, 1, 3)
+  call dump_array_3d('rmf8v.bin', rmf8v, 0, ni+1, 0, nj+1, 1, 3)
+  call dump_array_3d('rst8u.bin', rst8u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rst8v.bin', rst8v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rst8w.bin', rst8w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('wc.bin', wc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('pp.bin', pp, 0, ni+1, 0, nj+1, 1, nk)
+  ! tmp1 contains divergence computed by diver3d (needed when divopt>=1)
+  if (divopt >= 1) then
+    call dump_array_3d('tmp1.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
+  end if
+end if
+
 call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
@@ -681,6 +734,15 @@ call profile_start(prof_id1)
 !$omp end parallel
 
 call profile_stop(prof_id1, loop_len)
+
+! Dump output data at target call
+if (dump_call_count_pgrad == DUMP_TARGET_pgrad .and. .not. dump_done_pgrad) then
+  call dump_array_3d('upg_ref.bin', upg, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vpg_ref.bin', vpg, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('wpg_ref.bin', wpg, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_pgrad = .true.
+end if
 
 !! -----
 

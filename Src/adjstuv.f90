@@ -21,6 +21,7 @@
 
       use m_commpi
       use m_comprofile
+      use m_dump_kernel
       use m_comphy
       use m_getiname
       use m_getrname
@@ -224,6 +225,12 @@
       integer, save :: prof_id2 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_adjstuv = 0
+      integer, parameter :: DUMP_TARGET_adjstuv = 360
+      logical, save :: dump_done_adjstuv = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -316,6 +323,11 @@
 !   - OpenACC supports reductions; can use atomic or reduction clause.
 !   - Need to ensure MPI variables are available on device or passed in.
 !   - Consider fusing all reduction loops into single kernel with atomics.
+! Runtime:
+!   - Calls: 360
+!   - AvgLoops: 806.4K
+!   - TotalTime: 0.115s (0.00%)
+!   - AvgTime: 0.318ms
 !@llm end meta_info ------------------------------------------------------
 
 
@@ -326,6 +338,40 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((jend)-(jstr)+1,8) * int((iend)-(istr)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_adjstuv = dump_call_count_adjstuv + 1
+if (dump_call_count_adjstuv == DUMP_TARGET_adjstuv .and. .not. dump_done_adjstuv) then
+  call dump_init('adjstuv')
+  call dump_scalar_i('fpwbc', fpwbc)
+  call dump_scalar_i('fpebc', fpebc)
+  call dump_scalar_i('fpadvopt', fpadvopt)
+  call dump_scalar_i('fpmpopt', fpmpopt)
+  call dump_scalar_i('fpmfcopt', fpmfcopt)
+  call dump_scalar_i('fpdx', fpdx)
+  call dump_scalar_i('fpdy', fpdy)
+  call dump_scalar_i('fpdz', fpdz)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_r('dtb', dtb)
+  call dump_scalar_r('gtinc', gtinc)
+  call dump_scalar_r('g', g)
+  call dump_array_3d('rmf.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
+  call dump_array_3d('rmf8u.bin', rmf8u, 0, ni+1, 0, nj+1, 1, 3)
+  call dump_array_3d('rmf8v.bin', rmf8v, 0, ni+1, 0, nj+1, 1, 3)
+  call dump_array_3d('rst8u.bin', rst8u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rst8v.bin', rst8v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ppp.bin', ppp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ppf.bin', ppf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ugpv.bin', ugpv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('utd.bin', utd, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vgpv.bin', vgpv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vtd.bin', vtd, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('uf_in.bin', uf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vf_in.bin', vf, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared)
 
@@ -522,6 +568,15 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_adjstuv == DUMP_TARGET_adjstuv .and. .not. dump_done_adjstuv) then
+  call dump_array_3d('uf_ref.bin', uf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vf_ref.bin', vf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_adjstuv = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

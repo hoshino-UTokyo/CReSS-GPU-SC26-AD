@@ -51,6 +51,7 @@
       use m_shiftsx
       use m_shiftsy
       use m_vbcp
+      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -173,6 +174,11 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_steppi = 0
+      integer, parameter :: DUMP_TARGET_steppi = 14400
+      logical, save :: dump_done_steppi = .false.
+
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variable.
@@ -227,6 +233,11 @@
 ! Next:
 !   - Data managed automatically via Unified Memory
 !   - Convert to !$acc parallel loop collapse(2)
+! Runtime:
+!   - Calls: 14400
+!   - AvgLoops: 100.4M
+!   - TotalTime: 62.933s (2.11%)
+!   - AvgTime: 4.370ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -237,6 +248,20 @@ end if
 loop_len = int((nk-2)-(2)+1,8) &
      & * int((nj-2)-(2)+1,8) &
      & * int((ni-2)-(2)+1,8)
+
+! Dump input data at target call
+dump_call_count_steppi = dump_call_count_steppi + 1
+if (dump_call_count_steppi == DUMP_TARGET_steppi .and. .not. dump_done_steppi) then
+  call dump_init('steppi')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_r('dts', dts)
+  call dump_array_3d('jcb.bin', jcb, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('fp.bin', fp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ppf_in.bin', ppf, 0, ni+1, 0, nj+1, 1, nk)
+end if
+
 call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
@@ -258,6 +283,13 @@ call profile_start(prof_id1)
 !$omp end parallel
 
 call profile_stop(prof_id1, loop_len)
+
+! Dump output data at target call
+if (dump_call_count_steppi == DUMP_TARGET_steppi .and. .not. dump_done_steppi) then
+  call dump_array_3d('ppf_ref.bin', ppf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_steppi = .true.
+end if
 
 ! -----
 

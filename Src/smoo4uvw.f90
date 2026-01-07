@@ -24,6 +24,7 @@
 
       use m_comindx
       use m_comprofile
+      use m_dump_kernel
       use m_getiname
       use m_getrname
 
@@ -196,6 +197,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_smoo4uvw = 0
+      integer, parameter :: DUMP_TARGET_smoo4uvw = 360
+      logical, save :: dump_done_smoo4uvw = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -235,6 +242,11 @@
 !   - Data managed automatically via Unified Memory
 !   - Consider separating u/v/w processing into distinct kernels
 !   - Use collapse(2) for nested loops
+! Runtime:
+!   - Calls: 360
+!   - AvgLoops: 102.5M
+!   - TotalTime: 28.590s (0.96%)
+!   - AvgTime: 79.416ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -246,6 +258,37 @@ loop_len = int((nk-1)-(1)+1,8) &
      & * int((nj-jnorth)-(jsouth)+1,8) &
      & * int((ni+1-ieast)-(iwest)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_smoo4uvw = dump_call_count_smoo4uvw + 1
+if (dump_call_count_smoo4uvw == DUMP_TARGET_smoo4uvw .and. .not. dump_done_smoo4uvw) then
+  call dump_init('smoo4uvw')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('smtopt', smtopt)
+  call dump_scalar_i('iwest', iwest)
+  call dump_scalar_i('ieast', ieast)
+  call dump_scalar_i('jsouth', jsouth)
+  call dump_scalar_i('jnorth', jnorth)
+  call dump_scalar_r('smhcoe', smhcoe)
+  call dump_scalar_r('smvcoe', smvcoe)
+  call dump_array_3d('jcb8u.bin', jcb8u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('jcb8v.bin', jcb8v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('jcb8w.bin', jcb8w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ubr.bin', ubr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vbr.bin', vbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rst8u.bin', rst8u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rst8v.bin', rst8v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rst8w.bin', rst8w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('w.bin', w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ufrc_in.bin', ufrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vfrc_in.bin', vfrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('wfrc_in.bin', wfrc, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -604,6 +647,16 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_smoo4uvw == DUMP_TARGET_smoo4uvw .and. .not. dump_done_smoo4uvw) then
+  call dump_array_3d('ufrc_ref.bin', ufrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vfrc_ref.bin', vfrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('wfrc_ref.bin', wfrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_smoo4uvw = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

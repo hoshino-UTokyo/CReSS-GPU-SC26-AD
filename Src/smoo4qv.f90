@@ -24,6 +24,7 @@
 
       use m_comindx
       use m_comprofile
+      use m_dump_kernel
       use m_getiname
       use m_getrname
 
@@ -166,6 +167,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_smoo4qv = 0
+      integer, parameter :: DUMP_TARGET_smoo4qv = 360
+      logical, save :: dump_done_smoo4qv = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -205,6 +212,11 @@
 !   - Data managed automatically via Unified Memory
 !   - Consider separating branches into distinct kernels
 !   - Use collapse(2) for nested loops
+! Runtime:
+!   - Calls: 360
+!   - AvgLoops: 102.4M
+!   - TotalTime: 9.285s (0.31%)
+!   - AvgTime: 25.791ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -216,6 +228,32 @@ loop_len = int((nk-1)-(1)+1,8) &
      & * int((nj-jnorth)-(jsouth)+1,8) &
      & * int((ni-ieast)-(iwest)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_smoo4qv = dump_call_count_smoo4qv + 1
+if (dump_call_count_smoo4qv == DUMP_TARGET_smoo4qv .and. .not. dump_done_smoo4qv) then
+  call dump_init('smoo4qv')
+  call dump_scalar_i('fpsmtopt', fpsmtopt)
+  call dump_scalar_i('fpiwest', fpiwest)
+  call dump_scalar_i('fpieast', fpieast)
+  call dump_scalar_i('fpjsouth', fpjsouth)
+  call dump_scalar_i('fpjnorth', fpjnorth)
+  call dump_scalar_i('fpsmhcoe', fpsmhcoe)
+  call dump_scalar_i('fpsmvcoe', fpsmvcoe)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_3d('qv.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qvbr.bin', qvbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qvfrc_in.bin', qvfrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rbrqv_in.bin', rbrqv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rbrqv2_in.bin', rbrqv2, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp1_in.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp2_in.bin', tmp2, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp3_in.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -334,6 +372,19 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_smoo4qv == DUMP_TARGET_smoo4qv .and. .not. dump_done_smoo4qv) then
+  call dump_array_3d('qvfrc_ref.bin', qvfrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rbrqv_ref.bin', rbrqv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rbrqv2_ref.bin', rbrqv2, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp1_ref.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp2_ref.bin', tmp2, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp3_ref.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_smoo4qv = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

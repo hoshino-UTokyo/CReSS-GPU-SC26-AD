@@ -25,6 +25,7 @@
 
       use m_bc8u
       use m_comprofile
+      use m_dump_kernel
       use m_bc8v
       use m_bc8w
       use m_bcyclex
@@ -148,6 +149,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_var8uvw = 0
+      integer, parameter :: DUMP_TARGET_var8uvw = 2
+      logical, save :: dump_done_var8uvw = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -181,6 +188,11 @@
 ! Next:
 !   - Direct conversion to OpenACC parallel loop or OpenACC
 !   - Consider collapsing nested loops for better GPU utilization
+! Runtime:
+!   - Calls: 2
+!   - AvgLoops: 102.8M
+!   - TotalTime: 0.016s (0.00%)
+!   - AvgTime: 8.103ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -190,6 +202,20 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nk-1)-(1)+1,8) * int((nj)-(0)+1,8) * int((ni)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_var8uvw = dump_call_count_var8uvw + 1
+if (dump_call_count_var8uvw == DUMP_TARGET_var8uvw .and. .not. dump_done_var8uvw) then
+  call dump_init('var8uvw')
+  call dump_scalar_i('fpwbc', fpwbc)
+  call dump_scalar_i('fpebc', fpebc)
+  call dump_scalar_i('fpexbopt', fpexbopt)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_3d('var.bin', var, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -232,6 +258,16 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_var8uvw == DUMP_TARGET_var8uvw .and. .not. dump_done_var8uvw) then
+  call dump_array_3d('var8u_ref.bin', var8u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('var8v_ref.bin', var8v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('var8w_ref.bin', var8w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_var8uvw = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

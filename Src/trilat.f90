@@ -22,6 +22,7 @@
 
       use m_commath
       use m_comprofile
+      use m_dump_kernel
       use m_comphy
       use m_getiname
 
@@ -111,6 +112,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_trilat = 0
+      integer, parameter :: DUMP_TARGET_trilat = 1
+      logical, save :: dump_done_trilat = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -142,6 +149,11 @@
 !   - Straightforward GPU port
 !   - Trigonometric functions available on GPU
 !   - Can be computed once and cached if lat doesn't change
+! Runtime:
+!   - Calls: 1
+!   - AvgLoops: 806.4K
+!   - TotalTime: 0.000s (0.00%)
+!   - AvgTime: 0.042ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -151,6 +163,17 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_trilat = dump_call_count_trilat + 1
+if (dump_call_count_trilat == DUMP_TARGET_trilat .and. .not. dump_done_trilat) then
+  call dump_init('trilat')
+  call dump_scalar_i('fpcoropt', fpcoropt)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_array_2d('lat.bin', lat, 0, ni+1, 0, nj+1)
+end if
 
 !$omp parallel default(shared)
 
@@ -189,6 +212,14 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_trilat == DUMP_TARGET_trilat .and. .not. dump_done_trilat) then
+  call dump_array_3d('fc_ref.bin', fc, 0, ni+1, 0, nj+1, 1, 2)
+  call dump_finalize()
+  dump_done_trilat = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

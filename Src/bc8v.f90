@@ -23,6 +23,7 @@
 
       use m_commpi
       use m_comprofile
+      use m_dump_kernel
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -113,6 +114,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_bc8v = 0
+      integer, parameter :: DUMP_TARGET_bc8v = 720
+      logical, save :: dump_done_bc8v = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -145,6 +152,11 @@
 ! Next:
 !   - Convert to OpenACC with collapsed i,k loops
 !   - Restructure loops to have k as inner loop for better GPU coalescing
+! Runtime:
+!   - Calls: 720
+!   - AvgLoops: 115.3K
+!   - TotalTime: 1.731s (0.06%)
+!   - AvgTime: 2.404ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -154,6 +166,19 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((kmax)-(1)+1,8) * int((ni+1)-(0)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_bc8v = dump_call_count_bc8v + 1
+if (dump_call_count_bc8v == DUMP_TARGET_bc8v .and. .not. dump_done_bc8v) then
+  call dump_init('bc8v')
+  call dump_scalar_i('fpsbc', fpsbc)
+  call dump_scalar_i('fpnbc', fpnbc)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('kmax', kmax)
+  call dump_array_3d('var8v_in.bin', var8v, 0, ni+1, 0, nj+1, 1, kmax)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -234,6 +259,14 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_bc8v == DUMP_TARGET_bc8v .and. .not. dump_done_bc8v) then
+  call dump_array_3d('var8v_ref.bin', var8v, 0, ni+1, 0, nj+1, 1, kmax)
+  call dump_finalize()
+  dump_done_bc8v = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

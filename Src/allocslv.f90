@@ -28,6 +28,7 @@
 
       use m_chkerr
       use m_comprofile
+      use m_dump_kernel
       use m_commpi
       use m_comslv
       use m_cpondpe
@@ -238,6 +239,12 @@
       ! Profiling variables
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
+
+      ! Dump variables
+      integer, save :: dump_call_count_allocslv = 0
+      integer, parameter :: DUMP_TARGET_allocslv = 1
+      logical, save :: dump_done_allocslv = .false.
+
 
 !-----7--------------------------------------------------------------7--
 
@@ -1930,6 +1937,11 @@
 !   - Straightforward GPU port with OpenACC parallel loop
 !   - Collapse nested i,j loops for better occupancy
 !   - Consider combining with other initialization in setcst3d calls
+! Runtime:
+!   - Calls: 1
+!   - AvgLoops: 811.8K
+!   - TotalTime: 0.000s (0.00%)
+!   - AvgTime: 0.128ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -1939,6 +1951,46 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nj+1)-(0)+1,8) * int((ni+1)-(0)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_allocslv = dump_call_count_allocslv + 1
+if (dump_call_count_allocslv == DUMP_TARGET_allocslv .and. .not. dump_done_allocslv) then
+  call dump_init('allocslv')
+  call dump_scalar_i('fpdmpvar', fpdmpvar)
+  call dump_scalar_i('fpsavmem', fpsavmem)
+  call dump_scalar_i('fpwbc', fpwbc)
+  call dump_scalar_i('fpebc', fpebc)
+  call dump_scalar_i('fpsbc', fpsbc)
+  call dump_scalar_i('fpnbc', fpnbc)
+  call dump_scalar_i('fpnggopt', fpnggopt)
+  call dump_scalar_i('fpexbopt', fpexbopt)
+  call dump_scalar_i('fplspopt', fplspopt)
+  call dump_scalar_i('fpvspopt', fpvspopt)
+  call dump_scalar_i('fpngropt', fpngropt)
+  call dump_scalar_i('fpiniopt', fpiniopt)
+  call dump_scalar_i('fpsfcopt', fpsfcopt)
+  call dump_scalar_i('fpadvopt', fpadvopt)
+  call dump_scalar_i('fpcphopt', fpcphopt)
+  call dump_scalar_i('fpqcgopt', fpqcgopt)
+  call dump_scalar_i('fpaslopt', fpaslopt)
+  call dump_scalar_i('fptrkopt', fptrkopt)
+  call dump_scalar_i('fptubopt', fptubopt)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('nqw', nqw)
+  call dump_scalar_i('nnw', nnw)
+  call dump_scalar_i('nqi', nqi)
+  call dump_scalar_i('nni', nni)
+  call dump_scalar_i('km', km)
+  call dump_scalar_i('nund', nund)
+  call dump_scalar_i('nlev', nlev)
+  call dump_scalar_i('nid_rdr', nid_rdr)
+  call dump_scalar_i('njd_rdr', njd_rdr)
+  call dump_scalar_i('nkd_rdr', nkd_rdr)
+  call dump_scalar_i('km_rdr', km_rdr)
+end if
 
 !$omp parallel default(shared)
 
@@ -1953,6 +2005,13 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_allocslv == DUMP_TARGET_allocslv .and. .not. dump_done_allocslv) then
+  call dump_finalize()
+  dump_done_allocslv = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

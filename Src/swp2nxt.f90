@@ -25,6 +25,7 @@
 
       use m_getiname
       use m_comprofile
+      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -331,6 +332,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_swp2nxt = 0
+      integer, parameter :: DUMP_TARGET_swp2nxt = 360
+      logical, save :: dump_done_swp2nxt = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -367,6 +374,11 @@
 !   - Consider batching array swaps for GPU memory efficiency
 !   - Use async data transfers if arrays already on GPU
 !   - Collapse loops where possible for better occupancy
+! Runtime:
+!   - Calls: 360
+!   - AvgLoops: 102.5M
+!   - TotalTime: 30.923s (1.04%)
+!   - AvgTime: 85.898ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -378,6 +390,66 @@ loop_len = int((nk-1)-(1)+1,8) &
      & * int((nj-jnorth)-(jsouth)+1,8) &
      & * int((ni+1-ieast)-(iwest)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_swp2nxt = dump_call_count_swp2nxt + 1
+if (dump_call_count_swp2nxt == DUMP_TARGET_swp2nxt .and. .not. dump_done_swp2nxt) then
+  call dump_init('swp2nxt')
+  call dump_scalar_i('fpsfcopt', fpsfcopt)
+  call dump_scalar_i('fpadvopt', fpadvopt)
+  call dump_scalar_i('fpcphopt', fpcphopt)
+  call dump_scalar_i('fphaiopt', fphaiopt)
+  call dump_scalar_i('fpqcgopt', fpqcgopt)
+  call dump_scalar_i('fpaslopt', fpaslopt)
+  call dump_scalar_i('fptrkopt', fptrkopt)
+  call dump_scalar_i('fptubopt', fptubopt)
+  call dump_scalar_i('fpiwest', fpiwest)
+  call dump_scalar_i('fpieast', fpieast)
+  call dump_scalar_i('fpjsouth', fpjsouth)
+  call dump_scalar_i('fpjnorth', fpjnorth)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('nqw', nqw)
+  call dump_scalar_i('nnw', nnw)
+  call dump_scalar_i('nqi', nqi)
+  call dump_scalar_i('nni', nni)
+  call dump_scalar_i('nund', nund)
+  call dump_scalar_r('dtsoil', dtsoil)
+  call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('w.bin', w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('pp.bin', pp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ptp.bin', ptp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qv.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qwtr.bin', qwtr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('nwtr.bin', nwtr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qice.bin', qice, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('nice.bin', nice, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qcwtr.bin', qcwtr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qcice.bin', qcice, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qasl.bin', qasl, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qt.bin', qt, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tke.bin', tke, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tund.bin', tund, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('uf.bin', uf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vf.bin', vf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('wf.bin', wf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ppf.bin', ppf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ptpf.bin', ptpf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qvf.bin', qvf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_4d('qwtrf.bin', qwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
+  call dump_array_4d('nwtrf.bin', nwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
+  call dump_array_4d('qicef.bin', qicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+  call dump_array_4d('nicef.bin', nicef, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
+  call dump_array_4d('qcwtrf.bin', qcwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
+  call dump_array_4d('qcicef.bin', qcicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+  call dump_array_4d('qaslf.bin', qaslf, 0, ni+1, 0, nj+1, 1, nk, 1, nqa(0))
+  call dump_array_3d('qtf.bin', qtf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tkef.bin', tkef, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tundf.bin', tundf, 0, ni+1, 0, nj+1, 1, nund)
+end if
 
 !$omp parallel default(shared) private(k,n)
 
@@ -1476,6 +1548,29 @@ call profile_start(prof_id1)
 !!!! ----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_swp2nxt == DUMP_TARGET_swp2nxt .and. .not. dump_done_swp2nxt) then
+  call dump_array_3d('up_ref.bin', up, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vp_ref.bin', vp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('wp_ref.bin', wp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ppp_ref.bin', ppp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ptpp_ref.bin', ptpp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qvp_ref.bin', qvp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_4d('qwtrp_ref.bin', qwtrp, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
+  call dump_array_4d('nwtrp_ref.bin', nwtrp, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
+  call dump_array_4d('qicep_ref.bin', qicep, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+  call dump_array_4d('nicep_ref.bin', nicep, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
+  call dump_array_4d('qcwtrp_ref.bin', qcwtrp, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
+  call dump_array_4d('qcicep_ref.bin', qcicep, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+  call dump_array_4d('qaslp_ref.bin', qaslp, 0, ni+1, 0, nj+1, 1, nk, 1, nqa(0))
+  call dump_array_3d('qtp_ref.bin', qtp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tkep_ref.bin', tkep, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tundp_ref.bin', tundp, 0, ni+1, 0, nj+1, 1, nund)
+  call dump_finalize()
+  dump_done_swp2nxt = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

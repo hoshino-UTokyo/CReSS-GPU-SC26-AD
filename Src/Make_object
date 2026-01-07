@@ -25,6 +25,7 @@
 ################################################################################
 
 comprofile.o     :
+dump_kernel_data.o :
 abortslv.o       : m_chkerr.mod m_comfile.mod m_comkind.mod m_commpi.mod\
                    m_cpondpe.mod m_destroy.mod m_getcname.mod m_getiname.mod\
                    m_getrname.mod m_inichar.mod
@@ -37,10 +38,10 @@ adjstq.o         : m_getiname.mod
 adjstuv.o        : m_commpi.mod m_comphy.mod m_getiname.mod m_getrname.mod\
                    m_reducelb.mod m_reducevb.mod
 advbspe.o        : m_comphy.mod
-advbspi.o        : m_comphy.mod m_getrname.mod
+advbspi.o        : m_comphy.mod m_comprofile.mod m_dump_kernel.mod m_getrname.mod
 advbspt.o        : m_getiname.mod m_getrname.mod
 advp.o           : m_commath.mod m_getiname.mod m_getrname.mod
-advs.o           : m_commath.mod m_getiname.mod m_getrname.mod
+advs.o           : m_commath.mod m_comprofile.mod m_dump_kernel.mod m_getiname.mod m_getrname.mod
 advuvw.o         : m_commath.mod m_getiname.mod m_getrname.mod
 aerophy.o        : m_comaero.mod m_comphy.mod m_getiname.mod\
                    m_copy3d.mod m_copy4d.mod m_setcst3d.mod
@@ -92,7 +93,7 @@ baserho.o        : m_bcyclex.mod m_bcycley.mod m_combuf.mod m_comindx.mod\
                    m_shiftsy.mod m_var8uvw.mod
 bbcw.o           : m_getiname.mod
 bc2d.o           : m_commpi.mod m_getiname.mod
-bc4news.o        : m_commpi.mod m_getiname.mod
+bc4news.o        : m_commpi.mod m_comprofile.mod m_dump_kernel.mod m_getiname.mod
 bc8u.o           : m_commpi.mod m_getiname.mod
 bc8v.o           : m_commpi.mod m_getiname.mod
 bc8w.o           : m_getiname.mod
@@ -136,14 +137,14 @@ bcsst.o          : m_bc2d.mod m_bcycle.mod m_bcyclex.mod m_combuf.mod\
                    m_putbufsx.mod m_putbufsy.mod m_shiftgx.mod m_shiftgy.mod\
                    m_shiftsx.mod m_shiftsy.mod
 bcten.o          : m_getiname.mod
-bcycle.o         : m_commpi.mod m_getiname.mod
+bcycle.o         : m_commpi.mod m_comprofile.mod m_dump_kernel.mod m_getiname.mod
 bcyclex.o        : m_commpi.mod m_getiname.mod
 bcycley.o        : m_commpi.mod m_getiname.mod
 bruntv.o         : m_comphy.mod m_getiname.mod m_getrname.mod
 bulksfc.o        : m_commath.mod m_comphy.mod
 buoywb.o         : m_comphy.mod m_getiname.mod
 buoywse.o        : m_comphy.mod m_getiname.mod
-buoywsi.o        : m_comphy.mod m_getiname.mod m_getrname.mod
+buoywsi.o        : m_comphy.mod m_comprofile.mod m_dump_kernel.mod m_getiname.mod m_getrname.mod
 castgrp_multi.o  : m_comgrp.mod m_commpi.mod m_defmpi.mod
 castname_multi.o : m_commpi.mod m_comname.mod m_defmpi.mod
 castvar.o        : m_commpi.mod m_defmpi.mod
@@ -228,7 +229,7 @@ destroy.o        : m_comerr.mod m_endmpi.mod
 diabat.o         : m_advp.mod m_comindx.mod m_comphy.mod m_getiname.mod\
                    m_phy2cnt.mod m_smoo2p.mod m_smoo4p.mod
 diagnci.o        : m_comphy.mod
-diagni.o         : m_commath.mod m_comphy.mod m_getiname.mod
+diagni.o         : m_commath.mod m_comphy.mod m_comprofile.mod m_dump_kernel.mod m_getiname.mod
 diagnsg.o        : m_commath.mod m_comphy.mod m_getiname.mod
 diagnw.o         : m_commath.mod m_comphy.mod
 diffequa.o       : m_bc4news.mod m_bcphi.mod m_bcycle.mod m_chkitr.mod\
@@ -236,12 +237,12 @@ diffequa.o       : m_bc4news.mod m_bcphi.mod m_bcycle.mod m_chkitr.mod\
                    m_getbufgy.mod m_getbufsx.mod m_getbufsy.mod m_getrname.mod\
                    m_putbufgx.mod m_putbufgy.mod m_putbufsx.mod m_putbufsy.mod\
                    m_shiftgx.mod m_shiftgy.mod m_shiftsy.mod m_shiftsx.mod
-disptke.o        : m_commath.mod m_getiname.mod m_getrname.mod
+disptke.o        : m_commath.mod m_comprofile.mod m_dump_kernel.mod m_getiname.mod m_getrname.mod
 distrpg.o        : m_comphy.mod
 distrqp.o        : m_commath.mod m_getcname.mod m_getiname.mod m_getrname.mod\
                    m_inichar.mod m_temparam.mod
-diver2d.o        : m_getiname.mod m_getrname.mod
-diver3d.o        : m_getiname.mod m_getrname.mod
+diver2d.o        : m_comprofile.mod m_dump_kernel.mod m_getiname.mod m_getrname.mod
+diver3d.o        : m_comprofile.mod m_dump_kernel.mod m_getiname.mod m_getrname.mod
 diverpe.o        : m_comindx.mod m_diver3d.mod
 diverpih.o       : m_comindx.mod m_diver2d.mod m_getiname.mod m_getrname.mod
 diverpiv.o       : m_getrname.mod
@@ -638,8 +639,8 @@ pblv.o           : m_bc8v.mod m_bcycley.mod m_combuf.mod m_comindx.mod\
                    m_getrname.mod m_putbufgy.mod m_putbufsy.mod m_shiftgy.mod\
                    m_shiftsy.mod m_vbcv.mod
 pc2kg.o          : m_comphy.mod
-pgrad.o          : m_comindx.mod m_comphy.mod m_diver3d.mod m_getiname.mod\
-                   m_getrname.mod
+pgrad.o          : m_comindx.mod m_comphy.mod m_comprofile.mod m_diver3d.mod\
+                   m_dump_kernel.mod m_getiname.mod m_getrname.mod
 pgradiv.o        : m_getrname.mod
 phasev.o         : m_comindx.mod m_getiname.mod m_phvuvw.mod m_phvs.mod
 phasevbc.o       : m_comindx.mod m_getcname.mod m_getiname.mod m_inichar.mod\
@@ -652,10 +653,11 @@ phvs.o           : m_commath.mod m_commpi.mod m_getcname.mod m_getiname.mod\
 phvuvw.o         : m_commath.mod m_commpi.mod m_getcname.mod m_getiname.mod\
                    m_getrname.mod m_inichar.mod
 phy2cnt.o        : m_bc4news.mod m_bcycle.mod m_combuf.mod m_comindx.mod\
-                   m_getbufgx.mod m_getbufgy.mod m_getbufsx.mod m_getbufsy.mod\
-                   m_getiname.mod m_lbcwc.mod m_putbufgx.mod m_putbufgy.mod\
-                   m_putbufsx.mod m_putbufsy.mod m_shiftgx.mod m_shiftgy.mod\
-                   m_shiftsx.mod m_shiftsy.mod m_vbcwc.mod
+                   m_comprofile.mod m_dump_kernel.mod m_getbufgx.mod\
+                   m_getbufgy.mod m_getbufsx.mod m_getbufsy.mod m_getiname.mod\
+                   m_lbcwc.mod m_putbufgx.mod m_putbufgy.mod m_putbufsx.mod\
+                   m_putbufsy.mod m_shiftgx.mod m_shiftgy.mod m_shiftsx.mod\
+                   m_shiftsy.mod m_vbcwc.mod
 phycood.o        : m_chkerr.mod m_comindx.mod m_commath.mod m_commpi.mod\
                    m_copy1d.mod m_cpondpe.mod m_destroy.mod m_getiname.mod\
                    m_getrname.mod m_stretch.mod
@@ -958,11 +960,12 @@ steppe.o         : m_bc4news.mod m_bcycle.mod m_combuf.mod m_comindx.mod\
                    m_putbufsy.mod m_rbcss.mod m_shiftgx.mod m_shiftgy.mod\
                    m_shiftsx.mod m_shiftsy.mod m_vbcp.mod
 steppi.o         : m_bc4news.mod m_bcycle.mod m_combuf.mod m_comindx.mod\
-                   m_exbcss.mod m_getbufgx.mod m_getbufgy.mod m_getbufsx.mod\
-                   m_getbufsy.mod m_getcname.mod m_getiname.mod m_inichar.mod\
-                   m_lbcs.mod m_putbufgx.mod m_putbufgy.mod m_putbufsx.mod\
-                   m_putbufsy.mod m_rbcss.mod m_shiftgx.mod m_shiftgy.mod\
-                   m_shiftsx.mod m_shiftsy.mod m_vbcp.mod
+                   m_comprofile.mod m_dump_kernel.mod m_exbcss.mod\
+                   m_getbufgx.mod m_getbufgy.mod m_getbufsx.mod m_getbufsy.mod\
+                   m_getcname.mod m_getiname.mod m_inichar.mod m_lbcs.mod\
+                   m_putbufgx.mod m_putbufgy.mod m_putbufsx.mod m_putbufsy.mod\
+                   m_rbcss.mod m_shiftgx.mod m_shiftgy.mod m_shiftsx.mod\
+                   m_shiftsy.mod m_vbcp.mod
 steppts.o        : m_bc4news.mod m_bcycle.mod m_combuf.mod m_comindx.mod\
                    m_exbcss.mod m_getbufgx.mod m_getbufgy.mod m_getbufsx.mod\
                    m_getbufsy.mod m_getcname.mod m_getiname.mod m_inichar.mod\
@@ -970,22 +973,23 @@ steppts.o        : m_bc4news.mod m_bcycle.mod m_combuf.mod m_comindx.mod\
                    m_putbufsy.mod m_rbcss.mod m_shiftgx.mod m_shiftgy.mod\
                    m_shiftsx.mod m_shiftsy.mod m_vbcs.mod
 steps.o          : m_bc4news.mod m_bcycle.mod m_combuf.mod m_comindx.mod\
-                   m_exbcpt.mod m_exbcq.mod m_getbufgx.mod m_getbufgy.mod\
-                   m_getbufsx.mod m_getbufsy.mod m_getcname.mod m_getiname.mod\
-                   m_inichar.mod m_lbcs.mod m_putbufgx.mod m_putbufgy.mod\
-                   m_putbufsx.mod m_putbufsy.mod m_rbcpt.mod m_rbcq.mod\
-                   m_rbcqv.mod m_rbcs.mod m_rbcs0.mod m_shiftgx.mod\
-                   m_shiftgy.mod m_shiftsx.mod m_shiftsy.mod m_vbcqcg.mod\
-                   m_vbcs.mod
+                   m_comprofile.mod m_dump_kernel.mod m_exbcpt.mod m_exbcq.mod\
+                   m_getbufgx.mod m_getbufgy.mod m_getbufsx.mod m_getbufsy.mod\
+                   m_getcname.mod m_getiname.mod m_inichar.mod m_lbcs.mod\
+                   m_putbufgx.mod m_putbufgy.mod m_putbufsx.mod m_putbufsy.mod\
+                   m_rbcpt.mod m_rbcq.mod m_rbcqv.mod m_rbcs.mod m_rbcs0.mod\
+                   m_shiftgx.mod m_shiftgy.mod m_shiftsx.mod m_shiftsy.mod\
+                   m_vbcqcg.mod m_vbcs.mod
 steptund.o       : m_comindx.mod m_comphy.mod m_gaussel.mod m_getiname.mod\
                    m_getrname.mod
 stepuv.o         : m_bc4news.mod m_bcycle.mod m_combuf.mod m_comindx.mod\
-                   m_exbcu.mod m_exbcv.mod m_getbufgx.mod m_getbufgy.mod\
-                   m_getbufsx.mod m_getbufsy.mod m_getcname.mod m_getiname.mod\
-                   m_inichar.mod m_lbcu.mod m_lbcv.mod m_putbufgx.mod\
-                   m_putbufgy.mod m_putbufsx.mod m_putbufsy.mod m_rbcu.mod\
-                   m_rbcv.mod m_shiftgx.mod m_shiftgy.mod m_shiftsx.mod\
-                   m_shiftsy.mod m_vbcu.mod m_vbcv.mod
+                   m_comprofile.mod m_dump_kernel.mod m_exbcu.mod m_exbcv.mod\
+                   m_getbufgx.mod m_getbufgy.mod m_getbufsx.mod m_getbufsy.mod\
+                   m_getcname.mod m_getiname.mod m_inichar.mod m_lbcu.mod\
+                   m_lbcv.mod m_putbufgx.mod m_putbufgy.mod m_putbufsx.mod\
+                   m_putbufsy.mod m_rbcu.mod m_rbcv.mod m_shiftgx.mod\
+                   m_shiftgy.mod m_shiftsx.mod m_shiftsy.mod m_vbcu.mod\
+                   m_vbcv.mod
 stepwe.o         : m_bc4news.mod m_bcycle.mod m_combuf.mod m_comindx.mod\
                    m_exbcw.mod m_getbufgx.mod m_getbufgy.mod m_getbufsx.mod\
                    m_getbufsy.mod m_getcname.mod m_getiname.mod m_inichar.mod\
@@ -993,13 +997,13 @@ stepwe.o         : m_bc4news.mod m_bcycle.mod m_combuf.mod m_comindx.mod\
                    m_putbufsx.mod m_putbufsy.mod m_rbcw.mod m_shiftgx.mod\
                    m_shiftgy.mod m_shiftsx.mod m_shiftsy.mod m_vbcw.mod
 stepwi.o         : m_bbcw.mod m_bc4news.mod m_bcycle.mod m_combuf.mod\
-                   m_comindx.mod m_comphy.mod m_exbcw.mod m_gaussel.mod\
-                   m_getbufgx.mod m_getbufgy.mod m_getbufsx.mod m_getbufsy.mod\
-                   m_getcname.mod m_getiname.mod m_getrname.mod m_gseidel.mod\
-                   m_inichar.mod m_lbcw.mod m_phy2cnt.mod m_putbufgx.mod\
-                   m_putbufgy.mod m_putbufsx.mod m_putbufsy.mod m_rbcw.mod\
-                   m_shiftgx.mod m_shiftgy.mod m_shiftsx.mod m_shiftsy.mod\
-                   m_vbcw.mod
+                   m_comindx.mod m_comphy.mod m_comprofile.mod m_dump_kernel.mod\
+                   m_exbcw.mod m_gaussel.mod m_getbufgx.mod m_getbufgy.mod\
+                   m_getbufsx.mod m_getbufsy.mod m_getcname.mod m_getiname.mod\
+                   m_getrname.mod m_gseidel.mod m_inichar.mod m_lbcw.mod\
+                   m_phy2cnt.mod m_putbufgx.mod m_putbufgy.mod m_putbufsx.mod\
+                   m_putbufsy.mod m_rbcw.mod m_shiftgx.mod m_shiftgy.mod\
+                   m_shiftsx.mod m_shiftsy.mod m_vbcw.mod
 stretch.o        : m_chkerr.mod m_commath.mod m_commpi.mod m_cpondpe.mod\
                    m_destroy.mod m_getiname.mod m_getrname.mod
 strsten.o        : m_bcten.mod m_comindx.mod m_getiname.mod
@@ -1097,8 +1101,12 @@ var8uvw.o        : m_bc8u.mod m_bc8v.mod m_bc8w.mod m_bcyclex.mod m_bcycley.mod\
                    m_putbufgy.mod m_putbufsx.mod m_putbufsy.mod m_shiftgx.mod\
                    m_shiftgy.mod m_shiftsx.mod m_shiftsy.mod
 vbcp.o           : m_getiname.mod
-vbcw.o           : m_getiname.mod
-vbcwc.o          : m_getiname.mod
+vbcs.o           : m_getiname.mod
+vbcu.o           : m_comprofile.mod m_dump_kernel.mod m_getiname.mod
+vbcv.o           : m_comprofile.mod m_dump_kernel.mod m_getiname.mod
+vbcw.o           : m_comprofile.mod m_dump_kernel.mod m_getiname.mod
+vbcwc.o          : m_comprofile.mod m_dump_kernel.mod m_getiname.mod
+copy3d.o         : m_comprofile.mod m_dump_kernel.mod
 vculs.o          : m_commath.mod m_copy3d.mod m_getrname.mod
 vculs0.o         : m_commath.mod m_copy3d.mod m_getrname.mod
 vculuvw.o        : m_commath.mod m_copy3d.mod m_getrname.mod

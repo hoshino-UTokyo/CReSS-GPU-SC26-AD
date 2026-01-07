@@ -38,6 +38,7 @@
 MAINOBJ = solver.o
 
 OBJS    = comprofile.o\
+          dump_kernel_data.o\
           abortslv.o\
           adjstbw.o\
           adjstnci.o\

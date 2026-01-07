@@ -24,6 +24,7 @@
 
       use m_commath
       use m_comprofile
+      use m_dump_kernel
       use m_getiname
       use m_getrname
 
@@ -147,6 +148,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_vspdmp = 0
+      integer, parameter :: DUMP_TARGET_vspdmp = 1
+      logical, save :: dump_done_vspdmp = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -194,6 +201,11 @@
 !   - Sequential ksp0 search should remain on CPU or use parallel reduction
 !   - Split into separate kernels: max-find, ksp0-search, coef-calculation
 !   - Use cosine from device math library
+! Runtime:
+!   - Calls: 1
+!   - AvgLoops: 126
+!   - TotalTime: 0.010s (0.00%)
+!   - AvgTime: 10.285ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -203,6 +215,22 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nk)-(3)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_vspdmp = dump_call_count_vspdmp + 1
+if (dump_call_count_vspdmp == DUMP_TARGET_vspdmp .and. .not. dump_done_vspdmp) then
+  call dump_init('vspdmp')
+  call dump_scalar_i('fpvspopt', fpvspopt)
+  call dump_scalar_i('fpvspgpv', fpvspgpv)
+  call dump_scalar_i('fpvspbar', fpvspbar)
+  call dump_scalar_i('fpbotgpv', fpbotgpv)
+  call dump_scalar_i('fpbotbar', fpbotbar)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_3d('zph.bin', zph, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -327,6 +355,14 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_vspdmp == DUMP_TARGET_vspdmp .and. .not. dump_done_vspdmp) then
+  call dump_array_4d('rbct_ref.bin', rbct, 1, ni, 1, nj, 1, nk, 1, 2)
+  call dump_finalize()
+  dump_done_vspdmp = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

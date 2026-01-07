@@ -22,6 +22,7 @@
 
       use m_getiname
       use m_comprofile
+      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -111,6 +112,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_bc8w = 0
+      integer, parameter :: DUMP_TARGET_bc8w = 2
+      logical, save :: dump_done_bc8w = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -143,6 +150,11 @@
 ! Next:
 !   - Convert to OpenACC with collapsed i,j loops
 !   - Merge bottom and top BC loops into single kernel if both are same type
+! Runtime:
+!   - Calls: 2
+!   - AvgLoops: 811.8K
+!   - TotalTime: 0.000s (0.00%)
+!   - AvgTime: 0.042ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -152,6 +164,19 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nj+1)-(0)+1,8) * int((ni+1)-(0)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_bc8w = dump_call_count_bc8w + 1
+if (dump_call_count_bc8w == DUMP_TARGET_bc8w .and. .not. dump_done_bc8w) then
+  call dump_init('bc8w')
+  call dump_scalar_i('fpbbc', fpbbc)
+  call dump_scalar_i('fptbc', fptbc)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_3d('var8w_in.bin', var8w, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared)
 
@@ -216,6 +241,14 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_bc8w == DUMP_TARGET_bc8w .and. .not. dump_done_bc8w) then
+  call dump_array_3d('var8w_ref.bin', var8w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_bc8w = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

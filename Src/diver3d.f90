@@ -23,6 +23,7 @@
       use m_getiname
       use m_comprofile
       use m_getrname
+      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -167,6 +168,11 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_diver3d = 0
+      integer, parameter :: DUMP_TARGET_diver3d = 14400
+      logical, save :: dump_done_diver3d = .false.
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -196,6 +202,11 @@
 ! Next:
 !   - Direct OpenACC with collapse(2) on j-i loops
 !   - tmp1, tmp2, tmp3 are temporary arrays; consider loop fusion for GPU
+! Runtime:
+!   - Calls: 14400
+!   - AvgLoops: 102.5M
+!   - TotalTime: 232.922s (7.82%)
+!   - AvgTime: 16.175ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -206,6 +217,31 @@ end if
 loop_len = int((nk-1)-(1)+1,8) &
      & * int((nj-1)-(1)+1,8) &
      & * int((ni)-(1)+1,8)
+
+! Dump input data at target call
+dump_call_count_diver3d = dump_call_count_diver3d + 1
+if (dump_call_count_diver3d == DUMP_TARGET_diver3d .and. .not. dump_done_diver3d) then
+  call dump_init('diver3d')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('mpopt', mpopt)
+  call dump_scalar_i('mfcopt', mfcopt)
+  call dump_scalar_r('dxiv', dxiv)
+  call dump_scalar_r('dyiv', dyiv)
+  call dump_scalar_r('dziv', dziv)
+  call dump_array_2d('mf.bin', mf, 0, ni+1, 0, nj+1)
+  call dump_array_3d('rmf.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
+  call dump_array_3d('rmf8u.bin', rmf8u, 0, ni+1, 0, nj+1, 1, 3)
+  call dump_array_3d('rmf8v.bin', rmf8v, 0, ni+1, 0, nj+1, 1, 3)
+  call dump_array_3d('var8u.bin', var8u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('var8v.bin', var8v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('var8w.bin', var8w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('wc.bin', wc, 0, ni+1, 0, nj+1, 1, nk)
+end if
+
 call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
@@ -405,6 +441,13 @@ call profile_start(prof_id1)
 !$omp end parallel
 
 call profile_stop(prof_id1, loop_len)
+
+! Dump output data at target call
+if (dump_call_count_diver3d == DUMP_TARGET_diver3d .and. .not. dump_done_diver3d) then
+  call dump_array_3d('div3d_ref.bin', div3d, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_diver3d = .true.
+end if
 
 !! -----
 

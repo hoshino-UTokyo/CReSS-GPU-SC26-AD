@@ -19,6 +19,7 @@
       use m_commpi
       use m_comprofile
       use m_getiname
+      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -131,6 +132,11 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_bc4news = 0
+      integer, parameter :: DUMP_TARGET_bc4news = 72374
+      logical, save :: dump_done_bc4news = .false.
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -168,6 +174,11 @@
 ! Next:
 !   - Convert to OpenACC with collapsed loops
 !   - Consider merging the four conditional loops into a single kernel with conditional logic
+! Runtime:
+!   - Calls: 72374
+!   - AvgLoops: 128
+!   - TotalTime: 0.281s (0.01%)
+!   - AvgTime: 0.004ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -176,6 +187,25 @@ if (prof_id1 < 0) then
    & 'OMP section 1')
 end if
 loop_len = int((kmax)-(1)+1,8)
+
+! Dump input data at target call
+dump_call_count_bc4news = dump_call_count_bc4news + 1
+if (dump_call_count_bc4news == DUMP_TARGET_bc4news .and. .not. dump_done_bc4news) then
+  call dump_init('bc4news')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('kmax', kmax)
+  call dump_scalar_i('wbc', wbc)
+  call dump_scalar_i('ebc', ebc)
+  call dump_scalar_i('sbc', sbc)
+  call dump_scalar_i('nbc', nbc)
+  call dump_scalar_i('isw', isw)
+  call dump_scalar_i('ise', ise)
+  call dump_scalar_i('jss', jss)
+  call dump_scalar_i('jsn', jsn)
+  call dump_array_3d('var_in.bin', var, 0, ni+1, 0, nj+1, 1, kmax)
+end if
+
 call profile_start(prof_id1)
 
 !$omp parallel default(shared)
@@ -236,6 +266,13 @@ call profile_start(prof_id1)
 !$omp end parallel
 
 call profile_stop(prof_id1, loop_len)
+
+! Dump output data at target call
+if (dump_call_count_bc4news == DUMP_TARGET_bc4news .and. .not. dump_done_bc4news) then
+  call dump_array_3d('var_ref.bin', var, 0, ni+1, 0, nj+1, 1, kmax)
+  call dump_finalize()
+  dump_done_bc4news = .true.
+end if
 
 ! -----
 

@@ -28,6 +28,7 @@
 
       use m_commpi
       use m_comprofile
+      use m_dump_kernel
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -134,6 +135,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_lbcs = 0
+      integer, parameter :: DUMP_TARGET_lbcs = 3240
+      logical, save :: dump_done_lbcs = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -173,6 +180,11 @@
 !   - Convert to OpenACC or OpenACC kernels
 !   - Data managed automatically via Unified Memory
 !   - Consider collapsing k and j/i loops for better GPU utilization
+! Runtime:
+!   - Calls: 3240
+!   - AvgLoops: 112.2K
+!   - TotalTime: 0.013s (0.00%)
+!   - AvgTime: 0.004ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -182,6 +194,22 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nk-2)-(2)+1,8) * int((nj-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_lbcs = dump_call_count_lbcs + 1
+if (dump_call_count_lbcs == DUMP_TARGET_lbcs .and. .not. dump_done_lbcs) then
+  call dump_init('lbcs')
+  call dump_scalar_i('fpwbc', fpwbc)
+  call dump_scalar_i('fpebc', fpebc)
+  call dump_scalar_i('fpsbc', fpsbc)
+  call dump_scalar_i('fpnbc', fpnbc)
+  call dump_scalar_i('fpadvopt', fpadvopt)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_3d('sf_in.bin', sf, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -482,6 +510,14 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_lbcs == DUMP_TARGET_lbcs .and. .not. dump_done_lbcs) then
+  call dump_array_3d('sf_ref.bin', sf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_lbcs = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

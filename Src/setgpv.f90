@@ -20,6 +20,7 @@
 
       use m_getcname
       use m_comprofile
+      use m_dump_kernel
       use m_getiname
       use m_getrname
       use m_inichar
@@ -192,6 +193,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_setgpv = 0
+      integer, parameter :: DUMP_TARGET_setgpv = 2
+      logical, save :: dump_done_setgpv = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variable.
@@ -233,6 +240,11 @@
 !   - Consider collapsing nested conditionals into unified kernels
 !   - Use OpenACC/OpenACC with data regions for array transfers
 !   - May benefit from kernel fusion for related variable updates
+! Runtime:
+!   - Calls: 2
+!   - AvgLoops: 103.4M
+!   - TotalTime: 0.035s (0.00%)
+!   - AvgTime: 17.427ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -242,6 +254,39 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nk)-(1)+1,8) * int((nj)-(1)+1,8) * int((ni)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_setgpv = dump_call_count_setgpv + 1
+if (dump_call_count_setgpv == DUMP_TARGET_setgpv .and. .not. dump_done_setgpv) then
+  call dump_init('setgpv')
+  call dump_scalar_i('fpgpvvar', fpgpvvar)
+  call dump_scalar_i('fpcphopt', fpcphopt)
+  call dump_scalar_i('fphaiopt', fphaiopt)
+  call dump_scalar_i('fpgpvitv', fpgpvitv)
+  call dump_scalar_i('ird', ird)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('nqw', nqw)
+  call dump_scalar_i('nqi', nqi)
+  call dump_array_3d('ugpv_in.bin', ugpv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('utd_in.bin', utd, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vgpv_in.bin', vgpv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vtd_in.bin', vtd, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('wgpv_in.bin', wgpv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('wtd_in.bin', wtd, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ppgpv_in.bin', ppgpv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('pptd_in.bin', pptd, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ptpgpv_in.bin', ptpgpv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ptptd_in.bin', ptptd, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qvgpv_in.bin', qvgpv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qvtd_in.bin', qvtd, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_4d('qwgpv_in.bin', qwgpv, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
+  call dump_array_4d('qwtd_in.bin', qwtd, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
+  call dump_array_4d('qigpv_in.bin', qigpv, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+  call dump_array_4d('qitd_in.bin', qitd, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -620,6 +665,29 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_setgpv == DUMP_TARGET_setgpv .and. .not. dump_done_setgpv) then
+  call dump_array_3d('ugpv_ref.bin', ugpv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('utd_ref.bin', utd, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vgpv_ref.bin', vgpv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vtd_ref.bin', vtd, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('wgpv_ref.bin', wgpv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('wtd_ref.bin', wtd, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ppgpv_ref.bin', ppgpv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('pptd_ref.bin', pptd, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ptpgpv_ref.bin', ptpgpv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ptptd_ref.bin', ptptd, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qvgpv_ref.bin', qvgpv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qvtd_ref.bin', qvtd, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_4d('qwgpv_ref.bin', qwgpv, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
+  call dump_array_4d('qwtd_ref.bin', qwtd, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
+  call dump_array_4d('qigpv_ref.bin', qigpv, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+  call dump_array_4d('qitd_ref.bin', qitd, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+  call dump_finalize()
+  dump_done_setgpv = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

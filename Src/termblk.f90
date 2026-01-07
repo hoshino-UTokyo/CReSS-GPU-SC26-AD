@@ -28,6 +28,7 @@
 
       use m_commath
       use m_comprofile
+      use m_dump_kernel
       use m_comphy
       use m_getiname
       use m_getrname
@@ -258,6 +259,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_termblk = 0
+      integer, parameter :: DUMP_TARGET_termblk = 360
+      logical, save :: dump_done_termblk = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -317,6 +324,11 @@
 !   - Use OpenACC or OpenACC for GPU offloading
 !   - Consider kernel fusion for related velocity calculations
 !   - Map all input/output arrays to device
+! Runtime:
+!   - Calls: 360
+!   - AvgLoops: 102.4M
+!   - TotalTime: 13.304s (0.45%)
+!   - AvgTime: 36.956ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -328,6 +340,33 @@ loop_len = int((nk-1)-(1)+1,8) &
      & * int((nj-1)-(1)+1,8) &
      & * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_termblk = dump_call_count_termblk + 1
+if (dump_call_count_termblk == DUMP_TARGET_termblk .and. .not. dump_done_termblk) then
+  call dump_init('termblk')
+  call dump_scalar_i('fpcphopt', fpcphopt)
+  call dump_scalar_i('fphaiopt', fphaiopt)
+  call dump_scalar_i('fpthresq', fpthresq)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_r('r0', r0)
+  call dump_array_3d('rbv.bin', rbv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qc.bin', qc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qr.bin', qr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qi.bin', qi, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qs.bin', qs, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qg.bin', qg, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qh.bin', qh, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncc.bin', ncc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncr.bin', ncr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('nci.bin', nci, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncs.bin', ncs, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ncg.bin', ncg, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('nch.bin', nch, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -616,6 +655,25 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_termblk == DUMP_TARGET_termblk .and. .not. dump_done_termblk) then
+  call dump_array_3d('ucq_ref.bin', ucq, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('urq_ref.bin', urq, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('uiq_ref.bin', uiq, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('usq_ref.bin', usq, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ugq_ref.bin', ugq, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('uhq_ref.bin', uhq, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ucn_ref.bin', ucn, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('urn_ref.bin', urn, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('uin_ref.bin', uin, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('usn_ref.bin', usn, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ugn_ref.bin', ugn, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('uhn_ref.bin', uhn, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_termblk = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

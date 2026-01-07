@@ -23,6 +23,7 @@
 
       use m_comphy
       use m_comprofile
+      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -145,6 +146,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_heatsfc = 0
+      integer, parameter :: DUMP_TARGET_heatsfc = 361
+      logical, save :: dump_done_heatsfc = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variable.
@@ -171,6 +178,11 @@
 !   - Convert to OpenACC with collapse(2) on j,i loops
 !   - Branch logic based on land type may cause GPU thread divergence
 !   - Consider separating dry/moist cases into different kernels
+! Runtime:
+!   - Calls: 361
+!   - AvgLoops: 806.4K
+!   - TotalTime: 0.058s (0.00%)
+!   - AvgTime: 0.161ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -180,6 +192,30 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_heatsfc = dump_call_count_heatsfc + 1
+if (dump_call_count_heatsfc == DUMP_TARGET_heatsfc .and. .not. dump_done_heatsfc) then
+  call dump_init('heatsfc')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('nund', nund)
+  call dump_scalar_r('cp', cp)
+  call dump_scalar_r('t0', t0)
+  call dump_scalar_r('lv0', lv0)
+  call dump_scalar_r('lf0', lf0)
+  call dump_array_3d('t.bin', t, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qv.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d('qvsfc.bin', qvsfc, 0, ni+1, 0, nj+1)
+  call dump_array_2d('ct.bin', ct, 0, ni+1, 0, nj+1)
+  call dump_array_2d('cq.bin', cq, 0, ni+1, 0, nj+1)
+  call dump_array_2d_int('land.bin', land, 0, ni+1, 0, nj+1)
+  call dump_array_2d('kai.bin', kai, 0, ni+1, 0, nj+1)
+  call dump_array_3d('tund.bin', tund, 0, ni+1, 0, nj+1, 1, nund)
+  call dump_array_2d('tice.bin', tice, 0, ni+1, 0, nj+1)
+end if
 
 !$omp parallel default(shared)
 
@@ -261,6 +297,15 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_heatsfc == DUMP_TARGET_heatsfc .and. .not. dump_done_heatsfc) then
+  call dump_array_2d('hs_ref.bin', hs, 0, ni+1, 0, nj+1)
+  call dump_array_2d('le_ref.bin', le, 0, ni+1, 0, nj+1)
+  call dump_finalize()
+  dump_done_heatsfc = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

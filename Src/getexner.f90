@@ -20,6 +20,7 @@
 
       use m_comphy
       use m_comprofile
+      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -112,6 +113,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_getexner = 0
+      integer, parameter :: DUMP_TARGET_getexner = 1080
+      logical, save :: dump_done_getexner = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variables.
@@ -139,6 +146,11 @@
 !   - Direct port to OpenACC parallel loop
 !   - Ensure module constants are accessible on device
 !   - Consider collapsing k,j,i loops for better GPU occupancy
+! Runtime:
+!   - Calls: 1080
+!   - AvgLoops: 102.4M
+!   - TotalTime: 6.873s (0.23%)
+!   - AvgTime: 6.364ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -150,6 +162,19 @@ loop_len = int((nk-1)-(1)+1,8) &
      & * int((nj-1)-(1)+1,8) &
      & * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_getexner = dump_call_count_getexner + 1
+if (dump_call_count_getexner == DUMP_TARGET_getexner .and. .not. dump_done_getexner) then
+  call dump_init('getexner')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_3d('p.bin', p, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('pbr.bin', pbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('pp.bin', pp, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -171,6 +196,14 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_getexner == DUMP_TARGET_getexner .and. .not. dump_done_getexner) then
+  call dump_array_3d('pi_ref.bin', pi, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_getexner = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

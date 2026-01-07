@@ -19,6 +19,7 @@
 
       use m_getiname
       use m_comprofile
+      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -130,6 +131,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_bbcw = 0
+      integer, parameter :: DUMP_TARGET_bbcw = 14400
+      logical, save :: dump_done_bbcw = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -157,6 +164,11 @@
 !   - Consider separating compute kernels by mfcopt/mpopt case
 !   - Work arrays j31u2, j32v2 should be device-resident
 !   - Branch divergence from mfcopt/mpopt may impact performance
+! Runtime:
+!   - Calls: 14400
+!   - AvgLoops: 807.3K
+!   - TotalTime: 1.749s (0.06%)
+!   - AvgTime: 0.121ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -166,6 +178,27 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nj-1)-(1)+1,8) * int((ni)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_bbcw = dump_call_count_bbcw + 1
+if (dump_call_count_bbcw == DUMP_TARGET_bbcw .and. .not. dump_done_bbcw) then
+  call dump_init('bbcw')
+  call dump_scalar_i('fpmpopt', fpmpopt)
+  call dump_scalar_i('fpmfcopt', fpmfcopt)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_3d('j31.bin', j31, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('j32.bin', j32, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d('mf.bin', mf, 0, ni+1, 0, nj+1)
+  call dump_array_3d('aa.bin', aa, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('uf.bin', uf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('vf.bin', vf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('wf_in.bin', wf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d('j31u2_in.bin', j31u2, 0, ni+1, 0, nj+1)
+  call dump_array_2d('j32v2_in.bin', j32v2, 0, ni+1, 0, nj+1)
+end if
 
 !$omp parallel default(shared)
 
@@ -250,6 +283,16 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_bbcw == DUMP_TARGET_bbcw .and. .not. dump_done_bbcw) then
+  call dump_array_3d('wf_ref.bin', wf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d('j31u2_ref.bin', j31u2, 0, ni+1, 0, nj+1)
+  call dump_array_2d('j32v2_ref.bin', j32v2, 0, ni+1, 0, nj+1)
+  call dump_finalize()
+  dump_done_bbcw = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

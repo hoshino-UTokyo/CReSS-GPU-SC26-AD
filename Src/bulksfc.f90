@@ -24,6 +24,7 @@
 
       use m_commath
       use m_comprofile
+      use m_dump_kernel
       use m_comphy
 
 !-----7--------------------------------------------------------------7--
@@ -174,6 +175,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_bulksfc = 0
+      integer, parameter :: DUMP_TARGET_bulksfc = 385
+      logical, save :: dump_done_bulksfc = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variables.
@@ -232,6 +239,11 @@
 !   - Map all 2D input/output arrays to device
 !   - GPU divergence may reduce efficiency; consider separating cases
 !   - Transcendental functions may benefit from fast-math approximations
+! Runtime:
+!   - Calls: 385
+!   - AvgLoops: 806.4K
+!   - TotalTime: 0.289s (0.01%)
+!   - AvgTime: 0.750ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -241,6 +253,22 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_bulksfc = dump_call_count_bulksfc + 1
+if (dump_call_count_bulksfc == DUMP_TARGET_bulksfc .and. .not. dump_done_bulksfc) then
+  call dump_init('bulksfc')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_r('kappa', kappa)
+  call dump_array_2d('za.bin', za, 0, ni+1, 0, nj+1)
+  call dump_array_2d_int('land.bin', land, 0, ni+1, 0, nj+1)
+  call dump_array_2d('kai.bin', kai, 0, ni+1, 0, nj+1)
+  call dump_array_2d('z0m.bin', z0m, 0, ni+1, 0, nj+1)
+  call dump_array_2d('z0h.bin', z0h, 0, ni+1, 0, nj+1)
+  call dump_array_2d('rch.bin', rch, 0, ni+1, 0, nj+1)
+end if
 
 !$omp parallel default(shared)
 
@@ -505,6 +533,15 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_bulksfc == DUMP_TARGET_bulksfc .and. .not. dump_done_bulksfc) then
+  call dump_array_2d('cm_ref.bin', cm, 0, ni+1, 0, nj+1)
+  call dump_array_2d('ch_ref.bin', ch, 0, ni+1, 0, nj+1)
+  call dump_finalize()
+  dump_done_bulksfc = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

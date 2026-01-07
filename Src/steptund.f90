@@ -23,6 +23,7 @@
 
       use m_comindx
       use m_comprofile
+      use m_dump_kernel
       use m_comphy
       use m_gaussel
       use m_getiname
@@ -202,6 +203,12 @@
       integer, save :: prof_id2 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_steptund = 0
+      integer, parameter :: DUMP_TARGET_steptund = 18
+      logical, save :: dump_done_steptund = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -251,6 +258,11 @@
 ! Next:
 !   - Consider collapsing k,j,i loops for better GPU occupancy
 !   - Use data directives for tundp, tundf, rr, ss, tt arrays
+! Runtime:
+!   - Calls: 18
+!   - AvgLoops: 806.4K
+!   - TotalTime: 0.093s (0.00%)
+!   - AvgTime: 5.154ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -260,6 +272,39 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_steptund = dump_call_count_steptund + 1
+if (dump_call_count_steptund == DUMP_TARGET_steptund .and. .not. dump_done_steptund) then
+  call dump_init('steptund')
+  call dump_scalar_i('fpsfcopt', fpsfcopt)
+  call dump_scalar_i('fpdzgrd', fpdzgrd)
+  call dump_scalar_i('fpdzsea', fpdzsea)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('nund', nund)
+  call dump_scalar_r('dtsoil', dtsoil)
+  call dump_scalar_r('stinc', stinc)
+  call dump_array_3d('ss.bin', ss, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('t0', t0)
+  call dump_array_3d('t.bin', t, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d_int('land.bin', land, 0, ni+1, 0, nj+1)
+  call dump_array_2d('cap.bin', cap, 0, ni+1, 0, nj+1)
+  call dump_array_2d('nuu.bin', nuu, 0, ni+1, 0, nj+1)
+  call dump_array_2d('sst.bin', sst, 0, ni+1, 0, nj+1)
+  call dump_array_2d('sstd.bin', sstd, 0, ni+1, 0, nj+1)
+  call dump_array_2d('hs.bin', hs, 0, ni+1, 0, nj+1)
+  call dump_array_2d('le.bin', le, 0, ni+1, 0, nj+1)
+  call dump_array_2d('rsd.bin', rsd, 0, ni+1, 0, nj+1)
+  call dump_array_2d('rld.bin', rld, 0, ni+1, 0, nj+1)
+  call dump_array_2d('rlu.bin', rlu, 0, ni+1, 0, nj+1)
+  call dump_array_3d('tundp_in.bin', tundp, 0, ni+1, 0, nj+1, 1, nund)
+  call dump_array_3d('rr_in.bin', rr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tt_in.bin', tt, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp1_in.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -554,6 +599,18 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_steptund == DUMP_TARGET_steptund .and. .not. dump_done_steptund) then
+  call dump_array_3d('tundf_ref.bin', tundf, 0, ni+1, 0, nj+1, 1, nund)
+  call dump_array_3d('tundp_ref.bin', tundp, 0, ni+1, 0, nj+1, 1, nund)
+  call dump_array_3d('rr_ref.bin', rr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tt_ref.bin', tt, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tmp1_ref.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_steptund = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

@@ -26,6 +26,7 @@
 
 ! Implicit typing
       use m_comprofile
+      use m_dump_kernel
 
       implicit none
 
@@ -108,6 +109,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_sheartke = 0
+      integer, parameter :: DUMP_TARGET_sheartke = 360
+      logical, save :: dump_done_sheartke = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Calculate the shear production in the turbulent kinetic energy
@@ -129,6 +136,11 @@
 !   - Straightforward GPU port with 3D kernel
 !   - Use OpenACC/OpenACC with collapse(3)
 !   - Good candidate for kernel fusion with other TKE terms
+! Runtime:
+!   - Calls: 360
+!   - AvgLoops: 100.4M
+!   - TotalTime: 1.960s (0.07%)
+!   - AvgTime: 5.446ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -140,6 +152,20 @@ loop_len = int((nk-2)-(2)+1,8) &
      & * int((nj-2)-(2)+1,8) &
      & * int((ni-2)-(2)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_sheartke = dump_call_count_sheartke + 1
+if (dump_call_count_sheartke == DUMP_TARGET_sheartke .and. .not. dump_done_sheartke) then
+  call dump_init('sheartke')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_3d('jcb.bin', jcb, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ssq.bin', ssq, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rkv.bin', rkv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('tkefrc_in.bin', tkefrc, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -158,6 +184,14 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_sheartke == DUMP_TARGET_sheartke .and. .not. dump_done_sheartke) then
+  call dump_array_3d('tkefrc_ref.bin', tkefrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_sheartke = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

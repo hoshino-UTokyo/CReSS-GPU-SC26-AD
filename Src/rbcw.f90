@@ -31,6 +31,7 @@
 
       use m_commpi
       use m_comprofile
+      use m_dump_kernel
       use m_getcname
       use m_getiname
       use m_getrname
@@ -201,6 +202,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_rbcw = 0
+      integer, parameter :: DUMP_TARGET_rbcw = 14400
+      logical, save :: dump_done_rbcw = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variables.
@@ -262,6 +269,11 @@
 !   - Separate corner and edge kernels for GPU
 !   - MPI conditionals evaluated on host before kernel launch
 !   - Consider batching corner updates to reduce kernel overhead
+! Runtime:
+!   - Calls: 14400
+!   - AvgLoops: 126
+!   - TotalTime: 1.864s (0.06%)
+!   - AvgTime: 0.129ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -271,6 +283,34 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nk-1)-(2)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_rbcw = dump_call_count_rbcw + 1
+if (dump_call_count_rbcw == DUMP_TARGET_rbcw .and. .not. dump_done_rbcw) then
+  call dump_init('rbcw')
+  call dump_scalar_i('fpgpvvar', fpgpvvar)
+  call dump_scalar_i('fplbcvar', fplbcvar)
+  call dump_scalar_i('fpwbc', fpwbc)
+  call dump_scalar_i('fpebc', fpebc)
+  call dump_scalar_i('fpsbc', fpsbc)
+  call dump_scalar_i('fpnbc', fpnbc)
+  call dump_scalar_i('fpnggopt', fpnggopt)
+  call dump_scalar_i('fplspopt', fplspopt)
+  call dump_scalar_i('fpvspopt', fpvspopt)
+  call dump_scalar_i('fplbnews', fplbnews)
+  call dump_scalar_i('isstp', isstp)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_r('dts', dts)
+  call dump_scalar_r('gtinc', gtinc)
+  call dump_array_3d('w.bin', w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('wcpx.bin', wcpx, 1, nj, 1, nk, 1, 2)
+  call dump_array_3d('wcpy.bin', wcpy, 1, ni, 1, nk, 1, 2)
+  call dump_array_3d('wgpv.bin', wgpv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('wtd.bin', wtd, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared)
 
@@ -599,6 +639,13 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_rbcw == DUMP_TARGET_rbcw .and. .not. dump_done_rbcw) then
+  call dump_finalize()
+  dump_done_rbcw = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

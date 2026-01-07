@@ -64,6 +64,7 @@
       use m_shiftsy
       use m_vbcqcg
       use m_vbcs
+      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -482,6 +483,11 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_steps = 0
+      integer, parameter :: DUMP_TARGET_steps = 360
+      logical, save :: dump_done_steps = .false.
+
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variables.
@@ -534,6 +540,11 @@
 !   - Consider separating each variable update into distinct kernels
 !   - Branching may require conditional kernel launches or unified kernels
 !   - Use collapse(2) for nested loops
+! Runtime:
+!   - Calls: 360
+!   - AvgLoops: 100.4M
+!   - TotalTime: 16.586s (0.56%)
+!   - AvgTime: 46.072ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -544,6 +555,34 @@ end if
 loop_len = int((nk-2)-(2)+1,8) &
      & * int((nj-2)-(2)+1,8) &
      & * int((ni-2)-(2)+1,8)
+
+! Dump input data at target call
+dump_call_count_steps = dump_call_count_steps + 1
+if (dump_call_count_steps == DUMP_TARGET_steps .and. .not. dump_done_steps) then
+  call dump_init('steps')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('nqw', nqw)
+  call dump_scalar_i('nnw', nnw)
+  call dump_scalar_i('nqi', nqi)
+  call dump_scalar_i('nni', nni)
+  call dump_scalar_i('gwmopt', gwmopt)
+  call dump_scalar_i('advopt', advopt)
+  call dump_scalar_i('cphopt', cphopt)
+  call dump_scalar_i('haiopt', haiopt)
+  call dump_scalar_i('tubopt', tubopt)
+  call dump_scalar_r('dtb', dtb)
+  call dump_array_3d('rst.bin', rst, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ptp.bin', ptp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ptpp.bin', ptpp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qv.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qvp.bin', qvp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ptfrc.bin', ptfrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qvfrc.bin', qvfrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('dtdrst_in.bin', dtdrst, 0, ni+1, 0, nj+1, 1, nk)
+end if
+
 call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k,n_sub)
@@ -1057,6 +1096,15 @@ call profile_start(prof_id1)
 !$omp end parallel
 
 call profile_stop(prof_id1, loop_len)
+
+! Dump output data at target call
+if (dump_call_count_steps == DUMP_TARGET_steps .and. .not. dump_done_steps) then
+  call dump_array_3d('ptpf_ref.bin', ptpf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qvf_ref.bin', qvf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('dtdrst_ref.bin', dtdrst, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_steps = .true.
+end if
 
 !! -----
 

@@ -26,6 +26,7 @@
 
       use m_bc8u
       use m_comprofile
+      use m_dump_kernel
       use m_bc8v
       use m_bcyclex
       use m_bcycley
@@ -198,6 +199,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_jacobian = 0
+      integer, parameter :: DUMP_TARGET_jacobian = 1
+      logical, save :: dump_done_jacobian = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -236,6 +243,11 @@
 ! Next:
 !   - Can be directly ported to GPU with OpenACC parallel loop
 !   - Consider fusing loops for better GPU memory access patterns
+! Runtime:
+!   - Calls: 1
+!   - AvgLoops: 103.6M
+!   - TotalTime: 0.008s (0.00%)
+!   - AvgTime: 8.288ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -245,6 +257,26 @@ if (prof_id1 < 0) then
 end if
 loop_len = int((nk)-(1)+1,8) * int((nj)-(0)+1,8) * int((ni)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_jacobian = dump_call_count_jacobian + 1
+if (dump_call_count_jacobian == DUMP_TARGET_jacobian .and. .not. dump_done_jacobian) then
+  call dump_init('jacobian')
+  call dump_scalar_i('fpwbc', fpwbc)
+  call dump_scalar_i('fpebc', fpebc)
+  call dump_scalar_i('fpexbopt', fpexbopt)
+  call dump_scalar_i('fpadvopt', fpadvopt)
+  call dump_scalar_i('fpsmtopt', fpsmtopt)
+  call dump_scalar_i('fptubopt', fptubopt)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_3d('zph.bin', zph, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rmf.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
+  call dump_array_3d('rmf8u.bin', rmf8u, 0, ni+1, 0, nj+1, 1, 3)
+  call dump_array_3d('rmf8v.bin', rmf8v, 0, ni+1, 0, nj+1, 1, 3)
+end if
 
 !$omp parallel default(shared) private(k)
 
@@ -287,6 +319,19 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_jacobian == DUMP_TARGET_jacobian .and. .not. dump_done_jacobian) then
+  call dump_array_3d('j31_ref.bin', j31, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('j32_ref.bin', j32, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('jcb_ref.bin', jcb, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('jcb8u_ref.bin', jcb8u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('jcb8v_ref.bin', jcb8v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('jcb8w_ref.bin', jcb8w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_jacobian = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 

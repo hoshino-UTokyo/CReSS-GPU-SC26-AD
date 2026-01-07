@@ -22,6 +22,7 @@
 
       use m_commath
       use m_comprofile
+      use m_dump_kernel
       use m_commpi
       use m_defmpi
 
@@ -111,6 +112,12 @@
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_chkmoist = 0
+      integer, parameter :: DUMP_TARGET_chkmoist = 1
+      logical, save :: dump_done_chkmoist = .false.
+
+
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the processed variable, qvmax.
@@ -136,6 +143,11 @@
 ! Next:
 !   - Direct OpenACC with collapse(3) and reduction(max:)
 !   - GPU reduction primitives well-suited for this pattern
+! Runtime:
+!   - Calls: 1
+!   - AvgLoops: 102.4M
+!   - TotalTime: 0.001s (0.00%)
+!   - AvgTime: 1.117ms
 !@llm end meta_info ------------------------------------------------------
 
 ! Register profiling section (first call only)
@@ -147,6 +159,17 @@ loop_len = int((nk-1)-(1)+1,8) &
      & * int((nj-1)-(1)+1,8) &
      & * int((ni-1)-(1)+1,8)
 call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_chkmoist = dump_call_count_chkmoist + 1
+if (dump_call_count_chkmoist == DUMP_TARGET_chkmoist .and. .not. dump_done_chkmoist) then
+  call dump_init('chkmoist')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_3d('qv.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
+end if
 
 !$omp parallel default(shared)
 
@@ -163,6 +186,13 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_chkmoist == DUMP_TARGET_chkmoist .and. .not. dump_done_chkmoist) then
+  call dump_finalize()
+  dump_done_chkmoist = .true.
+end if
+
 
 call profile_stop(prof_id1, loop_len)
 
