@@ -38,14 +38,33 @@ module m_dump_kernel
   ! Public subroutines
   public :: dump_init, dump_finalize
   public :: dump_scalar_i, dump_scalar_i8, dump_scalar_r, dump_scalar_d, dump_scalar_c
+  public :: dump_scalar_s  ! Alias for dump_scalar_c (string)
   public :: dump_array_1d, dump_array_2d, dump_array_3d, dump_array_4d
   public :: dump_array_1d_int, dump_array_2d_int, dump_array_3d_int
+  public :: dump_array_1d_i, dump_array_2d_i, dump_array_3d_i  ! Aliases
 
   ! Module variables
   character(len=256), save :: dump_dir = './kernel_dump'
   integer, save :: dump_unit = 100
   integer, save :: param_unit = 101
   logical, save :: param_file_open = .false.
+
+  ! Interfaces for aliases
+  interface dump_scalar_s
+    module procedure dump_scalar_c
+  end interface
+
+  interface dump_array_1d_i
+    module procedure dump_array_1d_int
+  end interface
+
+  interface dump_array_2d_i
+    module procedure dump_array_2d_int
+  end interface
+
+  interface dump_array_3d_i
+    module procedure dump_array_3d_int
+  end interface
 
 contains
 
