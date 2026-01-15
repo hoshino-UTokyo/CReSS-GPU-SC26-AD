@@ -370,8 +370,8 @@ call profile_start(prof_id1)
 dump_call_count_outpbl = dump_call_count_outpbl + 1
 if (dump_call_count_outpbl == DUMP_TARGET_outpbl .and. .not. dump_done_outpbl) then
   call dump_init('outpbl')
-  call dump_scalar_i('fpdmpvar', fpdmpvar)
-  call dump_scalar_i('fpdmplev', fpdmplev)
+  call dump_scalar_c('dmpvar', dmpvar)
+  call dump_scalar_i('dmplev', dmplev)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
@@ -422,6 +422,9 @@ if (dump_call_count_outpbl == DUMP_TARGET_outpbl .and. .not. dump_done_outpbl) t
   call dump_array_2d('vsflx_in.bin', vsflx, 0, ni+1, 0, nj+1)
   call dump_array_2d('ptsflx_in.bin', ptsflx, 0, ni+1, 0, nj+1)
   call dump_array_2d('qvsflx_in.bin', qvsflx, 0, ni+1, 0, nj+1)
+  ! FIXME: cdrat is array - call dump_scalar_r('cdrat', cdrat)
+  call dump_scalar_c('fmois', fmois)
+  call dump_scalar_r('rddwkp', rddwkp)
 end if
 
 !$omp parallel default(shared)

@@ -488,10 +488,13 @@ call profile_start(prof_id1)
 dump_call_count_rdgrp = dump_call_count_rdgrp + 1
 if (dump_call_count_rdgrp == DUMP_TARGET_rdgrp .and. .not. dump_done_rdgrp) then
   call dump_init('rdgrp')
-  call dump_scalar_i('fpexprim', fpexprim)
-  call dump_scalar_i('fpcrsdir', fpcrsdir)
-  call dump_scalar_i('fpncexp', fpncexp)
-  call dump_scalar_i('fpnccrs', fpnccrs)
+  call dump_scalar_c('exprim', exprim)
+  call dump_scalar_c('crsdir', crsdir)
+  call dump_scalar_i('ncexp', ncexp)
+  call dump_scalar_i('nccrs', nccrs)
+  ! FIXME: grpxy is array - call dump_scalar_r('grpxy', grpxy)
+  call dump_scalar_i('nigrp', nigrp)
+  call dump_scalar_i('njgrp', njgrp)
 end if
 
 !$omp parallel default(shared)

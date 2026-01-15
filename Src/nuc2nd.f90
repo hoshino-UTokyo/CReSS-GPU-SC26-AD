@@ -187,6 +187,8 @@ if (dump_call_count_nuc2nd == DUMP_TARGET_nuc2nd .and. .not. dump_done_nuc2nd) t
   call dump_array_3d('clcs.bin', clcs, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('clcg.bin', clcg, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('pgwet.bin', pgwet, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('mi0352', mi0352)
+  call dump_scalar_r('mi0353', mi0353)
 end if
 
 !$omp parallel default(shared) private(k)

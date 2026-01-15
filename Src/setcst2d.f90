@@ -149,7 +149,7 @@ if (dump_call_count_setcst2d == DUMP_TARGET_setcst2d .and. .not. dump_done_setcs
   call dump_scalar_i('imax', imax)
   call dump_scalar_i('jmin', jmin)
   call dump_scalar_i('jmax', jmax)
-  call dump_scalar_r('invar', invar)
+  ! FIXME: invar is array - call dump_scalar_r('invar', invar)
 end if
 
 !$omp parallel default(shared)

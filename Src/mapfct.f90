@@ -262,17 +262,25 @@ call profile_start(prof_id1)
 dump_call_count_mapfct = dump_call_count_mapfct + 1
 if (dump_call_count_mapfct == DUMP_TARGET_mapfct .and. .not. dump_done_mapfct) then
   call dump_init('mapfct')
-  call dump_scalar_i('fpmpopt', fpmpopt)
-  call dump_scalar_i('fpnspol', fpnspol)
-  call dump_scalar_i('fpadvopt', fpadvopt)
-  call dump_scalar_i('fptubopt', fptubopt)
-  call dump_scalar_i('fpdisr', fpdisr)
-  call dump_scalar_i('fpdxiv', fpdxiv)
-  call dump_scalar_i('fpdyiv', fpdyiv)
+  call dump_scalar_i('mpopt', mpopt)
+  call dump_scalar_i('nspol', nspol)
+  call dump_scalar_i('advopt', advopt)
+  call dump_scalar_i('tubopt', tubopt)
+  call dump_scalar_r('disr', disr)
+  call dump_scalar_r('dxiv', dxiv)
+  call dump_scalar_r('dyiv', dyiv)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_array_2d('lat.bin', lat, 0, ni+1, 0, nj+1)
   call dump_array_2d('tmp1_in.bin', tmp1, 0, ni+1, 0, nj+1)
+  ! FIXME: cpj is an array, not scalar
+  ! ! FIXME: cpj is array - call dump_scalar_r('cpj', cpj)
+  call dump_scalar_r('dxv625', dxv625)
+  call dump_scalar_r('dyv625', dyv625)
+  call dump_scalar_r('pol05', pol05)
+  call dump_scalar_r('pold2r', pold2r)
+  ! FIXME: x is an array, not scalar
+  ! ! FIXME: x is array - call dump_scalar_r('x', x)
 end if
 
 !$omp parallel default(shared)

@@ -158,6 +158,8 @@ if (dump_call_count_vbcs == DUMP_TARGET_vbcs .and. .not. dump_done_vbcs) then
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
   call dump_array_3d('sf_in.bin', sf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_i('nkm1', nkm1)
+  call dump_scalar_i('nkm2', nkm2)
 end if
 
 !$omp parallel default(shared)

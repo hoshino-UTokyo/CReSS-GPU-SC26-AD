@@ -241,13 +241,20 @@ call profile_start(prof_id1)
 dump_call_count_phycood = dump_call_count_phycood + 1
 if (dump_call_count_phycood == DUMP_TARGET_phycood .and. .not. dump_done_phycood) then
   call dump_init('phycood')
-  call dump_scalar_i('fpsthopt', fpsthopt)
-  call dump_scalar_i('fpzsfc', fpzsfc)
-  call dump_scalar_i('fpzflat', fpzflat)
+  call dump_scalar_i('sthopt', sthopt)
+  call dump_scalar_r('zsfc', zsfc)
+  call dump_scalar_r('zflat', zflat)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
   call dump_array_2d('ht.bin', ht, 0, ni+1, 0, nj+1)
+  call dump_scalar_r('htuiv', htuiv)
+  call dump_scalar_r('htuivz', htuivz)
+  call dump_scalar_i('nkm1', nkm1)
+  call dump_scalar_i('nkm2', nkm2)
+  call dump_scalar_r('zflat0', zflat0)
+  ! FIXME: zsth is an array, not scalar
+  ! ! FIXME: zsth is array - call dump_scalar_r('zsth', zsth)
 end if
 
 !$omp parallel default(shared)

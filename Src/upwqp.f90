@@ -211,8 +211,8 @@ call profile_start(prof_id1)
 dump_call_count_upwqp = dump_call_count_upwqp + 1
 if (dump_call_count_upwqp == DUMP_TARGET_upwqp .and. .not. dump_done_upwqp) then
   call dump_init('upwqp')
-  call dump_scalar_i('fpadvopt', fpadvopt)
-  call dump_scalar_i('fpdziv', fpdziv)
+  call dump_scalar_i('advopt', advopt)
+  call dump_scalar_r('dziv', dziv)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
@@ -223,6 +223,11 @@ if (dump_call_count_upwqp == DUMP_TARGET_upwqp .and. .not. dump_done_upwqp) then
   call dump_array_3d('qpf_in.bin', qpf, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('precip_in.bin', precip, 0, ni+1, 0, nj+1, 1, 2)
   call dump_array_3d('qpflx_in.bin', qpflx, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('dtp05', dtp05)
+  call dump_scalar_r('dzvdt', dzvdt)
+  call dump_scalar_i('nkm1', nkm1)
+  call dump_scalar_i('nkm2', nkm2)
+  call dump_scalar_r('rwiv05', rwiv05)
 end if
 
 !$omp parallel default(shared) private(k)

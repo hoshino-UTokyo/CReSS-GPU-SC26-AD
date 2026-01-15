@@ -216,7 +216,7 @@ call profile_start(prof_id1)
 dump_call_count_gaussel = dump_call_count_gaussel + 1
 if (dump_call_count_gaussel == DUMP_TARGET_gaussel .and. .not. dump_done_gaussel) then
   call dump_init('gaussel')
-  call dump_scalar_i('fpimpopt', fpimpopt)
+  call dump_scalar_i('impopt', impopt)
   call dump_scalar_i('istr', istr)
   call dump_scalar_i('iend', iend)
   call dump_scalar_i('jstr', jstr)
@@ -231,6 +231,8 @@ if (dump_call_count_gaussel == DUMP_TARGET_gaussel .and. .not. dump_done_gaussel
   call dump_array_3d('tt_in.bin', tt, 0, ni+1, 0, nj+1, 1, kmax)
   call dump_array_3d('ff_in.bin', ff, 0, ni+1, 0, nj+1, 1, kmax)
   call dump_array_3d('pv_in.bin', pv, 0, ni+1, 0, nj+1, 1, kmax)
+  call dump_scalar_i('kem1', kem1)
+  call dump_scalar_i('kem2', kem2)
 end if
 
 !$omp parallel default(shared) private(k)

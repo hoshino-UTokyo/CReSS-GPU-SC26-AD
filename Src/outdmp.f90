@@ -381,15 +381,15 @@ call profile_start(prof_id1)
 dump_call_count_outdmp = dump_call_count_outdmp + 1
 if (dump_call_count_outdmp == DUMP_TARGET_outdmp .and. .not. dump_done_outdmp) then
   call dump_init('outdmp')
-  call dump_scalar_i('fpdmpvar', fpdmpvar)
-  call dump_scalar_i('fpcphopt', fpcphopt)
-  call dump_scalar_i('fphaiopt', fphaiopt)
-  call dump_scalar_i('fpqcgopt', fpqcgopt)
-  call dump_scalar_i('fpaslopt', fpaslopt)
-  call dump_scalar_i('fptrkopt', fptrkopt)
-  call dump_scalar_i('fptubopt', fptubopt)
-  call dump_scalar_i('fpdmplev', fpdmplev)
-  call dump_scalar_i('fpdz', fpdz)
+  call dump_scalar_c('dmpvar', dmpvar)
+  call dump_scalar_i('cphopt', cphopt)
+  call dump_scalar_i('haiopt', haiopt)
+  call dump_scalar_i('qcgopt', qcgopt)
+  call dump_scalar_i('aslopt', aslopt)
+  call dump_scalar_i('trkopt', trkopt)
+  call dump_scalar_i('tubopt', tubopt)
+  call dump_scalar_i('dmplev', dmplev)
+  call dump_scalar_r('dz', dz)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
@@ -428,6 +428,11 @@ if (dump_call_count_outdmp == DUMP_TARGET_outdmp .and. .not. dump_done_outdmp) t
   call dump_array_3d('tmp2_in.bin', tmp2, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('tmp3_in.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('tmp4_in.bin', tmp4, 0, ni+1, 0, nj+1, 1, nk)
+  ! FIXME: fdmp is array - call dump_scalar_r('fdmp', fdmp)
+  ! FIXME: z1d is an array, not scalar
+  ! ! FIXME: z1d is array - call dump_scalar_r('z1d', z1d)
+  ! FIXME: zsth is an array, not scalar
+  ! ! FIXME: zsth is array - call dump_scalar_r('zsth', zsth)
 end if
 
 !$omp parallel default(shared)

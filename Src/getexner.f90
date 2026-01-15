@@ -174,6 +174,8 @@ if (dump_call_count_getexner == DUMP_TARGET_getexner .and. .not. dump_done_getex
   call dump_array_3d('p.bin', p, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('pbr.bin', pbr, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('pp.bin', pp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('p0iv', p0iv)
+  call dump_scalar_r('rddvcp', rddvcp)
 end if
 
 !$omp parallel default(shared) private(k)

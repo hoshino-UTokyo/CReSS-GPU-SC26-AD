@@ -215,6 +215,8 @@ if (dump_call_count_heatsfc == DUMP_TARGET_heatsfc .and. .not. dump_done_heatsfc
   call dump_array_2d('kai.bin', kai, 0, ni+1, 0, nj+1)
   call dump_array_3d('tund.bin', tund, 0, ni+1, 0, nj+1, 1, nund)
   call dump_array_2d('tice.bin', tice, 0, ni+1, 0, nj+1)
+  call dump_scalar_r('cwmci', cwmci)
+  call dump_scalar_c('fmois', fmois)
 end if
 
 !$omp parallel default(shared)

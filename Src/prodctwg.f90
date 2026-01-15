@@ -292,6 +292,9 @@ if (dump_call_count_prodctwg == DUMP_TARGET_prodctwg .and. .not. dump_done_prodc
   call dump_array_3d('clsg_in.bin', clsg, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('clsrn_in.bin', clsrn, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('clsgn_in.bin', clsgn, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('cc2dtn', cc2dtn)
+  call dump_scalar_r('eigiv', eigiv)
+  call dump_scalar_r('esgiv', esgiv)
 end if
 
 !$omp parallel default(shared) private(k)

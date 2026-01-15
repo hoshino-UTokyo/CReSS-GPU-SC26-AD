@@ -262,6 +262,7 @@ call profile_start(prof_id1)
 dump_call_count_allociot = dump_call_count_allociot + 1
 if (dump_call_count_allociot == DUMP_TARGET_allociot .and. .not. dump_done_allociot) then
   call dump_init('allociot')
+  call dump_scalar_i('nio', nio)
 end if
 
 !$omp parallel default(shared)

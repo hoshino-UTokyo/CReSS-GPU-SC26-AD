@@ -162,6 +162,7 @@ if (dump_call_count_sndwave == DUMP_TARGET_sndwave .and. .not. dump_done_sndwave
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
   call dump_array_3d('pbr.bin', pbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('cpdvcv', cpdvcv)
 end if
 
 !$omp parallel default(shared) private(k)

@@ -215,6 +215,7 @@ if (dump_call_count_sfcflx == DUMP_TARGET_sfcflx .and. .not. dump_done_sfcflx) t
   call dump_array_2d('z0h.bin', z0h, 0, ni+1, 0, nj+1)
   call dump_array_2d('va.bin', va, 0, ni+1, 0, nj+1)
   call dump_array_2d('rch.bin', rch, 0, ni+1, 0, nj+1)
+  call dump_scalar_r('rddwkp', rddwkp)
 end if
 
 !$omp parallel default(shared)

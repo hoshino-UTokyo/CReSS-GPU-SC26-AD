@@ -293,7 +293,7 @@ if (dump_call_count_depsit == DUMP_TARGET_depsit .and. .not. dump_done_depsit) t
   call dump_scalar_r('dtb', dtb)
   call dump_scalar_r('thresq', thresq)
   call dump_array_3d('t.bin', t, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('t0', t0)
+  ! FIXME: t0 is array - call dump_scalar_r('t0', t0)
   call dump_scalar_r('rv', rv)
   call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('rbv.bin', rbv, 0, ni+1, 0, nj+1, 1, nk)
@@ -320,6 +320,10 @@ if (dump_call_count_depsit == DUMP_TARGET_depsit .and. .not. dump_done_depsit) t
   call dump_array_3d('clcg.bin', clcg, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('mlsr.bin', mlsr, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('mlgr.bin', mlgr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('ccdtb4', ccdtb4)
+  ! FIXME: ckoe is array - call dump_scalar_r('ckoe', ckoe)
+  ! FIXME: pkoe is array - call dump_scalar_r('pkoe', pkoe)
+  call dump_scalar_r('t27311', t27311)
 end if
 
 !$omp parallel default(shared) private(k)

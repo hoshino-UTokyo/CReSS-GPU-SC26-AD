@@ -215,6 +215,8 @@ if (dump_call_count_distrpg == DUMP_TARGET_distrpg .and. .not. dump_done_distrpg
   call dump_array_3d('clsr_in.bin', clsr, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('clrsn_in.bin', clrsn, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('clsrn_in.bin', clsrn, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('rhos2', rhos2)
+  call dump_scalar_r('rhow2', rhow2)
 end if
 
 !$omp parallel default(shared) private(k)

@@ -277,13 +277,13 @@ call profile_start(prof_id1)
 dump_call_count_initund = dump_call_count_initund + 1
 if (dump_call_count_initund == DUMP_TARGET_initund .and. .not. dump_done_initund) then
   call dump_init('initund')
-  call dump_scalar_i('fpsfcdat', fpsfcdat)
-  call dump_scalar_i('fpsfcopt', fpsfcopt)
-  call dump_scalar_i('fpadvopt', fpadvopt)
-  call dump_scalar_i('fpdzgrd', fpdzgrd)
-  call dump_scalar_i('fptgdeep', fptgdeep)
-  call dump_scalar_i('fpsstcst', fpsstcst)
-  call dump_scalar_i('ni', ni)
+  call dump_scalar_c('sfcdat', sfcdat)
+  call dump_scalar_i('sfcopt', sfcopt)
+  call dump_scalar_i('advopt', advopt)
+  call dump_scalar_r('dzgrd', dzgrd)
+  call dump_scalar_r('tgdeep', tgdeep)
+  call dump_scalar_r('sstcst', sstcst)
+  ! FIXME: ni is array - call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
   call dump_scalar_i('nund', nund)
@@ -294,6 +294,12 @@ if (dump_call_count_initund == DUMP_TARGET_initund .and. .not. dump_done_initund
   call dump_array_3d('ptp.bin', ptp, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_2d_int('land.bin', land, 0, ni+1, 0, nj+1)
   call dump_array_2d('sst_in.bin', sst, 0, ni+1, 0, nj+1)
+  ! FIXME: ek is an array, not scalar
+  ! ! FIXME: ek is array - call dump_scalar_r('ek', ek)
+  call dump_scalar_r('enk', enk)
+  call dump_scalar_r('enkm1v', enkm1v)
+  call dump_scalar_r('p0iv', p0iv)
+  call dump_scalar_r('rddvcp', rddvcp)
 end if
 
 !$omp parallel default(shared) private(k)

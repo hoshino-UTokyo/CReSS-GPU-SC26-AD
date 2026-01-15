@@ -263,12 +263,12 @@ call profile_start(prof_id1)
 dump_call_count_jacobian = dump_call_count_jacobian + 1
 if (dump_call_count_jacobian == DUMP_TARGET_jacobian .and. .not. dump_done_jacobian) then
   call dump_init('jacobian')
-  call dump_scalar_i('fpwbc', fpwbc)
-  call dump_scalar_i('fpebc', fpebc)
-  call dump_scalar_i('fpexbopt', fpexbopt)
-  call dump_scalar_i('fpadvopt', fpadvopt)
-  call dump_scalar_i('fpsmtopt', fpsmtopt)
-  call dump_scalar_i('fptubopt', fptubopt)
+  call dump_scalar_i('wbc', wbc)
+  call dump_scalar_i('ebc', ebc)
+  call dump_scalar_i('exbopt', exbopt)
+  call dump_scalar_i('advopt', advopt)
+  call dump_scalar_i('smtopt', smtopt)
+  call dump_scalar_i('tubopt', tubopt)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
@@ -276,6 +276,12 @@ if (dump_call_count_jacobian == DUMP_TARGET_jacobian .and. .not. dump_done_jacob
   call dump_array_3d('rmf.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
   call dump_array_3d('rmf8u.bin', rmf8u, 0, ni+1, 0, nj+1, 1, 3)
   call dump_array_3d('rmf8v.bin', rmf8v, 0, ni+1, 0, nj+1, 1, 3)
+  ! FIXME: x is an array, not scalar
+  ! ! FIXME: x is array - call dump_scalar_r('x', x)
+  ! FIXME: y is an array, not scalar
+  ! ! FIXME: y is array - call dump_scalar_r('y', y)
+  ! FIXME: z is an array, not scalar
+  ! ! FIXME: z is array - call dump_scalar_r('z', z)
 end if
 
 !$omp parallel default(shared) private(k)

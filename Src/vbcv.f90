@@ -157,6 +157,8 @@ if (dump_call_count_vbcv == DUMP_TARGET_vbcv .and. .not. dump_done_vbcv) then
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
   call dump_array_3d('vf_in.bin', vf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_i('nkm1', nkm1)
+  call dump_scalar_i('nkm2', nkm2)
 end if
 
 call profile_start(prof_id1)

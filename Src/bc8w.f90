@@ -170,12 +170,14 @@ call profile_start(prof_id1)
 dump_call_count_bc8w = dump_call_count_bc8w + 1
 if (dump_call_count_bc8w == DUMP_TARGET_bc8w .and. .not. dump_done_bc8w) then
   call dump_init('bc8w')
-  call dump_scalar_i('fpbbc', fpbbc)
-  call dump_scalar_i('fptbc', fptbc)
+  call dump_scalar_i('bbc', bbc)
+  call dump_scalar_i('tbc', tbc)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
   call dump_array_3d('var8w_in.bin', var8w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_i('nkm1', nkm1)
+  call dump_scalar_i('nkm2', nkm2)
 end if
 
 !$omp parallel default(shared)

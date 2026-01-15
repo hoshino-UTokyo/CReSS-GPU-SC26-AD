@@ -206,12 +206,21 @@ call profile_start(prof_id1)
 dump_call_count_getxy = dump_call_count_getxy + 1
 if (dump_call_count_getxy == DUMP_TARGET_getxy .and. .not. dump_done_getxy) then
   call dump_init('getxy')
-  call dump_scalar_i('fpdx', fpdx)
-  call dump_scalar_i('fpdy', fpdy)
+  call dump_scalar_r('dx', dx)
+  call dump_scalar_r('dy', dy)
   call dump_scalar_i('imin', imin)
   call dump_scalar_i('imax', imax)
   call dump_scalar_i('jmin', jmin)
   call dump_scalar_i('jmax', jmax)
+  call dump_scalar_i('ies2', ies2)
+  call dump_scalar_i('ies23', ies23)
+  call dump_scalar_i('jes2', jes2)
+  call dump_scalar_i('jes23', jes23)
+  ! FIXME: x is an array, not scalar
+  ! ! FIXME: x is array - call dump_scalar_r('x', x)
+  ! FIXME: xo is array - call dump_scalar_r('xo', xo)
+  ! FIXME: y is an array, not scalar
+  ! ! FIXME: y is array - call dump_scalar_r('y', y)
 end if
 
 !$omp parallel default(shared)

@@ -380,6 +380,11 @@ if (dump_call_count_stepwi == DUMP_TARGET_stepwi .and. .not. dump_done_stepwi) t
   call dump_array_3d('rcsq.bin', rcsq, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('fw_in.bin', fw, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('wf_in.bin', wf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('g05', g05)
+  call dump_scalar_r('sbsqg5', sbsqg5)
+  call dump_scalar_r('sbsqzi', sbsqzi)
+  ! FIXME: wc is an array, not scalar
+  ! ! FIXME: wc is array - call dump_scalar_r('wc', wc)
 end if
 
 call profile_start(prof_id1)

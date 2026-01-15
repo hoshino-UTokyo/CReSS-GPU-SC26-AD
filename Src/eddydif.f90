@@ -206,9 +206,9 @@ call profile_start(prof_id1)
 dump_call_count_eddydif = dump_call_count_eddydif + 1
 if (dump_call_count_eddydif == DUMP_TARGET_eddydif .and. .not. dump_done_eddydif) then
   call dump_init('eddydif')
-  call dump_scalar_i('fpmfcopt', fpmfcopt)
-  call dump_scalar_i('fptubopt', fptubopt)
-  call dump_scalar_i('fpisoopt', fpisoopt)
+  call dump_scalar_i('mfcopt', mfcopt)
+  call dump_scalar_i('tubopt', tubopt)
+  call dump_scalar_i('isoopt', isoopt)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
@@ -217,6 +217,7 @@ if (dump_call_count_eddydif == DUMP_TARGET_eddydif .and. .not. dump_done_eddydif
   call dump_array_3d('priv.bin', priv, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('rkh_in.bin', rkh, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('rkv8w_in.bin', rkv8w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('cpriv', cpriv)
 end if
 
 !$omp parallel default(shared) private(k)

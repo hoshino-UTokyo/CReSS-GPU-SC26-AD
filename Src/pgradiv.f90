@@ -200,6 +200,7 @@ if (dump_call_count_pgradiv == DUMP_TARGET_pgradiv .and. .not. dump_done_pgradiv
   call dump_array_3d('fp.bin', fp, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('fw_in.bin', fw, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('fpdvj_in.bin', fpdvj, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('dtdzw', dtdzw)
 end if
 
 !$omp parallel default(shared) private(k)

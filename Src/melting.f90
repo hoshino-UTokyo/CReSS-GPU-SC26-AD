@@ -249,6 +249,7 @@ if (dump_call_count_melting == DUMP_TARGET_melting .and. .not. dump_done_melting
   call dump_array_3d('clcg.bin', clcg, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('clrs.bin', clrs, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('clrg.bin', clrg, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('cc2dt', cc2dt)
 end if
 
 !$omp parallel default(shared) private(k)

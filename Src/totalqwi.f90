@@ -177,8 +177,8 @@ call profile_start(prof_id1)
 dump_call_count_totalqwi = dump_call_count_totalqwi + 1
 if (dump_call_count_totalqwi == DUMP_TARGET_totalqwi .and. .not. dump_done_totalqwi) then
   call dump_init('totalqwi')
-  call dump_scalar_i('fpcphopt', fpcphopt)
-  call dump_scalar_i('fphaiopt', fphaiopt)
+  call dump_scalar_i('cphopt', cphopt)
+  call dump_scalar_i('haiopt', haiopt)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)

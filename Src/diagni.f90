@@ -213,14 +213,24 @@ loop_len = int((nk-1)-(1)+1,8) &
 dump_call_count_diagni = dump_call_count_diagni + 1
 if (dump_call_count_diagni == DUMP_TARGET_diagni .and. .not. dump_done_diagni) then
   call dump_init('diagni')
-  call dump_scalar_i('ni', ni)
+  ! FIXME: ni is array - call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
   call dump_scalar_i('nqi', nqi)
   call dump_scalar_i('nni', nni)
-  call dump_scalar_i('haiopt', haiopt)
+  ! FIXME: haiopt is array - call dump_scalar_i('haiopt', haiopt)
   call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_4d('qice.bin', qice, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+  call dump_scalar_r('cdiaqg', cdiaqg)
+  call dump_scalar_r('cdiaqh', cdiaqh)
+  call dump_scalar_r('cdiaqs', cdiaqs)
+  call dump_scalar_r('mg0iv2', mg0iv2)
+  call dump_scalar_r('mgmiv2', mgmiv2)
+  call dump_scalar_r('mh0iv2', mh0iv2)
+  call dump_scalar_r('mhmiv2', mhmiv2)
+  call dump_scalar_r('miiv', miiv)
+  call dump_scalar_r('ms0iv2', ms0iv2)
+  call dump_scalar_r('msmiv2', msmiv2)
 end if
 
 call profile_start(prof_id1)

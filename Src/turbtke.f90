@@ -250,12 +250,12 @@ call profile_start(prof_id1)
 dump_call_count_turbtke = dump_call_count_turbtke + 1
 if (dump_call_count_turbtke == DUMP_TARGET_turbtke .and. .not. dump_done_turbtke) then
   call dump_init('turbtke')
-  call dump_scalar_i('fptrnopt', fptrnopt)
-  call dump_scalar_i('fpmpopt', fpmpopt)
-  call dump_scalar_i('fpmfcopt', fpmfcopt)
-  call dump_scalar_i('fpdxiv', fpdxiv)
-  call dump_scalar_i('fpdyiv', fpdyiv)
-  call dump_scalar_i('fpdziv', fpdziv)
+  call dump_scalar_i('trnopt', trnopt)
+  call dump_scalar_i('mpopt', mpopt)
+  call dump_scalar_i('mfcopt', mfcopt)
+  call dump_scalar_r('dxiv', dxiv)
+  call dump_scalar_r('dyiv', dyiv)
+  call dump_scalar_r('dziv', dziv)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
@@ -274,6 +274,9 @@ if (dump_call_count_turbtke == DUMP_TARGET_turbtke .and. .not. dump_done_turbtke
   call dump_array_3d('tmp1_in.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('tmp2_in.bin', tmp2, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('tmp3_in.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('dxiv2', dxiv2)
+  call dump_scalar_r('dyiv2', dyiv2)
+  call dump_scalar_r('dziv2', dziv2)
 end if
 
 !$omp parallel default(shared) private(k)

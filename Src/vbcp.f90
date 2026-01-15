@@ -168,11 +168,13 @@ call profile_start(prof_id1)
 dump_call_count_vbcp = dump_call_count_vbcp + 1
 if (dump_call_count_vbcp == DUMP_TARGET_vbcp .and. .not. dump_done_vbcp) then
   call dump_init('vbcp')
-  call dump_scalar_i('fpbbc', fpbbc)
+  call dump_scalar_i('bbc', bbc)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
   call dump_array_3d('ppf_in.bin', ppf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_i('nkm1', nkm1)
+  call dump_scalar_i('nkm2', nkm2)
 end if
 
 !$omp parallel default(shared)

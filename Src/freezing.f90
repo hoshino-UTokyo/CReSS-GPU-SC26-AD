@@ -208,6 +208,9 @@ if (dump_call_count_freezing == DUMP_TARGET_freezing .and. .not. dump_done_freez
   call dump_array_3d('ncr.bin', ncr, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('tcel.bin', tcel, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('diaqr.bin', diaqr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('cfrrg', cfrrg)
+  call dump_scalar_r('cfrrgn', cfrrgn)
+  call dump_scalar_r('tclow', tclow)
 end if
 
 !$omp parallel default(shared) private(k)

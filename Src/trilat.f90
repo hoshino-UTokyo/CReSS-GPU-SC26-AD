@@ -169,10 +169,11 @@ call profile_start(prof_id1)
 dump_call_count_trilat = dump_call_count_trilat + 1
 if (dump_call_count_trilat == DUMP_TARGET_trilat .and. .not. dump_done_trilat) then
   call dump_init('trilat')
-  call dump_scalar_i('fpcoropt', fpcoropt)
+  ! FIXME: coropt is array - call dump_scalar_i('coropt', coropt)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_array_2d('lat.bin', lat, 0, ni+1, 0, nj+1)
+  call dump_scalar_r('omega5', omega5)
 end if
 
 !$omp parallel default(shared)

@@ -153,9 +153,11 @@ call profile_start(prof_id1)
 dump_call_count_getz = dump_call_count_getz + 1
 if (dump_call_count_getz == DUMP_TARGET_getz .and. .not. dump_done_getz) then
   call dump_init('getz')
-  call dump_scalar_i('fpdz', fpdz)
-  call dump_scalar_i('fpzsfc', fpzsfc)
+  call dump_scalar_r('dz', dz)
+  call dump_scalar_r('zsfc', zsfc)
   call dump_scalar_i('nk', nk)
+  ! FIXME: z is an array, not scalar
+  ! ! FIXME: z is array - call dump_scalar_r('z', z)
 end if
 
 !$omp parallel default(shared)

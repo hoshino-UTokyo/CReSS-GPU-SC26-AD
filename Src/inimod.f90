@@ -198,6 +198,10 @@ call profile_start(prof_id1)
 dump_call_count_inimod = dump_call_count_inimod + 1
 if (dump_call_count_inimod == DUMP_TARGET_inimod .and. .not. dump_done_inimod) then
   call dump_init('inimod')
+  ! FIXME: iname is array - call dump_scalar_r('iname', iname)
+  ! FIXME: riname is array - call dump_scalar_r('riname', riname)
+  ! FIXME: rname is array - call dump_scalar_r('rname', rname)
+  ! FIXME: rrname is array - call dump_scalar_r('rrname', rrname)
 end if
 
 !$omp parallel default(shared)

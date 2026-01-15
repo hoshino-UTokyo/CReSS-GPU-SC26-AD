@@ -182,6 +182,9 @@ if (dump_call_count_diagnw == DUMP_TARGET_diagnw .and. .not. dump_done_diagnw) t
   call dump_scalar_i('nnw', nnw)
   call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_4d('qwtr.bin', qwtr, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
+  call dump_scalar_r('cdiaqr', cdiaqr)
+  call dump_scalar_r('mr0iv2', mr0iv2)
+  call dump_scalar_r('mrmiv2', mrmiv2)
 end if
 
 !$omp parallel default(shared) private(k)

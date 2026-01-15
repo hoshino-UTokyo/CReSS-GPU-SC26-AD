@@ -178,8 +178,8 @@ call profile_start(prof_id1)
 dump_call_count_adjstq = dump_call_count_adjstq + 1
 if (dump_call_count_adjstq == DUMP_TARGET_adjstq .and. .not. dump_done_adjstq) then
   call dump_init('adjstq')
-  call dump_scalar_i('fpcphopt', fpcphopt)
-  call dump_scalar_i('fphaiopt', fphaiopt)
+  call dump_scalar_i('cphopt', cphopt)
+  call dump_scalar_i('haiopt', haiopt)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)

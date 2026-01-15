@@ -184,8 +184,8 @@ call profile_start(prof_id1)
 dump_call_count_bbcw = dump_call_count_bbcw + 1
 if (dump_call_count_bbcw == DUMP_TARGET_bbcw .and. .not. dump_done_bbcw) then
   call dump_init('bbcw')
-  call dump_scalar_i('fpmpopt', fpmpopt)
-  call dump_scalar_i('fpmfcopt', fpmfcopt)
+  call dump_scalar_i('mpopt', mpopt)
+  call dump_scalar_i('mfcopt', mfcopt)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)

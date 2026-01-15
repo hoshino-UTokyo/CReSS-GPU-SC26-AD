@@ -208,7 +208,7 @@ call profile_start(prof_id1)
 dump_call_count_siadjst = dump_call_count_siadjst + 1
 if (dump_call_count_siadjst == DUMP_TARGET_siadjst .and. .not. dump_done_siadjst) then
   call dump_init('siadjst')
-  call dump_scalar_i('fpthresq', fpthresq)
+  call dump_scalar_r('thresq', thresq)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
@@ -225,6 +225,8 @@ if (dump_call_count_siadjst == DUMP_TARGET_siadjst .and. .not. dump_done_siadjst
   call dump_array_3d('qv_in.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qi_in.bin', qi, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('nci_in.bin', nci, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('cwmci', cwmci)
+  call dump_scalar_r('mi0iv', mi0iv)
 end if
 
 !$omp parallel default(shared) private(k)

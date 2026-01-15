@@ -260,10 +260,10 @@ call profile_start(prof_id1)
 dump_call_count_setgpv = dump_call_count_setgpv + 1
 if (dump_call_count_setgpv == DUMP_TARGET_setgpv .and. .not. dump_done_setgpv) then
   call dump_init('setgpv')
-  call dump_scalar_i('fpgpvvar', fpgpvvar)
-  call dump_scalar_i('fpcphopt', fpcphopt)
-  call dump_scalar_i('fphaiopt', fphaiopt)
-  call dump_scalar_i('fpgpvitv', fpgpvitv)
+  call dump_scalar_c('gpvvar', gpvvar)
+  call dump_scalar_i('cphopt', cphopt)
+  call dump_scalar_i('haiopt', haiopt)
+  call dump_scalar_r('gpvitv', gpvitv)
   call dump_scalar_i('ird', ird)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
@@ -286,6 +286,7 @@ if (dump_call_count_setgpv == DUMP_TARGET_setgpv .and. .not. dump_done_setgpv) t
   call dump_array_4d('qwtd_in.bin', qwtd, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
   call dump_array_4d('qigpv_in.bin', qigpv, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
   call dump_array_4d('qitd_in.bin', qitd, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+  call dump_scalar_r('gpviv', gpviv)
 end if
 
 !$omp parallel default(shared) private(k)

@@ -172,8 +172,8 @@ call profile_start(prof_id1)
 dump_call_count_bcyclex = dump_call_count_bcyclex + 1
 if (dump_call_count_bcyclex == DUMP_TARGET_bcyclex .and. .not. dump_done_bcyclex) then
   call dump_init('bcyclex')
-  call dump_scalar_i('fpwbc', fpwbc)
-  call dump_scalar_i('fpebc', fpebc)
+  call dump_scalar_i('wbc', wbc)
+  call dump_scalar_i('ebc', ebc)
   call dump_scalar_i('iwsnd', iwsnd)
   call dump_scalar_i('iwrcv', iwrcv)
   call dump_scalar_i('iesnd', iesnd)
@@ -182,6 +182,7 @@ if (dump_call_count_bcyclex == DUMP_TARGET_bcyclex .and. .not. dump_done_bcyclex
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('kmax', kmax)
   call dump_array_3d('var_in.bin', var, 0, ni+1, 0, nj+1, 1, kmax)
+  call dump_scalar_i('nisub', nisub)
 end if
 
 !$omp parallel default(shared) private(k)

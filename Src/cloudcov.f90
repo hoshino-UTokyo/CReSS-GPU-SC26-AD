@@ -252,8 +252,8 @@ call profile_start(prof_id1)
 dump_call_count_cloudcov = dump_call_count_cloudcov + 1
 if (dump_call_count_cloudcov == DUMP_TARGET_cloudcov .and. .not. dump_done_cloudcov) then
   call dump_init('cloudcov')
-  call dump_scalar_i('fpcphopt', fpcphopt)
-  call dump_scalar_i('fpdz', fpdz)
+  call dump_scalar_i('cphopt', cphopt)
+  call dump_scalar_r('dz', dz)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
@@ -274,6 +274,12 @@ if (dump_call_count_cloudcov == DUMP_TARGET_cloudcov .and. .not. dump_done_cloud
   call dump_array_2d('qsuml_in.bin', qsuml, 0, ni+1, 0, nj+1)
   call dump_array_2d('qsumm_in.bin', qsumm, 0, ni+1, 0, nj+1)
   call dump_array_2d('qsumh_in.bin', qsumh, 0, ni+1, 0, nj+1)
+  call dump_scalar_r('es0iv2', es0iv2)
+  call dump_scalar_c('fmois', fmois)
+  call dump_scalar_c('fproc', fproc)
+  ! FIXME: rcdh is array - call dump_scalar_r('rcdh', rcdh)
+  ! FIXME: rcdl is array - call dump_scalar_r('rcdl', rcdl)
+  ! FIXME: rcdm is array - call dump_scalar_r('rcdm', rcdm)
 end if
 
 !$omp parallel default(shared) private(k)

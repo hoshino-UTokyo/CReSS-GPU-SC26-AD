@@ -262,6 +262,12 @@ if (dump_call_count_aggregat == DUMP_TARGET_aggregat .and. .not. dump_done_aggre
   call dump_array_3d('ncs.bin', ncs, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('diaqc.bin', diaqc, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('diaqr.bin', diaqr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('cagcn', cagcn)
+  call dump_scalar_r('cagin', cagin)
+  call dump_scalar_r('cagrn2', cagrn2)
+  call dump_scalar_r('cagsn', cagsn)
+  call dump_scalar_r('expo1', expo1)
+  call dump_scalar_r('expo2', expo2)
 end if
 
 !$omp parallel default(shared) private(k)

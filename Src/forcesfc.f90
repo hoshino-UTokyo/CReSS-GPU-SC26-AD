@@ -218,6 +218,7 @@ if (dump_call_count_forcesfc == DUMP_TARGET_forcesfc .and. .not. dump_done_force
   call dump_array_2d('ce.bin', ce, 0, ni+1, 0, nj+1)
   call dump_array_2d('ct.bin', ct, 0, ni+1, 0, nj+1)
   call dump_array_2d('cq.bin', cq, 0, ni+1, 0, nj+1)
+  call dump_scalar_c('fmois', fmois)
 end if
 
 !$omp parallel default(shared)

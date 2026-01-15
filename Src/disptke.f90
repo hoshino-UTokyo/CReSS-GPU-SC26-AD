@@ -234,6 +234,8 @@ if (dump_call_count_disptke == DUMP_TARGET_disptke .and. .not. dump_done_disptke
   call dump_array_3d('priv.bin', priv, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('tke.bin', tke, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('tkefrc_in.bin', tkefrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('ds308', ds308)
+  call dump_scalar_r('dz05', dz05)
 end if
 
 call profile_start(prof_id1)

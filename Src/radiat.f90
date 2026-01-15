@@ -342,7 +342,7 @@ call profile_start(prof_id1)
 dump_call_count_radiat = dump_call_count_radiat + 1
 if (dump_call_count_radiat == DUMP_TARGET_radiat .and. .not. dump_done_radiat) then
   call dump_init('radiat')
-  call dump_scalar_i('fpcphopt', fpcphopt)
+  call dump_scalar_i('cphopt', cphopt)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
@@ -366,6 +366,16 @@ if (dump_call_count_radiat == DUMP_TARGET_radiat .and. .not. dump_done_radiat) t
   call dump_array_3d('zph8s_in.bin', zph8s, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_2d('zref_in.bin', zref, 0, ni+1, 0, nj+1)
   call dump_array_2d('coseta_in.bin', coseta, 0, ni+1, 0, nj+1)
+  call dump_scalar_r('cosphs', cosphs)
+  call dump_scalar_r('eqt', eqt)
+  call dump_scalar_r('esgm', esgm)
+  call dump_scalar_r('esgm51', esgm51)
+  ! FIXME: fmois is array - call dump_scalar_r('fmois', fmois)
+  call dump_scalar_r('ln1013', ln1013)
+  call dump_scalar_i('nkm1', nkm1)
+  call dump_scalar_r('rchr', rchr)
+  call dump_scalar_r('rcmn', rcmn)
+  call dump_scalar_r('sinphs', sinphs)
 end if
 
 !$omp parallel default(shared) private(k)

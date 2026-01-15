@@ -291,6 +291,14 @@ if (dump_call_count_convers == DUMP_TARGET_convers .and. .not. dump_done_convers
   call dump_array_3d('vdvi.bin', vdvi, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('vdvs.bin', vdvs, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('ecs.bin', ecs, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('busm1', busm1)
+  call dump_scalar_r('cagin', cagin)
+  call dump_scalar_r('ccncr', ccncr)
+  call dump_scalar_r('ccnsg', ccnsg)
+  call dump_scalar_r('ccnsgn', ccnsgn)
+  call dump_scalar_r('diaqs0', diaqs0)
+  call dump_scalar_r('ms05', ms05)
+  call dump_scalar_r('qccm', qccm)
 end if
 
 !$omp parallel default(shared) private(k)

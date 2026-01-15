@@ -176,6 +176,9 @@ if (dump_call_count_defomssq == DUMP_TARGET_defomssq .and. .not. dump_done_defom
   call dump_array_3d('s12.bin', s12, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('s31.bin', s31, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('s32.bin', s32, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('s128s', s128s)
+  call dump_scalar_r('s318s', s318s)
+  call dump_scalar_r('s328s', s328s)
 end if
 
 !$omp parallel default(shared) private(k)

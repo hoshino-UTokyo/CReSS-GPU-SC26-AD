@@ -208,8 +208,8 @@ call profile_start(prof_id1)
 dump_call_count_buoywb = dump_call_count_buoywb + 1
 if (dump_call_count_buoywb == DUMP_TARGET_buoywb .and. .not. dump_done_buoywb) then
   call dump_init('buoywb')
-  call dump_scalar_i('fpgwmopt', fpgwmopt)
-  call dump_scalar_i('fpcphopt', fpcphopt)
+  call dump_scalar_i('gwmopt', gwmopt)
+  call dump_scalar_i('cphopt', cphopt)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
@@ -222,6 +222,8 @@ if (dump_call_count_buoywb == DUMP_TARGET_buoywb .and. .not. dump_done_buoywb) t
   call dump_array_3d('wfrc_in.bin', wfrc, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qvd_in.bin', qvd, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('wb8s_in.bin', wb8s, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_c('fmois', fmois)
+  call dump_scalar_r('g05', g05)
 end if
 
 !$omp parallel default(shared) private(k)

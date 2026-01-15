@@ -229,6 +229,15 @@ if (dump_call_count_chksat == DUMP_TARGET_chksat .and. .not. dump_done_chksat) t
   call dump_array_3d('pp.bin', pp, imin, imax, jmin, jmax, kmin, kmax)
   call dump_array_3d('ptp.bin', ptp, imin, imax, jmin, jmax, kmin, kmax)
   call dump_array_3d('qv_in.bin', qv, imin, imax, jmin, jmax, kmin, kmax)
+  call dump_scalar_c('fproc', fproc)
+  call dump_scalar_i('iend', iend)
+  call dump_scalar_i('istr', istr)
+  call dump_scalar_i('jend', jend)
+  call dump_scalar_i('jstr', jstr)
+  call dump_scalar_i('kend', kend)
+  call dump_scalar_i('kstr', kstr)
+  call dump_scalar_r('p0iv', p0iv)
+  call dump_scalar_r('rddvcp', rddvcp)
 end if
 
 !$omp parallel default(shared) private(k)

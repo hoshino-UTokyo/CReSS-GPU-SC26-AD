@@ -214,6 +214,8 @@ if (dump_call_count_bcycle == DUMP_TARGET_bcycle .and. .not. dump_done_bcycle) t
   call dump_scalar_i('jnsnd', jnsnd)
   call dump_scalar_i('jnrcv', jnrcv)
   call dump_array_3d('var_in.bin', var, 0, ni+1, 0, nj+1, 1, kmax)
+  call dump_scalar_i('nisub', nisub)
+  call dump_scalar_i('njsub', njsub)
 end if
 
 call profile_start(prof_id1)

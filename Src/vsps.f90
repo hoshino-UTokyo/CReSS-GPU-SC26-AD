@@ -205,8 +205,8 @@ call profile_start(prof_id1)
 dump_call_count_vsps = dump_call_count_vsps + 1
 if (dump_call_count_vsps == DUMP_TARGET_vsps .and. .not. dump_done_vsps) then
   call dump_init('vsps')
-  call dump_scalar_i('fpgpvvar', fpgpvvar)
-  call dump_scalar_i('fpvspopt', fpvspopt)
+  call dump_scalar_c('gpvvar', gpvvar)
+  call dump_scalar_i('vspopt', vspopt)
   call dump_scalar_i('apg', apg)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
@@ -218,6 +218,8 @@ if (dump_call_count_vsps == DUMP_TARGET_vsps .and. .not. dump_done_vsps) then
   call dump_array_3d('sgpv.bin', sgpv, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('std.bin', std, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('sfrc_in.bin', sfrc, 0, ni+1, 0, nj+1, 1, nk)
+  ! FIXME: ksp0 is an array, not scalar
+  ! ! FIXME: ksp0 is array - call dump_scalar_i('ksp0', ksp0)
 end if
 
 !$omp parallel default(shared) private(k)

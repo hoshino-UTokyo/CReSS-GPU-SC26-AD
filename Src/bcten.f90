@@ -167,12 +167,13 @@ call profile_start(prof_id1)
 dump_call_count_bcten = dump_call_count_bcten + 1
 if (dump_call_count_bcten == DUMP_TARGET_bcten .and. .not. dump_done_bcten) then
   call dump_init('bcten')
-  call dump_scalar_i('fpbbc', fpbbc)
-  call dump_scalar_i('fptbc', fptbc)
+  call dump_scalar_i('bbc', bbc)
+  call dump_scalar_i('tbc', tbc)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
   call dump_array_3d('ten_in.bin', ten, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_i('nkm2', nkm2)
 end if
 
 !$omp parallel default(shared)

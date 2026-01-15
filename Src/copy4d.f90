@@ -201,6 +201,7 @@ end if
 
 ! Dump output data at target call
 if (dump_call_count_copy4d == DUMP_TARGET_copy4d .and. .not. dump_done_copy4d) then
+  call dump_array_4d('outvar_ref.bin', outvar, imin, imax, jmin, jmax, kmin, kmax, nmin, nmax)
   call dump_finalize()
   dump_done_copy4d = .true.
 end if

@@ -423,12 +423,12 @@ call profile_start(prof_id1)
 dump_call_count_newblk = dump_call_count_newblk + 1
 if (dump_call_count_newblk == DUMP_TARGET_newblk .and. .not. dump_done_newblk) then
   call dump_init('newblk')
-  call dump_scalar_i('cphopt', cphopt)
+  ! FIXME: cphopt is array - call dump_scalar_i('cphopt', cphopt)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
   call dump_scalar_r('thresq', thresq)
-  call dump_scalar_r('cp', cp)
+  ! FIXME: cp is array - call dump_scalar_r('cp', cp)
   call dump_array_3d('pi.bin', pi, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qcp.bin', qcp, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qrp.bin', qrp, 0, ni+1, 0, nj+1, 1, nk)
@@ -493,6 +493,9 @@ if (dump_call_count_newblk == DUMP_TARGET_newblk .and. .not. dump_done_newblk) t
   call dump_array_3d('ncif_in.bin', ncif, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('ncsf_in.bin', ncsf, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('ncgf_in.bin', ncgf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('mi0iv', mi0iv)
+  call dump_scalar_r('mr0iv', mr0iv)
+  call dump_scalar_r('ms0iv', ms0iv)
 end if
 
 !$omp parallel default(shared) private(k)

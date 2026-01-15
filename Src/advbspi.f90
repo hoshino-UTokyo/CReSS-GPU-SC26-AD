@@ -205,6 +205,8 @@ if (dump_call_count_advbspi == DUMP_TARGET_advbspi .and. .not. dump_done_advbspi
   call dump_array_3d('phdiv.bin', phdiv, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('pvdiv.bin', pvdiv, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('fp_in.bin', fp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('g05', g05)
+  call dump_scalar_r('weic1m', weic1m)
 end if
 
 call profile_start(prof_id1)

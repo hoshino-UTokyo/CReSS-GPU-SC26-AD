@@ -586,6 +586,16 @@ call profile_start(prof_id1)
 dump_call_count_setname = dump_call_count_setname + 1
 if (dump_call_count_setname == DUMP_TARGET_setname .and. .not. dump_done_setname) then
   call dump_init('setname')
+  ! FIXME: albe_lnd is array - call dump_scalar_r('albe_lnd', albe_lnd)
+  ! FIXME: beta_lnd is array - call dump_scalar_r('beta_lnd', beta_lnd)
+  ! FIXME: cap_lnd is array - call dump_scalar_r('cap_lnd', cap_lnd)
+  ! FIXME: iname is array - call dump_scalar_r('iname', iname)
+  ! FIXME: lnduse_lnd is array - call dump_scalar_r('lnduse_lnd', lnduse_lnd)
+  ! FIXME: numctg_lnd is array - call dump_scalar_r('numctg_lnd', numctg_lnd)
+  ! FIXME: nuu_lnd is array - call dump_scalar_r('nuu_lnd', nuu_lnd)
+  ! FIXME: rname is array - call dump_scalar_r('rname', rname)
+  ! FIXME: z0h_lnd is array - call dump_scalar_r('z0h_lnd', z0h_lnd)
+  ! FIXME: z0m_lnd is array - call dump_scalar_r('z0m_lnd', z0m_lnd)
 end if
 
 !$omp parallel default(shared)

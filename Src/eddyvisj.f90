@@ -167,7 +167,7 @@ call profile_start(prof_id1)
 dump_call_count_eddyvisj = dump_call_count_eddyvisj + 1
 if (dump_call_count_eddyvisj == DUMP_TARGET_eddyvisj .and. .not. dump_done_eddyvisj) then
   call dump_init('eddyvisj')
-  call dump_scalar_i('fpmfcopt', fpmfcopt)
+  call dump_scalar_i('mfcopt', mfcopt)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)

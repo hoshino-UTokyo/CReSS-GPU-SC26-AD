@@ -253,9 +253,9 @@ call profile_start(prof_id1)
 dump_call_count_xy2ll = dump_call_count_xy2ll + 1
 if (dump_call_count_xy2ll == DUMP_TARGET_xy2ll .and. .not. dump_done_xy2ll) then
   call dump_init('xy2ll')
-  call dump_scalar_i('fpmpopt', fpmpopt)
-  call dump_scalar_i('fpnspol', fpnspol)
-  call dump_scalar_i('fptlon', fptlon)
+  call dump_scalar_i('mpopt', mpopt)
+  call dump_scalar_i('nspol', nspol)
+  call dump_scalar_r('tlon', tlon)
   call dump_scalar_i('ncpn', ncpn)
   call dump_scalar_i('imin', imin)
   call dump_scalar_i('imax', imax)
@@ -265,6 +265,18 @@ if (dump_call_count_xy2ll == DUMP_TARGET_xy2ll .and. .not. dump_done_xy2ll) then
   call dump_scalar_r('y0', y0)
   call dump_array_1d('x.bin', x, imin, imax)
   call dump_array_1d('y.bin', y, jmin, jmax)
+  ! FIXME: cpj is an array, not scalar
+  ! ! FIXME: cpj is array - call dump_scalar_r('cpj', cpj)
+  call dump_scalar_i('iend', iend)
+  call dump_scalar_i('istr', istr)
+  call dump_scalar_i('jend', jend)
+  call dump_scalar_i('jstr', jstr)
+  ! FIXME: pname is array - call dump_scalar_r('pname', pname)
+  call dump_scalar_r('r2d2', r2d2)
+  call dump_scalar_r('r2d3', r2d3)
+  call dump_scalar_r('r2d5', r2d5)
+  call dump_scalar_r('rpol', rpol)
+  call dump_scalar_r('tlonw', tlonw)
 end if
 
 !$omp parallel default(shared)

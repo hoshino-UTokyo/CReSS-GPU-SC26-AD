@@ -250,6 +250,12 @@ if (dump_call_count_phy2cnt == DUMP_TARGET_phy2cnt .and. .not. dump_done_phy2cnt
   call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('w.bin', w, 0, ni+1, 0, nj+1, 1, nk)
+  ! FIXME: j31u2 is an array, not scalar
+  ! ! FIXME: j31u2 is array - call dump_scalar_r('j31u2', j31u2)
+  ! FIXME: j32v2 is an array, not scalar
+  ! ! FIXME: j32v2 is array - call dump_scalar_r('j32v2', j32v2)
+  ! FIXME: mf25 is an array, not scalar
+  ! ! FIXME: mf25 is array - call dump_scalar_i('mf25', mf25)
 end if
 
 call profile_start(prof_id1)

@@ -240,6 +240,12 @@ if (dump_call_count_diver3d == DUMP_TARGET_diver3d .and. .not. dump_done_diver3d
   call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('wc.bin', wc, 0, ni+1, 0, nj+1, 1, nk)
+  ! FIXME: tmp1 is an array, not scalar
+  ! ! FIXME: tmp1 is array - call dump_scalar_i('tmp1', tmp1)
+  ! FIXME: tmp2 is an array, not scalar
+  ! ! FIXME: tmp2 is array - call dump_scalar_r('tmp2', tmp2)
+  ! FIXME: tmp3 is an array, not scalar
+  ! ! FIXME: tmp3 is array - call dump_scalar_r('tmp3', tmp3)
 end if
 
 call profile_start(prof_id1)

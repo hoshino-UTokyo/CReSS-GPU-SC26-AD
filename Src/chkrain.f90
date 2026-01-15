@@ -173,14 +173,15 @@ call profile_start(prof_id1)
 dump_call_count_chkrain = dump_call_count_chkrain + 1
 if (dump_call_count_chkrain == DUMP_TARGET_chkrain .and. .not. dump_done_chkrain) then
   call dump_init('chkrain')
-  call dump_scalar_i('fpcphopt', fpcphopt)
-  call dump_scalar_i('fphaiopt', fphaiopt)
+  call dump_scalar_i('cphopt', cphopt)
+  call dump_scalar_i('haiopt', haiopt)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nqw', nqw)
   call dump_scalar_i('nqi', nqi)
   call dump_array_4d('prwtr.bin', prwtr, 0, ni+1, 0, nj+1, 1, 2, 1, nqw)
   call dump_array_4d('price.bin', price, 0, ni+1, 0, nj+1, 1, 2, 1, nqi)
+  call dump_scalar_c('fmois', fmois)
 end if
 
 !$omp parallel default(shared)

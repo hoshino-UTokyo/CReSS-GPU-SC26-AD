@@ -174,7 +174,8 @@ if (dump_call_count_setcst4d == DUMP_TARGET_setcst4d .and. .not. dump_done_setcs
   call dump_scalar_i('kmax', kmax)
   call dump_scalar_i('nmin', nmin)
   call dump_scalar_i('nmax', nmax)
-  call dump_scalar_r('invar', invar)
+  ! FIXME: invar is array - call dump_scalar_r('invar', invar)
+  ! FIXME: outvar is array - ! FIXME: outvar is array - call dump_scalar_r('outvar', outvar)
 end if
 
 !$omp parallel default(shared) private(k,n)

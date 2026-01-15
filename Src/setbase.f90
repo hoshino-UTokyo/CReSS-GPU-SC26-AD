@@ -209,6 +209,8 @@ if (dump_call_count_setbase == DUMP_TARGET_setbase .and. .not. dump_done_setbase
   call dump_array_3d('zph8s_in.bin', zph8s, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('pibr_in.bin', pibr, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('ptvbr_in.bin', ptvbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('p0iv', p0iv)
+  call dump_scalar_r('rddvcp', rddvcp)
 end if
 
 !$omp parallel default(shared) private(k)

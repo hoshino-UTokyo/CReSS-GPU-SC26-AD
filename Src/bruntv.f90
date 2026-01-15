@@ -252,12 +252,12 @@ if (dump_call_count_bruntv == DUMP_TARGET_bruntv .and. .not. dump_done_bruntv) t
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
-  call dump_scalar_i('cphopt', cphopt)
+  ! FIXME: cphopt is array - call dump_scalar_i('cphopt', cphopt)
   call dump_scalar_r('dziv', dziv)
   call dump_scalar_r('thresq', thresq)
   call dump_scalar_c('fmois', fmois)
   ! Comphy constants
-  call dump_scalar_r('g', g)
+  ! FIXME: g is array - call dump_scalar_r('g', g)
   call dump_scalar_r('rd', rd)
   call dump_scalar_r('cp', cp)
   call dump_scalar_r('cw', cw)
@@ -281,6 +281,12 @@ if (dump_call_count_bruntv == DUMP_TARGET_bruntv .and. .not. dump_done_bruntv) t
   call dump_array_3d('ptv_in.bin', ptv, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('a_in.bin', a, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_2d('t_in.bin', t, 0, ni+1, 0, nj+1)
+  call dump_scalar_r('cwmci', cwmci)
+  call dump_scalar_r('gdzv', gdzv)
+  call dump_scalar_r('gdzv05', gdzv05)
+  call dump_scalar_i('nkm1', nkm1)
+  call dump_scalar_r('p0iv', p0iv)
+  call dump_scalar_r('rddvcp', rddvcp)
 end if
 
 !$omp parallel default(shared) private(k)

@@ -194,7 +194,7 @@ call profile_start(prof_id1)
 dump_call_count_strsten = dump_call_count_strsten + 1
 if (dump_call_count_strsten == DUMP_TARGET_strsten .and. .not. dump_done_strsten) then
   call dump_init('strsten')
-  call dump_scalar_i('fpsfcopt', fpsfcopt)
+  call dump_scalar_i('sfcopt', sfcopt)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)

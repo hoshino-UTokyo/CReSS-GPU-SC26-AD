@@ -204,6 +204,18 @@ if (dump_call_count_bc4news == DUMP_TARGET_bc4news .and. .not. dump_done_bc4news
   call dump_scalar_i('jss', jss)
   call dump_scalar_i('jsn', jsn)
   call dump_array_3d('var_in.bin', var, 0, ni+1, 0, nj+1, 1, kmax)
+  call dump_scalar_i('ebne', ebne)
+  call dump_scalar_i('ebnw', ebnw)
+  call dump_scalar_i('ebse', ebse)
+  call dump_scalar_i('ebsw', ebsw)
+  call dump_scalar_i('isem1', isem1)
+  call dump_scalar_i('isub', isub)
+  call dump_scalar_i('iswp1', iswp1)
+  call dump_scalar_i('jsnm1', jsnm1)
+  call dump_scalar_i('jssp1', jssp1)
+  call dump_scalar_i('jsub', jsub)
+  call dump_scalar_i('nisub', nisub)
+  call dump_scalar_i('njsub', njsub)
 end if
 
 call profile_start(prof_id1)

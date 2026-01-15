@@ -288,6 +288,18 @@ if (dump_call_count_smoo4uvw == DUMP_TARGET_smoo4uvw .and. .not. dump_done_smoo4
   call dump_array_3d('ufrc_in.bin', ufrc, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('vfrc_in.bin', vfrc, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('wfrc_in.bin', wfrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_i('nkm1', nkm1)
+  call dump_scalar_i('nkm2', nkm2)
+  ! FIXME: tmp1 is an array, not scalar
+  ! ! FIXME: tmp1 is array - call dump_scalar_i('tmp1', tmp1)
+  ! FIXME: tmp2 is an array, not scalar
+  ! ! FIXME: tmp2 is array - call dump_scalar_r('tmp2', tmp2)
+  ! FIXME: tmp3 is an array, not scalar
+  ! ! FIXME: tmp3 is array - call dump_scalar_r('tmp3', tmp3)
+  ! FIXME: tmp4 is an array, not scalar
+  ! ! FIXME: tmp4 is array - call dump_scalar_r('tmp4', tmp4)
+  ! FIXME: tmp5 is an array, not scalar
+  ! ! FIXME: tmp5 is array - call dump_scalar_r('tmp5', tmp5)
 end if
 
 !$omp parallel default(shared) private(k)

@@ -190,8 +190,8 @@ call profile_start(prof_id1)
 dump_call_count_advbspt = dump_call_count_advbspt + 1
 if (dump_call_count_advbspt == DUMP_TARGET_advbspt .and. .not. dump_done_advbspt) then
   call dump_init('advbspt')
-  call dump_scalar_i('fpgwmopt', fpgwmopt)
-  call dump_scalar_i('fpdziv', fpdziv)
+  call dump_scalar_i('gwmopt', gwmopt)
+  call dump_scalar_r('dziv', dziv)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
@@ -200,6 +200,7 @@ if (dump_call_count_advbspt == DUMP_TARGET_advbspt .and. .not. dump_done_advbspt
   call dump_array_3d('w.bin', w, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('ptadv_in.bin', ptadv, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('pta8w_in.bin', pta8w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('dziv25', dziv25)
 end if
 
 !$omp parallel default(shared) private(k)

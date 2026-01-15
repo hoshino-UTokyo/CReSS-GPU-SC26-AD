@@ -275,6 +275,11 @@ if (dump_call_count_outmxn == DUMP_TARGET_outmxn .and. .not. dump_done_outmxn) t
   call dump_scalar_i('kend', kend)
   call dump_scalar_i('outcnt', outcnt)
   call dump_array_3d('var.bin', var, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('chkeps', chkeps)
+  call dump_scalar_i('ies', ies)
+  call dump_scalar_i('jes', jes)
+  call dump_scalar_r('maxeps', maxeps)
+  call dump_scalar_r('mineps', mineps)
 end if
 
 !$omp parallel default(shared)

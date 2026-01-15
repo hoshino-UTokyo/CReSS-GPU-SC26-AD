@@ -167,6 +167,8 @@ if (dump_call_count_vsps0 == DUMP_TARGET_vsps0 .and. .not. dump_done_vsps0) then
   call dump_array_3d('sp.bin', sp, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_4d('rbct.bin', rbct, 1, ni, 1, nj, 1, nk, 1, 2)
   call dump_array_3d('sfrc_in.bin', sfrc, 0, ni+1, 0, nj+1, 1, nk)
+  ! FIXME: ksp0 is an array, not scalar
+  ! ! FIXME: ksp0 is array - call dump_scalar_i('ksp0', ksp0)
 end if
 
 !$omp parallel default(shared) private(k)

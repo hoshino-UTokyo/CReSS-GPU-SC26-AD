@@ -172,6 +172,8 @@ if (dump_call_count_vbcwc == DUMP_TARGET_vbcwc .and. .not. dump_done_vbcwc) then
   call dump_scalar_i('bbc', bbc)
   call dump_scalar_i('tbc', tbc)
   call dump_array_3d('wc_in.bin', wc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_i('nkm1', nkm1)
+  call dump_scalar_i('nkm2', nkm2)
 end if
 
 call profile_start(prof_id1)

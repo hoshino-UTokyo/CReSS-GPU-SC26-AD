@@ -182,8 +182,8 @@ call profile_start(prof_id1)
 dump_call_count_kh8uv = dump_call_count_kh8uv + 1
 if (dump_call_count_kh8uv == DUMP_TARGET_kh8uv .and. .not. dump_done_kh8uv) then
   call dump_init('kh8uv')
-  call dump_scalar_i('fpmpopt', fpmpopt)
-  call dump_scalar_i('fpmfcopt', fpmfcopt)
+  call dump_scalar_i('mpopt', mpopt)
+  call dump_scalar_i('mfcopt', mfcopt)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)

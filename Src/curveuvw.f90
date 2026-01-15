@@ -237,6 +237,7 @@ if (dump_call_count_curveuvw == DUMP_TARGET_curveuvw .and. .not. dump_done_curve
   call dump_array_3d('tmp3_in.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('tmp4_in.bin', tmp4, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('tmp5_in.bin', tmp5, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('rev125', rev125)
 end if
 
 !$omp parallel default(shared) private(k)

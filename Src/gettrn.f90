@@ -227,17 +227,24 @@ call profile_start(prof_id1)
 dump_call_count_gettrn = dump_call_count_gettrn + 1
 if (dump_call_count_gettrn == DUMP_TARGET_gettrn .and. .not. dump_done_gettrn) then
   call dump_init('gettrn')
-  call dump_scalar_i('fptrnopt', fptrnopt)
-  call dump_scalar_i('fpzsfc', fpzsfc)
-  call dump_scalar_i('fpmnthgh', fpmnthgh)
-  call dump_scalar_i('fpmntwx', fpmntwx)
-  call dump_scalar_i('fpmntwy', fpmntwy)
-  call dump_scalar_i('fpmntcx', fpmntcx)
-  call dump_scalar_i('fpmntcy', fpmntcy)
+  call dump_scalar_i('trnopt', trnopt)
+  call dump_scalar_r('zsfc', zsfc)
+  call dump_scalar_r('mnthgh1', mnthgh(1))
+  call dump_scalar_r('mnthgh2', mnthgh(2))
+  call dump_scalar_r('mntwx', mntwx)
+  call dump_scalar_r('mntwy', mntwy)
+  call dump_scalar_r('mntcx', mntcx)
+  call dump_scalar_r('mntcy', mntcy)
   call dump_scalar_i('ncdvn', ncdvn)
   call dump_scalar_i('fmsg', fmsg)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
+  call dump_scalar_r('wxiv', wxiv)
+  call dump_scalar_r('wyiv', wyiv)
+  ! FIXME: xs is an array, not scalar
+  ! ! FIXME: xs is array - call dump_scalar_r('xs', xs)
+  ! FIXME: ys is an array, not scalar
+  ! ! FIXME: ys is array - call dump_scalar_r('ys', ys)
 end if
 
 !$omp parallel default(shared)

@@ -208,9 +208,9 @@ call profile_start(prof_id1)
 dump_call_count_var8uvw = dump_call_count_var8uvw + 1
 if (dump_call_count_var8uvw == DUMP_TARGET_var8uvw .and. .not. dump_done_var8uvw) then
   call dump_init('var8uvw')
-  call dump_scalar_i('fpwbc', fpwbc)
-  call dump_scalar_i('fpebc', fpebc)
-  call dump_scalar_i('fpexbopt', fpexbopt)
+  call dump_scalar_i('wbc', wbc)
+  call dump_scalar_i('ebc', ebc)
+  call dump_scalar_i('exbopt', exbopt)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)

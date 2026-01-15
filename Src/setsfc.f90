@@ -282,9 +282,9 @@ call profile_start(prof_id1)
 dump_call_count_setsfc = dump_call_count_setsfc + 1
 if (dump_call_count_setsfc == DUMP_TARGET_setsfc .and. .not. dump_done_setsfc) then
   call dump_init('setsfc')
-  call dump_scalar_i('fplevpbl', fplevpbl)
-  call dump_scalar_i('fptubopt', fptubopt)
-  call dump_scalar_i('fpcphopt', fpcphopt)
+  call dump_scalar_i('levpbl', levpbl)
+  call dump_scalar_i('tubopt', tubopt)
+  call dump_scalar_i('cphopt', cphopt)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
@@ -313,6 +313,9 @@ if (dump_call_count_setsfc == DUMP_TARGET_setsfc .and. .not. dump_done_setsfc) t
   call dump_array_2d('ps_in.bin', ps, 0, ni+1, 0, nj+1)
   call dump_array_2d('qvsts_in.bin', qvsts, 0, ni+1, 0, nj+1)
   call dump_array_2d('qvsice_in.bin', qvsice, 0, ni+1, 0, nj+1)
+  call dump_scalar_c('fmois', fmois)
+  call dump_scalar_r('p0iv', p0iv)
+  call dump_scalar_r('rddvcp', rddvcp)
 end if
 
 !$omp parallel default(shared) private(k)

@@ -221,15 +221,22 @@ call profile_start(prof_id1)
 dump_call_count_vspdmp = dump_call_count_vspdmp + 1
 if (dump_call_count_vspdmp == DUMP_TARGET_vspdmp .and. .not. dump_done_vspdmp) then
   call dump_init('vspdmp')
-  call dump_scalar_i('fpvspopt', fpvspopt)
-  call dump_scalar_i('fpvspgpv', fpvspgpv)
-  call dump_scalar_i('fpvspbar', fpvspbar)
-  call dump_scalar_i('fpbotgpv', fpbotgpv)
-  call dump_scalar_i('fpbotbar', fpbotbar)
+  call dump_scalar_i('vspopt', vspopt)
+  call dump_scalar_r('vspgpv', vspgpv)
+  call dump_scalar_r('vspbar', vspbar)
+  call dump_scalar_r('botgpv', botgpv)
+  call dump_scalar_r('botbar', botbar)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
   call dump_array_3d('zph.bin', zph, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('cbar05', cbar05)
+  call dump_scalar_r('cgpv05', cgpv05)
+  ! FIXME: ksp0 is an array, not scalar
+  ! ! FIXME: ksp0 is array - call dump_scalar_i('ksp0', ksp0)
+  call dump_scalar_i('nkm1', nkm1)
+  ! FIXME: z1dmax is an array, not scalar
+  ! ! FIXME: z1dmax is array - call dump_scalar_i('z1dmax', z1dmax)
 end if
 
 !$omp parallel default(shared) private(k)

@@ -250,6 +250,12 @@ if (dump_call_count_nuc1stc == DUMP_TARGET_nuc1stc .and. .not. dump_done_nuc1stc
   call dump_array_3d('kp.bin', kp, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('mu.bin', mu, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('diaqc.bin', diaqc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('cc45', cc45)
+  call dump_scalar_r('cdar', cdar)
+  call dump_scalar_r('cknd', cknd)
+  call dump_scalar_r('kpa25', kpa25)
+  call dump_scalar_r('kpa50', kpa50)
+  call dump_scalar_r('rwdt2', rwdt2)
 end if
 
 !$omp parallel default(shared) private(k)

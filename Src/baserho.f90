@@ -197,8 +197,8 @@ call profile_start(prof_id1)
 dump_call_count_baserho = dump_call_count_baserho + 1
 if (dump_call_count_baserho == DUMP_TARGET_baserho .and. .not. dump_done_baserho) then
   call dump_init('baserho')
-  call dump_scalar_i('fpadvopt', fpadvopt)
-  call dump_scalar_i('fpsmtopt', fpsmtopt)
+  call dump_scalar_i('advopt', advopt)
+  call dump_scalar_i('smtopt', smtopt)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)

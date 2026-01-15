@@ -223,6 +223,10 @@ if (dump_call_count_buoywsi == DUMP_TARGET_buoywsi .and. .not. dump_done_buoywsi
   call dump_array_3d('ptp.bin', ptp, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('fp.bin', fp, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('fw_in.bin', fw, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('dtw', dtw)
+  call dump_scalar_r('g05n', g05n)
+  ! FIXME: wb8s is an array, not scalar
+  ! ! FIXME: wb8s is array - call dump_scalar_i('wb8s', wb8s)
 end if
 
 call profile_start(prof_id1)
