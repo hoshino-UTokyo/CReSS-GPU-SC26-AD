@@ -575,12 +575,27 @@ if (dump_call_count_steps == DUMP_TARGET_steps .and. .not. dump_done_steps) then
   call dump_array_3d('dtdrst_in.bin', dtdrst, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('ptpf_in.bin', ptpf, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qvf_in.bin', qvf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_4d('qwtrf_in.bin', qwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  call dump_array_4d('nwtrf_in.bin', nwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
-  call dump_array_4d('qicef_in.bin', qicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-  call dump_array_4d('nicef_in.bin', nicef, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
-  call dump_array_4d('qcwtrf_in.bin', qcwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  call dump_array_4d('qcicef_in.bin', qcicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+  if (nqw >= 1) then
+    call dump_array_4d('qwtrf_in.bin', qwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
+  end if
+  ! nwtrf is only used when abs(cphopt)==4 or abs(cphopt)>=11
+  if (nnw >= 1 .and. (abs(cphopt) == 4 .or. (abs(cphopt) >= 11 .and. abs(cphopt) < 20))) then
+    call dump_array_4d('nwtrf_in.bin', nwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
+  end if
+  if (nqi >= 1) then
+    call dump_array_4d('qicef_in.bin', qicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+  end if
+  ! nicef is only used when abs(cphopt)==4 or abs(cphopt)>=11
+  if (nni >= 1 .and. (abs(cphopt) == 4 .or. (abs(cphopt) >= 11 .and. abs(cphopt) < 20))) then
+    call dump_array_4d('nicef_in.bin', nicef, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
+  end if
+  ! qcwtrf/qcicef are only used when cphopt < 0 (charging distribution)
+  if (nqw >= 1 .and. cphopt < 0) then
+    call dump_array_4d('qcwtrf_in.bin', qcwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
+  end if
+  if (nqi >= 1 .and. cphopt < 0) then
+    call dump_array_4d('qcicef_in.bin', qcicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+  end if
 end if
 
 call profile_start(prof_id1)
@@ -1102,12 +1117,27 @@ if (dump_call_count_steps == DUMP_TARGET_steps .and. .not. dump_done_steps) then
   call dump_array_3d('dtdrst_ref.bin', dtdrst, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('ptpf_ref.bin', ptpf, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qvf_ref.bin', qvf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_4d('qwtrf_ref.bin', qwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  call dump_array_4d('nwtrf_ref.bin', nwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
-  call dump_array_4d('qicef_ref.bin', qicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-  call dump_array_4d('nicef_ref.bin', nicef, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
-  call dump_array_4d('qcwtrf_ref.bin', qcwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  call dump_array_4d('qcicef_ref.bin', qcicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+  if (nqw >= 1) then
+    call dump_array_4d('qwtrf_ref.bin', qwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
+  end if
+  ! nwtrf is only used when abs(cphopt)==4 or abs(cphopt)>=11
+  if (nnw >= 1 .and. (abs(cphopt) == 4 .or. (abs(cphopt) >= 11 .and. abs(cphopt) < 20))) then
+    call dump_array_4d('nwtrf_ref.bin', nwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
+  end if
+  if (nqi >= 1) then
+    call dump_array_4d('qicef_ref.bin', qicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+  end if
+  ! nicef is only used when abs(cphopt)==4 or abs(cphopt)>=11
+  if (nni >= 1 .and. (abs(cphopt) == 4 .or. (abs(cphopt) >= 11 .and. abs(cphopt) < 20))) then
+    call dump_array_4d('nicef_ref.bin', nicef, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
+  end if
+  ! qcwtrf/qcicef are only used when cphopt < 0 (charging distribution)
+  if (nqw >= 1 .and. cphopt < 0) then
+    call dump_array_4d('qcwtrf_ref.bin', qcwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
+  end if
+  if (nqi >= 1 .and. cphopt < 0) then
+    call dump_array_4d('qcicef_ref.bin', qcicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+  end if
   call dump_finalize()
   dump_done_steps = .true.
 end if
