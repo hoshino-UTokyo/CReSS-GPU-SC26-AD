@@ -423,13 +423,29 @@ if (dump_call_count_swp2nxt == DUMP_TARGET_swp2nxt .and. .not. dump_done_swp2nxt
   call dump_array_3d('pp.bin', pp, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('ptp.bin', ptp, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qv.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qwtr.bin', qwtr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('nwtr.bin', nwtr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qice.bin', qice, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('nice.bin', nice, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qcwtr.bin', qcwtr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qcice.bin', qcice, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qasl.bin', qasl, 0, ni+1, 0, nj+1, 1, nk)
+  ! These are 4D arrays - dump with proper conditions
+  if (nqw >= 1) then
+    call dump_array_4d('qwtr.bin', qwtr, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
+  end if
+  if (nnw >= 1) then
+    call dump_array_4d('nwtr.bin', nwtr, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
+  end if
+  if (nqi >= 1) then
+    call dump_array_4d('qice.bin', qice, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+  end if
+  if (nni >= 1) then
+    call dump_array_4d('nice.bin', nice, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
+  end if
+  ! qcwtr/qcice are only used when cphopt < 0 (charging distribution)
+  if (nqw >= 1 .and. cphopt < 0) then
+    call dump_array_4d('qcwtr.bin', qcwtr, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
+  end if
+  if (nqi >= 1 .and. cphopt < 0) then
+    call dump_array_4d('qcice.bin', qcice, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+  end if
+  if (nqa(0) >= 1) then
+    call dump_array_4d('qasl.bin', qasl, 0, ni+1, 0, nj+1, 1, nk, 1, nqa(0))
+  end if
   call dump_array_3d('qt.bin', qt, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('tke.bin', tke, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('tund.bin', tund, 0, ni+1, 0, nj+1, 1, nk)
@@ -439,16 +455,37 @@ if (dump_call_count_swp2nxt == DUMP_TARGET_swp2nxt .and. .not. dump_done_swp2nxt
   call dump_array_3d('ppf.bin', ppf, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('ptpf.bin', ptpf, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qvf.bin', qvf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_4d('qwtrf.bin', qwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  call dump_array_4d('nwtrf.bin', nwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
-  call dump_array_4d('qicef.bin', qicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-  call dump_array_4d('nicef.bin', nicef, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
-  call dump_array_4d('qcwtrf.bin', qcwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  call dump_array_4d('qcicef.bin', qcicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-  call dump_array_4d('qaslf.bin', qaslf, 0, ni+1, 0, nj+1, 1, nk, 1, nqa(0))
-  call dump_array_3d('qtf.bin', qtf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tkef.bin', tkef, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tundf.bin', tundf, 0, ni+1, 0, nj+1, 1, nund)
+  if (nqw >= 1) then
+    call dump_array_4d('qwtrf.bin', qwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
+  end if
+  if (nnw >= 1) then
+    call dump_array_4d('nwtrf.bin', nwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
+  end if
+  if (nqi >= 1) then
+    call dump_array_4d('qicef.bin', qicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+  end if
+  if (nni >= 1) then
+    call dump_array_4d('nicef.bin', nicef, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
+  end if
+  ! qcwtrf/qcicef are only used when cphopt < 0 (charging distribution)
+  if (nqw >= 1 .and. cphopt < 0) then
+    call dump_array_4d('qcwtrf.bin', qcwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
+  end if
+  if (nqi >= 1 .and. cphopt < 0) then
+    call dump_array_4d('qcicef.bin', qcicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+  end if
+  if (nqa(0) >= 1) then
+    call dump_array_4d('qaslf.bin', qaslf, 0, ni+1, 0, nj+1, 1, nk, 1, nqa(0))
+  end if
+  if (trkopt >= 1) then
+    call dump_array_3d('qtf.bin', qtf, 0, ni+1, 0, nj+1, 1, nk)
+  end if
+  if (tubopt >= 2) then
+    call dump_array_3d('tkef.bin', tkef, 0, ni+1, 0, nj+1, 1, nk)
+  end if
+  if (sfcopt >= 1) then
+    call dump_array_3d('tundf.bin', tundf, 0, ni+1, 0, nj+1, 1, nund)
+  end if
   call dump_scalar_c('fmois', fmois)
   ! FIXME: nqa is an array, not scalar
   ! ! FIXME: nqa is array - call dump_scalar_i('nqa', nqa)
@@ -1560,16 +1597,37 @@ if (dump_call_count_swp2nxt == DUMP_TARGET_swp2nxt .and. .not. dump_done_swp2nxt
   call dump_array_3d('ppp_ref.bin', ppp, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('ptpp_ref.bin', ptpp, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qvp_ref.bin', qvp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_4d('qwtrp_ref.bin', qwtrp, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  call dump_array_4d('nwtrp_ref.bin', nwtrp, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
-  call dump_array_4d('qicep_ref.bin', qicep, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-  call dump_array_4d('nicep_ref.bin', nicep, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
-  call dump_array_4d('qcwtrp_ref.bin', qcwtrp, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  call dump_array_4d('qcicep_ref.bin', qcicep, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-  call dump_array_4d('qaslp_ref.bin', qaslp, 0, ni+1, 0, nj+1, 1, nk, 1, nqa(0))
-  call dump_array_3d('qtp_ref.bin', qtp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tkep_ref.bin', tkep, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tundp_ref.bin', tundp, 0, ni+1, 0, nj+1, 1, nund)
+  if (nqw >= 1) then
+    call dump_array_4d('qwtrp_ref.bin', qwtrp, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
+  end if
+  if (nnw >= 1) then
+    call dump_array_4d('nwtrp_ref.bin', nwtrp, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
+  end if
+  if (nqi >= 1) then
+    call dump_array_4d('qicep_ref.bin', qicep, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+  end if
+  if (nni >= 1) then
+    call dump_array_4d('nicep_ref.bin', nicep, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
+  end if
+  ! qcwtrp/qcicep are only used when cphopt < 0 (charging distribution)
+  if (nqw >= 1 .and. cphopt < 0) then
+    call dump_array_4d('qcwtrp_ref.bin', qcwtrp, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
+  end if
+  if (nqi >= 1 .and. cphopt < 0) then
+    call dump_array_4d('qcicep_ref.bin', qcicep, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+  end if
+  if (nqa(0) >= 1) then
+    call dump_array_4d('qaslp_ref.bin', qaslp, 0, ni+1, 0, nj+1, 1, nk, 1, nqa(0))
+  end if
+  if (trkopt >= 1) then
+    call dump_array_3d('qtp_ref.bin', qtp, 0, ni+1, 0, nj+1, 1, nk)
+  end if
+  if (tubopt >= 2) then
+    call dump_array_3d('tkep_ref.bin', tkep, 0, ni+1, 0, nj+1, 1, nk)
+  end if
+  if (sfcopt >= 1) then
+    call dump_array_3d('tundp_ref.bin', tundp, 0, ni+1, 0, nj+1, 1, nund)
+  end if
   call dump_finalize()
   dump_done_swp2nxt = .true.
 end if
