@@ -414,8 +414,14 @@ if (dump_call_count_outdmp == DUMP_TARGET_outdmp .and. .not. dump_done_outdmp) t
   call dump_array_4d('nwtr.bin', nwtr, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
   call dump_array_4d('qice.bin', qice, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
   call dump_array_4d('nice.bin', nice, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
-  call dump_array_4d('qcwtr.bin', qcwtr, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  call dump_array_4d('qcice.bin', qcice, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+  ! qcwtr is only allocated when cphopt < 0 and qcgopt == 2
+  if (cphopt < 0 .and. qcgopt == 2) then
+    call dump_array_4d('qcwtr.bin', qcwtr, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
+  end if
+  ! qcice is only allocated when cphopt < 0
+  if (cphopt < 0) then
+    call dump_array_4d('qcice.bin', qcice, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
+  end if
   call dump_array_4d('qasl.bin', qasl, 0, ni+1, 0, nj+1, 1, nk, 1, nqa(0))
   call dump_array_3d('qt.bin', qt, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('tke.bin', tke, 0, ni+1, 0, nj+1, 1, nk)

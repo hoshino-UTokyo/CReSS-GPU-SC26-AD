@@ -1,6 +1,0 @@
-include ../../Mkinclude
-
-all: $(OBJS)
-src: $(TMPSRC)
-clean:
-	$(RM) $(OBJS) $(TMPSRC) *~ *.o

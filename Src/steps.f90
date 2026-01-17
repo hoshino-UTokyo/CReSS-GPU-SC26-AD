@@ -589,11 +589,12 @@ if (dump_call_count_steps == DUMP_TARGET_steps .and. .not. dump_done_steps) then
   if (nni >= 1 .and. (abs(cphopt) == 4 .or. (abs(cphopt) >= 11 .and. abs(cphopt) < 20))) then
     call dump_array_4d('nicef_in.bin', nicef, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
   end if
-  ! qcwtrf/qcicef are only used when cphopt < 0 (charging distribution)
-  if (nqw >= 1 .and. cphopt < 0) then
+  ! qcwtrf is only allocated when cphopt < 0 and qcgopt == 2
+  if (cphopt < 0 .and. qcgopt == 2) then
     call dump_array_4d('qcwtrf_in.bin', qcwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
   end if
-  if (nqi >= 1 .and. cphopt < 0) then
+  ! qcicef is only allocated when cphopt < 0
+  if (cphopt < 0) then
     call dump_array_4d('qcicef_in.bin', qcicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
   end if
 end if
@@ -1131,11 +1132,12 @@ if (dump_call_count_steps == DUMP_TARGET_steps .and. .not. dump_done_steps) then
   if (nni >= 1 .and. (abs(cphopt) == 4 .or. (abs(cphopt) >= 11 .and. abs(cphopt) < 20))) then
     call dump_array_4d('nicef_ref.bin', nicef, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
   end if
-  ! qcwtrf/qcicef are only used when cphopt < 0 (charging distribution)
-  if (nqw >= 1 .and. cphopt < 0) then
+  ! qcwtrf is only allocated when cphopt < 0 and qcgopt == 2
+  if (cphopt < 0 .and. qcgopt == 2) then
     call dump_array_4d('qcwtrf_ref.bin', qcwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
   end if
-  if (nqi >= 1 .and. cphopt < 0) then
+  ! qcicef is only allocated when cphopt < 0
+  if (cphopt < 0) then
     call dump_array_4d('qcicef_ref.bin', qcicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
   end if
   call dump_finalize()

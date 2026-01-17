@@ -428,10 +428,12 @@ if (dump_call_count_timeflt == DUMP_TARGET_timeflt .and. .not. dump_done_timeflt
   if (nni >= 1) then
     call dump_array_4d('nice.bin', nice, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
   end if
-  if (nqw >= 1 .and. qcgopt /= 0) then
+  ! qcwtr is only allocated when cphopt < 0 and qcgopt == 2
+  if (cphopt < 0 .and. qcgopt == 2) then
     call dump_array_4d('qcwtr.bin', qcwtr, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
   end if
-  if (nqi >= 1 .and. qcgopt /= 0) then
+  ! qcice is only allocated when cphopt < 0
+  if (cphopt < 0) then
     call dump_array_4d('qcice.bin', qcice, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
   end if
   if (nqa(0) >= 1) then
@@ -475,12 +477,13 @@ if (dump_call_count_timeflt == DUMP_TARGET_timeflt .and. .not. dump_done_timeflt
     call dump_array_4d('nicep.bin', nicep, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
     call dump_array_4d('nicef.bin', nicef, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
   end if
-  ! qcwtrp/qcwtrf/qcicep/qcicef are only used when cphopt < 0 (charging distribution)
-  if (nqw >= 1 .and. cphopt < 0) then
+  ! qcwtrp/qcwtrf are only allocated when cphopt < 0 and qcgopt == 2
+  if (cphopt < 0 .and. qcgopt == 2) then
     call dump_array_4d('qcwtrp.bin', qcwtrp, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
     call dump_array_4d('qcwtrf.bin', qcwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
   end if
-  if (nqi >= 1 .and. cphopt < 0) then
+  ! qcicep/qcicef are only allocated when cphopt < 0
+  if (cphopt < 0) then
     call dump_array_4d('qcicep.bin', qcicep, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
     call dump_array_4d('qcicef.bin', qcicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
   end if
