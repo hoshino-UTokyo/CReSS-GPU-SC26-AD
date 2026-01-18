@@ -1,0 +1,401 @@
+!***********************************************************************
+      module m_rstuvwc
+!***********************************************************************
+
+!     Author      : Sakakibara Atsushi
+!     Date        : 2003/01/04
+!     Modification: 2003/03/21, 2003/04/30, 2003/05/19, 2004/06/10,
+!                   2004/09/10, 2006/11/06, 2007/10/19, 2008/05/02,
+!                   2008/08/25, 2009/02/27, 2011/08/09, 2013/01/28,
+!                   2013/02/13
+
+!-----7--1----+----2----+----3----+----4----+----5----+----6----+----7--
+
+! In this module,
+!     the base state density x the Jacobian is multiplyed by u, v and w.
+
+!-----7--------------------------------------------------------------7--
+
+! Module reference
+
+      use m_getiname
+      use m_comprofile
+      use m_dump_kernel
+
+!-----7--------------------------------------------------------------7--
+
+! Implicit typing
+
+      implicit none
+
+! Default access control
+
+      private
+
+! Exceptional access control
+
+      public :: rstuvwc, s_rstuvwc
+
+!-----7--------------------------------------------------------------7--
+
+! Module variable
+
+!     none
+
+! Module procedure
+
+      interface rstuvwc
+
+        module procedure s_rstuvwc
+
+      end interface
+
+!-----7--------------------------------------------------------------7--
+
+! Intrinsic procedure
+
+!     none
+
+! External procedure
+
+!     none
+
+!-----7--------------------------------------------------------------7--
+
+! Internal module procedure
+
+      contains
+
+!***********************************************************************
+      subroutine s_rstuvwc(fpmpopt,fpmfcopt,                            &
+     &                     fpiwest,fpieast,fpjsouth,fpjnorth,           &
+     &                     ni,nj,nk,mf8u,mf8v,rst8u,rst8v,rst8w,        &
+     &                     u,v,wc,rstxu,rstxv,rstxwc)
+!***********************************************************************
+
+! Input variables
+
+      integer, intent(in) :: fpmpopt
+                       ! Formal parameter of unique index of mpopt
+
+      integer, intent(in) :: fpmfcopt
+                       ! Formal parameter of unique index of mfcopt
+
+      integer, intent(in) :: fpiwest
+                       ! Formal parameter of unique index of iwest
+
+      integer, intent(in) :: fpieast
+                       ! Formal parameter of unique index of ieast
+
+      integer, intent(in) :: fpjsouth
+                       ! Formal parameter of unique index of jsouth
+
+      integer, intent(in) :: fpjnorth
+                       ! Formal parameter of unique index of jnorth
+
+      integer, intent(in) :: ni
+                       ! Model dimension in x direction
+
+      integer, intent(in) :: nj
+                       ! Model dimension in y direction
+
+      integer, intent(in) :: nk
+                       ! Model dimension in z direction
+
+      real, intent(in) :: mf8u(0:ni+1,0:nj+1)
+                       ! Map scale factors at u points
+
+      real, intent(in) :: mf8v(0:ni+1,0:nj+1)
+                       ! Map scale factors at v points
+
+      real, intent(in) :: rst8u(0:ni+1,0:nj+1,1:nk)
+                       ! Base state density x Jacobian at u points
+
+      real, intent(in) :: rst8v(0:ni+1,0:nj+1,1:nk)
+                       ! Base state density x Jacobian at v points
+
+      real, intent(in) :: rst8w(0:ni+1,0:nj+1,1:nk)
+                       ! Base state density x Jacobian at w points
+
+      real, intent(in) :: u(0:ni+1,0:nj+1,1:nk)
+                       ! x components of velocity
+
+      real, intent(in) :: v(0:ni+1,0:nj+1,1:nk)
+                       ! y components of velocity
+
+      real, intent(in) :: wc(0:ni+1,0:nj+1,1:nk)
+                       ! zeta components of contravariant velocity
+
+! Output variables
+
+      real, intent(out) :: rstxu(0:ni+1,0:nj+1,1:nk)
+                       ! u x base state density x Jacobian
+
+      real, intent(out) :: rstxv(0:ni+1,0:nj+1,1:nk)
+                       ! v x base state density x Jacobian
+
+      real, intent(out) :: rstxwc(0:ni+1,0:nj+1,1:nk)
+                       ! wc x base state density x Jacobian
+
+! Internal shared variables
+
+      integer mpopt    ! Option for map projection
+      integer mfcopt   ! Option for map scale factor
+
+      integer iwest    ! Added index on west boundary
+      integer jsouth   ! Added index on south boundary
+
+      integer ieast    ! Subtracted index on east boundary
+      integer jnorth   ! Subtracted index on north boundary
+
+! Internal private variables
+
+      integer i        ! Array index in x direction
+      integer j        ! Array index in y direction
+      integer k        ! Array index in z direction
+
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
+      ! Dump variables
+      integer, save :: dump_call_count_rstuvwc = 0
+      integer, parameter :: DUMP_TARGET_rstuvwc = 360
+      logical, save :: dump_done_rstuvwc = .false.
+
+
+!-----7--------------------------------------------------------------7--
+
+! Get the required namelist variables.
+
+      call getiname(fpmpopt,mpopt)
+      call getiname(fpmfcopt,mfcopt)
+      call getiname(fpiwest,iwest)
+      call getiname(fpieast,ieast)
+      call getiname(fpjsouth,jsouth)
+      call getiname(fpjnorth,jnorth)
+
+! -----
+
+! The base state density x the Jacobian is multiplyed by u, v and w.
+
+!@llm start meta_info ----------------------------------------------------
+! Location: rstuvwc.f90 :: s_rstuvwc
+! Summary : Multiply base state density x Jacobian by velocity components u, v, and wc
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No function calls inside parallel region
+!   - Multiple conditional branches based on mfcopt and mpopt
+!   - Outer k loop is serial with inner !$omp do on i,j
+!   - Three separate loop nests for rstxu, rstxv, rstxwc
+!   - Simple element-wise multiplication and assignment
+!   - No synchronization constructs
+! Next:
+!   - Collapse k,j,i loops for better GPU parallelism
+!   - Consider separate kernels for u, v, wc computations
+!   - Use OpenACC teams distribute parallel for collapse(3)
+!   - Fuse the three loop nests if possible for better memory access
+! Runtime:
+!   - Calls: 360
+!   - AvgLoops: 102.5M
+!   - TotalTime: 4.050s (0.14%)
+!   - AvgTime: 11.251ms
+!@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('rstuvwc.f90', 's_rstuvwc', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-1)-(1)+1,8) &
+     & * int((nj-1)-(1)+1,8) &
+     & * int((ni+1-ieast)-(iwest)+1,8)
+call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_rstuvwc = dump_call_count_rstuvwc + 1
+if (dump_call_count_rstuvwc == DUMP_TARGET_rstuvwc .and. .not. dump_done_rstuvwc) then
+  call dump_init('rstuvwc')
+  call dump_scalar_i('mpopt', mpopt)
+  call dump_scalar_i('mfcopt', mfcopt)
+  call dump_scalar_i('iwest', iwest)
+  call dump_scalar_i('ieast', ieast)
+  call dump_scalar_i('jsouth', jsouth)
+  call dump_scalar_i('jnorth', jnorth)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_array_2d('mf8u.bin', mf8u, 0, ni+1, 0, nj+1)
+  call dump_array_2d('mf8v.bin', mf8v, 0, ni+1, 0, nj+1)
+  call dump_array_3d('rst8u.bin', rst8u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rst8v.bin', rst8v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rst8w.bin', rst8w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('wc.bin', wc, 0, ni+1, 0, nj+1, 1, nk)
+end if
+
+!$omp parallel default(shared) private(k)
+
+      if(mfcopt.eq.0) then
+
+        do k=1,nk-1
+
+!$omp do schedule(runtime) private(i,j)
+
+          do j=1,nj-1
+          do i=iwest,ni+1-ieast
+            rstxu(i,j,k)=rst8u(i,j,k)*u(i,j,k)
+          end do
+          end do
+
+!$omp end do
+
+!$omp do schedule(runtime) private(i,j)
+
+          do j=jsouth,nj+1-jnorth
+          do i=1,ni-1
+            rstxv(i,j,k)=rst8v(i,j,k)*v(i,j,k)
+          end do
+          end do
+
+!$omp end do
+
+        end do
+
+        do k=1,nk
+
+!$omp do schedule(runtime) private(i,j)
+
+          do j=1,nj-1
+          do i=1,ni-1
+            rstxwc(i,j,k)=rst8w(i,j,k)*wc(i,j,k)
+          end do
+          end do
+
+!$omp end do
+
+        end do
+
+      else
+
+        if(mpopt.eq.0.or.mpopt.eq.10) then
+
+          do k=1,nk-1
+
+!$omp do schedule(runtime) private(i,j)
+
+            do j=1,nj-1
+            do i=iwest,ni+1-ieast
+              rstxu(i,j,k)=mf8u(i,j)*rst8u(i,j,k)*u(i,j,k)
+            end do
+            end do
+
+!$omp end do
+
+!$omp do schedule(runtime) private(i,j)
+
+            do j=jsouth,nj+1-jnorth
+            do i=1,ni-1
+              rstxv(i,j,k)=rst8v(i,j,k)*v(i,j,k)
+            end do
+            end do
+
+!$omp end do
+
+          end do
+
+        else if(mpopt.eq.5) then
+
+          do k=1,nk-1
+
+!$omp do schedule(runtime) private(i,j)
+
+            do j=1,nj-1
+            do i=iwest,ni+1-ieast
+              rstxu(i,j,k)=rst8u(i,j,k)*u(i,j,k)
+            end do
+            end do
+
+!$omp end do
+
+!$omp do schedule(runtime) private(i,j)
+
+            do j=jsouth,nj+1-jnorth
+            do i=1,ni-1
+              rstxv(i,j,k)=mf8v(i,j)*rst8v(i,j,k)*v(i,j,k)
+            end do
+            end do
+
+!$omp end do
+
+          end do
+
+        else
+
+          do k=1,nk-1
+
+!$omp do schedule(runtime) private(i,j)
+
+            do j=1,nj-1
+            do i=iwest,ni+1-ieast
+              rstxu(i,j,k)=mf8u(i,j)*rst8u(i,j,k)*u(i,j,k)
+            end do
+            end do
+
+!$omp end do
+
+!$omp do schedule(runtime) private(i,j)
+
+            do j=jsouth,nj+1-jnorth
+            do i=1,ni-1
+              rstxv(i,j,k)=mf8v(i,j)*rst8v(i,j,k)*v(i,j,k)
+            end do
+            end do
+
+!$omp end do
+
+          end do
+
+        end if
+
+        do k=1,nk
+
+!$omp do schedule(runtime) private(i,j)
+
+          do j=1,nj-1
+          do i=1,ni-1
+            rstxwc(i,j,k)=rst8w(i,j,k)*wc(i,j,k)
+          end do
+          end do
+
+!$omp end do
+
+        end do
+
+      end if
+
+!$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_rstuvwc == DUMP_TARGET_rstuvwc .and. .not. dump_done_rstuvwc) then
+  call dump_array_3d('rstxu_ref.bin', rstxu, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rstxv_ref.bin', rstxv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rstxwc_ref.bin', rstxwc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_rstuvwc = .true.
+end if
+
+
+call profile_stop(prof_id1, loop_len)
+
+! -----
+
+      end subroutine s_rstuvwc
+
+!-----7--------------------------------------------------------------7--
+
+      end module m_rstuvwc

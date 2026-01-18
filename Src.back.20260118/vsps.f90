@@ -1,0 +1,289 @@
+!***********************************************************************
+      module m_vsps
+!***********************************************************************
+
+!     Author      : Sakakibara Atsushi
+!     Date        : 1999/05/20
+!     Modification: 1999/07/05, 1999/08/03, 1999/09/30, 1999/10/12,
+!                   1999/11/01, 2000/01/17, 2001/04/15, 2002/04/02,
+!                   2002/08/15, 2003/04/30, 2003/05/19, 2003/06/27,
+!                   2003/12/12, 2004/04/15, 2006/01/10, 2006/09/21,
+!                   2007/05/07, 2007/07/30, 2007/10/19, 2008/05/02,
+!                   2008/08/25, 2008/12/11, 2009/02/27, 2009/03/23,
+!                   2011/09/22, 2013/01/28, 2013/02/13, 2013/03/27
+
+!-----7--1----+----2----+----3----+----4----+----5----+----6----+----7--
+
+! In this module,
+!     calculate the vertical sponge damping for optional scalar
+!     variables.
+
+!-----7--------------------------------------------------------------7--
+
+! Module reference
+
+      use m_getcname
+      use m_comprofile
+      use m_dump_kernel
+      use m_getiname
+      use m_inichar
+
+!-----7--------------------------------------------------------------7--
+
+! Implicit typing
+
+      implicit none
+
+! Default access control
+
+      private
+
+! Exceptional access control
+
+      public :: vsps, s_vsps
+
+!-----7--------------------------------------------------------------7--
+
+! Module variable
+
+!     none
+
+! Module procedure
+
+      interface vsps
+
+        module procedure s_vsps
+
+      end interface
+
+!-----7--------------------------------------------------------------7--
+
+! Intrinsic procedure
+
+!     none
+
+! External procedure
+
+!     none
+
+!-----7--------------------------------------------------------------7--
+
+! Internal module procedure
+
+      contains
+
+!***********************************************************************
+      subroutine s_vsps(fpgpvvar,fpvspopt,apg,ksp0,gtinc,ni,nj,nk,rst,  &
+     &                  sp,rbct,sgpv,std,sfrc)
+!***********************************************************************
+
+! Input variables
+
+      integer, intent(in) :: fpgpvvar
+                       ! Formal parameter of unique index of gpvvar
+
+      integer, intent(in) :: fpvspopt
+                       ! Formal parameter of unique index of vspopt
+
+      integer, intent(in) :: apg
+                       ! Pointer of gpvvar
+
+      integer, intent(in) :: ksp0(1:2)
+                       ! Index of lowest vertical sponge level
+
+      integer, intent(in) :: ni
+                       ! Model dimension in x direction
+
+      integer, intent(in) :: nj
+                       ! Model dimension in y direction
+
+      integer, intent(in) :: nk
+                       ! Model dimension in z direction
+
+      real, intent(in) :: gtinc
+                       ! Lapse of forecast time from GPV data reading
+
+      real, intent(in) :: rst(0:ni+1,0:nj+1,1:nk)
+                       ! Base state density x Jacobian
+
+      real, intent(in) :: sp(0:ni+1,0:nj+1,1:nk)
+                       ! Optional scalar variable at past
+
+      real, intent(in) :: rbct(1:ni,1:nj,1:nk,1:2)
+                       ! Relaxed top sponge damping coefficients
+
+      real, intent(in) :: sgpv(0:ni+1,0:nj+1,1:nk)
+                       ! Optional scalar variable of GPV data
+                       ! at marked time
+
+      real, intent(in) :: std(0:ni+1,0:nj+1,1:nk)
+                       ! Time tendency of
+                       ! optional scalar variable of GPV data
+
+! Input and output variable
+
+      real, intent(inout) :: sfrc(0:ni+1,0:nj+1,1:nk)
+                       ! Optional scalar forcing term
+
+! Internal shared variables
+
+      character(len=108) gpvvar
+                       ! Control flag of input GPV data variables
+
+      integer vspopt   ! Option for vertical sponge damping
+
+! Internal private variables
+
+      integer i        ! Array index in x direction
+      integer j        ! Array index in y direction
+      integer k        ! Array index in z direction
+
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
+      ! Dump variables
+      integer, save :: dump_call_count_vsps = 0
+      integer, parameter :: DUMP_TARGET_vsps = 2160
+      logical, save :: dump_done_vsps = .false.
+
+
+!-----7--------------------------------------------------------------7--
+
+! Initialize the character variable.
+
+      call inichar(gpvvar)
+
+! -----
+
+! Get the required namelist variables.
+
+      call getcname(fpgpvvar,gpvvar)
+      call getiname(fpvspopt,vspopt)
+
+! -----
+
+!! Calculate the vertical sponge damping for optional scalar variable.
+
+!@llm start meta_info ----------------------------------------------------
+! Location: vsps.f90 :: subroutine s_vsps
+! Summary : Applies vertical sponge damping near model top for scalar
+!           variables, relaxing toward GPV data or base state.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region.
+!   - No writes to module/global variables.
+!   - No synchronization constructs.
+!   - Simple arithmetic with rbct damping coefficients.
+!   - Only upper levels computed (k >= ksp0 - sparse in k).
+!   - Conditional on vspopt for GPV vs base state damping target.
+! Next:
+!   - Direct OpenACC kernels should work well.
+!   - Upper-level-only computation - consider k-range optimization.
+! Runtime:
+!   - Calls: 2160
+!   - AvgLoops: 101.2M
+!   - TotalTime: 12.669s (0.43%)
+!   - AvgTime: 5.865ms
+!@llm end meta_info ------------------------------------------------------
+
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('vsps.f90', 's_vsps', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-2)-(ksp0(1)-1)+1,8) &
+     & * int((nj-2)-(2)+1,8) &
+     & * int((ni-2)-(2)+1,8)
+call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_vsps = dump_call_count_vsps + 1
+if (dump_call_count_vsps == DUMP_TARGET_vsps .and. .not. dump_done_vsps) then
+  call dump_init('vsps')
+  call dump_scalar_c('gpvvar', gpvvar)
+  call dump_scalar_i('vspopt', vspopt)
+  call dump_scalar_i('apg', apg)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_r('gtinc', gtinc)
+  call dump_array_3d('rst.bin', rst, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('sp.bin', sp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_4d('rbct.bin', rbct, 1, ni, 1, nj, 1, nk, 1, 2)
+  call dump_array_3d('sgpv.bin', sgpv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('std.bin', std, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('sfrc_in.bin', sfrc, 0, ni+1, 0, nj+1, 1, nk)
+  ! FIXME: ksp0 is an array, not scalar
+  ! ! FIXME: ksp0 is array - call dump_scalar_i('ksp0', ksp0)
+end if
+
+!$omp parallel default(shared) private(k)
+
+! Damp to the GPV data.
+
+      if(vspopt.eq.1.and.gpvvar(apg:apg).eq.'o') then
+
+        do k=ksp0(1)-1,nk-2
+
+!$omp do schedule(runtime) private(i,j)
+
+          do j=2,nj-2
+          do i=2,ni-2
+            sfrc(i,j,k)=sfrc(i,j,k)-.5e0*(rbct(i,j,k,1)+rbct(i,j,k+1,1))&
+     &        *rst(i,j,k)*(sp(i,j,k)-(sgpv(i,j,k)+std(i,j,k)*gtinc))
+          end do
+          end do
+
+!$omp end do
+
+        end do
+
+! -----
+
+! Damp to the base state value.
+
+      else
+
+        do k=ksp0(2)-1,nk-2
+
+!$omp do schedule(runtime) private(i,j)
+
+          do j=2,nj-2
+          do i=2,ni-2
+            sfrc(i,j,k)=sfrc(i,j,k)                                     &
+     &        -.5e0*(rbct(i,j,k,2)+rbct(i,j,k+1,2))*rst(i,j,k)*sp(i,j,k)
+          end do
+          end do
+
+!$omp end do
+
+        end do
+
+      end if
+
+! -----
+
+!$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_vsps == DUMP_TARGET_vsps .and. .not. dump_done_vsps) then
+  call dump_array_3d('sfrc_ref.bin', sfrc, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_vsps = .true.
+end if
+
+
+call profile_stop(prof_id1, loop_len)
+
+!! -----
+
+      end subroutine s_vsps
+
+!-----7--------------------------------------------------------------7--
+
+      end module m_vsps

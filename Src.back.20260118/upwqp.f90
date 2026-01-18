@@ -1,0 +1,318 @@
+!***********************************************************************
+      module m_upwqp
+!***********************************************************************
+
+!     Author      : Sakakibara Atsushi
+!     Date        : 2006/04/03
+!     Modification: 2006/05/12, 2006/09/30, 2007/10/19, 2008/05/02,
+!                   2008/08/25, 2009/02/27, 2009/11/05, 2011/03/18,
+!                   2013/01/28, 2013/02/13
+
+!-----7--1----+----2----+----3----+----4----+----5----+----6----+----7--
+
+! In this module,
+!     calculate the sedimentation and precipitation for optional
+!     precipitation mixing ratio.
+
+!-----7--------------------------------------------------------------7--
+
+! Module reference
+
+      use m_comphy
+      use m_comprofile
+      use m_dump_kernel
+      use m_getiname
+      use m_getrname
+
+!-----7--------------------------------------------------------------7--
+
+! Implicit typing
+
+      implicit none
+
+! Default access control
+
+      private
+
+! Exceptional access control
+
+      public :: upwqp, s_upwqp
+
+!-----7--------------------------------------------------------------7--
+
+! Module variable
+
+!     none
+
+! Module procedure
+
+      interface upwqp
+
+        module procedure s_upwqp
+
+      end interface
+
+!-----7--------------------------------------------------------------7--
+
+! Intrinsic procedure
+
+      intrinsic max
+
+! External procedure
+
+!     none
+
+!-----7--------------------------------------------------------------7--
+
+! Internal module procedure
+
+      contains
+
+!***********************************************************************
+      subroutine s_upwqp(fpadvopt,fpdziv,dtp,ni,nj,nk,rbr,rst,uq,qpf,   &
+     &                   precip,qpflx)
+!***********************************************************************
+
+! Input variables
+
+      integer, intent(in) :: fpadvopt
+                       ! Formal parameter of unique index of advopt
+
+      integer, intent(in) :: fpdziv
+                       ! Formal parameter of unique index of dziv
+
+      integer, intent(in) :: ni
+                       ! Model dimension in x direction
+
+      integer, intent(in) :: nj
+                       ! Model dimension in y direction
+
+      integer, intent(in) :: nk
+                       ! Model dimension in z direction
+
+      real, intent(in) :: dtp
+                       ! Time steps interval of fall out integration
+
+      real, intent(in) :: rbr(0:ni+1,0:nj+1,1:nk)
+                       ! Base state density
+
+      real, intent(in) :: rst(0:ni+1,0:nj+1,1:nk)
+                       ! Base state density x Jacobian
+
+      real, intent(in) :: uq(0:ni+1,0:nj+1,1:nk)
+                       ! Terminal velocity
+                       ! of optional precipitation mixing ratio
+
+! Input and output variables
+
+      real, intent(inout) :: qpf(0:ni+1,0:nj+1,1:nk)
+                       ! Optional precipitation mixing ratio at future
+
+      real, intent(inout) :: precip(0:ni+1,0:nj+1,1:2)
+                       ! Precipitation and accumulation
+                       ! of optional precipitation mixing ratio
+
+! Internal shared variables
+
+      integer advopt   ! Option for advection scheme
+
+      integer nkm1     ! nk - 1
+      integer nkm2     ! nk - 2
+
+      real dziv        ! Inverse of dz
+
+      real dtp05       ! 0.5 x dtp
+
+      real dzvdt       ! dziv x dtp
+
+      real rwiv05      ! 0.5 / rhow
+
+      real, intent(inout) :: qpflx(0:ni+1,0:nj+1,1:nk)
+                       ! Fallout flux of
+                       ! optional precipitation mixing ratio
+
+! Internal private variables
+
+      integer i        ! Array index in x direction
+      integer j        ! Array index in y direction
+      integer k        ! Array index in z direction
+
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
+      ! Dump variables
+      integer, save :: dump_call_count_upwqp = 0
+      integer, parameter :: DUMP_TARGET_upwqp = 1800
+      logical, save :: dump_done_upwqp = .false.
+
+
+!-----7--------------------------------------------------------------7--
+
+! Get the required namelist variables.
+
+      call getiname(fpadvopt,advopt)
+      call getrname(fpdziv,dziv)
+
+! -----
+
+! Set the common used variables.
+
+      nkm1=nk-1
+      nkm2=nk-2
+
+      dtp05=.5e0*dtp
+
+      dzvdt=dziv*dtp
+
+      rwiv05=.5e0/rhow
+
+! -----
+
+! Calculate the sedimentation and precipitation.
+
+!@llm start meta_info ----------------------------------------------------
+! Location: upwqp.f90 :: subroutine s_upwqp
+! Summary : Calculates sedimentation flux and precipitation for optional
+!           precipitation mixing ratio using upwind scheme.
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_* usage.
+!   - No function calls inside parallel region (pure arithmetic only).
+!   - No writes to global/module variables.
+!   - No synchronization constructs.
+!   - Uses intrinsic max() which is GPU-compatible.
+!   - Vertical dependency: qpflx computed first, then used for qpf update.
+!   - precip accumulation has no race (each (i,j) independent).
+! Next:
+!   - Split into two kernels: (1) compute qpflx, (2) update qpf and precip.
+!   - Or use OpenACC with proper data clauses.
+! Runtime:
+!   - Calls: 1800
+!   - AvgLoops: 102.4M
+!   - TotalTime: 17.374s (0.58%)
+!   - AvgTime: 9.652ms
+!@llm end meta_info ------------------------------------------------------
+
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('upwqp.f90', 's_upwqp', &
+   & 'OMP section 1')
+end if
+loop_len = int((nk-1)-(1)+1,8) &
+     & * int((nj-1)-(1)+1,8) &
+     & * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_upwqp = dump_call_count_upwqp + 1
+if (dump_call_count_upwqp == DUMP_TARGET_upwqp .and. .not. dump_done_upwqp) then
+  call dump_init('upwqp')
+  call dump_scalar_i('advopt', advopt)
+  call dump_scalar_r('dziv', dziv)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_r('dtp', dtp)
+  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('rst.bin', rst, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('uq.bin', uq, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qpf_in.bin', qpf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('precip_in.bin', precip, 0, ni+1, 0, nj+1, 1, 2)
+  call dump_array_3d('qpflx_in.bin', qpflx, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_scalar_r('dtp05', dtp05)
+  call dump_scalar_r('dzvdt', dzvdt)
+  call dump_scalar_i('nkm1', nkm1)
+  call dump_scalar_i('nkm2', nkm2)
+  call dump_scalar_r('rwiv05', rwiv05)
+end if
+
+!$omp parallel default(shared) private(k)
+
+      do k=1,nk-1
+
+!$omp do schedule(runtime) private(i,j)
+
+        do j=1,nj-1
+        do i=1,ni-1
+          qpflx(i,j,k)=rbr(i,j,k)*uq(i,j,k)*qpf(i,j,k)
+        end do
+        end do
+
+!$omp end do
+
+      end do
+
+      do k=1,nk-2
+
+!$omp do schedule(runtime) private(i,j)
+
+        do j=1,nj-1
+        do i=1,ni-1
+          qpf(i,j,k)=max(qpf(i,j,k)                                     &
+     &      +(qpflx(i,j,k+1)-qpflx(i,j,k))/rst(i,j,k)*dzvdt,0.e0)
+        end do
+        end do
+
+!$omp end do
+
+      end do
+
+      if(advopt.le.3) then
+
+!$omp do schedule(runtime) private(i,j)
+
+        do j=1,nj-1
+        do i=1,ni-1
+          qpf(i,j,nkm1)=qpf(i,j,nkm2)
+
+          precip(i,j,1)=(qpflx(i,j,1)+qpflx(i,j,2))*rwiv05
+          precip(i,j,2)=precip(i,j,2)+precip(i,j,1)*dtp05
+
+        end do
+        end do
+
+!$omp end do
+
+      else
+
+!$omp do schedule(runtime) private(i,j)
+
+        do j=1,nj-1
+        do i=1,ni-1
+          qpf(i,j,nkm1)=qpf(i,j,nkm2)
+
+          precip(i,j,1)=(qpflx(i,j,1)+qpflx(i,j,2))*rwiv05
+          precip(i,j,2)=precip(i,j,2)+precip(i,j,1)*dtp
+
+        end do
+        end do
+
+!$omp end do
+
+      end if
+
+!$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_upwqp == DUMP_TARGET_upwqp .and. .not. dump_done_upwqp) then
+  call dump_array_3d('qpf_ref.bin', qpf, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('precip_ref.bin', precip, 0, ni+1, 0, nj+1, 1, 2)
+  call dump_array_3d('qpflx_ref.bin', qpflx, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_finalize()
+  dump_done_upwqp = .true.
+end if
+
+
+call profile_stop(prof_id1, loop_len)
+
+! -----
+
+      end subroutine s_upwqp
+
+!-----7--------------------------------------------------------------7--
+
+      end module m_upwqp

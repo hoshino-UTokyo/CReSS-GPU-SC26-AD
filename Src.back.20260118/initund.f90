@@ -1,0 +1,570 @@
+!***********************************************************************
+      module m_initund
+!***********************************************************************
+
+!     Author      : Sakakibara Atsushi
+!     Date        : 2001/10/18
+!     Modification: 2001/11/20, 2002/02/05, 2002/04/02, 2002/07/03,
+!                   2002/08/27, 2002/12/02, 2003/04/30, 2003/05/19,
+!                   2003/07/15, 2003/08/08, 2003/11/05, 2003/12/12,
+!                   2004/02/01, 2004/03/05, 2004/04/01, 2004/04/15,
+!                   2004/07/01, 2004/08/01, 2004/09/01, 2004/09/10,
+!                   2005/04/04, 2006/04/03, 2006/11/06, 2007/01/31,
+!                   2007/06/27, 2007/09/14, 2007/10/19, 2008/05/02,
+!                   2008/07/01, 2008/08/25, 2008/10/10, 2009/01/30,
+!                   2009/02/27, 2009/11/13, 2011/11/10, 2013/01/28,
+!                   2013/02/13, 2013/03/27
+
+!-----7--1----+----2----+----3----+----4----+----5----+----6----+----7--
+
+! In this module,
+!     initialize the soil and sea temperature.
+
+!-----7--------------------------------------------------------------7--
+
+! Module reference
+
+      use m_comindx
+      use m_comprofile
+      use m_dump_kernel
+      use m_comphy
+      use m_getcname
+      use m_getiname
+      use m_getrname
+      use m_inichar
+      use m_rdsstini
+      use m_rdtund
+
+!-----7--------------------------------------------------------------7--
+
+! Implicit typing
+
+      implicit none
+
+! Default access control
+
+      private
+
+! Exceptional access control
+
+      public :: initund, s_initund
+
+!-----7--------------------------------------------------------------7--
+
+! Module variable
+
+!     none
+
+! Module procedure
+
+      interface initund
+
+        module procedure s_initund
+
+      end interface
+
+!-----7--------------------------------------------------------------7--
+
+! Intrinsic procedure
+
+      intrinsic exp
+      intrinsic log
+      intrinsic min
+      intrinsic real
+
+! External procedure
+
+!     none
+
+!-----7--------------------------------------------------------------7--
+
+! Internal module procedure
+
+      contains
+
+!***********************************************************************
+      subroutine s_initund(fpsfcdat,fpsfcopt,fpadvopt,fpdzgrd,fptgdeep, &
+     &                     fpsstcst,ni,nj,nk,nund,pbr,ptbr,pp,ptp,      &
+     &                     land,tund,tundp,sst,ek)
+!***********************************************************************
+
+! Input variables
+
+      integer, intent(in) :: fpsfcdat
+                       ! Formal parameter of unique index of sfcdat
+
+      integer, intent(in) :: fpsfcopt
+                       ! Formal parameter of unique index of sfcopt
+
+      integer, intent(in) :: fpadvopt
+                       ! Formal parameter of unique index of advopt
+
+      integer, intent(in) :: fpdzgrd
+                       ! Formal parameter of unique index of dzgrd
+
+      integer, intent(in) :: fptgdeep
+                       ! Formal parameter of unique index of tgdeep
+
+      integer, intent(in) :: fpsstcst
+                       ! Formal parameter of unique index of sstcst
+
+      integer, intent(in) :: ni
+                       ! Model dimension in x direction
+
+      integer, intent(in) :: nj
+                       ! Model dimension in y direction
+
+      integer, intent(in) :: nk
+                       ! Model dimension in z direction
+
+      integer, intent(in) :: nund
+                       ! Number of soil and sea layers
+
+      integer, intent(in) :: land(0:ni+1,0:nj+1)
+                       ! Land use of surface
+
+      real, intent(in) :: pbr(0:ni+1,0:nj+1,1:nk)
+                       ! Base state pressure
+
+      real, intent(in) :: ptbr(0:ni+1,0:nj+1,1:nk)
+                       ! Base state potential temperature
+
+      real, intent(in) :: pp(0:ni+1,0:nj+1,1:nk)
+                       ! Pressure perturbation
+
+      real, intent(in) :: ptp(0:ni+1,0:nj+1,1:nk)
+                       ! Potential temperature perturbarion
+
+! Output variables
+
+      real, intent(out) :: tund(0:ni+1,0:nj+1,1:nund)
+                       ! Soil and sea temperature at present
+
+      real, intent(out) :: tundp(0:ni+1,0:nj+1,1:nund)
+                       ! Soil and sea temperature at past
+
+! Internal shared variables
+
+      character(len=108) sfcdat
+                       ! Control flag of input surface data type
+
+      integer sfcopt   ! Option for surface physics
+      integer advopt   ! Option for advection scheme
+
+      real rddvcp      ! rd / cp
+
+      real p0iv        ! 1.0 / p0
+
+      real dzgrd       ! Grid distance in soil layers in z direction
+
+      real tgdeep      ! Constant soil temperature in deepest layer
+      real sstcst      ! Constant sea surface temperature
+
+      real enk         ! Temporary variable
+      real enkm1v      ! Temporary variable
+
+      real, intent(inout) :: sst(0:ni+1,0:nj+1)
+                       ! Sea surface temperature
+
+      real, intent(inout) :: ek(1:nk)
+                       ! Temporary variable
+
+! Internal private variables
+
+      integer i        ! Array index in x direction
+      integer j        ! Array index in y direction
+      integer k        ! Array index in z direction
+
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
+      ! Dump variables
+      integer, save :: dump_call_count_initund = 0
+      integer, parameter :: DUMP_TARGET_initund = 1
+      logical, save :: dump_done_initund = .false.
+
+
+!-----7--------------------------------------------------------------7--
+
+! Initialize the character variable.
+
+      call inichar(sfcdat)
+
+! -----
+
+! Get the required namelist variables.
+
+      call getcname(fpsfcdat,sfcdat)
+      call getiname(fpsfcopt,sfcopt)
+      call getiname(fpadvopt,advopt)
+      call getrname(fpdzgrd,dzgrd)
+      call getrname(fptgdeep,tgdeep)
+      call getrname(fpsstcst,sstcst)
+
+! -----
+
+! Set the common used variables.
+
+      rddvcp=rd/cp
+      p0iv=1.e0/p0
+
+      enk=exp(real(1-nund)*dzgrd)
+      enkm1v=1.e0/(exp(real(1-nund)*dzgrd)-1.e0)
+
+! -----
+
+! Read the sea surface temperature from external data file.
+
+      if(sfcdat(2:2).eq.'o') then
+
+        call rdsstini(idexprim,idcrsdir,idncexp,idnccrs,                &
+     &                idwlngth,idstime,ni,nj,sst)
+
+      end if
+
+! -----
+
+! Read the soil and sea temperature from restart file.
+
+      if(sfcopt.gt.10) then
+
+        call rdtund(idcrsdir,idprvres,idnccrs,idncprv,idadvopt,         &
+     &              ni,nj,nund,tund,tundp)
+
+      end if
+
+! -----
+
+!!! Initialize the soil and sea temperature.
+
+!@llm start meta_info ----------------------------------------------------
+! Location: initund.f90 :: s_initund
+! Summary : Initialize soil and sea temperature arrays (tund, tundp) based on
+!           surface type (land/sea), SST data, and atmospheric conditions
+! GPU diff: Medium
+! Findings:
+!   - Multiple conditional branches (sfcopt, sfcdat, advopt, land type)
+!   - Calls intrinsic exp, log, min, real functions (GPU-compatible)
+!   - Private variables: k, i, j
+!   - Reads from land, sst, pbr, ptbr, pp, ptp, ek arrays
+!   - Writes to tund and tundp arrays
+!   - Uses shared ek array computed within parallel region
+!   - Multiple omp do regions within single parallel block
+!   - No sync constructs between threads
+! Next:
+!   - Can be ported to GPU with OpenACC parallel loop
+!   - Ensure ek array is properly handled (computed then used)
+!   - Consider separating different sfcopt cases into different kernels
+! Runtime:
+!   - Calls: 1
+!   - AvgLoops: 806.4K
+!   - TotalTime: 0.003s (0.00%)
+!   - AvgTime: 3.217ms
+!@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('initund.f90', 's_initund', &
+   & 'OMP section 1')
+end if
+loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_initund = dump_call_count_initund + 1
+if (dump_call_count_initund == DUMP_TARGET_initund .and. .not. dump_done_initund) then
+  call dump_init('initund')
+  call dump_scalar_c('sfcdat', sfcdat)
+  call dump_scalar_i('sfcopt', sfcopt)
+  call dump_scalar_i('advopt', advopt)
+  call dump_scalar_r('dzgrd', dzgrd)
+  call dump_scalar_r('tgdeep', tgdeep)
+  call dump_scalar_r('sstcst', sstcst)
+  ! FIXME: ni is array - call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('nund', nund)
+  call dump_scalar_r('t0', t0)
+  call dump_array_3d('pbr.bin', pbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ptbr.bin', ptbr, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('pp.bin', pp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ptp.bin', ptp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d_int('land.bin', land, 0, ni+1, 0, nj+1)
+  call dump_array_2d('sst_in.bin', sst, 0, ni+1, 0, nj+1)
+  ! FIXME: ek is an array, not scalar
+  ! ! FIXME: ek is array - call dump_scalar_r('ek', ek)
+  call dump_scalar_r('enk', enk)
+  call dump_scalar_r('enkm1v', enkm1v)
+  call dump_scalar_r('p0iv', p0iv)
+  call dump_scalar_r('rddvcp', rddvcp)
+end if
+
+!$omp parallel default(shared) private(k)
+
+!! Initialized by diagnostic value.
+
+      if(sfcopt.eq.1.or.sfcopt.eq.2.or.sfcopt.eq.3) then
+
+! Set the surface temperature.
+
+        if(sfcdat(2:2).eq.'o') then
+
+!$omp do schedule(runtime) private(i,j)
+
+          do j=1,nj-1
+          do i=1,ni-1
+
+            if(land(i,j).lt.3) then
+
+              tundp(i,j,1)=sst(i,j)
+
+            else
+
+              tundp(i,j,1)=(ptbr(i,j,1)+ptp(i,j,1))                     &
+     &          *exp(rddvcp*log(p0iv*(pbr(i,j,1)+pp(i,j,1))))
+
+              tundp(i,j,1)=.5e0*(tundp(i,j,1)+(ptbr(i,j,2)+ptp(i,j,2))  &
+     &          *exp(rddvcp*log(p0iv*(pbr(i,j,2)+pp(i,j,2)))))
+
+              if(land(i,j).lt.10) then
+
+                tundp(i,j,1)=min(tundp(i,j,1),t0)
+
+              end if
+
+            end if
+
+          end do
+          end do
+
+!$omp end do
+
+        else
+
+!$omp do schedule(runtime) private(i,j)
+
+          do j=1,nj-1
+          do i=1,ni-1
+
+            if(land(i,j).lt.3) then
+
+              tundp(i,j,1)=sstcst
+
+            else
+
+              tundp(i,j,1)=(ptbr(i,j,1)+ptp(i,j,1))                     &
+     &          *exp(rddvcp*log(p0iv*(pbr(i,j,1)+pp(i,j,1))))
+
+              tundp(i,j,1)=.5e0*(tundp(i,j,1)+(ptbr(i,j,2)+ptp(i,j,2))  &
+     &          *exp(rddvcp*log(p0iv*(pbr(i,j,2)+pp(i,j,2)))))
+
+              if(land(i,j).lt.10) then
+
+                tundp(i,j,1)=min(tundp(i,j,1),t0)
+
+              end if
+
+            end if
+
+          end do
+          end do
+
+!$omp end do
+
+        end if
+
+! -----
+
+! Set the soil temperature.
+
+!$omp do schedule(runtime)
+
+        do k=2,nund
+          ek(k)=exp(real(1-k)*dzgrd)
+        end do
+
+!$omp end do
+
+        do k=2,nund
+
+!$omp do schedule(runtime) private(i,j)
+
+          do j=1,nj-1
+          do i=1,ni-1
+
+            if(land(i,j).lt.10) then
+
+              tundp(i,j,k)=tundp(i,j,1)
+
+            else
+
+              tundp(i,j,k)=((tgdeep-tundp(i,j,1))*enkm1v)*ek(k)         &
+     &          +(tundp(i,j,1)*enk-tgdeep)*enkm1v
+
+            end if
+
+          end do
+          end do
+
+!$omp end do
+
+        end do
+
+! -----
+
+! Copy the past value to the present.
+
+        if(advopt.le.3) then
+
+          do k=1,nund
+
+!$omp do schedule(runtime) private(i,j)
+
+            do j=1,nj-1
+            do i=1,ni-1
+              tund(i,j,k)=tundp(i,j,k)
+            end do
+            end do
+
+!$omp end do
+
+          end do
+
+        end if
+
+! -----
+
+!! -----
+
+! Reset the sea temperature.
+
+      else if(sfcopt.gt.10) then
+
+        if(advopt.le.3) then
+
+          if(sfcdat(2:2).eq.'o') then
+
+            do k=1,nund
+
+!$omp do schedule(runtime) private(i,j)
+
+              do j=1,nj-1
+              do i=1,ni-1
+
+                if(land(i,j).lt.3) then
+
+                  tund(i,j,k)=sst(i,j)
+                  tundp(i,j,k)=sst(i,j)
+
+                end if
+
+              end do
+              end do
+
+!$omp end do
+
+            end do
+
+          else
+
+            do k=1,nund
+
+!$omp do schedule(runtime) private(i,j)
+
+              do j=1,nj-1
+              do i=1,ni-1
+
+                if(land(i,j).lt.3) then
+
+                  tund(i,j,k)=sstcst
+                  tundp(i,j,k)=sstcst
+
+                end if
+
+              end do
+              end do
+
+!$omp end do
+
+            end do
+
+          end if
+
+        else
+
+          if(sfcdat(2:2).eq.'o') then
+
+            do k=1,nund
+
+!$omp do schedule(runtime) private(i,j)
+
+              do j=1,nj-1
+              do i=1,ni-1
+
+                if(land(i,j).lt.3) then
+
+                  tundp(i,j,k)=sst(i,j)
+
+                end if
+
+              end do
+              end do
+
+!$omp end do
+
+            end do
+
+          else
+
+            do k=1,nund
+
+!$omp do schedule(runtime) private(i,j)
+
+              do j=1,nj-1
+              do i=1,ni-1
+
+                if(land(i,j).lt.3) then
+
+                  tundp(i,j,k)=sstcst
+
+                end if
+
+              end do
+              end do
+
+!$omp end do
+
+            end do
+
+          end if
+
+        end if
+
+      end if
+
+! -----
+
+!$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_initund == DUMP_TARGET_initund .and. .not. dump_done_initund) then
+  call dump_array_3d('tund_ref.bin', tund, 0, ni+1, 0, nj+1, 1, nund)
+  call dump_array_3d('tundp_ref.bin', tundp, 0, ni+1, 0, nj+1, 1, nund)
+  call dump_array_2d('sst_ref.bin', sst, 0, ni+1, 0, nj+1)
+  call dump_finalize()
+  dump_done_initund = .true.
+end if
+
+
+call profile_stop(prof_id1, loop_len)
+
+!!! -----
+
+      end subroutine s_initund
+
+!-----7--------------------------------------------------------------7--
+
+      end module m_initund

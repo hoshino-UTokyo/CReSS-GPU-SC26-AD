@@ -1,0 +1,175 @@
+!***********************************************************************
+      module m_convland
+!***********************************************************************
+
+!     Author      : Sakakibara Atsushi
+!     Date        : 2007/05/14
+!     Modification: 2007/10/19, 2008/05/02, 2008/08/25, 2009/02/27,
+!                   2013/01/28
+
+!-----7--1----+----2----+----3----+----4----+----5----+----6----+----7--
+
+! In this module,
+!     convert variable type of the land use categories.
+
+!-----7--------------------------------------------------------------7--
+
+! Module reference
+
+!     none
+
+!-----7--------------------------------------------------------------7--
+
+! Implicit typing
+      use m_comprofile
+
+      implicit none
+
+! Default access control
+
+      private
+
+! Exceptional access control
+
+      public :: convland, s_convland
+
+!-----7--------------------------------------------------------------7--
+
+! Module variable
+
+!     none
+
+! Module procedure
+
+      interface convland
+
+        module procedure s_convland
+
+      end interface
+
+!-----7--------------------------------------------------------------7--
+
+! Intrinsic procedure
+
+      intrinsic nint
+      intrinsic real
+
+! External procedure
+
+!     none
+
+!-----7--------------------------------------------------------------7--
+
+! Internal module procedure
+
+      contains
+
+!***********************************************************************
+      subroutine s_convland(fproc,ni,nj,land,rland)
+!***********************************************************************
+
+! Input variables
+
+      character(len=7), intent(in) :: fproc
+                       ! Control flag of processing type
+
+      integer, intent(in) :: ni
+                       ! Model dimension in x direction
+
+      integer, intent(in) :: nj
+                       ! Model dimension in y direction
+
+! Input and output variables
+
+      integer, intent(inout) :: land(0:ni+1,0:nj+1)
+                       ! Land use of surface
+
+      real, intent(inout) :: rland(0:ni+1,0:nj+1)
+                       ! Real land use of surface
+
+! Internal private variables
+
+      integer i        ! Array index in x direction
+      integer j        ! Array index in y direction
+
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
+!-----7--------------------------------------------------------------7--
+
+!! Convert variable type of the land use categories.
+
+!@llm start meta_info ----------------------------------------------------
+! Location: convland.f90 :: s_convland
+! Summary : Converts land use categories between integer and real types,
+!           either real(land)+0.1 or nint(rland).
+! GPU diff: Easy
+! Findings:
+!   - No omp_get_thread_num usage
+!   - No external function calls (only intrinsic nint, real)
+!   - Simple 2D loop with straightforward type conversion
+!   - Two mutually exclusive branches based on fproc string
+!   - Independent grid point operations
+! Next:
+!   - Straightforward GPU port with OpenACC or OpenACC
+!   - Collapse i,j loops for better occupancy
+!   - Consider data movement optimization if called frequently
+!@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('convland.f90', 's_convland', &
+   & 'OMP section 1')
+end if
+loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
+!$omp parallel default(shared)
+
+! Convert the integer land use categories to real.
+
+      if(fproc(1:4).eq.'real') then
+
+!$omp do schedule(runtime) private(i,j)
+
+        do j=1,nj-1
+        do i=1,ni-1
+          rland(i,j)=real(land(i,j))+.1e0
+        end do
+        end do
+
+!$omp end do
+
+! -----
+
+! Convert the real land use categories to integer.
+
+      else if(fproc(1:7).eq.'integer') then
+
+!$omp do schedule(runtime) private(i,j)
+
+        do j=1,nj-1
+        do i=1,ni-1
+          land(i,j)=nint(rland(i,j))
+        end do
+        end do
+
+!$omp end do
+
+      end if
+
+! -----
+
+!$omp end parallel
+
+call profile_stop(prof_id1, loop_len)
+
+!! -----
+
+      end subroutine s_convland
+
+!-----7--------------------------------------------------------------7--
+
+      end module m_convland

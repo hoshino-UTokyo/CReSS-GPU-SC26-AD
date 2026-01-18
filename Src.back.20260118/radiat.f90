@@ -1,0 +1,815 @@
+!***********************************************************************
+      module m_radiat
+!***********************************************************************
+
+!     Author      : Sakakibara Atsushi
+!     Date        : 2001/08/31
+!     Modification: 2001/10/15, 2001/12/11, 2002/04/02, 2002/07/03,
+!                   2002/07/15, 2002/12/02, 2003/04/30, 2003/05/19,
+!                   2003/07/15, 2003/10/31, 2003/11/05, 2003/12/12,
+!                   2004/04/15, 2004/05/07, 2004/08/01, 2004/09/01,
+!                   2004/09/10, 2005/01/07, 2005/01/31, 2005/08/05,
+!                   2006/08/08, 2006/09/21, 2007/01/05, 2007/01/20,
+!                   2007/06/27, 2007/07/30, 2007/09/04, 2007/10/19,
+!                   2008/03/12, 2008/05/02, 2008/07/01, 2008/08/25,
+!                   2008/10/10, 2009/02/27, 2009/08/20, 2009/11/13,
+!                   2013/01/28, 2013/02/13
+
+!-----7--1----+----2----+----3----+----4----+----5----+----6----+----7--
+
+! In this module,
+!     calculate the short and long wave radiation.
+
+!-----7--------------------------------------------------------------7--
+
+! Module reference
+
+      use m_comdays
+      use m_comprofile
+      use m_dump_kernel
+      use m_commath
+      use m_comphy
+      use m_getiname
+
+!-----7--------------------------------------------------------------7--
+
+! Implicit typing
+
+      implicit none
+
+! Default access control
+
+      private
+
+! Exceptional access control
+
+      public :: radiat, s_radiat
+
+!-----7--------------------------------------------------------------7--
+
+! Module variable
+
+!     none
+
+! Module procedure
+
+      interface radiat
+
+        module procedure s_radiat
+
+      end interface
+
+!-----7--------------------------------------------------------------7--
+
+! Intrinsic procedure
+
+      intrinsic abs
+      intrinsic cos
+      intrinsic sin
+      intrinsic exp
+      intrinsic log10
+      intrinsic max
+      intrinsic min
+      intrinsic mod
+      intrinsic real
+      intrinsic sqrt
+
+! External procedure
+
+!     none
+
+!-----7--------------------------------------------------------------7--
+
+! Internal module procedure
+
+      contains
+
+!***********************************************************************
+      subroutine s_radiat(fpcphopt,fmois,cdate,ni,nj,nk,nund,zph,       &
+     &                    lat,lon,p,t,qv,land,albe,kai,tund,tice,       &
+     &                    cdl,cdm,cdh,fall,rgd,rsd,rld,rlu,             &
+     &                    zph8s,zref,coseta)
+!***********************************************************************
+
+! Input variable
+
+      character(len=5), intent(in) :: fmois
+                       ! Control flag of air moisture
+
+      character(len=12), intent(in) :: cdate
+                       ! Current forecast date
+                       ! with Gregorian calendar, yyyymmddhhmm
+
+      integer, intent(in) :: fpcphopt
+                       ! Formal parameter of unique index of cphopt
+
+      integer, intent(in) :: ni
+                       ! Model dimension in x direction
+
+      integer, intent(in) :: nj
+                       ! Model dimension in y direction
+
+      integer, intent(in) :: nk
+                       ! Model dimension in z direction
+
+      integer, intent(in) :: nund
+                       ! Number of soil and sea layers
+
+      integer, intent(in) :: land(0:ni+1,0:nj+1)
+                       ! Land use of surface
+
+      real, intent(in) :: zph(0:ni+1,0:nj+1,1:nk)
+                       ! z physical coordinates
+
+      real, intent(in) :: lat(0:ni+1,0:nj+1)
+                       ! Latitude
+
+      real, intent(in) :: lon(0:ni+1,0:nj+1)
+                       ! Longitude
+
+      real, intent(in) :: p(0:ni+1,0:nj+1,1:nk)
+                       ! Pressure
+
+      real, intent(in) :: t(0:ni+1,0:nj+1,1:nk)
+                       ! Air temperature
+
+      real, intent(in) :: qv(0:ni+1,0:nj+1,1:nk)
+                       ! Water vapor mixing ratio
+
+      real, intent(in) :: albe(0:ni+1,0:nj+1)
+                       ! Albedo
+
+      real, intent(in) :: kai(0:ni+1,0:nj+1)
+                       ! Sea ice distribution
+
+      real, intent(in) :: tund(0:ni+1,0:nj+1,1:nund)
+                       ! Soil and sea temperature at present
+
+      real, intent(in) :: tice(0:ni+1,0:nj+1)
+                       ! Mixed ice surface temperature
+
+      real, intent(in) :: cdl(0:ni+1,0:nj+1)
+                       ! Cloud cover in lower layer
+
+      real, intent(in) :: cdm(0:ni+1,0:nj+1)
+                       ! Cloud cover in middle layer
+
+      real, intent(in) :: cdh(0:ni+1,0:nj+1)
+                       ! Cloud cover in upper layer
+
+      real, intent(in) :: fall(0:ni+1,0:nj+1)
+                       ! Precipitation flag
+
+! Output variables
+
+      real, intent(out) :: rgd(0:ni+1,0:nj+1)
+                       ! Global solar radiation
+
+      real, intent(out) :: rsd(0:ni+1,0:nj+1)
+                       ! Net downward short wave radiation
+
+      real, intent(out) :: rld(0:ni+1,0:nj+1)
+                       ! Downward long wave radiation
+
+      real, intent(out) :: rlu(0:ni+1,0:nj+1)
+                       ! Upward long wave radiation
+
+! Internal shared variables
+
+      integer cphopt   ! Option for cloud micro physics
+
+      integer nkm1     ! nk - 1
+
+      integer cyr      ! Year of current forecast date
+      integer cmo      ! Month of current forecast date
+      integer cdy      ! Day of current forecast date
+      integer chr      ! Hour of current forecast date
+      integer cmn      ! Minite of current forecast date
+
+      real ln1013      ! - 0.13 x ln10
+
+      real esgm        ! el x sigma
+      real esgm51      ! 0.51 x el x sigma
+
+      real jday        ! Number of elapse of days from start of year
+
+      real eqt         ! Equation of local time
+
+      real phs         ! Solar angle
+
+      real rchr        ! real(chr)
+      real rcmn        ! real(cmn) / 60.0
+
+      real sinphs      ! sin(phs)
+      real cosphs      ! cos(phs)
+
+      real, intent(inout) :: zph8s(0:ni+1,0:nj+1,1:nk)
+                       ! z physical coordinates at scalar points
+
+      real, intent(inout) :: zref(0:ni+1,0:nj+1)
+                       ! Reference z physical coordinates
+                       ! for downward radiation
+
+      real, intent(inout) :: coseta(0:ni+1,0:nj+1)
+                       ! cos(Zenith angle)
+
+! Internal private variables
+
+      integer i        ! Array index in x direction
+      integer j        ! Array index in y direction
+      integer k        ! Array index in z direction
+
+      real tlc         ! Local time
+
+      real pa          ! Pressure at specified plane
+      real ta          ! Temperature at specified plane
+      real ea          ! Pertial vapor pressure at specified plane
+
+      real cdall       ! Total cloud cover
+
+      real absrp       ! Absorption rate
+                       ! of downward short wave radiation
+
+      real dk          ! Distance in z direction for interpolating
+
+      real a           ! Temporary variable
+      real b           ! Temporary variable
+
+
+      ! Profiling variables
+      integer, save :: prof_id1 = -1
+      integer(8) :: loop_len
+
+      ! Dump variables
+      integer, save :: dump_call_count_radiat = 0
+      integer, parameter :: DUMP_TARGET_radiat = 361
+      logical, save :: dump_done_radiat = .false.
+
+
+!-----7--------------------------------------------------------------7--
+
+! Get the required namelist variable.
+
+      call getiname(fpcphopt,cphopt)
+
+! -----
+
+! Read out the integer variables from the input current forecast date
+! with Gregorian calendar, yyyymmddhhmm.
+
+      read(cdate(1:12),'(i4.4,4i2.2)') cyr,cmo,cdy,chr,cmn
+
+! -----
+
+! Calculate the solar angle.
+
+      if(mod(cyr,400).eq.0                                              &
+     &  .or.(mod(cyr,4).eq.0.and.mod(cyr,100).ne.0)) then
+
+        jday=2.e0*cc*i366*real(elaitc(cmo-1)+cdy-1)
+
+      else
+
+        jday=2.e0*cc*i365*real(ela(cmo-1)+cdy-1)
+
+      end if
+
+      eqt=.000075e0+.001868e0*cos(jday)-.032077e0*sin(jday)             &
+     &  -.014615e0*cos(2.e0*jday)-.040849e0*sin(2.e0*jday)
+
+      phs=.006918e0-.399912e0*cos(jday)+.070257e0*sin(jday)             &
+     &  -.006758e0*cos(2.e0*jday)+.000907e0*sin(2.e0*jday)              &
+     &  -.002697e0*cos(3.e0*jday)+.001480e0*sin(3.e0*jday)
+
+! -----
+
+! Set the common used variables.
+
+      nkm1=nk-1
+
+      ln1013=-.13e0*ln10
+
+      esgm=el*sigma
+      esgm51=.51e0*el*sigma
+
+      rchr=real(chr)
+      rcmn=oned60*real(cmn)
+
+      sinphs=sin(phs)
+      cosphs=cos(phs)
+
+! -----
+
+!!!!! Calculte the zenith angle, the global solar radiation, the net
+!!!!! downward short wave radiation and the upward and downward long
+!!!!! wave radiation.
+
+!@llm start meta_info ----------------------------------------------------
+! Location: radiat.f90 :: s_radiat
+! Summary : Calculates zenith angle, short/long wave radiation fluxes
+!           (rgd, rsd, rld, rlu) based on dry/moist air conditions.
+! GPU diff: Medium
+! Findings:
+!   - No omp_get_thread_num usage
+!   - Intrinsic functions used: cos, sin, exp, log10, sqrt, max, min
+!   - Multiple omp do regions inside single parallel region
+!   - Writes to zph8s, zref, coseta (2D), rgd, rsd, rld, rlu (2D output arrays)
+!   - No sync constructs; implicit barriers at omp end do
+!   - Conditional branching based on fmois (dry/moist) and cphopt
+!   - Serial k-loop with nested parallel i,j loops
+!   - Uses module constants from m_comdays, m_commath, m_comphy
+! Next:
+!   - Collapse k-loop with i,j loops if possible
+!   - Consider separating dry/moist code paths for GPU kernels
+!   - Hoist conditional checks outside parallel region if feasible
+! Runtime:
+!   - Calls: 361
+!   - AvgLoops: 806.4K
+!   - TotalTime: 1.831s (0.06%)
+!   - AvgTime: 5.071ms
+!@llm end meta_info ------------------------------------------------------
+
+! Register profiling section (first call only)
+if (prof_id1 < 0) then
+  prof_id1 = profile_register('radiat.f90', 's_radiat', &
+   & 'OMP section 1')
+end if
+loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
+call profile_start(prof_id1)
+
+
+! Dump input data at target call
+dump_call_count_radiat = dump_call_count_radiat + 1
+if (dump_call_count_radiat == DUMP_TARGET_radiat .and. .not. dump_done_radiat) then
+  call dump_init('radiat')
+  call dump_scalar_i('cphopt', cphopt)
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('nund', nund)
+  call dump_scalar_r('epsva', epsva)
+  call dump_array_3d('zph.bin', zph, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d('lat.bin', lat, 0, ni+1, 0, nj+1)
+  call dump_array_2d('lon.bin', lon, 0, ni+1, 0, nj+1)
+  call dump_array_3d('p.bin', p, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('t.bin', t, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('qv.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d_int('land.bin', land, 0, ni+1, 0, nj+1)
+  call dump_array_2d('albe.bin', albe, 0, ni+1, 0, nj+1)
+  call dump_array_2d('kai.bin', kai, 0, ni+1, 0, nj+1)
+  call dump_array_3d('tund.bin', tund, 0, ni+1, 0, nj+1, 1, nund)
+  call dump_array_2d('tice.bin', tice, 0, ni+1, 0, nj+1)
+  call dump_array_2d('cdl.bin', cdl, 0, ni+1, 0, nj+1)
+  call dump_array_2d('cdm.bin', cdm, 0, ni+1, 0, nj+1)
+  call dump_array_2d('cdh.bin', cdh, 0, ni+1, 0, nj+1)
+  call dump_array_2d('fall.bin', fall, 0, ni+1, 0, nj+1)
+  call dump_array_3d('zph8s_in.bin', zph8s, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d('zref_in.bin', zref, 0, ni+1, 0, nj+1)
+  call dump_array_2d('coseta_in.bin', coseta, 0, ni+1, 0, nj+1)
+  call dump_scalar_r('cosphs', cosphs)
+  call dump_scalar_r('eqt', eqt)
+  call dump_scalar_r('esgm', esgm)
+  call dump_scalar_r('esgm51', esgm51)
+  ! FIXME: fmois is array - call dump_scalar_r('fmois', fmois)
+  call dump_scalar_r('ln1013', ln1013)
+  call dump_scalar_i('nkm1', nkm1)
+  call dump_scalar_r('rchr', rchr)
+  call dump_scalar_r('rcmn', rcmn)
+  call dump_scalar_r('sinphs', sinphs)
+end if
+
+!$omp parallel default(shared) private(k)
+
+! Calculte the zenith angle.
+
+!$omp do schedule(runtime) private(i,j,tlc)
+
+      do j=1,nj-1
+      do i=1,ni-1
+
+        tlc=rchr+rcmn+oned15*lon(i,j)
+
+        coseta(i,j)=sinphs*sin(lat(i,j)*d2r)                            &
+     &    +cosphs*cos(lat(i,j)*d2r)*cos(eqt+15.e0*(tlc-12.e0)*d2r)
+
+      end do
+      end do
+
+!$omp end do
+
+! -----
+
+! Get the z physical coordinates at scalar points and the reference
+! z physical coordinates for downward radiation.
+
+      do k=1,nk-1
+
+!$omp do schedule(runtime) private(i,j)
+
+        do j=1,nj-1
+        do i=1,ni-1
+          zph8s(i,j,k)=.5e0*(zph(i,j,k)+zph(i,j,k+1))
+        end do
+        end do
+
+!$omp end do
+
+      end do
+
+!$omp do schedule(runtime) private(i,j)
+
+      do j=1,nj-1
+      do i=1,ni-1
+        zref(i,j)=min(zarad+zph(i,j,2),zph8s(i,j,nkm1))
+      end do
+      end do
+
+!$omp end do
+
+! -----
+
+!!! In the case of dry air.
+
+      if(fmois(1:3).eq.'dry') then
+
+        do k=1,nk-2
+
+!$omp do schedule(runtime) private(i,j,dk,pa,ta,absrp,a)
+
+          do j=1,nj-1
+          do i=1,ni-1
+
+!! Perform calculation for specified plane.
+
+            if(zref(i,j).gt.zph8s(i,j,k)                                &
+     &        .and.zref(i,j).le.zph8s(i,j,k+1)) then
+
+! Get the temperature and pressure at the specified plane.
+
+              dk=(zref(i,j)-zph8s(i,j,k))/(zph8s(i,j,k+1)-zph8s(i,j,k))
+
+              pa=(1.e0-dk)*p(i,j,k)+dk*p(i,j,k+1)
+              ta=(1.e0-dk)*t(i,j,k)+dk*t(i,j,k+1)
+
+! -----
+
+! Calculate the global solar radiation and the net downward short wave
+! radiation.
+
+              if(coseta(i,j).gt.0.e0) then
+
+                if(land(i,j).lt.0) then
+
+                  absrp=1.e0                                            &
+     &              -(9.e0*(1.e0-coseta(i,j))*albe(i,j)+albe(i,j))
+
+                else if(land(i,j).eq.1) then
+
+                  absrp=1.e0-(kai(i,j)*icalbe+(1.e0-kai(i,j))           &
+     &              *(9.e0*(1.e0-coseta(i,j))*albe(i,j)+albe(i,j)))
+
+                else
+
+                  absrp=max(1.e0                                        &
+     &              -(.5e0*(1.e0-coseta(i,j))*albe(i,j)+albe(i,j)),0.e0)
+
+                end if
+
+                rgd(i,j)=sun0*(.554e0                                   &
+     &            +.43e0*exp(ln1013/(coseta(i,j)+eps)))*coseta(i,j)
+
+                rsd(i,j)=absrp*rgd(i,j)
+
+              else
+
+                rgd(i,j)=0.e0
+                rsd(i,j)=0.e0
+
+              end if
+
+! -----
+
+! Calculate the upward and downward long wave radiation.
+
+              a=ta*ta
+
+              rld(i,j)=esgm51*a*a
+
+              if(land(i,j).eq.1) then
+
+                a=kai(i,j)*tice(i,j)+(1.e0-kai(i,j))*tund(i,j,1)
+
+                a=a*a
+
+              else
+
+                a=tund(i,j,1)*tund(i,j,1)
+
+              end if
+
+              rlu(i,j)=esgm*a*a
+
+! -----
+
+            end if
+
+!! -----
+
+          end do
+          end do
+
+!$omp end do
+
+        end do
+
+!!! -----
+
+!!!! In the case of moist air.
+
+      else if(fmois(1:5).eq.'moist') then
+
+!!! In the case of no cloud physics.
+
+        if(abs(cphopt).eq.0) then
+
+          do k=1,nk-2
+
+!$omp do schedule(runtime) private(i,j,dk,pa,ta,ea,cdall,absrp,a,b)
+
+            do j=1,nj-1
+            do i=1,ni-1
+
+!! Perform calculation for specified plane.
+
+              if(zref(i,j).gt.zph8s(i,j,k)                              &
+     &          .and.zref(i,j).le.zph8s(i,j,k+1)) then
+
+! Set the common used variables.
+
+                dk=(zref(i,j)-zph8s(i,j,k))                             &
+     &            /(zph8s(i,j,k+1)-zph8s(i,j,k))
+
+                pa=(1.e0-dk)*p(i,j,k)+dk*p(i,j,k+1)
+                ta=(1.e0-dk)*t(i,j,k)+dk*t(i,j,k+1)
+                ea=(1.e0-dk)*qv(i,j,k)+dk*qv(i,j,k+1)
+
+                ea=pa*ea/(epsva+ea)
+
+                cdall=cdl(i,j)+cdm(i,j)+cdh(i,j)
+
+! -----
+
+! Calculate the global solar radiation and the net downward short wave
+! radiation.
+
+                if(coseta(i,j).gt.0.e0) then
+
+                  if(land(i,j).lt.0) then
+
+                    absrp=1.e0-((9.e0-3.e0*cdall)                       &
+     &                *(1.e0-coseta(i,j))*albe(i,j)+albe(i,j))
+
+                  else if(land(i,j).eq.1) then
+
+                    absrp=1.e0-(kai(i,j)*icalbe                         &
+     &                +(1.e0-kai(i,j))*((9.e0-3.e0*cdall)               &
+     &                *(1.e0-coseta(i,j))*albe(i,j)+albe(i,j)))
+
+                  else
+
+                    absrp=max(1.e0-((.5e0-oned6*cdall)                  &
+     &                *(1.e0-coseta(i,j))*albe(i,j)+albe(i,j)),0.e0)
+
+                  end if
+
+                  b=.43e0+.00016e0*ea
+
+                  if(ea.gt.3000.e0) then
+
+                    a=0.e0
+
+                  else if(ea.gt.100.e0.and.ea.le.3000.e0) then
+
+                    a=1.12e0-b-.06e0*log10(ea)
+
+                  else
+
+                    a=.554e0
+
+                  end if
+
+                  rgd(i,j)=sun0*(a+b*exp(ln1013/(coseta(i,j)+eps)))     &
+     &              *(1.e0-.7e0*cdl(i,j))*(1.e0-.6e0*cdm(i,j))          &
+     &              *(1.e0-.3e0*cdh(i,j))*coseta(i,j)
+
+                  rsd(i,j)=absrp*rgd(i,j)
+
+                else
+
+                  rgd(i,j)=0.e0
+                  rsd(i,j)=0.e0
+
+                end if
+
+! -----
+
+! Calculate the upward and downward long wave radiation.
+
+                a=cdl(i,j)+.85e0*cdm(i,j)+.5e0*cdh(i,j)
+
+                b=ta*ta
+
+                rld(i,j)=esgm*b*b*(1.e0+(.66e-2*sqrt(ea)-.49e0)         &
+     &            *(1.e0-(.75e0-.5e-4*ea)*a))
+
+                if(land(i,j).eq.1) then
+
+                  b=kai(i,j)*tice(i,j)+(1.e0-kai(i,j))*tund(i,j,1)
+
+                  b=b*b
+
+                else
+
+                  b=tund(i,j,1)*tund(i,j,1)
+
+                end if
+
+                rlu(i,j)=esgm*b*b
+
+! -----
+
+              end if
+
+!! -----
+
+            end do
+            end do
+
+!$omp end do
+
+          end do
+
+!!! -----
+
+!!! In the case of performing cloud physics.
+
+        else
+
+          do k=1,nk-2
+
+!$omp do schedule(runtime) private(i,j,dk,pa,ta,ea,cdall,absrp,a,b)
+
+            do j=1,nj-1
+            do i=1,ni-1
+
+!! Perform calculation for specified plane.
+
+              if(zref(i,j).gt.zph8s(i,j,k)                              &
+     &          .and.zref(i,j).le.zph8s(i,j,k+1)) then
+
+! Set the common used variables.
+
+                dk=(zref(i,j)-zph8s(i,j,k))                             &
+     &            /(zph8s(i,j,k+1)-zph8s(i,j,k))
+
+                pa=(1.e0-dk)*p(i,j,k)+dk*p(i,j,k+1)
+                ta=(1.e0-dk)*t(i,j,k)+dk*t(i,j,k+1)
+                ea=(1.e0-dk)*qv(i,j,k)+dk*qv(i,j,k+1)
+
+                ea=pa*ea/(epsva+ea)
+
+                cdall=cdl(i,j)+cdm(i,j)+cdh(i,j)
+
+! -----
+
+! Calculate the global solar radiation and the net downward short wave
+! radiation.
+
+                if(coseta(i,j).gt.0.e0) then
+
+                  if(land(i,j).lt.0) then
+
+                    absrp=1.e0-((9.e0-3.e0*cdall)                       &
+     &                *(1.e0-coseta(i,j))*albe(i,j)+albe(i,j))
+
+                  else if(land(i,j).eq.1) then
+
+                    absrp=1.e0-(kai(i,j)*icalbe                         &
+     &                +(1.e0-kai(i,j))*((9.e0-3.e0*cdall)               &
+     &                *(1.e0-coseta(i,j))*albe(i,j)+albe(i,j)))
+
+                  else
+
+                    absrp=max(1.e0-((.5e0-oned6*cdall)                  &
+     &                *(1.e0-coseta(i,j))*albe(i,j)+albe(i,j)),0.e0)
+
+                  end if
+
+                  b=.43e0+.00016e0*ea
+
+                  if(ea.gt.3000.e0) then
+
+                    a=0.e0
+
+                  else if(ea.gt.100.e0.and.ea.le.3000.e0) then
+
+                    a=1.12e0-b-.06e0*log10(ea)
+
+                  else
+
+                    a=.554e0
+
+                  end if
+
+                  rgd(i,j)=sun0*(a+b*exp(ln1013/(coseta(i,j)+eps)))     &
+     &              *(1.e0-.7e0*cdl(i,j))*(1.e0-.6e0*cdm(i,j))          &
+     &              *(1.e0-.3e0*cdh(i,j))*coseta(i,j)
+
+                  rsd(i,j)=absrp*rgd(i,j)
+
+                else
+
+                  rgd(i,j)=0.e0
+                  rsd(i,j)=0.e0
+
+                end if
+
+! -----
+
+! Calculate the upward and downward long wave radiation.
+
+                if(fall(i,j).gt.0.e0) then
+
+                  a=cdl(i,j)+.85e0*cdm(i,j)+.5e0*cdh(i,j)+.1e0*cdall
+
+                else
+
+                  a=cdl(i,j)+.85e0*cdm(i,j)+.5e0*cdh(i,j)
+
+                end if
+
+                b=ta*ta
+
+                rld(i,j)=esgm*b*b*(1.e0+(.66e-2*sqrt(ea)-.49e0)         &
+     &            *(1.e0-(.75e0-.5e-4*ea)*a))
+
+                if(land(i,j).eq.1) then
+
+                  b=kai(i,j)*tice(i,j)+(1.e0-kai(i,j))*tund(i,j,1)
+
+                  b=b*b
+
+                else
+
+                  b=tund(i,j,1)*tund(i,j,1)
+
+                end if
+
+                rlu(i,j)=esgm*b*b
+
+! -----
+
+              end if
+
+!! -----
+
+            end do
+            end do
+
+!$omp end do
+
+          end do
+
+        end if
+
+!!! -----
+
+      end if
+
+!!!! -----
+
+!$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_radiat == DUMP_TARGET_radiat .and. .not. dump_done_radiat) then
+  call dump_array_2d('rgd_ref.bin', rgd, 0, ni+1, 0, nj+1)
+  call dump_array_2d('rsd_ref.bin', rsd, 0, ni+1, 0, nj+1)
+  call dump_array_2d('rld_ref.bin', rld, 0, ni+1, 0, nj+1)
+  call dump_array_2d('rlu_ref.bin', rlu, 0, ni+1, 0, nj+1)
+  call dump_array_3d('zph8s_ref.bin', zph8s, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_2d('zref_ref.bin', zref, 0, ni+1, 0, nj+1)
+  call dump_array_2d('coseta_ref.bin', coseta, 0, ni+1, 0, nj+1)
+  call dump_finalize()
+  dump_done_radiat = .true.
+end if
+
+
+call profile_stop(prof_id1, loop_len)
+
+!!!!! -----
+
+      end subroutine s_radiat
+
+!-----7--------------------------------------------------------------7--
+
+      end module m_radiat
