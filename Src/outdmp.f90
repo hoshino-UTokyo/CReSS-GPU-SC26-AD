@@ -411,7 +411,10 @@ if (dump_call_count_outdmp == DUMP_TARGET_outdmp .and. .not. dump_done_outdmp) t
   call dump_array_3d('pp.bin', pp, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('ptp.bin', ptp, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_4d('qwtr.bin', qwtr, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  call dump_array_4d('nwtr.bin', nwtr, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
+  ! nwtr is allocated as dummy when savmem=1 and abs(cphopt)<4
+  if (abs(cphopt).ge.4 .and. abs(cphopt).lt.20) then
+    call dump_array_4d('nwtr.bin', nwtr, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
+  end if
   call dump_array_4d('qice.bin', qice, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
   call dump_array_4d('nice.bin', nice, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
   ! qcwtr is only allocated when cphopt < 0 and qcgopt == 2
@@ -422,9 +425,18 @@ if (dump_call_count_outdmp == DUMP_TARGET_outdmp .and. .not. dump_done_outdmp) t
   if (cphopt < 0) then
     call dump_array_4d('qcice.bin', qcice, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
   end if
-  call dump_array_4d('qasl.bin', qasl, 0, ni+1, 0, nj+1, 1, nk, 1, nqa(0))
-  call dump_array_3d('qt.bin', qt, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tke.bin', tke, 0, ni+1, 0, nj+1, 1, nk)
+  ! qasl is allocated as dummy when aslopt < 1
+  if (aslopt >= 1) then
+    call dump_array_4d('qasl.bin', qasl, 0, ni+1, 0, nj+1, 1, nk, 1, nqa(0))
+  end if
+  ! qt is allocated as dummy when trkopt < 1
+  if (trkopt >= 1) then
+    call dump_array_3d('qt.bin', qt, 0, ni+1, 0, nj+1, 1, nk)
+  end if
+  ! tke is allocated as dummy when tubopt < 2
+  if (tubopt >= 2) then
+    call dump_array_3d('tke.bin', tke, 0, ni+1, 0, nj+1, 1, nk)
+  end if
   call dump_array_3d('maxvl_in.bin', maxvl, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_4d('prwtr_in.bin', prwtr, 0, ni+1, 0, nj+1, 1, 2, 1, nqw)
   call dump_array_4d('price_in.bin', price, 0, ni+1, 0, nj+1, 1, 2, 1, nqi)

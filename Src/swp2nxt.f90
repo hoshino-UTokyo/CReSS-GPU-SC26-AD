@@ -427,7 +427,8 @@ if (dump_call_count_swp2nxt == DUMP_TARGET_swp2nxt .and. .not. dump_done_swp2nxt
   if (nqw >= 1) then
     call dump_array_4d('qwtr.bin', qwtr, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
   end if
-  if (nnw >= 1) then
+  ! nwtr is allocated as dummy when savmem=1 and abs(cphopt)<4
+  if (nnw >= 1 .and. abs(cphopt).ge.4 .and. abs(cphopt).lt.20) then
     call dump_array_4d('nwtr.bin', nwtr, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
   end if
   if (nqi >= 1) then
@@ -444,11 +445,18 @@ if (dump_call_count_swp2nxt == DUMP_TARGET_swp2nxt .and. .not. dump_done_swp2nxt
   if (cphopt < 0) then
     call dump_array_4d('qcice.bin', qcice, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
   end if
-  if (nqa(0) >= 1) then
+  ! qasl is allocated as dummy when aslopt < 1
+  if (aslopt >= 1) then
     call dump_array_4d('qasl.bin', qasl, 0, ni+1, 0, nj+1, 1, nk, 1, nqa(0))
   end if
-  call dump_array_3d('qt.bin', qt, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tke.bin', tke, 0, ni+1, 0, nj+1, 1, nk)
+  ! qt is allocated as dummy when trkopt < 1
+  if (trkopt >= 1) then
+    call dump_array_3d('qt.bin', qt, 0, ni+1, 0, nj+1, 1, nk)
+  end if
+  ! tke is allocated as dummy when tubopt < 2
+  if (tubopt >= 2) then
+    call dump_array_3d('tke.bin', tke, 0, ni+1, 0, nj+1, 1, nk)
+  end if
   call dump_array_3d('tund.bin', tund, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('uf.bin', uf, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('vf.bin', vf, 0, ni+1, 0, nj+1, 1, nk)
@@ -459,7 +467,8 @@ if (dump_call_count_swp2nxt == DUMP_TARGET_swp2nxt .and. .not. dump_done_swp2nxt
   if (nqw >= 1) then
     call dump_array_4d('qwtrf.bin', qwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
   end if
-  if (nnw >= 1) then
+  ! nwtrf is allocated as dummy when savmem=1 and abs(cphopt)<4
+  if (nnw >= 1 .and. abs(cphopt).ge.4 .and. abs(cphopt).lt.20) then
     call dump_array_4d('nwtrf.bin', nwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
   end if
   if (nqi >= 1) then
@@ -476,7 +485,8 @@ if (dump_call_count_swp2nxt == DUMP_TARGET_swp2nxt .and. .not. dump_done_swp2nxt
   if (cphopt < 0) then
     call dump_array_4d('qcicef.bin', qcicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
   end if
-  if (nqa(0) >= 1) then
+  ! qaslf is allocated as dummy when aslopt < 1
+  if (aslopt >= 1) then
     call dump_array_4d('qaslf.bin', qaslf, 0, ni+1, 0, nj+1, 1, nk, 1, nqa(0))
   end if
   if (trkopt >= 1) then
@@ -1602,7 +1612,8 @@ if (dump_call_count_swp2nxt == DUMP_TARGET_swp2nxt .and. .not. dump_done_swp2nxt
   if (nqw >= 1) then
     call dump_array_4d('qwtrp_ref.bin', qwtrp, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
   end if
-  if (nnw >= 1) then
+  ! nwtrp is allocated as dummy when savmem=1 and abs(cphopt)<4
+  if (nnw >= 1 .and. abs(cphopt).ge.4 .and. abs(cphopt).lt.20) then
     call dump_array_4d('nwtrp_ref.bin', nwtrp, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
   end if
   if (nqi >= 1) then
@@ -1619,7 +1630,8 @@ if (dump_call_count_swp2nxt == DUMP_TARGET_swp2nxt .and. .not. dump_done_swp2nxt
   if (cphopt < 0) then
     call dump_array_4d('qcicep_ref.bin', qcicep, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
   end if
-  if (nqa(0) >= 1) then
+  ! qaslp is allocated as dummy when aslopt < 1
+  if (aslopt >= 1) then
     call dump_array_4d('qaslp_ref.bin', qaslp, 0, ni+1, 0, nj+1, 1, nk, 1, nqa(0))
   end if
   if (trkopt >= 1) then

@@ -317,7 +317,10 @@ if (dump_call_count_eddyvis == DUMP_TARGET_eddyvis .and. .not. dump_done_eddyvis
   call dump_array_3d('jcb.bin', jcb, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('rmf.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
   call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tke.bin', tke, 0, ni+1, 0, nj+1, 1, nk)
+  ! tke is allocated as dummy when tubopt < 2
+  if (tubopt >= 2) then
+    call dump_array_3d('tke.bin', tke, 0, ni+1, 0, nj+1, 1, nk)
+  end if
   call dump_array_3d('ssq.bin', ssq, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('nsq8w.bin', nsq8w, 0, ni+1, 0, nj+1, 1, nk)
 end if
