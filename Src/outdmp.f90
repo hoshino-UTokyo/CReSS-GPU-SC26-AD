@@ -257,6 +257,7 @@
       integer aslopt   ! Option for aerosol processes
       integer trkopt   ! Option for mixing ratio tracking
       integer tubopt   ! Option for turbulent mixing
+      integer savmem   ! Option for memory saving
 
       integer dmplev   ! Option for z coordinates of dumped variables
 
@@ -330,6 +331,7 @@
         call getiname(fpaslopt,aslopt)
         call getiname(fptrkopt,trkopt)
         call getiname(fptubopt,tubopt)
+        call getiname(idsavmem,savmem)
         call getiname(fpdmplev,dmplev)
         call getrname(fpdz,dz)
 
@@ -437,9 +439,20 @@ if (dump_call_count_outdmp == DUMP_TARGET_outdmp .and. .not. dump_done_outdmp) t
   if (tubopt >= 2) then
     call dump_array_3d('tke.bin', tke, 0, ni+1, 0, nj+1, 1, nk)
   end if
-  call dump_array_3d('maxvl_in.bin', maxvl, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_4d('prwtr_in.bin', prwtr, 0, ni+1, 0, nj+1, 1, 2, 1, nqw)
-  call dump_array_4d('price_in.bin', price, 0, ni+1, 0, nj+1, 1, 2, 1, nqi)
+  ! maxvl is allocated as dummy when savmem/=0 and not (tubopt>=2 and dmpvar(12:12) is '+' or '-')
+  if (savmem.eq.0 .or. (tubopt.ge.2 .and.                              &
+ &    (dmpvar(12:12).eq.'+' .or. dmpvar(12:12).eq.'-'))) then
+    call dump_array_3d('maxvl_in.bin', maxvl, 0, ni+1, 0, nj+1, 1, nk)
+  end if
+  ! prwtr is allocated as dummy when savmem/=0 and abs(cphopt)<1
+  if (savmem.eq.0 .or. abs(cphopt).ge.1) then
+    call dump_array_4d('prwtr_in.bin', prwtr, 0, ni+1, 0, nj+1, 1, 2, 1, nqw)
+  end if
+  ! price is allocated as dummy when savmem/=0 and not (abs(cphopt)>=2 and mod(abs(cphopt),10)/=1)
+  if (savmem.eq.0 .or.                                                 &
+ &    (abs(cphopt).ge.2 .and. mod(abs(cphopt),10).ne.1)) then
+    call dump_array_4d('price_in.bin', price, 0, ni+1, 0, nj+1, 1, 2, 1, nqi)
+  end if
   call dump_array_3d('zph8s_in.bin', zph8s, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('var_in.bin', var, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('tmp1_in.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
@@ -485,9 +498,20 @@ end if
 
 ! Dump output data at target call
 if (dump_call_count_outdmp == DUMP_TARGET_outdmp .and. .not. dump_done_outdmp) then
-  call dump_array_3d('maxvl_ref.bin', maxvl, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_4d('prwtr_ref.bin', prwtr, 0, ni+1, 0, nj+1, 1, 2, 1, nqw)
-  call dump_array_4d('price_ref.bin', price, 0, ni+1, 0, nj+1, 1, 2, 1, nqi)
+  ! maxvl is allocated as dummy when savmem/=0 and not (tubopt>=2 and dmpvar(12:12) is '+' or '-')
+  if (savmem.eq.0 .or. (tubopt.ge.2 .and.                              &
+ &    (dmpvar(12:12).eq.'+' .or. dmpvar(12:12).eq.'-'))) then
+    call dump_array_3d('maxvl_ref.bin', maxvl, 0, ni+1, 0, nj+1, 1, nk)
+  end if
+  ! prwtr is allocated as dummy when savmem/=0 and abs(cphopt)<1
+  if (savmem.eq.0 .or. abs(cphopt).ge.1) then
+    call dump_array_4d('prwtr_ref.bin', prwtr, 0, ni+1, 0, nj+1, 1, 2, 1, nqw)
+  end if
+  ! price is allocated as dummy when savmem/=0 and not (abs(cphopt)>=2 and mod(abs(cphopt),10)/=1)
+  if (savmem.eq.0 .or.                                                 &
+ &    (abs(cphopt).ge.2 .and. mod(abs(cphopt),10).ne.1)) then
+    call dump_array_4d('price_ref.bin', price, 0, ni+1, 0, nj+1, 1, 2, 1, nqi)
+  end if
   call dump_array_3d('zph8s_ref.bin', zph8s, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('var_ref.bin', var, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('tmp1_ref.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
