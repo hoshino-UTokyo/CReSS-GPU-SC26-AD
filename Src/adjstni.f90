@@ -256,11 +256,15 @@ if (dump_call_count_adjstni == DUMP_TARGET_adjstni .and. .not. dump_done_adjstni
   call dump_array_3d('qi.bin', qi, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qs.bin', qs, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qg.bin', qg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qh.bin', qh, 0, ni+1, 0, nj+1, 1, nk)
+  if (haiopt /= 0) then
+    call dump_array_3d('qh.bin', qh, 0, ni+1, 0, nj+1, 1, nk)
+  end if
   call dump_array_3d('nci_in.bin', nci, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('ncs_in.bin', ncs, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('ncg_in.bin', ncg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('nch_in.bin', nch, 0, ni+1, 0, nj+1, 1, nk)
+  if (haiopt /= 0) then
+    call dump_array_3d('nch_in.bin', nch, 0, ni+1, 0, nj+1, 1, nk)
+  end if
 end if
 
 !$omp parallel default(shared) private(k)
@@ -373,7 +377,9 @@ if (dump_call_count_adjstni == DUMP_TARGET_adjstni .and. .not. dump_done_adjstni
   call dump_array_3d('nci_ref.bin', nci, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('ncs_ref.bin', ncs, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('ncg_ref.bin', ncg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('nch_ref.bin', nch, 0, ni+1, 0, nj+1, 1, nk)
+  if (haiopt /= 0) then
+    call dump_array_3d('nch_ref.bin', nch, 0, ni+1, 0, nj+1, 1, nk)
+  end if
   call dump_finalize()
   dump_done_adjstni = .true.
 end if

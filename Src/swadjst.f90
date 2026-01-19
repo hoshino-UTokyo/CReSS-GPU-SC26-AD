@@ -296,7 +296,9 @@ if (dump_call_count_swadjst == DUMP_TARGET_swadjst .and. .not. dump_done_swadjst
   call dump_array_3d('ptp_in.bin', ptp, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qv_in.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qc_in.bin', qc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncc_in.bin', ncc, 0, ni+1, 0, nj+1, 1, nk)
+  if (abs(cphopt) > 3) then
+    call dump_array_3d('ncc_in.bin', ncc, 0, ni+1, 0, nj+1, 1, nk)
+  end if
   call dump_scalar_r('c1', c1)
   call dump_scalar_r('cdiaqc', cdiaqc)
   call dump_scalar_r('coe1', coe1)
@@ -628,7 +630,9 @@ if (dump_call_count_swadjst == DUMP_TARGET_swadjst .and. .not. dump_done_swadjst
   call dump_array_3d('ptp_ref.bin', ptp, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qv_ref.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qc_ref.bin', qc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncc_ref.bin', ncc, 0, ni+1, 0, nj+1, 1, nk)
+  if (abs(cphopt) > 3) then
+    call dump_array_3d('ncc_ref.bin', ncc, 0, ni+1, 0, nj+1, 1, nk)
+  end if
   call dump_finalize()
   dump_done_swadjst = .true.
 end if

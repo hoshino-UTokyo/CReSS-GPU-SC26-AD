@@ -282,7 +282,9 @@ if (dump_call_count_convers == DUMP_TARGET_convers .and. .not. dump_done_convers
   call dump_array_3d('qi.bin', qi, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qs.bin', qs, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('ncc.bin', ncc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncs.bin', ncs, 0, ni+1, 0, nj+1, 1, nk)
+  if (abs(cphopt) >= 3) then
+    call dump_array_3d('ncs.bin', ncs, 0, ni+1, 0, nj+1, 1, nk)
+  end if
   call dump_array_3d('mu.bin', mu, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('mi.bin', mi, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('diaqi.bin', diaqi, 0, ni+1, 0, nj+1, 1, nk)
@@ -824,7 +826,9 @@ if (dump_call_count_convers == DUMP_TARGET_convers .and. .not. dump_done_convers
   call dump_array_3d('cncr_ref.bin', cncr, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('cnis_ref.bin', cnis, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('cnsg_ref.bin', cnsg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('cnsgn_ref.bin', cnsgn, 0, ni+1, 0, nj+1, 1, nk)
+  if (abs(cphopt) >= 3) then
+    call dump_array_3d('cnsgn_ref.bin', cnsgn, 0, ni+1, 0, nj+1, 1, nk)
+  end if
   call dump_finalize()
   dump_done_convers = .true.
 end if

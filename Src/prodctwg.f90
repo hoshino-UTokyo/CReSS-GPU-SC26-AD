@@ -275,7 +275,9 @@ if (dump_call_count_prodctwg == DUMP_TARGET_prodctwg .and. .not. dump_done_prodc
   call dump_array_3d('qi.bin', qi, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qs.bin', qs, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qg.bin', qg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncs.bin', ncs, 0, ni+1, 0, nj+1, 1, nk)
+  if (abs(cphopt) >= 3) then
+    call dump_array_3d('ncs.bin', ncs, 0, ni+1, 0, nj+1, 1, nk)
+  end if
   call dump_array_3d('tcel.bin', tcel, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qvsst0.bin', qvsst0, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('lv.bin', lv, 0, ni+1, 0, nj+1, 1, nk)

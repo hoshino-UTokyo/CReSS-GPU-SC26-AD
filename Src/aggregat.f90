@@ -256,10 +256,14 @@ if (dump_call_count_aggregat == DUMP_TARGET_aggregat .and. .not. dump_done_aggre
   call dump_array_3d('qr.bin', qr, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qi.bin', qi, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qs.bin', qs, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncc.bin', ncc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncr.bin', ncr, 0, ni+1, 0, nj+1, 1, nk)
+  if (abs(cphopt) == 4) then
+    call dump_array_3d('ncc.bin', ncc, 0, ni+1, 0, nj+1, 1, nk)
+    call dump_array_3d('ncr.bin', ncr, 0, ni+1, 0, nj+1, 1, nk)
+  end if
   call dump_array_3d('nci.bin', nci, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncs.bin', ncs, 0, ni+1, 0, nj+1, 1, nk)
+  if (abs(cphopt) >= 3) then
+    call dump_array_3d('ncs.bin', ncs, 0, ni+1, 0, nj+1, 1, nk)
+  end if
   call dump_array_3d('diaqc.bin', diaqc, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('diaqr.bin', diaqr, 0, ni+1, 0, nj+1, 1, nk)
   call dump_scalar_r('cagcn', cagcn)
@@ -678,10 +682,14 @@ end if
 
 ! Dump output data at target call
 if (dump_call_count_aggregat == DUMP_TARGET_aggregat .and. .not. dump_done_aggregat) then
-  call dump_array_3d('agcn_ref.bin', agcn, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('agrn_ref.bin', agrn, 0, ni+1, 0, nj+1, 1, nk)
+  if (abs(cphopt) == 4) then
+    call dump_array_3d('agcn_ref.bin', agcn, 0, ni+1, 0, nj+1, 1, nk)
+    call dump_array_3d('agrn_ref.bin', agrn, 0, ni+1, 0, nj+1, 1, nk)
+  end if
   call dump_array_3d('agin_ref.bin', agin, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('agsn_ref.bin', agsn, 0, ni+1, 0, nj+1, 1, nk)
+  if (abs(cphopt) >= 3) then
+    call dump_array_3d('agsn_ref.bin', agsn, 0, ni+1, 0, nj+1, 1, nk)
+  end if
   call dump_finalize()
   dump_done_aggregat = .true.
 end if

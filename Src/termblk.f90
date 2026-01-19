@@ -359,13 +359,17 @@ if (dump_call_count_termblk == DUMP_TARGET_termblk .and. .not. dump_done_termblk
   call dump_array_3d('qi.bin', qi, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qs.bin', qs, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qg.bin', qg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qh.bin', qh, 0, ni+1, 0, nj+1, 1, nk)
+  if (haiopt /= 0) then
+    call dump_array_3d('qh.bin', qh, 0, ni+1, 0, nj+1, 1, nk)
+  end if
   call dump_array_3d('ncc.bin', ncc, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('ncr.bin', ncr, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('nci.bin', nci, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('ncs.bin', ncs, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('ncg.bin', ncg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('nch.bin', nch, 0, ni+1, 0, nj+1, 1, nk)
+  if (haiopt /= 0) then
+    call dump_array_3d('nch.bin', nch, 0, ni+1, 0, nj+1, 1, nk)
+  end if
   call dump_scalar_r('buc3', buc3)
   call dump_scalar_r('bug3', bug3)
   call dump_scalar_r('buh3', buh3)
@@ -686,13 +690,17 @@ if (dump_call_count_termblk == DUMP_TARGET_termblk .and. .not. dump_done_termblk
   call dump_array_3d('uiq_ref.bin', uiq, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('usq_ref.bin', usq, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('ugq_ref.bin', ugq, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('uhq_ref.bin', uhq, 0, ni+1, 0, nj+1, 1, nk)
+  if (haiopt /= 0) then
+    call dump_array_3d('uhq_ref.bin', uhq, 0, ni+1, 0, nj+1, 1, nk)
+  end if
   call dump_array_3d('ucn_ref.bin', ucn, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('urn_ref.bin', urn, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('uin_ref.bin', uin, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('usn_ref.bin', usn, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('ugn_ref.bin', ugn, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('uhn_ref.bin', uhn, 0, ni+1, 0, nj+1, 1, nk)
+  if (haiopt /= 0) then
+    call dump_array_3d('uhn_ref.bin', uhn, 0, ni+1, 0, nj+1, 1, nk)
+  end if
   call dump_finalize()
   dump_done_termblk = .true.
 end if

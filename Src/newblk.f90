@@ -436,8 +436,10 @@ if (dump_call_count_newblk == DUMP_TARGET_newblk .and. .not. dump_done_newblk) t
   call dump_array_3d('qsp.bin', qsp, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qgp.bin', qgp, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('nccp.bin', nccp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncsp.bin', ncsp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncgp.bin', ncgp, 0, ni+1, 0, nj+1, 1, nk)
+  if (abs(cphopt) >= 3) then
+    call dump_array_3d('ncsp.bin', ncsp, 0, ni+1, 0, nj+1, 1, nk)
+    call dump_array_3d('ncgp.bin', ncgp, 0, ni+1, 0, nj+1, 1, nk)
+  end if
   call dump_array_3d('lv.bin', lv, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('ls.bin', ls, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('lf.bin', lf, 0, ni+1, 0, nj+1, 1, nk)
@@ -488,11 +490,15 @@ if (dump_call_count_newblk == DUMP_TARGET_newblk .and. .not. dump_done_newblk) t
   call dump_array_3d('qif_in.bin', qif, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qsf_in.bin', qsf, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qgf_in.bin', qgf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('nccf_in.bin', nccf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncrf_in.bin', ncrf, 0, ni+1, 0, nj+1, 1, nk)
+  if (abs(cphopt) == 4) then
+    call dump_array_3d('nccf_in.bin', nccf, 0, ni+1, 0, nj+1, 1, nk)
+    call dump_array_3d('ncrf_in.bin', ncrf, 0, ni+1, 0, nj+1, 1, nk)
+  end if
   call dump_array_3d('ncif_in.bin', ncif, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncsf_in.bin', ncsf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncgf_in.bin', ncgf, 0, ni+1, 0, nj+1, 1, nk)
+  if (abs(cphopt) >= 3) then
+    call dump_array_3d('ncsf_in.bin', ncsf, 0, ni+1, 0, nj+1, 1, nk)
+    call dump_array_3d('ncgf_in.bin', ncgf, 0, ni+1, 0, nj+1, 1, nk)
+  end if
   call dump_scalar_r('mi0iv', mi0iv)
   call dump_scalar_r('mr0iv', mr0iv)
   call dump_scalar_r('ms0iv', ms0iv)
@@ -1738,11 +1744,15 @@ if (dump_call_count_newblk == DUMP_TARGET_newblk .and. .not. dump_done_newblk) t
   call dump_array_3d('qif_ref.bin', qif, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qsf_ref.bin', qsf, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qgf_ref.bin', qgf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('nccf_ref.bin', nccf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncrf_ref.bin', ncrf, 0, ni+1, 0, nj+1, 1, nk)
+  if (abs(cphopt) == 4) then
+    call dump_array_3d('nccf_ref.bin', nccf, 0, ni+1, 0, nj+1, 1, nk)
+    call dump_array_3d('ncrf_ref.bin', ncrf, 0, ni+1, 0, nj+1, 1, nk)
+  end if
   call dump_array_3d('ncif_ref.bin', ncif, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncsf_ref.bin', ncsf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncgf_ref.bin', ncgf, 0, ni+1, 0, nj+1, 1, nk)
+  if (abs(cphopt) >= 3) then
+    call dump_array_3d('ncsf_ref.bin', ncsf, 0, ni+1, 0, nj+1, 1, nk)
+    call dump_array_3d('ncgf_ref.bin', ncgf, 0, ni+1, 0, nj+1, 1, nk)
+  end if
   call dump_finalize()
   dump_done_newblk = .true.
 end if
