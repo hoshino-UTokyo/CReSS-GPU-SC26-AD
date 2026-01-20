@@ -1,0 +1,9 @@
+# Variable List for get1d.f90
+# Discovered via default(none) method
+# Source: Src/get1d.f90
+
+## Shared variables (to be dumped)
+
+
+## Summary
+Total variables: 0

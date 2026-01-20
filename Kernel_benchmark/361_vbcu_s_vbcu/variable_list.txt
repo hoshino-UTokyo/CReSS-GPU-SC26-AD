@@ -1,0 +1,13 @@
+# Variable List for vbcu.f90
+# Discovered via default(none) method
+# Source: Src/vbcu.f90
+
+## Shared variables (to be dumped)
+ni
+nj
+nkm1
+nkm2
+uf
+
+## Summary
+Total variables: 5

@@ -1,0 +1,15 @@
+# Variable List for diverpiv.f90
+# Discovered via default(none) method
+# Source: Src/diverpiv.f90
+
+## Shared variables (to be dumped)
+dziv
+ni
+nj
+nk
+pdiv
+rcsq
+w
+
+## Summary
+Total variables: 7

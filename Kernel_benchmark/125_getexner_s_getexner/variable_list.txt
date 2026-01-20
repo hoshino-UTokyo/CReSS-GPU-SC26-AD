@@ -1,0 +1,17 @@
+# Variable List for getexner.f90
+# Discovered via default(none) method
+# Source: Src/getexner.f90
+
+## Shared variables (to be dumped)
+ni
+nj
+nk
+p
+p0iv
+pbr
+pi
+pp
+rddvcp
+
+## Summary
+Total variables: 9

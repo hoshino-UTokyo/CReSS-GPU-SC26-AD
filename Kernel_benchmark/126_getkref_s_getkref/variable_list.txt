@@ -1,0 +1,23 @@
+# Variable List for getkref.f90
+# Discovered via default(none) method
+# Source: Src/getkref.f90
+
+## Shared variables (to be dumped)
+altmin
+idend
+idstr
+jdend
+jdstr
+kbot
+kdbot
+ktop
+nid
+nk
+nkd
+refsfc_gpv
+z
+zdat
+zlow
+
+## Summary
+Total variables: 15

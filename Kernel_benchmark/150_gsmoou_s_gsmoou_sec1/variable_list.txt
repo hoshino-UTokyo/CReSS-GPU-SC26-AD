@@ -1,0 +1,14 @@
+# Variable List for gsmoou.f90
+# Discovered via default(none) method
+# Source: Src/gsmoou.f90
+
+## Shared variables (to be dumped)
+dfu
+dtcoe
+ni
+nj
+nk
+ugpv
+
+## Summary
+Total variables: 6

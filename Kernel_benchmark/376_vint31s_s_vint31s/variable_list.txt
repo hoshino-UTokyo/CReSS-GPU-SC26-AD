@@ -1,0 +1,16 @@
+# Variable List for vint31s.f90
+# Discovered via default(none) method
+# Source: Src/vint31s.f90
+
+## Shared variables (to be dumped)
+invar
+ni
+nj
+nk
+nkm2
+outvar
+z1d
+zph8s
+
+## Summary
+Total variables: 8

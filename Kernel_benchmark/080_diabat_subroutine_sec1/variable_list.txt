@@ -1,0 +1,34 @@
+# Variable List for diabat.f90
+# Discovered via default(none) method
+# Source: Src/diabat.f90
+
+## Shared variables (to be dumped)
+cphopt
+dtb2iv
+fmois
+ieast
+iwest
+jcb
+jnorth
+jsouth
+ni
+nj
+nk
+pdia
+ptbr
+ptp
+ptpf
+ptpp
+ptv
+ptvf
+ptvp
+qall
+qallf
+qallp
+qv
+qvf
+qvp
+rcsq
+
+## Summary
+Total variables: 26

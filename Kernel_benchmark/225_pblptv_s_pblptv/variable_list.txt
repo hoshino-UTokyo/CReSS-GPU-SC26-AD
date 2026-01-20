@@ -1,0 +1,24 @@
+# Variable List for pblptv.f90
+# Discovered via default(none) method
+# Source: Src/pblptv.f90
+
+## Shared variables (to be dumped)
+ct
+dtdzv
+dtdzv2
+jcb8w
+khs
+levp1
+levpbl
+ni
+nj
+ptv
+rbr
+rr
+rst
+ss
+tmp1
+tt
+
+## Summary
+Total variables: 16

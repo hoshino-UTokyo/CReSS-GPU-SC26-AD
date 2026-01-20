@@ -1,0 +1,25 @@
+# Variable List for lspqv.f90
+# Discovered via default(none) method
+# Source: Src/lspqv.f90
+
+## Shared variables (to be dumped)
+gpvvar
+gtinc
+lsnews
+lspopt
+lspsmt
+ni
+nj
+nk
+qvbr
+qvfrc
+qvgpv
+qvp
+qvtd
+rbcxy
+rst
+tmp1
+wdnews
+
+## Summary
+Total variables: 17

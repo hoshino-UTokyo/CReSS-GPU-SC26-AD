@@ -1,0 +1,18 @@
+# Variable List for advbspi.f90
+# Discovered via default(none) method
+# Source: Src/advbspi.f90
+
+## Shared variables (to be dumped)
+fp
+fproc
+g05
+ni
+nj
+nk
+pfrc
+phdiv
+pvdiv
+rst
+w
+weic1m
+weicoe

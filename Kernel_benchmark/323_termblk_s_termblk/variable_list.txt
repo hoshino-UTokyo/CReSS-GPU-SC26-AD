@@ -1,0 +1,62 @@
+# Variable List for termblk.f90
+# Discovered via default(none) method
+# Source: Src/termblk.f90
+
+## Shared variables (to be dumped)
+buc3
+bug3
+buh3
+bui3
+bur3
+bus3
+ccri6
+ccrw6
+cdiaqc
+cdiaqg
+cdiaqh
+cdiaqr
+cdiaqs
+cphopt
+cucn
+cucq
+cugn
+cugq
+cuhn
+cuhq
+curn
+curq
+cusn
+cusq
+haiopt
+ncc
+ncg
+nch
+nci
+ncr
+ncs
+ni
+nj
+nk
+qc
+qg
+qh
+qi
+qr
+qs
+rbv
+thresq
+ucn
+ucq
+ugn
+ugq
+uhn
+uhq
+uin
+uiq
+urn
+urq
+usn
+usq
+
+## Summary
+Total variables: 54

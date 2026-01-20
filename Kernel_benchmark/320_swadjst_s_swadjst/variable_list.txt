@@ -1,0 +1,34 @@
+# Variable List for swadjst.f90
+# Discovered via default(none) method
+# Source: Src/swadjst.f90
+
+## Shared variables (to be dumped)
+c1
+cdiaqc
+coe1
+coe2
+coe3
+coe4
+coe5
+coe6
+coe7
+coe8
+coe9
+cphopt
+k1
+k1p2iv
+ncc
+ni
+nj
+nk
+p
+pi
+ptbr
+ptp
+qc
+qv
+thresq
+w
+
+## Summary
+Total variables: 26

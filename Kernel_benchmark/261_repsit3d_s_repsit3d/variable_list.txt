@@ -1,0 +1,18 @@
+# Variable List for repsit3d.f90
+# Discovered via default(none) method
+# Source: Src/repsit3d.f90
+
+## Shared variables (to be dumped)
+di
+dj
+iend
+istr
+jend
+jstr
+nk
+var
+var_rst
+xo
+
+## Summary
+Total variables: 10

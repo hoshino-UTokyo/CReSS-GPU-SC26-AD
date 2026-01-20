@@ -1,0 +1,15 @@
+# Variable List for ini0name.f90
+# Discovered via default(none) method
+# Source: Src/ini0name.f90
+
+## Shared variables (to be dumped)
+albe_lnd
+beta_lnd
+cap_lnd
+lnduse_lnd
+nuu_lnd
+z0h_lnd
+z0m_lnd
+
+## Summary
+Total variables: 7

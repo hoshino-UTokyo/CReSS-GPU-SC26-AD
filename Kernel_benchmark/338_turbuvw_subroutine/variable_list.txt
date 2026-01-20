@@ -1,0 +1,45 @@
+# Variable List for turbuvw.f90
+# Discovered via default(none) method
+# Source: Src/turbuvw.f90
+
+## Shared variables (to be dumped)
+advopt
+dxiv
+dxiv05
+dxiv25
+dyiv
+dyiv05
+dyiv25
+dziv
+j31
+j32
+jcb
+jcb8u
+jcb8v
+mf
+mf8u
+mf8v
+mfcopt
+mpopt
+ni
+nj
+nk
+rmf
+rmf8u
+rmf8v
+t11
+t12
+t13
+t22
+t23
+t31
+t32
+t33
+tmp1
+trnopt
+ufrc
+vfrc
+wfrc
+
+## Summary
+Total variables: 37

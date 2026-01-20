@@ -1,0 +1,14 @@
+# Variable List for totals.f90
+# Discovered via default(none) method
+# Source: Src/totals.f90
+
+## Shared variables (to be dumped)
+ni
+nj
+nk
+s
+sbr
+sp
+
+## Summary
+Total variables: 6

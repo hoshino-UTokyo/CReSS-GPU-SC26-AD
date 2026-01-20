@@ -1,0 +1,13 @@
+# Variable List for getvdens.f90
+# Discovered via default(none) method
+# Source: Src/getvdens.f90
+
+## Shared variables (to be dumped)
+ni
+nj
+nk
+rbr
+rbv
+
+## Summary
+Total variables: 5

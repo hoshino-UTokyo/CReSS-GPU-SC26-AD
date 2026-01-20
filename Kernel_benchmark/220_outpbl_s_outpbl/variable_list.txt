@@ -1,0 +1,46 @@
+# Variable List for outpbl.f90
+# Discovered via default(none) method
+# Source: Src/outpbl.f90
+
+## Shared variables (to be dumped)
+cdave
+cdh
+cdl
+cdm
+cdrat
+ch
+ch15
+cm
+cm10
+fmois
+kai
+land
+ni
+nj
+p
+p15
+pt15
+ptfrc
+ptsflx
+ptv
+qv
+qv15
+qvfrc
+qvsfc
+qvsflx
+rddwkp
+tice
+tsfc
+tund
+u
+u10
+ufrc
+usflx
+v
+v10
+vfrc
+vsflx
+za
+
+## Summary
+Total variables: 38

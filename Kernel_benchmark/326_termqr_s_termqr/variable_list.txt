@@ -1,0 +1,16 @@
+# Variable List for termqr.f90
+# Discovered via default(none) method
+# Source: Src/termqr.f90
+
+## Shared variables (to be dumped)
+ni
+nj
+nk
+qr
+rbr
+rbv
+thresq
+urq
+
+## Summary
+Total variables: 8

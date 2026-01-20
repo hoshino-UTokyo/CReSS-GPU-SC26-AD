@@ -1,0 +1,25 @@
+# Variable List for putbufgy.f90
+# Discovered via default(none) method
+# Source: Src/putbufgy.f90
+
+## Shared variables (to be dumped)
+ebn
+ebs
+fproc
+ib
+jgrp
+jnsnd
+jssnd
+jsub
+kmax
+nb
+nbc
+ni
+njgrp
+njsub
+sbc
+sbufy
+var
+
+## Summary
+Total variables: 17

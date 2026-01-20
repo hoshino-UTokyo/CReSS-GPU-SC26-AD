@@ -1,0 +1,16 @@
+# Variable List for eddyvisj.f90
+# Discovered via default(none) method
+# Source: Src/eddyvisj.f90
+
+## Shared variables (to be dumped)
+jcb
+mf
+mfcopt
+ni
+nj
+nk
+rkh
+rkv
+
+## Summary
+Total variables: 8

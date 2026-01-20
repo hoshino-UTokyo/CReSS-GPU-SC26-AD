@@ -1,0 +1,7 @@
+# Variable List for allociot.f90
+# Discovered via default(none) method
+# Source: Src/allociot.f90
+
+## Shared variables (to be dumped)
+iolst
+nio

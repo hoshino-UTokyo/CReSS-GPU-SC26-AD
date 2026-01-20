@@ -1,0 +1,33 @@
+# Variable List for getqt0.f90
+# Discovered via default(none) method
+# Source: Src/getqt0.f90
+
+## Shared variables (to be dumped)
+cc05
+ccrxiv
+ccryiv
+ccrziv
+ctr
+ni
+nj
+nk
+qt
+qt0
+qt05
+qt0cx
+qt0cy
+qt0cz
+qt0ds
+qt0num
+qt0opt
+qt0zh
+qt0zl
+rxiv
+ryiv
+rziv
+xs
+ys
+zph
+
+## Summary
+Total variables: 25

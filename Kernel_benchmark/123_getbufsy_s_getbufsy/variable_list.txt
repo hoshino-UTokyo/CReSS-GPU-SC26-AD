@@ -1,0 +1,21 @@
+# Variable List for getbufsy.f90
+# Discovered via default(none) method
+# Source: Src/getbufsy.f90
+
+## Shared variables (to be dumped)
+fproc
+ib
+jnrcv
+jsrcv
+jsub
+kmax
+nb
+nbc
+ni
+njsub
+rbufy
+sbc
+var
+
+## Summary
+Total variables: 13

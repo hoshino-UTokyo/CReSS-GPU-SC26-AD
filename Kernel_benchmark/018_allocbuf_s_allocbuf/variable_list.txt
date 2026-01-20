@@ -1,0 +1,23 @@
+# Variable List for allocbuf.f90
+# Discovered via default(none) method
+# Source: Src/allocbuf.f90
+
+## Shared variables (to be dumped)
+ebc
+grpxy
+idxbuf
+mxnbuf
+nbc
+nigrp
+nigrp1
+njgrp
+njgrp1
+npe
+nsrl
+rbuf
+sbc
+sbuf
+siz
+wbc
+xgrp
+ygrp

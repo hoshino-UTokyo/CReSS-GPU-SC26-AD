@@ -1,0 +1,14 @@
+# Variable List for diagnci.f90
+# Discovered via default(none) method
+# Source: Src/diagnci.f90
+
+## Shared variables (to be dumped)
+miiv
+ni
+nidia
+nj
+nk
+qice
+
+## Summary
+Total variables: 6

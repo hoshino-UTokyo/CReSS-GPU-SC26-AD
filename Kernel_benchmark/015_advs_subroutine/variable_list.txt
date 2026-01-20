@@ -1,0 +1,28 @@
+# Variable List for advs.f90
+# Discovered via default(none) method
+# Source: Src/advs.f90
+
+## Shared variables (to be dumped)
+advopt
+dxv05n
+dxv24
+dyv05n
+dyv24
+dzv05n
+dzv24
+ieast
+iwest
+jnorth
+jsouth
+ni
+nj
+nk
+rstxu
+rstxv
+rstxwc
+s
+sfrc
+tmp1
+tmp2
+tmp3
+vadv

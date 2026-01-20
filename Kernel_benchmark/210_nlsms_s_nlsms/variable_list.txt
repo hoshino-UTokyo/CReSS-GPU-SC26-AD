@@ -1,0 +1,20 @@
+# Variable List for nlsms.f90
+# Discovered via default(none) method
+# Source: Src/nlsms.f90
+
+## Shared variables (to be dumped)
+ampnlh
+ampnlv
+ni
+nj
+nk
+rbr
+rbrs
+s
+sfrc
+tmp1
+tmp2
+tmp3
+
+## Summary
+Total variables: 12

@@ -1,0 +1,19 @@
+# Variable List for mk2cgbw.f90
+# Discovered via default(none) method
+# Source: Src/mk2cgbw.f90
+
+## Shared variables (to be dumped)
+ni
+nj
+nk
+nqw
+nwbin
+p
+prr
+qwbin
+rbr
+rbv
+rst
+
+## Summary
+Total variables: 11

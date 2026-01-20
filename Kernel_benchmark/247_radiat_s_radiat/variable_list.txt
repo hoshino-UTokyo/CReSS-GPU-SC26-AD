@@ -1,0 +1,44 @@
+# Variable List for radiat.f90
+# Discovered via default(none) method
+# Source: Src/radiat.f90
+
+## Shared variables (to be dumped)
+albe
+cdh
+cdl
+cdm
+coseta
+cosphs
+cphopt
+eqt
+esgm
+esgm51
+fall
+fmois
+kai
+land
+lat
+ln1013
+lon
+ni
+nj
+nk
+nkm1
+p
+qv
+rchr
+rcmn
+rgd
+rld
+rlu
+rsd
+sinphs
+t
+tice
+tund
+zph
+zph8s
+zref
+
+## Summary
+Total variables: 36

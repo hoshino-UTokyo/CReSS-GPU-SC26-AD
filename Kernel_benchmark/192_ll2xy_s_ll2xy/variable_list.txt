@@ -1,0 +1,29 @@
+# Variable List for ll2xy.f90
+# Discovered via default(none) method
+# Source: Src/ll2xy.f90
+
+## Shared variables (to be dumped)
+cpj
+d2r2
+d2r4
+iend
+istr
+jend
+jstr
+lat
+lon
+mpopt
+ncpn
+pname
+pol05
+pold2r
+rpol
+rpol2
+tlon
+x0
+x2d
+y0
+y2d
+
+## Summary
+Total variables: 21

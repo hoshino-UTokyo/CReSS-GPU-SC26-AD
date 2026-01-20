@@ -1,0 +1,17 @@
+# Variable List for pgradiv.f90
+# Discovered via default(none) method
+# Source: Src/pgradiv.f90
+
+## Shared variables (to be dumped)
+dtdzw
+fp
+fpdvj
+fw
+jcb
+ni
+nj
+nk
+wfrc
+
+## Summary
+Total variables: 9

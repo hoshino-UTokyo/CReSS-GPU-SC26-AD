@@ -1,0 +1,15 @@
+# Variable List for advbspt.f90
+# Discovered via default(none) method
+# Source: Src/advbspt.f90
+
+## Shared variables (to be dumped)
+dziv25
+gwmopt
+ni
+nj
+nk
+pta8w
+ptadv
+ptbr
+rbr
+w

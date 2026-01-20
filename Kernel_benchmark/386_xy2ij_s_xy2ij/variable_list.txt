@@ -1,0 +1,18 @@
+# Variable List for xy2ij.f90
+# Discovered via default(none) method
+# Source: Src/xy2ij.f90
+
+## Shared variables (to be dumped)
+dxiv
+dyiv
+iend
+istr
+jend
+jstr
+ri
+rj
+x2d
+y2d
+
+## Summary
+Total variables: 10

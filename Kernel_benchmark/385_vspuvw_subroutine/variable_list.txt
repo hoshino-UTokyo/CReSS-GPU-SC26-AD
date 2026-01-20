@@ -1,0 +1,35 @@
+# Variable List for vspuvw.f90
+# Discovered via default(none) method
+# Source: Src/vspuvw.f90
+
+## Shared variables (to be dumped)
+gpvvar
+gtinc
+ksp0
+ni
+nj
+nk
+rbct
+rbct8s
+rst8u
+rst8v
+rst8w
+ubr
+ufrc
+ugpv
+up
+utd
+vbr
+vfrc
+vgpv
+vp
+vspopt
+vspvar
+vtd
+wfrc
+wgpv
+wp
+wtd
+
+## Summary
+Total variables: 27

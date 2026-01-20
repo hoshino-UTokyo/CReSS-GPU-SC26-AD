@@ -1,0 +1,16 @@
+# Variable List for steppts.f90
+# Discovered via default(none) method
+# Source: Src/steppts.f90
+
+## Shared variables (to be dumped)
+dts
+ni
+nj
+nk
+ptfrc
+ptpf
+ptsml
+rst
+
+## Summary
+Total variables: 8

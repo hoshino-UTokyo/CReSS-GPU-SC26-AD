@@ -1,0 +1,16 @@
+# Variable List for steppe.f90
+# Discovered via default(none) method
+# Source: Src/steppe.f90
+
+## Shared variables (to be dumped)
+dts
+jcb
+ni
+nj
+nk
+pfrc
+ppf
+psml
+
+## Summary
+Total variables: 8

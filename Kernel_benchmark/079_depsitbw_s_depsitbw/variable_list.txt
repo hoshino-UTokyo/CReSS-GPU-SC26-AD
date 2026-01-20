@@ -1,0 +1,52 @@
+# Variable List for depsitbw.f90
+# Discovered via default(none) method
+# Source: Src/depsitbw.f90
+
+## Shared variables (to be dumped)
+bmw
+bmws
+brw
+c1
+c2
+c3
+cc2rv4
+cc43rw
+cc4rv4
+ccrdcp
+cd1
+cd2
+cdv
+cn
+cp4
+dc0iv2
+dm
+dtcond
+dv
+es01
+k
+kp
+kp05
+lv
+lv04
+mwbin
+mws
+ni
+nj
+nqw
+nwbin
+nws
+p
+p205
+pi
+ptp
+qv
+rbrw
+rbv
+rv28
+rwrvws
+ssw
+t
+t23iv
+
+## Summary
+Total variables: 44

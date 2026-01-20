@@ -1,0 +1,32 @@
+# Variable List for turbs.f90
+# Discovered via default(none) method
+# Source: Src/turbs.f90
+
+## Shared variables (to be dumped)
+dxiv
+dyiv
+dziv
+h1
+h2
+h3
+j31
+j32
+jcb8u
+jcb8v
+mf
+mfcopt
+mpopt
+ni
+nj
+nk
+rmf
+rmf8u
+rmf8v
+sfrc
+tmp1
+tmp2
+tmp3
+trnopt
+
+## Summary
+Total variables: 24

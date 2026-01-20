@@ -1,0 +1,16 @@
+# Variable List for stepwe.f90
+# Discovered via default(none) method
+# Source: Src/stepwe.f90
+
+## Shared variables (to be dumped)
+dts
+ni
+nj
+nk
+rst8w
+wf
+wfrc
+wsml
+
+## Summary
+Total variables: 8

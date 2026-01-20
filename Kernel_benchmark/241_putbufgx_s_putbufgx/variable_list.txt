@@ -1,0 +1,25 @@
+# Variable List for putbufgx.f90
+# Discovered via default(none) method
+# Source: Src/putbufgx.f90
+
+## Shared variables (to be dumped)
+ebc
+ebe
+ebw
+fproc
+ib
+iesnd
+igrp
+isub
+iwsnd
+kmax
+nb
+nigrp
+nisub
+nj
+sbufx
+var
+wbc
+
+## Summary
+Total variables: 17

@@ -1,0 +1,18 @@
+# Variable List for copy4d.f90
+# Discovered via default(none) method
+# Source: Src/copy4d.f90
+
+## Shared variables (to be dumped)
+imax
+imin
+invar
+jmax
+jmin
+kmax
+kmin
+nmax
+nmin
+outvar
+
+## Summary
+Total variables: 10

@@ -1,0 +1,27 @@
+# Variable List for bcgsmw.f90
+# Discovered via default(none) method
+# Source: Src/bcgsmw.f90
+
+## Shared variables (to be dumped)
+dfw
+ebc
+ebe
+ebn
+ebs
+ebw
+isub
+jsub
+nbc
+ni
+nim1
+nim2
+nisub
+nj
+njm1
+njm2
+njsub
+nk
+nkm1
+nkm2
+sbc
+wbc

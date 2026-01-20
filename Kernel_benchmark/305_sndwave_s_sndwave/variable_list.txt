@@ -1,0 +1,14 @@
+# Variable List for sndwave.f90
+# Discovered via default(none) method
+# Source: Src/sndwave.f90
+
+## Shared variables (to be dumped)
+cpdvcv
+ni
+nj
+nk
+pbr
+rcsq
+
+## Summary
+Total variables: 6

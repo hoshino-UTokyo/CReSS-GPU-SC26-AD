@@ -1,0 +1,22 @@
+# Variable List for vculs0.f90
+# Discovered via default(none) method
+# Source: Src/vculs0.f90
+
+## Shared variables (to be dumped)
+dzt1
+dzt16
+dzt22
+dzt36
+ni
+nj
+nk
+nkm1
+nkm2
+nkm3
+nkm4
+sf
+sp
+wc8s
+
+## Summary
+Total variables: 14

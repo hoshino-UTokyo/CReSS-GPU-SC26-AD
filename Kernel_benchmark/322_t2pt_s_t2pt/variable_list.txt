@@ -1,0 +1,14 @@
+# Variable List for t2pt.f90
+# Discovered via default(none) method
+# Source: Src/t2pt.f90
+
+## Shared variables (to be dumped)
+nid
+njd
+nkd
+pdat
+ptdat
+rddvcp
+
+## Summary
+Total variables: 6

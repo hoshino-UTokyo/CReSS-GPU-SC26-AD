@@ -1,0 +1,13 @@
+# Variable List for buoytke.f90
+# Discovered via default(none) method
+# Source: Src/buoytke.f90
+
+## Shared variables (to be dumped)
+jcb8w
+ni
+nj
+nk
+nsq8w
+rkv8s
+tkefrc
+tmp1

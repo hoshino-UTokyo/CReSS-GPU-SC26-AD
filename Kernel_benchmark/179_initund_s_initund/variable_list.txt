@@ -1,0 +1,30 @@
+# Variable List for initund.f90
+# Discovered via default(none) method
+# Source: Src/initund.f90
+
+## Shared variables (to be dumped)
+advopt
+dzgrd
+ek
+enk
+enkm1v
+land
+ni
+nj
+nund
+p0iv
+pbr
+pp
+ptbr
+ptp
+rddvcp
+sfcdat
+sfcopt
+sst
+sstcst
+tgdeep
+tund
+tundp
+
+## Summary
+Total variables: 22

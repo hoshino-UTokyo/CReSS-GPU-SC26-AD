@@ -1,0 +1,9 @@
+# Variable List for paractl.f90
+# Discovered via default(none) method
+# Source: Src/paractl.f90
+
+## Shared variables (to be dumped)
+
+
+## Summary
+Total variables: 0

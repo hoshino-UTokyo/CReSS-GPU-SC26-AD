@@ -1,0 +1,22 @@
+# Variable List for initke.f90
+# Discovered via default(none) method
+# Source: Src/initke.f90
+
+## Shared variables (to be dumped)
+ckmds3
+ckmdz
+isoopt
+jcb
+mfcopt
+mpopt
+ni
+nj
+nk
+rbr
+rkv
+rmf
+rst
+tkep
+
+## Summary
+Total variables: 14

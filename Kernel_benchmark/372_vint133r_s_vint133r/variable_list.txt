@@ -1,0 +1,18 @@
+# Variable List for vint133r.f90
+# Discovered via default(none) method
+# Source: Src/vint133r.f90
+
+## Shared variables (to be dumped)
+iend
+invar
+istr
+jend
+jstr
+kend
+nlev
+outvar
+z1d
+zph
+
+## Summary
+Total variables: 10

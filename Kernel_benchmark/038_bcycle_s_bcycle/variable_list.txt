@@ -1,0 +1,26 @@
+# Variable List for bcycle.f90
+# Discovered via default(none) method
+# Source: Src/bcycle.f90
+
+## Shared variables (to be dumped)
+ebc
+iercv
+iesnd
+iwrcv
+iwsnd
+jnrcv
+jnsnd
+jsrcv
+jssnd
+kmax
+nbc
+ni
+nisub
+nj
+njsub
+sbc
+var
+wbc
+
+## Summary
+Total variables: 18

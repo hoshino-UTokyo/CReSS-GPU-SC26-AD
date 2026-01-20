@@ -1,0 +1,24 @@
+# Variable List for charging.f90
+# Discovered via default(none) method
+# Source: Src/charging.f90
+
+## Shared variables (to be dumped)
+dtb
+haiopt
+ni
+nj
+nk
+qallp
+qccf
+qcp
+qgcf
+qgp
+qhcf
+qhp
+qicf
+qip
+qrcf
+qrp
+qscf
+qsp
+thresq

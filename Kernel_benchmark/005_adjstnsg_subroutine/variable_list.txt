@@ -1,0 +1,26 @@
+# Variable List for adjstnsg.f90
+# Discovered via default(none) method
+# Source: Src/adjstnsg.f90
+
+## Shared variables (to be dumped)
+cdiaqg
+cdiaqh
+cdiaqs
+haiopt
+mg0iv2
+mgmiv2
+mh0iv2
+mhmiv2
+ms0iv2
+msmiv2
+ncg
+nch
+ncs
+ni
+nj
+nk
+qg
+qh
+qs
+rbr
+rbv

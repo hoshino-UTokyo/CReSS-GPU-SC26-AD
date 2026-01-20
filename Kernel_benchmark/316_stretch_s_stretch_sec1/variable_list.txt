@@ -1,0 +1,22 @@
+# Variable List for stretch.f90
+# Discovered via default(none) method
+# Source: Src/stretch.f90
+
+## Shared variables (to be dumped)
+a
+b
+c
+dzall
+dzhigh
+dzmid
+dzmin
+dzsth
+klow
+kmid
+nk
+sthopt
+zsfc
+zsth
+
+## Summary
+Total variables: 14

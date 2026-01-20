@@ -1,0 +1,18 @@
+# Variable List for getqvs.f90
+# Discovered via default(none) method
+# Source: Src/getqvs.f90
+
+## Shared variables (to be dumped)
+ni
+nj
+nk
+p0iv
+pbr
+pp
+ptbr
+ptp
+qvs
+rddvcp
+
+## Summary
+Total variables: 10

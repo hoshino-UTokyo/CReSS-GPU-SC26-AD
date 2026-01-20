@@ -1,0 +1,14 @@
+# Variable List for setsst.f90
+# Discovered via default(none) method
+# Source: Src/setsst.f90
+
+## Shared variables (to be dumped)
+ird
+ni
+nj
+sst
+sstd
+sstiv
+
+## Summary
+Total variables: 6

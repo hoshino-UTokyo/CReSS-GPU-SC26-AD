@@ -1,0 +1,27 @@
+# Variable List for vculuvw.f90
+# Discovered via default(none) method
+# Source: Src/vculuvw.f90
+
+## Shared variables (to be dumped)
+dzt1
+dzt16
+dzt22
+dzt36
+ni
+nj
+nk
+nkm1
+nkm2
+nkm3
+nkm4
+uf
+up
+vf
+vp
+wc
+wc8s
+wf
+wp
+
+## Summary
+Total variables: 19

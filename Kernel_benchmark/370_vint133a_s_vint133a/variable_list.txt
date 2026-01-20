@@ -1,0 +1,19 @@
+# Variable List for vint133a.f90
+# Discovered via default(none) method
+# Source: Src/vint133a.f90
+
+## Shared variables (to be dumped)
+dkivh
+dkivl
+invar
+ni
+nj
+nk
+nlev
+nlevm1
+outvar
+z1d
+zph
+
+## Summary
+Total variables: 11

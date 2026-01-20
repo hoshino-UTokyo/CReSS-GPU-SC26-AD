@@ -1,0 +1,13 @@
+# Variable List for var8w8u.f90
+# Discovered via default(none) method
+# Source: Src/var8w8u.f90
+
+## Shared variables (to be dumped)
+ni
+nj
+nk
+var8u
+var8w
+
+## Summary
+Total variables: 5

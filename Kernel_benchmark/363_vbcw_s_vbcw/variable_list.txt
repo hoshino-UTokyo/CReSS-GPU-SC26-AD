@@ -1,0 +1,29 @@
+# Variable List for vbcw.f90
+# Discovered via default(none) method
+# Source: Src/vbcw.f90
+
+## Shared variables (to be dumped)
+bbc
+j31
+j31u2
+j32
+j32v2
+jcb8w
+mf
+mf25
+mfcopt
+mpopt
+ni
+nj
+nk
+nkm1
+nkm2
+nkm3
+tbc
+uf
+vf
+wc
+wf
+
+## Summary
+Total variables: 21

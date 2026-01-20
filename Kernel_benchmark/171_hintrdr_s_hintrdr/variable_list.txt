@@ -1,0 +1,24 @@
+# Variable List for hintrdr.f90
+# Discovered via default(none) method
+# Source: Src/hintrdr.f90
+
+## Shared variables (to be dumped)
+di
+dj
+fproc
+iend
+istr
+jend
+jstr
+mpopt
+nid
+nidm1
+njdm1
+nk
+ri
+rj
+var
+varef
+
+## Summary
+Total variables: 16

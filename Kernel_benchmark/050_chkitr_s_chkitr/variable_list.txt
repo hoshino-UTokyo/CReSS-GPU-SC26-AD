@@ -1,0 +1,5 @@
+# Variable List for chkitr.f90
+# Discovered via default(none) method
+# Source: Src/chkitr.f90
+
+## Shared variables (to be dumped)

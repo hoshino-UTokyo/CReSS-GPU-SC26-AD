@@ -1,0 +1,47 @@
+# Variable List for depsit.f90
+# Discovered via default(none) method
+# Source: Src/depsit.f90
+
+## Shared variables (to be dumped)
+ccdtb4
+ckoe
+clcg
+clcs
+dtb
+dv
+kp
+lf
+ls
+lv
+mi
+mlgr
+mlsr
+nci
+ni
+nj
+nk
+pkoe
+qg
+qi
+qr
+qs
+qv
+qvsi
+qvsst0
+qvsw
+rbr
+rbv
+t
+t27311
+tcel
+thresq
+vdvg
+vdvi
+vdvr
+vdvs
+vntg
+vntr
+vnts
+
+## Summary
+Total variables: 39

@@ -1,0 +1,24 @@
+# Variable List for shedding.f90
+# Discovered via default(none) method
+# Source: Src/shedding.f90
+
+## Shared variables (to be dumped)
+clcg
+clcs
+clig
+clrg
+clrs
+clsg
+ni
+nj
+nk
+pgwet
+qg
+qs
+shgr
+shsr
+t
+thresq
+
+## Summary
+Total variables: 16

@@ -1,0 +1,15 @@
+# Variable List for estimsfc.f90
+# Discovered via default(none) method
+# Source: Src/estimsfc.f90
+
+## Shared variables (to be dumped)
+land
+lnduse_lnd
+ni
+nj
+numctg_lnd
+sfcvar
+sfcvar_lnd
+
+## Summary
+Total variables: 7

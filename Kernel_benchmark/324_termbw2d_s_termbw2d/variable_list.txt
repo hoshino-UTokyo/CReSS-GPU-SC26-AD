@@ -1,0 +1,31 @@
+# Variable List for termbw2d.f90
+# Discovered via default(none) method
+# Source: Src/termbw2d.f90
+
+## Shared variables (to be dumped)
+c1
+c2
+c3
+c4
+c5
+eta05
+etav48
+g163
+geta29
+geta4v
+ni
+nj
+nqw
+rbr
+rbv
+rbw
+rbwm2
+rbwmiv
+rhow03
+rrbw
+t
+ubw
+ubwmax
+
+## Summary
+Total variables: 23

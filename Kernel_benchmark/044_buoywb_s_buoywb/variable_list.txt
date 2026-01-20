@@ -1,0 +1,24 @@
+# Variable List for buoywb.f90
+# Discovered via default(none) method
+# Source: Src/buoywb.f90
+
+## Shared variables (to be dumped)
+cphopt
+fmois
+g05
+gwmopt
+ni
+nj
+nk
+ptbr
+ptp
+qall
+qv
+qvbr
+qvd
+rst
+wb8s
+wfrc
+
+## Summary
+Total variables: 16

@@ -1,0 +1,34 @@
+# Variable List for exbcw.f90
+# Discovered via default(none) method
+# Source: Src/exbcw.f90
+
+## Shared variables (to be dumped)
+dmpdt
+dts
+ebc
+ebe
+ebn
+ebs
+ebw
+exbvar
+isub
+jsub
+ni
+nim1
+nim2
+nisub
+nj
+njm1
+njm2
+njsub
+nk
+tpdt
+w
+wbc
+wcpx
+wcpy
+wgpv
+wtd
+
+## Summary
+Total variables: 26

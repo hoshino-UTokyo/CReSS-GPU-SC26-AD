@@ -1,0 +1,28 @@
+# Variable List for xy2ll.f90
+# Discovered via default(none) method
+# Source: Src/xy2ll.f90
+
+## Shared variables (to be dumped)
+cpj
+iend
+istr
+jend
+jstr
+lat
+lon
+mpopt
+ncpn
+pname
+r2d2
+r2d3
+r2d5
+rpol
+tlon
+tlonw
+x
+x0
+y
+y0
+
+## Summary
+Total variables: 20

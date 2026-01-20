@@ -1,0 +1,12 @@
+# Variable List for copy1d.f90
+# Discovered via default(none) method
+# Source: Src/copy1d.f90
+
+## Shared variables (to be dumped)
+invar
+kmax
+kmin
+outvar
+
+## Summary
+Total variables: 4

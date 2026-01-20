@@ -1,0 +1,20 @@
+# Variable List for nuc2nd.f90
+# Discovered via default(none) method
+# Source: Src/nuc2nd.f90
+
+## Shared variables (to be dumped)
+clcg
+clcs
+mi0352
+mi0353
+ni
+nj
+nk
+pgwet
+rbv
+spgi
+spsi
+t
+
+## Summary
+Total variables: 12

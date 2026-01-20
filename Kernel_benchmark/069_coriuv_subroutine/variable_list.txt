@@ -1,0 +1,18 @@
+# Variable List for coriuv.f90
+# Discovered via default(none) method
+# Source: Src/coriuv.f90
+
+## Shared variables (to be dumped)
+fc
+ni
+nj
+nk
+rst
+tmp1
+u
+ufrc
+v
+vfrc
+
+## Summary
+Total variables: 10

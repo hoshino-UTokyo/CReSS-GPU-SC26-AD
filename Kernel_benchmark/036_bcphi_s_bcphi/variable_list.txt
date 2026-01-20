@@ -1,0 +1,10 @@
+# Variable List for bcphi.f90
+# Discovered via default(none) method
+# Source: Src/bcphi.f90
+
+## Shared variables (to be dumped)
+ni
+nj
+nkm1
+nkm2
+phi

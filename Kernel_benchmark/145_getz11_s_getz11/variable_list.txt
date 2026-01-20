@@ -1,0 +1,12 @@
+# Variable List for getz11.f90
+# Discovered via default(none) method
+# Source: Src/getz11.f90
+
+## Shared variables (to be dumped)
+dz
+nk
+z
+zsfc11
+
+## Summary
+Total variables: 4

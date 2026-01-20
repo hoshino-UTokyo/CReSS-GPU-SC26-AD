@@ -1,0 +1,30 @@
+# Variable List for lbculu.f90
+# Discovered via default(none) method
+# Source: Src/lbculu.f90
+
+## Shared variables (to be dumped)
+ebc
+ebe
+ebn
+ebs
+ebw
+isub
+jsub
+nbc
+ni
+nim1
+nim2
+nip1
+nisub
+nj
+njm1
+njm2
+njm3
+njsub
+nk
+sbc
+u
+wbc
+
+## Summary
+Total variables: 22

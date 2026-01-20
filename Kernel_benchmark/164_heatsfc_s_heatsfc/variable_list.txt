@@ -1,0 +1,23 @@
+# Variable List for heatsfc.f90
+# Discovered via default(none) method
+# Source: Src/heatsfc.f90
+
+## Shared variables (to be dumped)
+cq
+ct
+cwmci
+fmois
+hs
+kai
+land
+le
+ni
+nj
+qv
+qvsfc
+t
+tice
+tund
+
+## Summary
+Total variables: 15

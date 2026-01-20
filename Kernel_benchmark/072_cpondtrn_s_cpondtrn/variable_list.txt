@@ -1,0 +1,31 @@
+# Variable List for cpondtrn.f90
+# Discovered via default(none) method
+# Source: Src/cpondtrn.f90
+
+## Shared variables (to be dumped)
+dfx
+dfxy
+dfy
+ebe
+ebn
+ebne
+ebnw
+ebs
+ebse
+ebsw
+ebw
+exbwid
+ht
+htref
+igs
+jgs
+land
+ni
+nj
+wd1
+wd1x
+wd1y
+wdiv
+
+## Summary
+Total variables: 23

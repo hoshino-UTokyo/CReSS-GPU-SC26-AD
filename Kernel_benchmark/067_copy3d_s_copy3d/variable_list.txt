@@ -1,0 +1,16 @@
+# Variable List for copy3d.f90
+# Discovered via default(none) method
+# Source: Src/copy3d.f90
+
+## Shared variables (to be dumped)
+imax
+imin
+invar
+jmax
+jmin
+kmax
+kmin
+outvar
+
+## Summary
+Total variables: 8

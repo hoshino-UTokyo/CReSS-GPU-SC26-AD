@@ -1,0 +1,21 @@
+# Variable List for vint31g.f90
+# Discovered via default(none) method
+# Source: Src/vint31g.f90
+
+## Shared variables (to be dumped)
+ape
+etrvar_gpv
+nid
+njd
+nk
+nkd
+nkdm1
+refsfc_gpv
+vardat
+varef
+z
+zdat
+zlow
+
+## Summary
+Total variables: 13

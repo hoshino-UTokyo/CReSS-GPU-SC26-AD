@@ -1,0 +1,14 @@
+# Variable List for fallbw.f90
+# Discovered via default(none) method
+# Source: Src/fallbw.f90
+
+## Shared variables (to be dumped)
+dz2
+jcb
+ni
+nj
+nk
+ubw
+
+## Summary
+Total variables: 6

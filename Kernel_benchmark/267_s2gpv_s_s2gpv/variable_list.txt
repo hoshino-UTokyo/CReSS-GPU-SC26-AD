@@ -1,0 +1,18 @@
+# Variable List for s2gpv.f90
+# Discovered via default(none) method
+# Source: Src/s2gpv.f90
+
+## Shared variables (to be dumped)
+gtinc
+nggdmp
+ni
+nj
+nk
+rst
+sfrc
+sgpv
+sp
+std
+
+## Summary
+Total variables: 10

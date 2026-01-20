@@ -1,0 +1,44 @@
+# Variable List for adjstuv.f90
+# Discovered via default(none) method
+# Source: Src/adjstuv.f90
+
+## Shared variables (to be dumped)
+adj
+dxdy
+dxdz
+dydz
+ebc
+ebe
+ebn
+ebs
+ebw
+iend
+istr
+isub
+jend
+jstr
+jsub
+mfcopt
+mpopt
+ni
+nisub
+nj
+njsub
+nk
+nkm1
+nkm2
+ppf
+ppp
+rmf
+rmf8u
+rmf8v
+rst8u
+rst8v
+tpdt
+uf
+ugpv
+utd
+vf
+vgpv
+vtd
+wbc

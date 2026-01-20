@@ -1,0 +1,19 @@
+# Variable List for chksat.f90
+# Discovered via default(none) method
+# Source: Src/chksat.f90
+
+## Shared variables (to be dumped)
+fproc
+iend
+istr
+jend
+jstr
+kend
+kstr
+p0iv
+pbr
+pp
+ptbr
+ptp
+qv
+rddvcp

@@ -1,0 +1,24 @@
+# Variable List for distrpg.f90
+# Discovered via default(none) method
+# Source: Src/distrpg.f90
+
+## Shared variables (to be dumped)
+clrs
+clrsg
+clrsn
+clsr
+clsrn
+cphopt
+diaqr
+diaqs
+ni
+nj
+nk
+qs
+rhos2
+rhow2
+t
+thresq
+
+## Summary
+Total variables: 16

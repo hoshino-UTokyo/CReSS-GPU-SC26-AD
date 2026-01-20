@@ -1,0 +1,20 @@
+# Variable List for adjstnw.f90
+# Discovered via default(none) method
+# Source: Src/adjstnw.f90
+
+## Shared variables (to be dumped)
+cdiaqc
+cdiaqr
+mc0iv2
+mcmiv5
+mr0iv2
+mrmiv2
+ncc
+ncr
+ni
+nj
+nk
+qc
+qr
+rbr
+rbv

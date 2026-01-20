@@ -1,0 +1,15 @@
+# Variable List for getta3d.f90
+# Discovered via default(none) method
+# Source: Src/getta3d.f90
+
+## Shared variables (to be dumped)
+ni
+nj
+nk
+pi
+ptbr
+ptp
+t
+
+## Summary
+Total variables: 7

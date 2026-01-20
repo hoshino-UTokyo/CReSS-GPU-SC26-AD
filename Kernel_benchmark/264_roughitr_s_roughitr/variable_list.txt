@@ -1,0 +1,16 @@
+# Variable List for roughitr.f90
+# Discovered via default(none) method
+# Source: Src/roughitr.f90
+
+## Shared variables (to be dumped)
+cm
+dz0m
+land
+ni
+nj
+va
+z0h
+z0m
+
+## Summary
+Total variables: 8

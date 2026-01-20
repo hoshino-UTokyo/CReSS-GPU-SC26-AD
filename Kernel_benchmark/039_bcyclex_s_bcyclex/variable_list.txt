@@ -1,0 +1,16 @@
+# Variable List for bcyclex.f90
+# Discovered via default(none) method
+# Source: Src/bcyclex.f90
+
+## Shared variables (to be dumped)
+ebc
+iercv
+iesnd
+iwrcv
+iwsnd
+kmax
+ni
+nisub
+nj
+var
+wbc

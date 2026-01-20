@@ -1,0 +1,24 @@
+# Variable List for upwqp.f90
+# Discovered via default(none) method
+# Source: Src/upwqp.f90
+
+## Shared variables (to be dumped)
+advopt
+dtp
+dtp05
+dzvdt
+ni
+nj
+nk
+nkm1
+nkm2
+precip
+qpf
+qpflx
+rbr
+rst
+rwiv05
+uq
+
+## Summary
+Total variables: 16

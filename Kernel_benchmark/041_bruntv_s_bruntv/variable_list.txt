@@ -1,0 +1,29 @@
+# Variable List for bruntv.f90
+# Discovered via default(none) method
+# Source: Src/bruntv.f90
+
+## Shared variables (to be dumped)
+a
+cphopt
+cwmci
+fmois
+gdzv
+gdzv05
+jcb8w
+ni
+nj
+nk
+nkm1
+nsq8w
+p0iv
+pbr
+pp
+pt
+ptbr
+ptp
+ptv
+qall
+qv
+rddvcp
+t
+thresq

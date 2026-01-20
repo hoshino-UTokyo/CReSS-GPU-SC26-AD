@@ -1,0 +1,31 @@
+# Variable List for tkeflx.f90
+# Discovered via default(none) method
+# Source: Src/tkeflx.f90
+
+## Shared variables (to be dumped)
+dxv5
+dyv5
+dzv125
+dzv5
+h1
+h2
+h3
+j31
+j31tke
+j32
+j32tke
+jcb
+jcbtke
+mfcopt
+mpopt
+ni
+nj
+nk
+rkh
+rkv
+rmf
+tke
+trnopt
+
+## Summary
+Total variables: 23

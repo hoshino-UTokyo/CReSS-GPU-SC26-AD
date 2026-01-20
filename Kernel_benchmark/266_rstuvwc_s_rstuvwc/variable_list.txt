@@ -1,0 +1,28 @@
+# Variable List for rstuvwc.f90
+# Discovered via default(none) method
+# Source: Src/rstuvwc.f90
+
+## Shared variables (to be dumped)
+ieast
+iwest
+jnorth
+jsouth
+mf8u
+mf8v
+mfcopt
+mpopt
+ni
+nj
+nk
+rst8u
+rst8v
+rst8w
+rstxu
+rstxv
+rstxwc
+u
+v
+wc
+
+## Summary
+Total variables: 20

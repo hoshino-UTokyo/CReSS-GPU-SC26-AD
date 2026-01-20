@@ -1,0 +1,29 @@
+# Variable List for defomssq (s_defomssq)
+# Discovered via default(none) method
+# Source: Src/defomssq.f90
+
+## OpenMP Section 1 (lines 181-204)
+
+### Shared variables (to be dumped)
+ni      - Grid dimension in x direction (integer)
+nj      - Grid dimension in y direction (integer)
+nk      - Grid dimension in z direction (integer)
+s11     - x-x components of deformation tensor, real(0:ni+1,0:nj+1,1:nk), intent(in)
+s22     - y-y components of deformation tensor, real(0:ni+1,0:nj+1,1:nk), intent(in)
+s33     - z-z components of deformation tensor, real(0:ni+1,0:nj+1,1:nk), intent(in)
+s12     - x-y components of deformation tensor, real(0:ni+1,0:nj+1,1:nk), intent(in)
+s31     - z-x components of deformation tensor, real(0:ni+1,0:nj+1,1:nk), intent(in)
+s32     - z-y components of deformation tensor, real(0:ni+1,0:nj+1,1:nk), intent(in)
+ssq     - Output: Magnitude of deformation squared, real(0:ni+1,0:nj+1,1:nk), intent(out)
+
+### Private variables
+k           - Loop index in z direction (outer loop)
+i, j        - Loop indices in x,y direction (inner loops)
+s128s       - s12 at scalar points (temporary)
+s318s       - s31 at scalar points (temporary)
+s328s       - s32 at scalar points (temporary)
+
+### Summary
+Input arrays:  s11, s22, s33, s12, s31, s32
+Output arrays: ssq
+Parameters:    ni, nj, nk

@@ -1,0 +1,37 @@
+# Variable List for rbcss.f90
+# Discovered via default(none) method
+# Source: Src/rbcss.f90
+
+## Shared variables (to be dumped)
+dmpdt
+ebc
+ebe
+ebn
+ebs
+ebw
+isub
+jsub
+lspopt
+nbc
+nggopt
+ni
+nim1
+nim2
+nisub
+nj
+njm1
+njm2
+njsub
+nk
+s
+sbc
+scpx
+scpy
+sgpv
+std
+tpdt
+vspopt
+wbc
+
+## Summary
+Total variables: 29

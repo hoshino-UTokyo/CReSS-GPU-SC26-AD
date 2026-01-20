@@ -1,0 +1,15 @@
+# Variable List for totalq.f90
+# Discovered via default(none) method
+# Source: Src/totalq.f90
+
+## Shared variables (to be dumped)
+iend
+istr
+ni
+nj
+nk
+q
+qall
+
+## Summary
+Total variables: 7

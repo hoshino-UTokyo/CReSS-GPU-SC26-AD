@@ -1,0 +1,68 @@
+# Variable List for setblk.f90
+# Discovered via default(none) method
+# Source: Src/setblk.f90
+
+## Shared variables (to be dumped)
+ccri6
+ccrw6
+cdiaqc
+cdiaqg
+cdiaqr
+cdiaqs
+cdv
+cnu
+cphopt
+cvntg
+cvntr
+cvnts
+cwmci
+diaqc
+diaqg
+diaqi
+diaqr
+diaqs
+dv
+epses0
+kp
+lf
+ls
+lv
+mi
+mu
+ncc
+ncg
+nci
+ncr
+ncs
+ni
+nj
+nk
+nu
+p
+pdiaqg
+pdiaqr
+pdiaqs
+pi
+ptbr
+ptp
+qc
+qg
+qi
+qr
+qs
+qv
+qvsi
+qvsst0
+qvsw
+rbr
+rbv
+t
+t23iv
+tcel
+thresq
+vntg
+vntr
+vnts
+
+## Summary
+Total variables: 60

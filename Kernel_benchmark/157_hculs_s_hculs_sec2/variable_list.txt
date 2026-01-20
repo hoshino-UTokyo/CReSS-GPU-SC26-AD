@@ -1,0 +1,35 @@
+# Variable List for hculs.f90
+# Discovered via default(none) method
+# Source: Src/hculs.f90
+
+## Shared variables (to be dumped)
+advopt
+advx
+cdxt1
+cdxt2
+cdxt3
+cdyt1
+cdyt2
+cdyt3
+dxt16
+dxt22
+dxt36e
+dxt36w
+dyt16
+dyt22
+dyt36n
+dyt36s
+mf8u
+mf8v
+mfcopt
+mpopt
+ni
+nj
+nk
+sf
+sp
+up
+vp
+
+## Summary
+Total variables: 27

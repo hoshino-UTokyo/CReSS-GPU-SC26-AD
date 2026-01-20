@@ -1,0 +1,12 @@
+# Variable List for getzlow.f90
+# Discovered via default(none) method
+# Source: Src/getzlow.f90
+
+## Shared variables (to be dumped)
+ni
+nj
+za
+zph
+
+## Summary
+Total variables: 4

@@ -1,0 +1,22 @@
+# Variable List for freezing.f90
+# Discovered via default(none) method
+# Source: Src/freezing.f90
+
+## Shared variables (to be dumped)
+cfrrg
+cfrrgn
+cphopt
+diaqr
+frrg
+frrgn
+ncr
+ni
+nj
+nk
+qr
+tcel
+tclow
+thresq
+
+## Summary
+Total variables: 14

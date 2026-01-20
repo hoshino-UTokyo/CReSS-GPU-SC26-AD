@@ -1,0 +1,13 @@
+# Variable List for vbcqcg.f90
+# Discovered via default(none) method
+# Source: Src/vbcqcg.f90
+
+## Shared variables (to be dumped)
+ni
+nj
+nkm1
+nkm2
+qcgf
+
+## Summary
+Total variables: 5

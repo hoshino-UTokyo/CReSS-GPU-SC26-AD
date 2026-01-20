@@ -1,0 +1,21 @@
+# Variable List for rotuvm2s.f90
+# Discovered via default(none) method
+# Source: Src/rotuvm2s.f90
+
+## Shared variables (to be dumped)
+d2rcpj
+iend
+istr
+jend
+jstr
+kend
+kstr
+lon
+mpopt
+rpol
+tlon
+u
+v
+
+## Summary
+Total variables: 13

@@ -1,0 +1,13 @@
+# Variable List for advbspe.f90
+# Discovered via default(none) method
+# Source: Src/advbspe.f90
+
+## Shared variables (to be dumped)
+g05
+ni
+nj
+nk
+pdiv
+psml
+rst
+w

@@ -1,0 +1,22 @@
+# Variable List for baserho (s_baserho)
+# Discovered via default(none) method
+# Source: Src/baserho.f90
+
+## OpenMP Section 1 (lines 209-225)
+
+### Shared variables (to be dumped)
+ni      - Grid dimension in x direction (integer)
+nj      - Grid dimension in y direction (integer)
+nk      - Grid dimension in z direction (integer)
+jcb     - Jacobian array, real(0:ni+1,0:nj+1,1:nk), intent(in)
+rbr     - Base state density array, real(0:ni+1,0:nj+1,1:nk), intent(in)
+rst     - Output: Base state density x Jacobian, real(0:ni+1,0:nj+1,1:nk), intent(out)
+
+### Private variables
+k       - Loop index in z direction (outer loop)
+i, j    - Loop indices in x,y direction (inner loops, specified in !$omp do)
+
+### Summary
+Input arrays:  jcb, rbr
+Output arrays: rst
+Parameters:    ni, nj, nk

@@ -1,0 +1,18 @@
+# Variable List for bbcw.f90
+# Discovered via default(none) method
+# Source: Src/bbcw.f90
+
+## Shared variables (to be dumped)
+aa
+j31
+j31u2
+j32
+j32v2
+mf
+mfcopt
+mpopt
+ni
+nj
+uf
+vf
+wf

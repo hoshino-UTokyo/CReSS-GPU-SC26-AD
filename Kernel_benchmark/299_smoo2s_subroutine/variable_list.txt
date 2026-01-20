@@ -1,0 +1,17 @@
+# Variable List for smoo2s.f90
+# Discovered via default(none) method
+# Source: Src/smoo2s.f90
+
+## Shared variables (to be dumped)
+ni
+nj
+nk
+rbr
+rbrs
+s
+sfrc
+smhcoe
+smvcoe
+
+## Summary
+Total variables: 9

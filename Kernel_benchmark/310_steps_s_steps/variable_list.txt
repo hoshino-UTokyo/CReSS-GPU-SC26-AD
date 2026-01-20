@@ -1,0 +1,25 @@
+# Variable List for steps.f90
+# Discovered via default(none) method (first iteration)
+# Source: Src/steps.f90
+
+## Shared variables (first iteration - may need more iterations)
+dtdrst
+ni
+nj
+nk
+dtb
+advopt
+fmois
+ptpf
+qvf
+qwtrf
+nwtrf
+qicef
+haiopt
+nicef
+qcwtrf
+qcgopt
+qcicef
+nqw
+nnw
+nqi

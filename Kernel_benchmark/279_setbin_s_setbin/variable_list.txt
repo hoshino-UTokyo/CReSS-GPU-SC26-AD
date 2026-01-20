@@ -1,0 +1,24 @@
+# Variable List for setbin.f90
+# Discovered via default(none) method
+# Source: Src/setbin.f90
+
+## Shared variables (to be dumped)
+a
+bmw
+brw
+c
+clmb20
+dbmw
+dc0iv2
+ewbw
+nqw
+rbmw
+rbrw
+rbw
+rewbw
+rrbw
+rrcbw
+rrdbw
+
+## Summary
+Total variables: 16

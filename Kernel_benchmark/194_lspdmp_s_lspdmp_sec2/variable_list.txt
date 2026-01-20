@@ -1,0 +1,43 @@
+# Variable List for lspdmp.f90
+# Discovered via default(none) method
+# Source: Src/lspdmp.f90
+
+## Shared variables (to be dumped)
+ebc
+ebe
+ebn
+ebne
+ebnw
+ebs
+ebse
+ebsw
+ebw
+igs
+jgs
+nbc
+ni
+nj
+rbcx
+rbcxy
+rbcy
+sbc
+wbc
+wd1x
+wd1xn
+wd1y
+wd1yn
+wd2
+wd21x
+wd21xn
+wd21y
+wd21yn
+wd23
+wd23n
+wd2n
+wdiv5
+wdiv5n
+wdnews
+wdnorm
+
+## Summary
+Total variables: 35

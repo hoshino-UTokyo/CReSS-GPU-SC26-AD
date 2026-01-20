@@ -1,0 +1,25 @@
+# Variable List for fituvwc.f90
+# Discovered via default(none) method
+# Source: Src/fituvwc.f90
+
+## Shared variables (to be dumped)
+asdxiv
+asdyiv
+asdziv
+ieast
+iwest
+jcb8u
+jcb8v
+jcb8w
+jnorth
+jsouth
+lamb
+ni
+nj
+nk
+u
+v
+wc
+
+## Summary
+Total variables: 17

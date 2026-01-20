@@ -1,0 +1,17 @@
+# Variable List for diagnw.f90
+# Discovered via default(none) method
+# Source: Src/diagnw.f90
+
+## Shared variables (to be dumped)
+cdiaqr
+mr0iv2
+mrmiv2
+ni
+nj
+nk
+nwdia
+qwtr
+rbr
+
+## Summary
+Total variables: 9

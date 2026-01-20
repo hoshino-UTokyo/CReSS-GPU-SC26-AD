@@ -1,0 +1,30 @@
+# Variable List for nlsmuvw.f90
+# Discovered via default(none) method
+# Source: Src/nlsmuvw.f90
+
+## Shared variables (to be dumped)
+amph25
+ampnlh
+ampnlv
+ampv25
+jcb8w
+ni
+nj
+nk
+rbr
+rst8w
+tmp1
+tmp2
+tmp3
+tmp4
+u
+ubr
+ufrc
+v
+vbr
+vfrc
+w
+wfrc
+
+## Summary
+Total variables: 22

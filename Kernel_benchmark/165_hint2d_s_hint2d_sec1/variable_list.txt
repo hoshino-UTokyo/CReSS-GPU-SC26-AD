@@ -1,0 +1,21 @@
+# Variable List for hint2d.f90
+# Discovered via default(none) method
+# Source: Src/hint2d.f90
+
+## Shared variables (to be dumped)
+dat
+di
+dj
+iend
+intopt
+istr
+jend
+jstr
+mpopt
+nid
+ri
+rj
+var
+
+## Summary
+Total variables: 13

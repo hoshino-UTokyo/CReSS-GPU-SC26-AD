@@ -1,0 +1,18 @@
+# Variable List for diffequa.f90
+# Discovered via default(none) method
+# Source: Src/diffequa.f90
+
+## Shared variables (to be dumped)
+adzivs
+dphi
+dtitr
+dxivsq
+dyivsq
+known
+ni
+nj
+nk
+phi
+
+## Summary
+Total variables: 10

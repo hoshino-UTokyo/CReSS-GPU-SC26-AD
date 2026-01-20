@@ -1,0 +1,14 @@
+# Variable List for rdsfcdmp.f90
+# Discovered via default(none) method
+# Source: Src/rdsfcdmp.f90
+
+## Shared variables (to be dumped)
+ht
+land
+ni
+nj
+sfcopt
+zsfc
+
+## Summary
+Total variables: 6

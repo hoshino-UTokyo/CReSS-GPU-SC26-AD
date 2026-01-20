@@ -1,0 +1,18 @@
+# Variable List for totalqwi.f90
+# Discovered via default(none) method
+# Source: Src/totalqwi.f90
+
+## Shared variables (to be dumped)
+cphopt
+haiopt
+ni
+nj
+nk
+nqi
+nqw
+qall
+qice
+qwtr
+
+## Summary
+Total variables: 10

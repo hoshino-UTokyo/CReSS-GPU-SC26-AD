@@ -1,0 +1,21 @@
+# Variable List for siadjst.f90
+# Discovered via default(none) method
+# Source: Src/siadjst.f90
+
+## Shared variables (to be dumped)
+cwmci
+mi0iv
+nci
+ni
+nj
+nk
+p
+pi
+ptbr
+ptp
+qi
+qv
+thresq
+
+## Summary
+Total variables: 13

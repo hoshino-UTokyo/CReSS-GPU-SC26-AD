@@ -1,0 +1,17 @@
+# Variable List for allocgrp.f90
+# Discovered via default(none) method
+# Source: Src/allocgrp.f90
+
+## Shared variables (to be dumped)
+ebc
+grpxy
+nbc
+nigrp
+nigrp1
+njgrp
+njgrp1
+nsrl
+sbc
+wbc
+xgrp
+ygrp

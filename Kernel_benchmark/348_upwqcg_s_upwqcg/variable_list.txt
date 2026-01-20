@@ -1,0 +1,19 @@
+# Variable List for upwqcg.f90
+# Discovered via default(none) method
+# Source: Src/upwqcg.f90
+
+## Shared variables (to be dumped)
+dzvdt
+ni
+nj
+nk
+nkm1
+nkm2
+qcgf
+qcgflx
+rbr
+rst
+uq
+
+## Summary
+Total variables: 11

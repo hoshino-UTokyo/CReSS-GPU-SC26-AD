@@ -1,0 +1,31 @@
+# Variable List for turbflx.f90
+# Discovered via default(none) method
+# Source: Src/turbflx.f90
+
+## Shared variables (to be dumped)
+dxv05
+dyv05
+dziv
+dzv125
+h1
+h2
+h3
+j31
+j31s
+j32
+j32s
+jcb
+jcbs
+ni
+nj
+nk
+rkh8u
+rkh8v
+rkv8w
+s
+sfcopt
+sfrc
+trnopt
+
+## Summary
+Total variables: 23

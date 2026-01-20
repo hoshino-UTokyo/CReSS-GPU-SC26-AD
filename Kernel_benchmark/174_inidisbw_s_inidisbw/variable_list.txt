@@ -1,0 +1,44 @@
+# Variable List for inidisbw.f90
+# Discovered via default(none) method
+# Source: Src/inidisbw.f90
+
+## Shared variables (to be dumped)
+brw
+c
+cc40
+cc43
+cc80
+ccd1
+cd1
+d
+d1
+d2
+d3
+d4
+dzvdt2
+fi
+gi
+jcb8w
+mwbin
+nccn
+ni
+nj
+nk
+nnw
+nqw
+nwbin
+pi
+ptp
+ptptmp
+qcciv
+qv
+qvtmp
+qwtmp
+rbrw
+rbv
+rwiv3
+t
+w
+
+## Summary
+Total variables: 36

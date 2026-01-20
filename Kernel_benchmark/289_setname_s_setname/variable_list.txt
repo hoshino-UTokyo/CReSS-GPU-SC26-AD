@@ -1,0 +1,18 @@
+# Variable List for setname.f90
+# Discovered via default(none) method
+# Source: Src/setname.f90
+
+## Shared variables (to be dumped)
+albe_lnd
+beta_lnd
+cap_lnd
+iname
+lnduse_lnd
+numctg_lnd
+nuu_lnd
+rname
+z0h_lnd
+z0m_lnd
+
+## Summary
+Total variables: 10

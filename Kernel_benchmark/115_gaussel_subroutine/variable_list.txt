@@ -1,0 +1,24 @@
+# Variable List for gaussel.f90
+# Discovered via default(none) method
+# Source: Src/gaussel.f90
+
+## Shared variables (to be dumped)
+ff
+iend
+impopt
+istr
+jend
+jstr
+kem1
+kem2
+kend
+kstr
+ni
+nj
+pv
+rr
+ss
+tt
+
+## Summary
+Total variables: 16

@@ -1,0 +1,38 @@
+# Variable List for prodctwg.f90
+# Discovered via default(none) method
+# Source: Src/prodctwg.f90
+
+## Shared variables (to be dumped)
+cc2dtn
+clcg
+clig
+clir
+clis
+clrg
+clsg
+clsgn
+clsr
+clsrn
+cphopt
+dv
+eigiv
+esgiv
+kp
+lf
+lv
+ncs
+ni
+nj
+nk
+pgwet
+qg
+qi
+qs
+qvsst0
+rbr
+tcel
+thresq
+vntg
+
+## Summary
+Total variables: 30

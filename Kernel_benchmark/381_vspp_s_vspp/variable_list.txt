@@ -1,0 +1,21 @@
+# Variable List for vspp.f90
+# Discovered via default(none) method
+# Source: Src/vspp.f90
+
+## Shared variables (to be dumped)
+gpvvar
+gtinc
+jcb
+ksp0
+ni
+nj
+nk
+pfrc
+ppgpv
+ppp
+pptd
+rbct
+vspopt
+
+## Summary
+Total variables: 13

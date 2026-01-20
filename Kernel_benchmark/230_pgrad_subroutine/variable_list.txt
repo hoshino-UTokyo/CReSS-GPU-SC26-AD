@@ -1,0 +1,33 @@
+# Variable List for pgrad.f90
+# Discovered via default(none) method
+# Source: Src/pgrad.f90
+
+## Shared variables (to be dumped)
+divch
+divcv
+divopt
+dxiv
+dyiv
+dziv
+dziv25
+j31
+j32
+jcb
+mf8u
+mf8v
+mfcopt
+mpopt
+ni
+nj
+nk
+pp
+tmp1
+tmp2
+tmp3
+trnopt
+upg
+vpg
+wpg
+
+## Summary
+Total variables: 25

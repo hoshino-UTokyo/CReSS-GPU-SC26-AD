@@ -1,0 +1,12 @@
+# Variable List for adjstnci.f90
+# Discovered via default(none) method
+# Source: Src/adjstnci.f90
+
+## Shared variables (to be dumped)
+mi0iv2
+mimiv5
+nci
+ni
+nj
+nk
+qi

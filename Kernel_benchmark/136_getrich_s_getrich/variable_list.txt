@@ -1,0 +1,18 @@
+# Variable List for getrich.f90
+# Discovered via default(none) method
+# Source: Src/getrich.f90
+
+## Shared variables (to be dumped)
+kai
+land
+ni
+nj
+ptv
+rch
+va
+z0h
+z0m
+za
+
+## Summary
+Total variables: 10

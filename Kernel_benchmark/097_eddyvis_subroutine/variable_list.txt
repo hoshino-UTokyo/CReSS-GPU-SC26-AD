@@ -1,0 +1,34 @@
+# Variable List for eddyvis.f90
+# Discovered via default(none) method
+# Source: Src/eddyvis.f90
+
+## Shared variables (to be dumped)
+ckmax
+cpriv
+cslnh2
+csnum2
+ds3
+isoopt
+jcb
+khmax
+khmin
+lnh
+mfcopt
+mpopt
+ni
+nj
+nk
+nsq8w
+priv
+rbr
+rkh
+rkv
+rmf
+sfcopt
+ssq
+tke
+tubopt
+zph
+
+## Summary
+Total variables: 26

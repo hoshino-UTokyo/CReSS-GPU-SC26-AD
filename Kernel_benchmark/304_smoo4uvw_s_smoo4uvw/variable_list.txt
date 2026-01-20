@@ -1,0 +1,39 @@
+# Variable List for smoo4uvw.f90
+# Discovered via default(none) method
+# Source: Src/smoo4uvw.f90
+
+## Shared variables (to be dumped)
+ieast
+iwest
+jcb8u
+jcb8v
+jcb8w
+jnorth
+jsouth
+ni
+nj
+nk
+nkm1
+nkm2
+rst8u
+rst8v
+rst8w
+smhcoe
+smtopt
+smvcoe
+tmp1
+tmp2
+tmp3
+tmp4
+tmp5
+u
+ubr
+ufrc
+v
+vbr
+vfrc
+w
+wfrc
+
+## Summary
+Total variables: 31

@@ -1,0 +1,18 @@
+# Variable List for smoo2qv.f90
+# Discovered via default(none) method
+# Source: Src/smoo2qv.f90
+
+## Shared variables (to be dumped)
+ni
+nj
+nk
+qv
+qvbr
+qvfrc
+rbr
+rbrqv
+smhcoe
+smvcoe
+
+## Summary
+Total variables: 10

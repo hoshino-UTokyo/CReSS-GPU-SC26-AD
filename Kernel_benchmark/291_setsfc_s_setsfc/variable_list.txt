@@ -1,0 +1,40 @@
+# Variable List for setsfc.f90
+# Discovered via default(none) method
+# Source: Src/setsfc.f90
+
+## Shared variables (to be dumped)
+beta
+cphopt
+fall
+fmois
+kai
+land
+levpbl
+ni
+nj
+nk
+p
+p0iv
+pbr
+pp
+ps
+pt
+ptbr
+ptp
+ptv
+qv
+qvsfc
+qvsice
+qvsts
+rddvcp
+t
+tice
+tubopt
+tund
+u
+v
+va
+w
+
+## Summary
+Total variables: 32

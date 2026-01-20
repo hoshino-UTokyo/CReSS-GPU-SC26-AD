@@ -1,0 +1,17 @@
+# Variable List for collc2r.f90
+# Discovered via default(none) method
+# Source: Src/collc2r.f90
+
+## Shared variables (to be dumped)
+cclcr
+ni
+nj
+nk
+qcf
+qcp
+qrf
+qrp
+thresq
+
+## Summary
+Total variables: 9

@@ -1,0 +1,27 @@
+# Variable List for coalbw.f90
+# Discovered via default(none) method
+# Source: Src/coalbw.f90
+
+## Shared variables (to be dumped)
+bmw
+bmwsc
+bmwss
+dtcoal
+ewbw
+k
+mwbin
+mwbrs
+mwsc
+mwss
+n
+ni
+nj
+ns
+nwbin
+nwsc
+nwss
+pct
+ubw
+
+## Summary
+Total variables: 19

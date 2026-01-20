@@ -1,0 +1,24 @@
+# Variable List for pblu.f90
+# Discovered via default(none) method
+# Source: Src/pblu.f90
+
+## Shared variables (to be dumped)
+ce
+dtdzv
+dtdzv2
+jcb8w
+kms
+levp1
+levpbl
+ni
+nj
+rbr
+rr
+rst8u
+ss
+tmp1
+tmp2
+tt
+
+## Summary
+Total variables: 16

@@ -1,0 +1,17 @@
+# Variable List for bc8v.f90
+# Discovered via default(none) method
+# Source: Src/bc8v.f90
+
+## Shared variables (to be dumped)
+ebn
+ebs
+jsub
+kmax
+nbc
+ni
+nj
+njm1
+njm2
+njsub
+sbc
+var8v

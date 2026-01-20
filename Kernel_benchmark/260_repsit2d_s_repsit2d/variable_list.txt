@@ -1,0 +1,32 @@
+# Variable List for repsit2d.f90
+# Discovered via default(none) method
+# Source: Src/repsit2d.f90
+
+## Shared variables (to be dumped)
+dib
+djb
+ebe
+ebn
+ebs
+ebw
+iendb
+istrb
+isub
+isub_rst
+jendb
+jstrb
+jsub
+jsub_rst
+nisub
+nisub_rst
+njsub
+njsub_rst
+nk
+var2dx
+var2dx_rst
+var2dy
+var2dy_rst
+xo
+
+## Summary
+Total variables: 24

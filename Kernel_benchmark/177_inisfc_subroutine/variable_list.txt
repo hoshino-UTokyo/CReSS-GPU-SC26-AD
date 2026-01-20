@@ -1,0 +1,29 @@
+# Variable List for inisfc.f90
+# Discovered via default(none) method
+# Source: Src/inisfc.f90
+
+## Shared variables (to be dumped)
+albe
+beta
+cap
+dstopt
+gralbe
+grbeta
+grcap
+grnuu
+grz0h
+grz0m
+kai
+land
+lnduse
+ni
+nj
+nuu
+sfcdat
+z0h
+z0m
+zph
+zsfc
+
+## Summary
+Total variables: 21

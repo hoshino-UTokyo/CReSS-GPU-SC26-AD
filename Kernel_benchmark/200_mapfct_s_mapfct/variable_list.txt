@@ -1,0 +1,26 @@
+# Variable List for mapfct.f90
+# Discovered via default(none) method
+# Source: Src/mapfct.f90
+
+## Shared variables (to be dumped)
+cpj
+disr
+dxv625
+dyv625
+lat
+mf
+mf8u
+mf8v
+mpopt
+ni
+nj
+pol05
+pold2r
+rmf
+rmf8u
+rmf8v
+tmp1
+x
+
+## Summary
+Total variables: 18

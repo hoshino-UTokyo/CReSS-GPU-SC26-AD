@@ -1,0 +1,13 @@
+# Variable List for bc8w.f90
+# Discovered via default(none) method
+# Source: Src/bc8w.f90
+
+## Shared variables (to be dumped)
+bbc
+ni
+nj
+nk
+nkm1
+nkm2
+tbc
+var8w

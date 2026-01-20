@@ -1,0 +1,13 @@
+# Variable List for adjstq.f90
+# Discovered via default(none) method
+# Source: Src/adjstq.f90
+
+## Shared variables (to be dumped)
+cphopt
+haiopt
+ni
+nj
+nk
+qice
+qv
+qwtr

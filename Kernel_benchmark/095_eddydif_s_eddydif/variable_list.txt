@@ -1,0 +1,21 @@
+# Variable List for eddydif.f90
+# Discovered via default(none) method
+# Source: Src/eddydif.f90
+
+## Shared variables (to be dumped)
+cpriv
+isoopt
+jcb
+mf
+mfcopt
+ni
+nj
+nk
+priv
+rkh
+rkv8s
+rkv8w
+tubopt
+
+## Summary
+Total variables: 13

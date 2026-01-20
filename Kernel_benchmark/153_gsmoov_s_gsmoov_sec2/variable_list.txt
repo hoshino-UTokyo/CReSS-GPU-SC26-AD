@@ -1,0 +1,14 @@
+# Variable List for gsmoov.f90
+# Discovered via default(none) method
+# Source: Src/gsmoov.f90
+
+## Shared variables (to be dumped)
+dfv
+dtcoe
+ni
+nj
+nk
+vgpv
+
+## Summary
+Total variables: 6

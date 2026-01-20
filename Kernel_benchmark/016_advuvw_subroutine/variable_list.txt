@@ -1,0 +1,36 @@
+# Variable List for advuvw.f90
+# Discovered via default(none) method
+# Source: Src/advuvw.f90
+
+## Shared variables (to be dumped)
+advopt
+dxv24
+dxv25n
+dxv48
+dyv24
+dyv25n
+dyv48
+dzv24
+dzv25n
+dzv48
+hadv
+ieast
+iwest
+jnorth
+jsouth
+ni
+nj
+nk
+rstxu
+rstxv
+rstxwc
+tmp1
+tmp2
+tmp3
+u
+ufrc
+v
+vadv
+vfrc
+w
+wfrc

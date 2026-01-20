@@ -1,0 +1,15 @@
+# Variable List for convc2r.f90
+# Discovered via default(none) method
+# Source: Src/convc2r.f90
+
+## Shared variables (to be dumped)
+ccncr
+ni
+nj
+nk
+qcf
+qcp
+qrf
+
+## Summary
+Total variables: 7

@@ -1,0 +1,28 @@
+# Variable List for lbcwc.f90
+# Discovered via default(none) method
+# Source: Src/lbcwc.f90
+
+## Shared variables (to be dumped)
+ebc
+ebe
+ebn
+ebs
+ebw
+isub
+jsub
+nbc
+ni
+nim1
+nim2
+nisub
+nj
+njm1
+njm2
+njsub
+nk
+sbc
+wbc
+wc
+
+## Summary
+Total variables: 20

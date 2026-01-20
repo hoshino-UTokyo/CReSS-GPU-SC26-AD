@@ -1,0 +1,17 @@
+# Variable List for pc2kg.f90
+# Discovered via default(none) method
+# Source: Src/pc2kg.f90
+
+## Shared variables (to be dumped)
+es001
+nid
+njd
+nkd
+p0iv
+pdat
+ptdat
+qvdat
+rddvcp
+
+## Summary
+Total variables: 9

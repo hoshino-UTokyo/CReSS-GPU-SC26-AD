@@ -1,0 +1,11 @@
+# Variable List for rdgrp.f90
+# Discovered via default(none) method
+# Source: Src/rdgrp.f90
+
+## Shared variables (to be dumped)
+grpxy
+nigrp
+njgrp
+
+## Summary
+Total variables: 3

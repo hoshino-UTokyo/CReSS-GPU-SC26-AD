@@ -1,0 +1,23 @@
+# Variable List for evapr2v.f90
+# Discovered via default(none) method
+# Source: Src/evapr2v.f90
+
+## Shared variables (to be dumped)
+dtb
+ni
+nj
+nk
+p
+pi
+ptbr
+ptpf
+ptpp
+qrf
+qrp
+qvf
+qvp
+rbr
+thresq
+
+## Summary
+Total variables: 15

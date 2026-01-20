@@ -1,0 +1,24 @@
+# Variable List for masscon.f90
+# Discovered via default(none) method
+# Source: Src/masscon.f90
+
+## Shared variables (to be dumped)
+adxiv2
+adyiv2
+adziv2
+jcb8u
+jcb8v
+jcb8w
+known
+ni
+nj
+nk
+tmp1
+tmp2
+tmp3
+up
+vp
+wc
+
+## Summary
+Total variables: 16

@@ -1,0 +1,14 @@
+# Variable List for setcst2d.f90
+# Discovered via default(none) method
+# Source: Src/setcst2d.f90
+
+## Shared variables (to be dumped)
+imax
+imin
+invar
+jmax
+jmin
+outvar
+
+## Summary
+Total variables: 6

@@ -1,0 +1,13 @@
+# Variable List for newsindx.f90
+# Discovered via default(none) method
+# Source: Src/newsindx.f90
+
+## Shared variables (to be dumped)
+mpopt
+ni
+nj
+ri
+rj
+
+## Summary
+Total variables: 5

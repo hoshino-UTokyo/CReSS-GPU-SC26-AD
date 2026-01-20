@@ -1,0 +1,9 @@
+# Variable List for getmxn.f90
+# Discovered via default(none) method
+# Source: Src/getmxn.f90
+
+## Shared variables (to be dumped)
+
+
+## Summary
+Total variables: 0

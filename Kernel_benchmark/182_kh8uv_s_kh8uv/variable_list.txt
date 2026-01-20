@@ -1,0 +1,17 @@
+# Variable List for kh8uv.f90
+# Discovered via default(none) method
+# Source: Src/kh8uv.f90
+
+## Shared variables (to be dumped)
+mfcopt
+mpopt
+ni
+nj
+nk
+rkh
+rkh8u
+rkh8v
+rmf
+
+## Summary
+Total variables: 9

@@ -1,0 +1,25 @@
+# Variable List for pblqv.f90
+# Discovered via default(none) method
+# Source: Src/pblqv.f90
+
+## Shared variables (to be dumped)
+cq
+dtdzv
+dtdzv2
+jcb8w
+khs
+levp1
+levpbl
+ni
+nj
+qv
+qvsfc
+rbr
+rr
+rst
+ss
+tmp1
+tt
+
+## Summary
+Total variables: 17

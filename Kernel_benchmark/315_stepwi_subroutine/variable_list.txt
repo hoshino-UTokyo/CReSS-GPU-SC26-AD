@@ -1,0 +1,28 @@
+# Variable List for stepwi.f90
+# Discovered via default(none) method
+# Source: Src/stepwi.f90
+
+## Shared variables (to be dumped)
+buyopt
+dts
+dziv
+fw
+g05
+jcb
+ni
+nj
+nk
+rbr
+rcsq
+rst
+rst8w
+sbsqg5
+sbsqzi
+tmp1
+tmp2
+tmp3
+wc
+wf
+
+## Summary
+Total variables: 20

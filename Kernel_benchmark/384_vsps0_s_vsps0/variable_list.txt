@@ -1,0 +1,16 @@
+# Variable List for vsps0.f90
+# Discovered via default(none) method
+# Source: Src/vsps0.f90
+
+## Shared variables (to be dumped)
+ksp0
+ni
+nj
+nk
+rbct
+rst
+sfrc
+sp
+
+## Summary
+Total variables: 8

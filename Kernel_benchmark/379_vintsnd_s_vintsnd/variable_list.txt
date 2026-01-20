@@ -1,0 +1,11 @@
+# Variable List for vintsnd.f90
+# Discovered via default(none) method
+# Source: Src/vintsnd.f90
+
+## Shared variables (to be dumped)
+nlev
+nlm1iv
+z1d
+
+## Summary
+Total variables: 3

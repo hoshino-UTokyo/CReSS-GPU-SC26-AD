@@ -1,0 +1,33 @@
+# Variable List for melting.f90
+# Discovered via default(none) method
+# Source: Src/melting.f90
+
+## Shared variables (to be dumped)
+cc2dt
+clcg
+clcs
+clrg
+clrs
+dv
+kp
+lf
+lv
+mlgr
+mlic
+mlsr
+ni
+nj
+nk
+qg
+qi
+qs
+qvsst0
+rbr
+rbv
+tcel
+thresq
+vntg
+vnts
+
+## Summary
+Total variables: 25

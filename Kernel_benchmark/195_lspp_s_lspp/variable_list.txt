@@ -1,0 +1,24 @@
+# Variable List for lspp.f90
+# Discovered via default(none) method
+# Source: Src/lspp.f90
+
+## Shared variables (to be dumped)
+gpvvar
+gtinc
+jcb
+lsnews
+lspopt
+lspsmt
+ni
+nj
+nk
+pfrc
+ppgpv
+ppp
+pptd
+rbcxy
+tmp1
+wdnews
+
+## Summary
+Total variables: 16

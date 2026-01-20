@@ -1,0 +1,14 @@
+# Variable List for vbcp.f90
+# Discovered via default(none) method
+# Source: Src/vbcp.f90
+
+## Shared variables (to be dumped)
+bbc
+ni
+nj
+nkm1
+nkm2
+ppf
+
+## Summary
+Total variables: 6

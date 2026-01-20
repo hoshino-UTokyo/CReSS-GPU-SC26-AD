@@ -1,0 +1,36 @@
+# Variable List for bulksfc.f90
+# Discovered via default(none) method
+# Source: Src/bulksfc.f90
+
+## Shared variables (to be dumped)
+cc05
+ch
+cm
+cpg1
+cpg2
+cps1
+cps2
+cqg1
+cqg2
+cqs1
+cqs2
+icz0hv
+icz0mv
+kai
+kp2
+kprg
+kprg3
+land
+ni
+nj
+prgiv
+prwiv
+rch
+rmg3v
+rms3v
+wkp2
+wkprw
+wkprw3
+z0h
+z0m
+za

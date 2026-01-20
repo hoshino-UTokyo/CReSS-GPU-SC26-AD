@@ -1,0 +1,51 @@
+# Variable List for more0q.f90
+# Discovered via default(none) method
+# Source: Src/more0q.f90
+
+## Shared variables (to be dumped)
+clcg
+clcr
+clcs
+clig
+clir
+clis
+clrg
+clri
+clrs
+clrsg
+clsg
+clsr
+cncr
+cnis
+cnsg
+frrg
+mlgr
+mlic
+mlsr
+ni
+nj
+nk
+nuci
+nuvi
+qcf
+qcp
+qgf
+qgp
+qif
+qip
+qrf
+qrp
+qsf
+qsp
+shgr
+shsr
+spgi
+spsi
+thresq
+vdvg
+vdvi
+vdvr
+vdvs
+
+## Summary
+Total variables: 43

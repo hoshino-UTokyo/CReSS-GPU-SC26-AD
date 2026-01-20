@@ -1,0 +1,29 @@
+# Variable List for uvw2gpv.f90
+# Discovered via default(none) method
+# Source: Src/uvw2gpv.f90
+
+## Shared variables (to be dumped)
+gtinc
+nggdmp
+nggvar
+ni
+nj
+nk
+rst8u
+rst8v
+rst8w
+ufrc
+ugpv
+up
+utd
+vfrc
+vgpv
+vp
+vtd
+wfrc
+wgpv
+wp
+wtd
+
+## Summary
+Total variables: 21

@@ -1,0 +1,27 @@
+# Variable List for bc4news.f90
+# Discovered via default(none) method
+# Source: Src/bc4news.f90
+
+## Shared variables (to be dumped)
+ebc
+ebne
+ebnw
+ebse
+ebsw
+ise
+isem1
+isub
+isw
+iswp1
+jsn
+jsnm1
+jss
+jssp1
+jsub
+kmax
+nbc
+nisub
+njsub
+sbc
+var
+wbc

@@ -1,0 +1,15 @@
+# Variable List for sparprt.f90
+# Discovered via default(none) method
+# Source: Src/sparprt.f90
+
+## Shared variables (to be dumped)
+nid
+njd
+nkd
+pbdat
+ppdat
+ptbdat
+ptpdat
+
+## Summary
+Total variables: 7

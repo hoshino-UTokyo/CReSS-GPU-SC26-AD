@@ -1,0 +1,28 @@
+# Variable List for curveuvw.f90
+# Discovered via default(none) method
+# Source: Src/curveuvw.f90
+
+## Shared variables (to be dumped)
+mfcopt
+mpopt
+ni
+nj
+nk
+rev125
+rmf8u
+rmf8v
+rst
+tmp1
+tmp2
+tmp3
+tmp4
+tmp5
+u
+ufrc
+v
+vfrc
+w
+wfrc
+
+## Summary
+Total variables: 20

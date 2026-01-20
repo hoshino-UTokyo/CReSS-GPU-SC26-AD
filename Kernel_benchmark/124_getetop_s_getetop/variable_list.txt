@@ -1,0 +1,23 @@
+# Variable List for getetop.f90
+# Discovered via default(none) method
+# Source: Src/getetop.f90
+
+## Shared variables (to be dumped)
+etop
+haiopt
+ngrdmp
+ngropt
+ni
+nj
+nk
+qirdr
+qirtd
+qprdr
+qwrdr
+qwrtd
+rtinc
+zph
+zph8s
+
+## Summary
+Total variables: 15

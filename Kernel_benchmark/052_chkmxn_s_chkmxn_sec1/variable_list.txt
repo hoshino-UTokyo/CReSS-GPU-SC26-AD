@@ -1,0 +1,15 @@
+# Variable List for chkmxn.f90
+# Discovered via default(none) method
+# Source: Src/chkmxn.f90
+
+## Shared variables (to be dumped)
+chkeps
+fproc
+maxeps
+mineps
+nid
+njd
+nkd
+undmax
+undmin
+vardat

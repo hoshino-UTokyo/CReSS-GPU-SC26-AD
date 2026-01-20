@@ -1,0 +1,32 @@
+# Variable List for strsten (s_strsten)
+# Discovered via default(none) method
+# Source: Src/strsten.f90
+
+## OpenMP Section 1 (lines 215-332)
+
+### Shared variables (to be dumped)
+ni      - Grid dimension in x direction (integer)
+nj      - Grid dimension in y direction (integer)
+nk      - Grid dimension in z direction (integer)
+sfcopt  - Option for surface physics (integer, derived from fpsfcopt)
+rkh     - rbr x horizontal eddy viscosity, real(0:ni+1,0:nj+1,1:nk), intent(in)
+rkv     - rbr x vertical eddy viscosity, real(0:ni+1,0:nj+1,1:nk), intent(in)
+ufrc    - Forcing term in u equation, real(0:ni+1,0:nj+1,1:nk), intent(in)
+vfrc    - Forcing term in v equation, real(0:ni+1,0:nj+1,1:nk), intent(in)
+t11     - x-x components of stress tensor, real(0:ni+1,0:nj+1,1:nk), intent(inout)
+t22     - y-y components of stress tensor, real(0:ni+1,0:nj+1,1:nk), intent(inout)
+t33     - z-z components of stress tensor, real(0:ni+1,0:nj+1,1:nk), intent(inout)
+t12     - x-y components of stress tensor, real(0:ni+1,0:nj+1,1:nk), intent(inout)
+t13     - x-z components of stress tensor, real(0:ni+1,0:nj+1,1:nk), intent(inout)
+t23     - y-z components of stress tensor, real(0:ni+1,0:nj+1,1:nk), intent(inout)
+t31     - z-x components of stress tensor, real(0:ni+1,0:nj+1,1:nk), intent(inout)
+t32     - z-y components of stress tensor, real(0:ni+1,0:nj+1,1:nk), intent(inout)
+
+### Private variables
+k       - Loop index in z direction (outer loop)
+i, j    - Loop indices in x,y direction (inner loops, in !$omp do)
+
+### Summary
+Input arrays:  rkh, rkv, ufrc, vfrc
+InOut arrays:  t11, t22, t33, t12, t13, t23, t31, t32
+Parameters:    ni, nj, nk, sfcopt

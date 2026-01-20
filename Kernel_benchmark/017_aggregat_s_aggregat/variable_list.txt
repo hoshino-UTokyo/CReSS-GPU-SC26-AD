@@ -1,0 +1,32 @@
+# Variable List for aggregat.f90
+# Discovered via default(none) method
+# Source: Src/aggregat.f90
+
+## Shared variables (to be dumped)
+agcn
+agin
+agrn
+agsn
+cagcn
+cagin
+cagrn2
+cagsn
+cphopt
+diaqc
+diaqr
+expo1
+expo2
+ncc
+nci
+ncr
+ncs
+ni
+nj
+nk
+qc
+qi
+qr
+qs
+rbr
+rbv
+thresq

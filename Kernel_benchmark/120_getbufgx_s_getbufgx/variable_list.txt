@@ -1,0 +1,25 @@
+# Variable List for getbufgx.f90
+# Discovered via default(none) method
+# Source: Src/getbufgx.f90
+
+## Shared variables (to be dumped)
+ebc
+ebe
+ebw
+fproc
+ib
+iercv
+igrp
+isub
+iwrcv
+kmax
+nb
+nigrp
+nisub
+nj
+rbufx
+var
+wbc
+
+## Summary
+Total variables: 17

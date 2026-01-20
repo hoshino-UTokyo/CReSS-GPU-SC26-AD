@@ -1,0 +1,20 @@
+# Variable List for bcbase.f90
+# Discovered via default(none) method
+# Source: Src/bcbase.f90
+
+## Shared variables (to be dumped)
+cpdvrd
+gdvcp2
+ni
+nj
+nkm1
+nkm2
+pbr
+pibr
+ptbr
+ptvbr
+qvbr
+rbr
+ubr
+vbr
+zph8s

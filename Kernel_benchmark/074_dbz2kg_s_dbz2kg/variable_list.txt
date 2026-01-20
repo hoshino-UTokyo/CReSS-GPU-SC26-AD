@@ -1,0 +1,14 @@
+# Variable List for dbz2kg.f90
+# Discovered via default(none) method
+# Source: Src/dbz2kg.f90
+
+## Shared variables (to be dumped)
+nid
+njd
+nkd
+qpdat
+rdrcoe_rdr
+rdrexp_rdr
+
+## Summary
+Total variables: 6

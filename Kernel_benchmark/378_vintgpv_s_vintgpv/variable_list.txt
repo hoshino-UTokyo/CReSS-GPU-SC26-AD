@@ -1,0 +1,13 @@
+# Variable List for vintgpv.f90
+# Discovered via default(none) method
+# Source: Src/vintgpv.f90
+
+## Shared variables (to be dumped)
+nid
+njd
+nk
+varef
+z
+
+## Summary
+Total variables: 5

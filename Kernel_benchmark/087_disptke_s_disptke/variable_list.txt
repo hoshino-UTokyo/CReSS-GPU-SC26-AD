@@ -1,0 +1,22 @@
+# Variable List for disptke.f90
+# Discovered via default(none) method
+# Source: Src/disptke.f90
+
+## Shared variables (to be dumped)
+ds308
+dz05
+isoopt
+jcb
+mfcopt
+mpopt
+ni
+nj
+nk
+priv
+rmf
+rst
+tke
+tkefrc
+
+## Summary
+Total variables: 14

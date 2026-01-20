@@ -1,0 +1,14 @@
+# Variable List for fallqr.f90
+# Discovered via default(none) method
+# Source: Src/fallqr.f90
+
+## Shared variables (to be dumped)
+dz
+jcb
+ni
+nj
+nk
+urq
+
+## Summary
+Total variables: 6

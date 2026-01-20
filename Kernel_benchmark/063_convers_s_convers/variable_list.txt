@@ -1,0 +1,41 @@
+# Variable List for convers.f90
+# Discovered via default(none) method
+# Source: Src/convers.f90
+
+## Shared variables (to be dumped)
+busm1
+cagin
+ccncr
+ccnsg
+ccnsgn
+clcs
+cncr
+cnis
+cnsg
+cnsgn
+cphopt
+diaqi
+diaqs
+diaqs0
+ecs
+mi
+ms05
+mu
+ncc
+ncs
+ni
+nj
+nk
+qc
+qccm
+qi
+qs
+rbr
+rbv
+t
+thresq
+vdvi
+vdvs
+
+## Summary
+Total variables: 33

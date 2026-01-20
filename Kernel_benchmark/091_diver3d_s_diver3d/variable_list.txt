@@ -1,0 +1,30 @@
+# Variable List for diver3d.f90
+# Discovered via default(none) method
+# Source: Src/diver3d.f90
+
+## Shared variables (to be dumped)
+div3d
+dxiv
+dyiv
+dziv
+mf
+mfcopt
+mpopt
+ni
+nj
+nk
+rmf
+rmf8u
+rmf8v
+tmp1
+tmp2
+tmp3
+u
+v
+var8u
+var8v
+var8w
+wc
+
+## Summary
+Total variables: 22

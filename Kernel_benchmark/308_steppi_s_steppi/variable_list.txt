@@ -1,0 +1,15 @@
+# Variable List for steppi.f90
+# Discovered via default(none) method
+# Source: Src/steppi.f90
+
+## Shared variables (to be dumped)
+dts
+fp
+jcb
+ni
+nj
+nk
+ppf
+
+## Summary
+Total variables: 7

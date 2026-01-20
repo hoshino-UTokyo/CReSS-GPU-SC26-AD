@@ -1,0 +1,33 @@
+# Variable List for getpt0.f90
+# Discovered via default(none) method
+# Source: Src/getpt0.f90
+
+## Shared variables (to be dumped)
+cc05
+ccrxiv
+ccryiv
+ccrziv
+ctr
+ni
+nj
+nk
+pt0cx
+pt0cy
+pt0cz
+pt0ds
+pt0num
+pt0opt
+pt0zh
+pt0zl
+ptp
+ptp0
+ptp05
+rxiv
+ryiv
+rziv
+xs
+ys
+zph
+
+## Summary
+Total variables: 25

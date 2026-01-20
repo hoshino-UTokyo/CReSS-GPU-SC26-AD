@@ -1,0 +1,13 @@
+# Variable List for diverpe.f90
+# Discovered via default(none) method
+# Source: Src/diverpe.f90
+
+## Shared variables (to be dumped)
+ni
+nj
+nk
+pdiv
+rcsq
+
+## Summary
+Total variables: 5

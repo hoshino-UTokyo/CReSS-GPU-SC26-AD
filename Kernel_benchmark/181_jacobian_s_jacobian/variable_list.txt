@@ -1,0 +1,18 @@
+# Variable List for jacobian.f90
+# Discovered via default(none) method
+# Source: Src/jacobian.f90
+
+## Shared variables (to be dumped)
+j31
+j32
+jcb
+ni
+nj
+nk
+x
+y
+z
+zph
+
+## Summary
+Total variables: 10

@@ -1,0 +1,17 @@
+# Variable List for vint11.f90
+# Discovered via default(none) method
+# Source: Src/vint11.f90
+
+## Shared variables (to be dumped)
+dkivh
+dkivl
+nkd
+nkdm1
+nlev
+var1d
+varef
+z1d
+zref
+
+## Summary
+Total variables: 9

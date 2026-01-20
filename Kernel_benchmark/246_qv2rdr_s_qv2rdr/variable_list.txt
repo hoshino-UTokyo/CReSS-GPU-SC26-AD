@@ -1,0 +1,28 @@
+# Variable List for qv2rdr.f90
+# Discovered via default(none) method
+# Source: Src/qv2rdr.f90
+
+## Shared variables (to be dumped)
+etop
+ngrqv
+ni
+nj
+nk
+p0iv
+pbr
+ppp
+ptbr
+ptpp
+qvfrc
+qvp
+qvs
+rddvcp
+rhr
+rst
+tlcl
+tsfc
+zph
+zph8s
+
+## Summary
+Total variables: 20

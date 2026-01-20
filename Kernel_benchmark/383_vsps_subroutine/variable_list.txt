@@ -1,0 +1,22 @@
+# Variable List for vsps.f90
+# Discovered via default(none) method
+# Source: Src/vsps.f90
+
+## Shared variables (to be dumped)
+apg
+gpvvar
+gtinc
+ksp0
+ni
+nj
+nk
+rbct
+rst
+sfrc
+sgpv
+sp
+std
+vspopt
+
+## Summary
+Total variables: 14

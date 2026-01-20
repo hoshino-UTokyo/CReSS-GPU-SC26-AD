@@ -1,0 +1,14 @@
+# Variable List for forcept.f90
+# Discovered via default(none) method
+# Source: Src/forcept.f90
+
+## Shared variables (to be dumped)
+ni
+nj
+nk
+pt
+ptbr
+ptpp
+
+## Summary
+Total variables: 6

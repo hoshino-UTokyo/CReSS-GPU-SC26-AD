@@ -1,0 +1,8 @@
+# Variable List for allocslv.f90
+# Discovered via default(none) method
+# Source: Src/allocslv.f90
+
+## Shared variables (to be dumped)
+land
+ni
+nj

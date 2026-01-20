@@ -1,0 +1,19 @@
+# Variable List for setrdrqp.f90
+# Discovered via default(none) method
+# Source: Src/setrdrqp.f90
+
+## Shared variables (to be dumped)
+cphopt
+haiopt
+ird
+ni
+nj
+nk
+qirdr
+qirtd
+qwrdr
+qwrtd
+rdriv
+
+## Summary
+Total variables: 11

@@ -1,0 +1,16 @@
+# Variable List for setasl.f90
+# Discovered via default(none) method
+# Source: Src/setasl.f90
+
+## Shared variables (to be dumped)
+asliv
+ird
+ni
+nj
+nk
+nqa
+qagpv
+qatd
+
+## Summary
+Total variables: 8

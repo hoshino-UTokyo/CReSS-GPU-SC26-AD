@@ -1,0 +1,40 @@
+# Variable List for advp.f90
+# Discovered via default(none) method
+# Source: Src/advp.f90
+
+## Shared variables (to be dumped)
+advopt
+diaopt
+dxv05n
+dxv24
+dyv05n
+dyv24
+dzv05n
+dzv24
+hadv
+ieast
+iwest
+jcb8u
+jcb8v
+jcb8w
+jcbxu
+jcbxv
+jcbxwc
+jnorth
+jsouth
+mf8u
+mf8v
+mfcopt
+mpopt
+ni
+nj
+nk
+pfrc
+pp
+tmp1
+tmp2
+tmp3
+u
+v
+vadv
+wc

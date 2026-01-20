@@ -1,0 +1,34 @@
+# Variable List for rbcs.f90
+# Discovered via default(none) method
+# Source: Src/rbcs.f90
+
+## Shared variables (to be dumped)
+advopt
+dmpdt
+ebc
+ebe
+ebn
+ebs
+ebw
+isub
+jsub
+nbc
+ni
+nim1
+nim2
+nisub
+nj
+njm1
+njm2
+njsub
+nk
+s
+sbc
+scpx
+scpy
+sf
+sp
+wbc
+
+## Summary
+Total variables: 26

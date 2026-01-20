@@ -1,0 +1,14 @@
+# Variable List for trilat.f90
+# Discovered via default(none) method
+# Source: Src/trilat.f90
+
+## Shared variables (to be dumped)
+coropt
+fc
+lat
+ni
+nj
+omega5
+
+## Summary
+Total variables: 6

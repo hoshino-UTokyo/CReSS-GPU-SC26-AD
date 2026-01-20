@@ -1,0 +1,14 @@
+# Variable List for outdmp.f90
+# Discovered via default(none) method
+# Source: Src/outdmp.f90
+
+## Shared variables (to be dumped)
+dmplev
+dz
+fdmp
+nk
+z1d
+zsth
+
+## Summary
+Total variables: 6

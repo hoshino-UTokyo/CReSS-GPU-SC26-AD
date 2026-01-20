@@ -1,0 +1,21 @@
+# Variable List for vspdmp.f90
+# Discovered via default(none) method
+# Source: Src/vspdmp.f90
+
+## Shared variables (to be dumped)
+botbar
+botgpv
+cbar05
+cgpv05
+ksp0
+ni
+nj
+nk
+nkm1
+rbct
+vspopt
+z1dmax
+zph
+
+## Summary
+Total variables: 13

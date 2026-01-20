@@ -1,0 +1,22 @@
+# Variable List for vspqv.f90
+# Discovered via default(none) method
+# Source: Src/vspqv.f90
+
+## Shared variables (to be dumped)
+gpvvar
+gtinc
+ksp0
+ni
+nj
+nk
+qvbr
+qvfrc
+qvgpv
+qvp
+qvtd
+rbct
+rst
+vspopt
+
+## Summary
+Total variables: 14

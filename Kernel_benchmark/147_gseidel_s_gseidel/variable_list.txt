@@ -1,0 +1,22 @@
+# Variable List for gseidel.f90
+# Discovered via default(none) method
+# Source: Src/gseidel.f90
+
+## Shared variables (to be dumped)
+bb
+dnr
+ff
+gsdeps
+ni
+nj
+nk
+nkm2
+nkm3
+nr
+nrp
+rr
+ss
+tt
+
+## Summary
+Total variables: 14

@@ -1,0 +1,34 @@
+# Variable List for exbcu.f90
+# Discovered via default(none) method
+# Source: Src/exbcu.f90
+
+## Shared variables (to be dumped)
+dts
+ebc
+ebe
+ebn
+ebs
+ebw
+exbvar
+isub
+jsub
+ndmpdt
+ni
+nim1
+nisub
+nj
+njm1
+njm2
+njsub
+nk
+tdmpdt
+tpdt
+u
+ucpx
+ucpy
+ugpv
+utd
+wbc
+
+## Summary
+Total variables: 26

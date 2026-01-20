@@ -1,0 +1,22 @@
+# Variable List for vint13.f90
+# Discovered via default(none) method
+# Source: Src/vint13.f90
+
+## Shared variables (to be dumped)
+dkivh
+dkivl
+iend
+istr
+jend
+jstr
+kmax
+kmin
+nlev
+nlevm1
+outvar
+var1d
+z1d
+zph
+
+## Summary
+Total variables: 14

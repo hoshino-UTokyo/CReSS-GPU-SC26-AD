@@ -1,0 +1,1269 @@
+==============================================================================
+ Kernel Benchmark Runner
+==============================================================================
+ Directory: /work/jh250015/g24000/SC26/CReSS3.5.1m_SPN_RAD1.4.3_20230323_upload/Kernel_benchmark
+ OpenMP Threads: 72
+ Date: Tue Jan 20 06:41:35 PM JST 2026
+==============================================================================
+
+[001_adjstbw_subroutine] SKIP: No benchmark available
+[002_adjstnci_subroutine] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[003_adjstni_subroutine] Running...
+----------------------------------------------------------------------
+ Average time:        24.783 ms
+ Validation: PASSED
+[003_adjstni_subroutine] PASSED
+[004_adjstnp_subroutine] SKIP: No benchmark available
+[005_adjstnsg_subroutine] SKIP: No benchmark available
+[006_adjstnw_subroutine] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[007_adjstq_subroutine] Running...
+----------------------------------------------------------------------
+ Average time:    24.683881 ms
+ Validation: PASSED
+[007_adjstq_subroutine] PASSED
+[008_adjstqa_subroutine] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[009_adjstuv_subroutine_sec1] Running...
+----------------------------------------------------------------------
+ Average time:     0.232005 ms
+ Validation: PASSED
+[009_adjstuv_subroutine_sec1] PASSED
+
+----------------------------------------------------------------------
+[010_adjstuv_subroutine_sec2] Running...
+----------------------------------------------------------------------
+ Average time:     0.916052 ms
+ Validation: PASSED
+[010_adjstuv_subroutine_sec2] PASSED
+[011_advbspe_subroutine] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[012_advbspi_subroutine] Running...
+----------------------------------------------------------------------
+ Average time:     6.199312 ms
+ Validation: PASSED
+[012_advbspi_subroutine] PASSED
+
+----------------------------------------------------------------------
+[013_advbspt_subroutine] Running...
+----------------------------------------------------------------------
+ Average time:    10.696507 ms
+ Validation: PASSED
+[013_advbspt_subroutine] PASSED
+
+----------------------------------------------------------------------
+[014_advp_subroutine] Running...
+----------------------------------------------------------------------
+Average time:  6.64755E-02 seconds
+Validation passed: T
+[014_advp_subroutine] PASSED
+
+----------------------------------------------------------------------
+[015_advs_subroutine] Running...
+----------------------------------------------------------------------
+ Average time:    47.090816 ms
+ Validation: PASSED
+[015_advs_subroutine] PASSED
+
+----------------------------------------------------------------------
+[016_advuvw_subroutine] Running...
+----------------------------------------------------------------------
+ Average time:   147.033119 ms
+ Validation: PASSED
+[016_advuvw_subroutine] PASSED
+
+----------------------------------------------------------------------
+[017_aggregat_s_aggregat] Running...
+----------------------------------------------------------------------
+ Average time:         0.017 ms
+ Validation: PASSED
+[017_aggregat_s_aggregat] PASSED
+[018_allocbuf_s_allocbuf] SKIP: No data files (dump incomplete)
+[019_allocgrp_s_allocgrp] SKIP: No benchmark available
+[020_allociot_s_allociot] SKIP: No benchmark available
+[021_allocsfc_s_allocsfc] SKIP: No benchmark available
+[022_allocslv_s_allocslv] SKIP: No benchmark available
+[023_allocuni_s_allocuni] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[024_baserho_s_baserho] Running...
+----------------------------------------------------------------------
+ Average time:     4.907918 ms
+ Validation: PASSED
+[024_baserho_s_baserho] PASSED
+
+----------------------------------------------------------------------
+[025_bbcw_s_bbcw] Running...
+----------------------------------------------------------------------
+ Average time:     0.097418 ms
+ Validation: PASSED
+[025_bbcw_s_bbcw] PASSED
+[026_bc2d_s_bc2d] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[027_bc4news_s_bc4news] Running...
+----------------------------------------------------------------------
+ Average time:     0.061297 ms
+ Validation: PASSED
+[027_bc4news_s_bc4news] PASSED
+
+----------------------------------------------------------------------
+[028_bc8u_s_bc8u] Running...
+----------------------------------------------------------------------
+ Average time:     2.917004 ms
+ Validation: PASSED
+[028_bc8u_s_bc8u] PASSED
+
+----------------------------------------------------------------------
+[029_bc8v_s_bc8v] Running...
+----------------------------------------------------------------------
+ Average time:     2.389097 ms
+ Validation: PASSED
+[029_bc8v_s_bc8v] PASSED
+
+----------------------------------------------------------------------
+[030_bc8w_s_bc8w] Running...
+----------------------------------------------------------------------
+ Average time:     0.078773 ms
+ Validation: PASSED
+[030_bc8w_s_bc8w] PASSED
+
+----------------------------------------------------------------------
+[031_bcbase_s_bcbase] Running...
+----------------------------------------------------------------------
+ Average time:     0.330210 ms
+ Validation: PASSED
+[031_bcbase_s_bcbase] PASSED
+[032_bcgsms_s_bcgsms] SKIP: No benchmark available
+[033_bcgsmu_s_bcgsmu] SKIP: No benchmark available
+[034_bcgsmv_s_bcgsmv] SKIP: No benchmark available
+[035_bcgsmw_s_bcgsmw] SKIP: No benchmark available
+[036_bcphi_s_bcphi] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[037_bcten_s_bcten] Running...
+----------------------------------------------------------------------
+ Average time:     0.291872 ms
+ Validation: PASSED
+[037_bcten_s_bcten] PASSED
+
+----------------------------------------------------------------------
+[038_bcycle_s_bcycle] Running...
+----------------------------------------------------------------------
+ Average time:     0.061250 ms
+ Validation: PASSED
+[038_bcycle_s_bcycle] PASSED
+
+----------------------------------------------------------------------
+[039_bcyclex_s_bcyclex] Running...
+----------------------------------------------------------------------
+ Average time:     0.067711 ms
+ Validation: PASSED
+[039_bcyclex_s_bcyclex] PASSED
+
+----------------------------------------------------------------------
+[040_bcycley_s_bcycley] Running...
+----------------------------------------------------------------------
+ Average time:     0.061250 ms
+ Validation: PASSED
+[040_bcycley_s_bcycley] PASSED
+
+----------------------------------------------------------------------
+[041_bruntv_s_bruntv] Running...
+----------------------------------------------------------------------
+Average time:  4.69798E-02 seconds
+Validation passed: T
+[041_bruntv_s_bruntv] PASSED
+
+----------------------------------------------------------------------
+[042_bulksfc_s_bulksfc] Running...
+----------------------------------------------------------------------
+Average time:     0.378609 ms
+Validation errors: 1612808
+[042_bulksfc_s_bulksfc] PASSED
+
+----------------------------------------------------------------------
+[043_buoytke_s_buoytke] Running...
+----------------------------------------------------------------------
+ Average time:    10.373044 ms
+ Validation: PASSED
+[043_buoytke_s_buoytke] PASSED
+
+----------------------------------------------------------------------
+[044_buoywb_s_buoywb] Running...
+----------------------------------------------------------------------
+ Average time:    18.077588 ms
+ Validation: PASSED
+[044_buoywb_s_buoywb] PASSED
+[045_buoywse_subroutine] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[046_buoywsi_s_buoywsi] Running...
+----------------------------------------------------------------------
+ Average time:    12.066865 ms
+ Validation: PASSED
+[046_buoywsi_s_buoywsi] PASSED
+[047_cg2mkbw_s_cg2mkbw] SKIP: No benchmark available
+[048_charging_s_charging] SKIP: No benchmark available
+[049_chkfile_s_chkfile] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[050_chkitr_s_chkitr] Running...
+----------------------------------------------------------------------
+ Average time:         0.136 ms
+ Validation: PASSED
+[050_chkitr_s_chkitr] PASSED
+[051_chkmoist_s_chkmoist] SKIP: No benchmark available
+[052_chkmxn_s_chkmxn_sec1] SKIP: No benchmark available
+[053_chkmxn_s_chkmxn_sec2] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[054_chkrain_s_chkrain] Running...
+----------------------------------------------------------------------
+ Average time:     0.080967 ms
+ Validation: PASSED
+[054_chkrain_s_chkrain] PASSED
+
+----------------------------------------------------------------------
+[055_chksat_s_chksat] Running...
+----------------------------------------------------------------------
+ Average time:    20.341587 ms
+ Validation: PASSED
+[055_chksat_s_chksat] PASSED
+
+----------------------------------------------------------------------
+[056_cloudcov_s_cloudcov] Running...
+----------------------------------------------------------------------
+Average time:     6.918025 ms
+Validation errors: 17270
+[056_cloudcov_s_cloudcov] PASSED
+[057_cnt2phy_s_cnt2phy] SKIP: No benchmark available
+[058_coalbw_s_coalbw_sec1] SKIP: No benchmark available
+[059_coalbw_s_coalbw_sec2] SKIP: No benchmark available
+[060_collc2r_s_collc2r] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[061_collect_s_collect] Running...
+----------------------------------------------------------------------
+Average time:   1.4901E-01 ms
+=== Validation ===
+[061_collect_s_collect] PASSED
+[062_convc2r_subroutine] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[063_convers_s_convers] Running...
+----------------------------------------------------------------------
+Average time:   5.6028E-02 ms
+=== Validation ===
+[063_convers_s_convers] PASSED
+[064_convland_s_convland] SKIP: No benchmark available
+[065_copy1d_s_copy1d] SKIP: No data files (dump incomplete)
+[066_copy2d_s_copy2d] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[067_copy3d_s_copy3d] Running...
+----------------------------------------------------------------------
+ Average time:     3.120899 ms
+ Validation: PASSED
+[067_copy3d_s_copy3d] PASSED
+
+----------------------------------------------------------------------
+[068_copy4d_s_copy4d] Running...
+----------------------------------------------------------------------
+Average time:    14.824748 ms
+[068_copy4d_s_copy4d] PASSED
+
+----------------------------------------------------------------------
+[069_coriuv_subroutine] Running...
+----------------------------------------------------------------------
+ Average time:    17.038488 ms
+ Validation: PASSED
+[069_coriuv_subroutine] PASSED
+[070_coriuvw_s_coriuvw] SKIP: No benchmark available
+[071_cpondsfc_s_cpondsfc] SKIP: No benchmark available
+[072_cpondtrn_s_cpondtrn] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[073_curveuvw_s_curveuvw] Running...
+----------------------------------------------------------------------
+Average time:  6.22732E-02 seconds
+Validation passed: T
+[073_curveuvw_s_curveuvw] PASSED
+[074_dbz2kg_s_dbz2kg] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[075_defomssq_s_defomssq] Running...
+----------------------------------------------------------------------
+ Average time:     9.848189 ms
+ Validation: PASSED
+[075_defomssq_s_defomssq] PASSED
+[076_defomten_s_defomten_sec1] SKIP: No benchmark available
+[077_defomten_s_defomten_sec2] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[078_depsit_s_depsit] Running...
+----------------------------------------------------------------------
+ Average time:        0.025 ms
+ Validation: PASSED
+[078_depsit_s_depsit] PASSED
+[079_depsitbw_s_depsitbw] SKIP: No benchmark available
+[080_diabat_subroutine_sec1] SKIP: No benchmark available
+[081_diabat_subroutine_sec2] SKIP: No benchmark available
+[082_diagnci_s_diagnci] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[083_diagni_s_diagni] Running...
+----------------------------------------------------------------------
+ Average time:    18.797827 ms
+ Validation: PASSED
+[083_diagni_s_diagni] PASSED
+[084_diagnsg_s_diagnsg] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[085_diagnw_s_diagnw] Running...
+----------------------------------------------------------------------
+ Average time:    13.554215 ms
+ Validation: PASSED
+[085_diagnw_s_diagnw] PASSED
+[086_diffequa_s_diffequa] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[087_disptke_s_disptke] Running...
+----------------------------------------------------------------------
+ Average time:     8.825612 ms
+ Validation: PASSED
+[087_disptke_s_disptke] PASSED
+
+----------------------------------------------------------------------
+[088_distrpg_s_distrpg] Running...
+----------------------------------------------------------------------
+Validation PASSED for clrsg, max relative diff:  0.00000E+00
+Validation PASSED for clrs, max relative diff:  0.00000E+00
+Validation PASSED for clsr, max relative diff:  0.00000E+00
+Validation PASSED for clrsn, max relative diff:  0.00000E+00
+Validation PASSED for clsrn, max relative diff:  0.00000E+00
+  Average time:     0.018120 ms
+[088_distrpg_s_distrpg] PASSED
+[089_distrqp_s_distrqp] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[090_diver2d_s_diver2d] Running...
+----------------------------------------------------------------------
+ Average time:    13.853717 ms
+ Validation: PASSED
+[090_diver2d_s_diver2d] PASSED
+
+----------------------------------------------------------------------
+[091_diver3d_s_diver3d] Running...
+----------------------------------------------------------------------
+ Average time:    18.993974 ms
+ Validation: PASSED
+[091_diver3d_s_diver3d] PASSED
+[092_diverpe_s_diverpe] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[093_diverpih_s_diverpih] Running...
+----------------------------------------------------------------------
+ Average time:         4.480 ms
+ Validation: PASSED
+[093_diverpih_s_diverpih] PASSED
+
+----------------------------------------------------------------------
+[094_diverpiv_s_diverpiv] Running...
+----------------------------------------------------------------------
+ Average time:     4.042816 ms
+ Validation: PASSED
+[094_diverpiv_s_diverpiv] PASSED
+
+----------------------------------------------------------------------
+[095_eddydif_s_eddydif] Running...
+----------------------------------------------------------------------
+ Average time:    14.139986 ms
+ Validation: PASSED
+[095_eddydif_s_eddydif] PASSED
+[096_eddypbl_s_eddypbl] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[097_eddyvis_subroutine] Running...
+----------------------------------------------------------------------
+ Average time:    17.786503 ms
+ Validation: PASSED
+[097_eddyvis_subroutine] PASSED
+
+----------------------------------------------------------------------
+[098_eddyvisj_s_eddyvisj] Running...
+----------------------------------------------------------------------
+ Average time:     7.187104 ms
+ Validation: PASSED
+[098_eddyvisj_s_eddyvisj] PASSED
+[099_emitqt_s_emitqt] SKIP: No benchmark available
+[100_estimsfc_s_estimsfc] SKIP: No benchmark available
+[101_evapr2v_s_evapr2v] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[102_exbcpt_s_exbcpt] Running...
+----------------------------------------------------------------------
+ Average time:         0.224 ms
+ Validation: PASSED
+[102_exbcpt_s_exbcpt] PASSED
+
+----------------------------------------------------------------------
+[103_exbcq_s_exbcq] Running...
+----------------------------------------------------------------------
+ Average time:         0.205 ms
+ Validation: PASSED
+[103_exbcq_s_exbcq] PASSED
+
+----------------------------------------------------------------------
+[104_exbcss_s_exbcss] Running...
+----------------------------------------------------------------------
+ Average time:           0.339 ms
+ Validation: PASSED
+[104_exbcss_s_exbcss] PASSED
+
+----------------------------------------------------------------------
+[105_exbcu_subroutine] Running...
+----------------------------------------------------------------------
+ Average time:           0.174 ms
+ Validation: PASSED
+[105_exbcu_subroutine] PASSED
+
+----------------------------------------------------------------------
+[106_exbcv_s_exbcv] Running...
+----------------------------------------------------------------------
+ Average time:           0.166 ms
+ Validation: PASSED
+[106_exbcv_s_exbcv] PASSED
+[107_exbcw_subroutine] SKIP: No benchmark available
+[108_fallblk_subroutine] SKIP: No benchmark available
+[109_fallbw_s_fallbw] SKIP: No benchmark available
+[110_fallqr_s_fallqr] SKIP: No benchmark available
+[111_fituvwc_s_fituvwc] SKIP: No benchmark available
+[112_forcept_s_forcept] SKIP: No data files (dump incomplete)
+
+----------------------------------------------------------------------
+[113_forcesfc_s_forcesfc] Running...
+----------------------------------------------------------------------
+ Average time:     0.053811 ms
+ Validation: PASSED
+[113_forcesfc_s_forcesfc] PASSED
+
+----------------------------------------------------------------------
+[114_freezing_s_freezing] Running...
+----------------------------------------------------------------------
+Validation PASSED for frrg, max relative diff:  0.00000E+00
+Validation PASSED for frrgn, max relative diff:  0.00000E+00
+  Average time:     0.034690 ms
+[114_freezing_s_freezing] PASSED
+
+----------------------------------------------------------------------
+[115_gaussel_subroutine] Running...
+----------------------------------------------------------------------
+ Average time:    12.712121 ms
+ Validation: PASSED
+[115_gaussel_subroutine] PASSED
+[116_get1d_s_get1d_sec1] SKIP: No benchmark available
+[117_get1d_s_get1d_sec2] SKIP: No benchmark available
+[118_get1d_s_get1d_sec3] SKIP: No benchmark available
+[119_getarea_s_getarea] SKIP: No benchmark available
+[120_getbufgx_s_getbufgx] SKIP: No benchmark available
+[121_getbufgy_s_getbufgy] SKIP: No benchmark available
+[122_getbufsx_s_getbufsx] SKIP: No benchmark available
+[123_getbufsy_s_getbufsy] SKIP: No benchmark available
+[124_getetop_s_getetop] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[125_getexner_s_getexner] Running...
+----------------------------------------------------------------------
+Validation FAILED for pi, max relative diff:  0.16635E-03
+  Average time:     6.891990 ms
+[125_getexner_s_getexner] PASSED
+[126_getkref_s_getkref] SKIP: No benchmark available
+[127_getmxn_s_getmxn_sec1] SKIP: No benchmark available
+[128_getmxn_s_getmxn_sec2] SKIP: No benchmark available
+[129_getmxn_s_getmxn_sec3] SKIP: No benchmark available
+[130_getmxn_s_getmxn_sec4] SKIP: No benchmark available
+[131_getpt0_subroutine_sec1] SKIP: No benchmark available
+[132_getpt0_subroutine_sec2] SKIP: No benchmark available
+[133_getqt0_s_getqt0_sec1] SKIP: No benchmark available
+[134_getqt0_s_getqt0_sec2] SKIP: No benchmark available
+[135_getqvs_s_getqvs] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[136_getrich_s_getrich] Running...
+----------------------------------------------------------------------
+Average time:     0.030065 ms
+[136_getrich_s_getrich] PASSED
+[137_getta2d_s_getta2d] SKIP: No benchmark available
+[138_getta3d_s_getta3d] SKIP: No benchmark available
+[139_gettlcl_s_gettlcl] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[140_gettrn_s_gettrn_sec1] Running...
+----------------------------------------------------------------------
+Average time:   1.1563E-02 ms
+=== Validation ===
+[140_gettrn_s_gettrn_sec1] PASSED
+[141_gettrn_s_gettrn_sec2] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[142_getvdens_s_getvdens] Running...
+----------------------------------------------------------------------
+Validation PASSED for rbv, max relative diff:  0.00000E+00
+  Average time:     3.889179 ms
+[142_getvdens_s_getvdens] PASSED
+[143_getxy_s_getxy] SKIP: No benchmark available
+[144_getz_s_getz] SKIP: No data files (dump incomplete)
+[145_getz11_s_getz11] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[146_getzlow_s_getzlow] Running...
+----------------------------------------------------------------------
+Validation PASSED for za, max relative diff:  0.00000E+00
+  Average time:     0.011992 ms
+[146_getzlow_s_getzlow] PASSED
+[147_gseidel_s_gseidel] SKIP: No benchmark available
+[148_gsmoos_s_gsmoos_sec1] SKIP: No benchmark available
+[149_gsmoos_s_gsmoos_sec2] SKIP: No benchmark available
+[150_gsmoou_s_gsmoou_sec1] SKIP: No benchmark available
+[151_gsmoou_s_gsmoou_sec2] SKIP: No benchmark available
+[152_gsmoov_s_gsmoov_sec1] SKIP: No benchmark available
+[153_gsmoov_s_gsmoov_sec2] SKIP: No benchmark available
+[154_gsmoow_s_gsmoow_sec1] SKIP: No benchmark available
+[155_gsmoow_s_gsmoow_sec2] SKIP: No benchmark available
+[156_hculs_s_hculs_sec1] SKIP: No benchmark available
+[157_hculs_s_hculs_sec2] SKIP: No benchmark available
+[158_hculuvw_s_hculuvw_sec1] SKIP: No benchmark available
+[159_hculuvw_s_hculuvw_sec2] SKIP: No benchmark available
+[160_hculuvw_s_hculuvw_sec3] SKIP: No benchmark available
+[161_hculuvw_s_hculuvw_sec4] SKIP: No benchmark available
+[162_hculuvw_s_hculuvw_sec5] SKIP: No benchmark available
+[163_hculuvw_s_hculuvw_sec6] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[164_heatsfc_s_heatsfc] Running...
+----------------------------------------------------------------------
+Average time:     0.099850 ms
+Validation errors: 0
+[164_heatsfc_s_heatsfc] PASSED
+[165_hint2d_s_hint2d_sec1] SKIP: No benchmark available
+[166_hint2d_s_hint2d_sec2] SKIP: No benchmark available
+[167_hint3d_s_hint3d_sec1] SKIP: No benchmark available
+[168_hint3d_s_hint3d_sec2] SKIP: No benchmark available
+[169_hintlnd_s_hintlnd_sec1] SKIP: No benchmark available
+[170_hintlnd_s_hintlnd_sec2] SKIP: No benchmark available
+[171_hintrdr_s_hintrdr] SKIP: No benchmark available
+[172_ini0name_s_ini0name] SKIP: No benchmark available
+[173_inidef_s_inidef] SKIP: No benchmark available
+[174_inidisbw_s_inidisbw] SKIP: No benchmark available
+[175_inimod_s_inimod] SKIP: No benchmark available
+[176_ininame_s_ininame] SKIP: No benchmark available
+[177_inisfc_subroutine] SKIP: No benchmark available
+[178_initke_s_initke] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[179_initund_s_initund] Running...
+----------------------------------------------------------------------
+ Average time:         2.562 ms
+ Validation: PASSED
+[179_initund_s_initund] PASSED
+[180_instvel_s_instvel] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[181_jacobian_s_jacobian] Running...
+----------------------------------------------------------------------
+Average time:    15.645814 ms
+[181_jacobian_s_jacobian] PASSED
+
+----------------------------------------------------------------------
+[182_kh8uv_s_kh8uv] Running...
+----------------------------------------------------------------------
+ Average time:     9.468937 ms
+ Validation: PASSED
+[182_kh8uv_s_kh8uv] PASSED
+
+----------------------------------------------------------------------
+[183_lbcs_s_lbcs] Running...
+----------------------------------------------------------------------
+ Average time:         0.059 ms
+ Validation: PASSED
+[183_lbcs_s_lbcs] PASSED
+[184_lbcu_s_lbcu] SKIP: No benchmark available
+[185_lbculs_s_lbculs] SKIP: No benchmark available
+[186_lbculu_s_lbculu] SKIP: No benchmark available
+[187_lbculv_s_lbculv] SKIP: No benchmark available
+[188_lbculw_subroutine] SKIP: No benchmark available
+[189_lbcv_s_lbcv] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[190_lbcw_s_lbcw] Running...
+----------------------------------------------------------------------
+ Average time:         0.062 ms
+ Validation: PASSED
+[190_lbcw_s_lbcw] PASSED
+[191_lbcwc_s_lbcwc] SKIP: No benchmark available
+[192_ll2xy_s_ll2xy] SKIP: No benchmark available
+[193_lspdmp_s_lspdmp_sec1] SKIP: No benchmark available
+[194_lspdmp_s_lspdmp_sec2] SKIP: No benchmark available
+[195_lspp_s_lspp] SKIP: No benchmark available
+[196_lspqv_s_lspqv] SKIP: No benchmark available
+[197_lsps_subroutine] SKIP: No benchmark available
+[198_lsps0_s_lsps0] SKIP: No benchmark available
+[199_lspuvw_subroutine] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[200_mapfct_s_mapfct] Running...
+----------------------------------------------------------------------
+[200_mapfct_s_mapfct] FAILED
+[201_masscon_s_masscon] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[202_melting_s_melting] Running...
+----------------------------------------------------------------------
+ Average time:         0.029 ms
+ Validation: PASSED
+[202_melting_s_melting] PASSED
+[203_mk2cgbw_s_mk2cgbw] SKIP: No benchmark available
+[204_more0q_s_more0q] SKIP: No benchmark available
+[205_move2d_s_move2d] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[206_newblk_subroutine] Running...
+----------------------------------------------------------------------
+ Average time:     0.752807 ms
+ Validation: PASSED
+[206_newblk_subroutine] PASSED
+[207_newblk_noevap_s_newblk_noevap] SKIP: No benchmark available
+[208_newsindx_s_newsindx] SKIP: No benchmark available
+[209_nlsmqv_subroutine] SKIP: No benchmark available
+[210_nlsms_s_nlsms] SKIP: No benchmark available
+[211_nlsmuvw_s_nlsmuvw] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[212_nuc1stc_s_nuc1stc] Running...
+----------------------------------------------------------------------
+Average time:   1.7047E-02 ms
+=== Validation ===
+[212_nuc1stc_s_nuc1stc] PASSED
+
+----------------------------------------------------------------------
+[213_nuc1stv_s_nuc1stv] Running...
+----------------------------------------------------------------------
+Average time:   1.6570E-02 ms
+=== Validation ===
+[213_nuc1stv_s_nuc1stv] PASSED
+
+----------------------------------------------------------------------
+[214_nuc2nd_s_nuc2nd] Running...
+----------------------------------------------------------------------
+Average time:   3.1590E-02 ms
+=== Validation ===
+[214_nuc2nd_s_nuc2nd] PASSED
+[215_opendmp_s_opendmp] SKIP: No benchmark available
+[216_outctl_s_outctl] SKIP: No benchmark available
+[217_outdmp_s_outdmp] SKIP: No benchmark available
+[218_outmxn_s_outmxn_sec1] SKIP: No benchmark available
+[219_outmxn_s_outmxn_sec2] SKIP: No benchmark available
+[220_outpbl_s_outpbl] SKIP: No benchmark available
+[221_p2gpv_s_p2gpv] SKIP: No benchmark available
+[222_paractl_s_paractl_sec1] SKIP: No benchmark available
+[223_paractl_s_paractl_sec2] SKIP: No benchmark available
+[224_pbldrv_s_pbldrv] SKIP: No benchmark available
+[225_pblptv_s_pblptv] SKIP: No benchmark available
+[226_pblqv_s_pblqv] SKIP: No benchmark available
+[227_pblu_s_pblu] SKIP: No benchmark available
+[228_pblv_s_pblv] SKIP: No benchmark available
+[229_pc2kg_subroutine] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[230_pgrad_subroutine] Running...
+----------------------------------------------------------------------
+ Average time:    26.280427 ms
+ Validation: PASSED
+[230_pgrad_subroutine] PASSED
+
+----------------------------------------------------------------------
+[231_pgradiv_s_pgradiv] Running...
+----------------------------------------------------------------------
+ Average time:    10.473537 ms
+ Validation: PASSED
+[231_pgradiv_s_pgradiv] PASSED
+[232_phvbcs_s_phvbcs] SKIP: No benchmark available
+[233_phvbcuvw_s_phvbcuvw] SKIP: No benchmark available
+[234_phvs_s_phvs] SKIP: No benchmark available
+[235_phvuvw_s_phvuvw] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[236_phy2cnt_s_phy2cnt] Running...
+----------------------------------------------------------------------
+ Average time:     2.695727 ms
+ Validation: PASSED
+[236_phy2cnt_s_phy2cnt] PASSED
+[237_phycood_s_phycood_sec1] SKIP: No benchmark available
+[238_phycood_s_phycood_sec2] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[239_phycood_s_phycood_sec3] Running...
+----------------------------------------------------------------------
+Average time:     2.562952 ms
+[239_phycood_s_phycood_sec3] PASSED
+
+----------------------------------------------------------------------
+[240_prodctwg_s_prodctwg] Running...
+----------------------------------------------------------------------
+ Average time:        0.511 ms
+ Validation: PASSED
+[240_prodctwg_s_prodctwg] PASSED
+[241_putbufgx_s_putbufgx] SKIP: No benchmark available
+[242_putbufgy_s_putbufgy] SKIP: No benchmark available
+[243_putbufsx_s_putbufsx] SKIP: No benchmark available
+[244_putbufsy_s_putbufsy] SKIP: No benchmark available
+[245_qp2rdr_subroutine] SKIP: No benchmark available
+[246_qv2rdr_s_qv2rdr] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[247_radiat_s_radiat] Running...
+----------------------------------------------------------------------
+Average time:     6.062007 ms
+Validation: PASSED
+[247_radiat_s_radiat] PASSED
+[248_rbcpt_s_rbcpt] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[249_rbcq_s_rbcq] Running...
+----------------------------------------------------------------------
+ Average time:         0.172 ms
+ Validation: PASSED
+[249_rbcq_s_rbcq] PASSED
+[250_rbcqv_s_rbcqv] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[251_rbcs_s_rbcs] Running...
+----------------------------------------------------------------------
+ Average time:         0.169 ms
+ Validation: PASSED
+[251_rbcs_s_rbcs] PASSED
+
+----------------------------------------------------------------------
+[252_rbcs0_s_rbcs0] Running...
+----------------------------------------------------------------------
+ Average time:         0.165 ms
+ Validation: PASSED
+[252_rbcs0_s_rbcs0] PASSED
+[253_rbcss_subroutine] SKIP: No benchmark available
+[254_rbcu_s_rbcu] SKIP: No benchmark available
+[255_rbcv_s_rbcv] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[256_rbcw_s_rbcw] Running...
+----------------------------------------------------------------------
+ Average time:           0.513 ms
+ Validation: PASSED
+[256_rbcw_s_rbcw] PASSED
+[257_rdgrp_s_rdgrp] SKIP: No benchmark available
+[258_rdsfcdmp_s_rdsfcdmp] SKIP: No benchmark available
+[259_remapbw_s_remapbw] SKIP: No benchmark available
+[260_repsit2d_s_repsit2d] SKIP: No benchmark available
+[261_repsit3d_s_repsit3d] SKIP: No benchmark available
+[262_rotuvm2s_s_rotuvm2s] SKIP: No benchmark available
+[263_rotuvs2m_s_rotuvs2m] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[264_roughitr_s_roughitr] Running...
+----------------------------------------------------------------------
+Average time:     0.074196 ms
+[264_roughitr_s_roughitr] PASSED
+
+----------------------------------------------------------------------
+[265_roughnxt_s_roughnxt] Running...
+----------------------------------------------------------------------
+Average time:   9.1434E-02 ms
+=== Validation ===
+[265_roughnxt_s_roughnxt] PASSED
+
+----------------------------------------------------------------------
+[266_rstuvwc_s_rstuvwc] Running...
+----------------------------------------------------------------------
+ Average time:        14.465 ms
+ Validation: PASSED
+[266_rstuvwc_s_rstuvwc] PASSED
+[267_s2gpv_s_s2gpv] SKIP: No benchmark available
+[268_sadjstbw_s_sadjstbw] SKIP: No benchmark available
+[269_set1d_subroutine_sec1] SKIP: No benchmark available
+[270_set1d_subroutine_sec2] SKIP: No benchmark available
+[271_set1d_subroutine_sec3] SKIP: No benchmark available
+[272_set1d_subroutine_sec4] SKIP: No benchmark available
+[273_set1d_subroutine_sec5] SKIP: No benchmark available
+[274_set1d_subroutine_sec6] SKIP: No benchmark available
+[275_set1d_subroutine_sec7] SKIP: No benchmark available
+[276_set1d_subroutine_sec8] SKIP: No benchmark available
+[277_setasl_s_setasl] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[278_setbase_s_setbase] Running...
+----------------------------------------------------------------------
+Average time:    23.171234 ms
+Validation: PASSED
+[278_setbase_s_setbase] PASSED
+[279_setbin_s_setbin] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[280_setblk_s_setblk] Running...
+----------------------------------------------------------------------
+ Average time:        0.540 ms
+ Validation: PASSED
+[280_setblk_s_setblk] PASSED
+[281_setcst1d_s_setcst1d_sec1] SKIP: No data files (dump incomplete)
+[282_setcst1d_s_setcst1d_r8_sec2] SKIP: No benchmark available
+[283_setcst2d_s_setcst2d_sec1] SKIP: No benchmark available
+[284_setcst2d_s_setcst2d_r8_sec2] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[285_setcst3d_s_setcst3d_sec1] Running...
+----------------------------------------------------------------------
+ Average time:     3.342104 ms
+ Validation: PASSED
+[285_setcst3d_s_setcst3d_sec1] PASSED
+[286_setcst3d_s_setcst3d_r8_sec2] SKIP: No benchmark available
+[287_setcst4d_s_setcst4d] SKIP: No data files (dump incomplete)
+[288_setgpv_s_setgpv] SKIP: No benchmark available
+[289_setname_s_setname] SKIP: No benchmark available
+[290_setrdrqp_s_setrdrqp] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[291_setsfc_s_setsfc] Running...
+----------------------------------------------------------------------
+ Average time:    16.091704 ms
+ Validation: PASSED
+[291_setsfc_s_setsfc] PASSED
+[292_setsst_s_setsst] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[293_sfcflx_subroutine] Running...
+----------------------------------------------------------------------
+Average time:     0.019503 ms
+Validation errors: 0
+Validation: PASSED
+[293_sfcflx_subroutine] PASSED
+
+----------------------------------------------------------------------
+[294_sheartke_s_sheartke] Running...
+----------------------------------------------------------------------
+ Average time:     6.029963 ms
+ Validation: PASSED
+[294_sheartke_s_sheartke] PASSED
+
+----------------------------------------------------------------------
+[295_shedding_s_shedding] Running...
+----------------------------------------------------------------------
+ Average time:         0.028 ms
+ Validation: PASSED
+[295_shedding_s_shedding] PASSED
+[296_siadjst_s_siadjst] SKIP: No benchmark available
+[297_smoo2p_s_smoo2p] SKIP: No benchmark available
+[298_smoo2qv_s_smoo2qv] SKIP: No benchmark available
+[299_smoo2s_subroutine] SKIP: No benchmark available
+[300_smoo2uvw_s_smoo2uvw] SKIP: No benchmark available
+[301_smoo4p_s_smoo4p] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[302_smoo4qv_s_smoo4qv] Running...
+----------------------------------------------------------------------
+ Average time:          36.522 ms
+ Validation: PASSED
+[302_smoo4qv_s_smoo4qv] PASSED
+
+----------------------------------------------------------------------
+[303_smoo4s_subroutine] Running...
+----------------------------------------------------------------------
+ Average time:    32.868719 ms
+ Validation: PASSED
+[303_smoo4s_subroutine] PASSED
+
+----------------------------------------------------------------------
+[304_smoo4uvw_s_smoo4uvw] Running...
+----------------------------------------------------------------------
+ Average time:    93.957615 ms
+ Validation: PASSED
+[304_smoo4uvw_s_smoo4uvw] PASSED
+
+----------------------------------------------------------------------
+[305_sndwave_s_sndwave] Running...
+----------------------------------------------------------------------
+Average time:     3.028822 ms
+[305_sndwave_s_sndwave] PASSED
+[306_sparprt_s_sparprt] SKIP: No benchmark available
+[307_steppe_s_steppe] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[308_steppi_s_steppi] Running...
+----------------------------------------------------------------------
+ Average time:     4.728055 ms
+ Validation: PASSED
+[308_steppi_s_steppi] PASSED
+[309_steppts_s_steppts] SKIP: No benchmark available
+[310_steps_s_steps] SKIP: No data files (dump incomplete)
+
+----------------------------------------------------------------------
+[311_steptund_s_steptund_sec1] Running...
+----------------------------------------------------------------------
+ Average time:     4.215884 ms
+ Validation: PASSED
+[311_steptund_s_steptund_sec1] PASSED
+[312_steptund_s_steptund_sec2] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[313_stepuv_subroutine] Running...
+----------------------------------------------------------------------
+ Average time:    12.262344 ms
+ Validation: PASSED
+[313_stepuv_subroutine] PASSED
+[314_stepwe_s_stepwe] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[315_stepwi_subroutine] Running...
+----------------------------------------------------------------------
+ Average time:    36.763334 ms
+ Validation: PASSED
+[315_stepwi_subroutine] PASSED
+[316_stretch_s_stretch_sec1] SKIP: No benchmark available
+[317_stretch_s_stretch_sec2] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[318_strsten_s_strsten] Running...
+----------------------------------------------------------------------
+ Average time:    33.040023 ms
+ Validation: PASSED
+[318_strsten_s_strsten] PASSED
+[319_sumbin_s_sumbin] SKIP: No benchmark available
+[320_swadjst_s_swadjst] SKIP: No benchmark available
+[321_swp2nxt_s_swp2nxt] SKIP: No benchmark available
+[322_t2pt_s_t2pt] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[323_termblk_s_termblk] Running...
+----------------------------------------------------------------------
+ Average time:       55.964 ms
+ Validation: PASSED
+[323_termblk_s_termblk] PASSED
+[324_termbw2d_s_termbw2d] SKIP: No benchmark available
+[325_termbw3d_s_termbw3d] SKIP: No benchmark available
+[326_termqr_s_termqr] SKIP: No benchmark available
+[327_timeflt_s_timeflt] SKIP: No benchmark available
+[328_tkeflx_s_tkeflx_sec1] SKIP: No benchmark available
+[329_tkeflx_s_tkeflx_sec2] SKIP: No benchmark available
+[330_totalq_s_totalq] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[331_totalqwi_s_totalqwi] Running...
+----------------------------------------------------------------------
+ Average time:     7.759094 ms
+ Validation: PASSED
+[331_totalqwi_s_totalqwi] PASSED
+[332_totals_s_totals] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[333_trilat_s_trilat] Running...
+----------------------------------------------------------------------
+ Average time:     0.134754 ms
+ Validation: PASSED
+[333_trilat_s_trilat] PASSED
+[334_turbflx_s_turbflx_sec1] SKIP: No benchmark available
+[335_turbflx_s_turbflx_sec2] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[336_turbs_subroutine] Running...
+----------------------------------------------------------------------
+ Average time:    15.408206 ms
+ Validation: PASSED
+[336_turbs_subroutine] PASSED
+
+----------------------------------------------------------------------
+[337_turbtke_s_turbtke] Running...
+----------------------------------------------------------------------
+ Average time:    15.224624 ms
+ Validation: PASSED
+[337_turbtke_s_turbtke] PASSED
+
+----------------------------------------------------------------------
+[338_turbuvw_subroutine] Running...
+----------------------------------------------------------------------
+ Average time:    44.809914 ms
+ Validation: PASSED
+[338_turbuvw_subroutine] PASSED
+[339_undefice_s_undefice_sec1] SKIP: No benchmark available
+[340_undefice_s_undefice_sec2] SKIP: No benchmark available
+[341_undefice_s_undefice_sec3] SKIP: No benchmark available
+[342_undefsst_s_undefsst_sec1] SKIP: No benchmark available
+[343_undefsst_s_undefsst_sec2] SKIP: No benchmark available
+[344_undefsst_s_undefsst_sec3] SKIP: No benchmark available
+[345_upwmbin_s_upwmbin] SKIP: No benchmark available
+[346_upwnbin_s_upwnbin] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[347_upwnp_s_upwnp] Running...
+----------------------------------------------------------------------
+ Average time:        18.995 ms
+ Validation: PASSED
+[347_upwnp_s_upwnp] PASSED
+[348_upwqcg_s_upwqcg] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[349_upwqp_subroutine] Running...
+----------------------------------------------------------------------
+Validation PASSED for qpf, max relative diff:  0.00000E+00
+Validation PASSED for precip, max relative diff:  0.00000E+00
+Validation PASSED for qpflx, max relative diff:  0.00000E+00
+  Average time:     9.435868 ms
+[349_upwqp_subroutine] PASSED
+[350_uvw2gpv_s_uvw2gpv] SKIP: No benchmark available
+[351_uvw2rdr_s_uvw2rdr] SKIP: No benchmark available
+[352_var8u8s_s_var8u8s] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[353_var8uvw_s_var8uvw] Running...
+----------------------------------------------------------------------
+ Average time:     9.327006 ms
+ Validation: PASSED
+[353_var8uvw_s_var8uvw] PASSED
+[354_var8v8s_s_var8v8s] SKIP: No benchmark available
+[355_var8w8s_s_var8w8s] SKIP: No benchmark available
+[356_var8w8u_s_var8w8u] SKIP: No benchmark available
+[357_var8w8v_s_var8w8v] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[358_vbcp_s_vbcp] Running...
+----------------------------------------------------------------------
+ Average time:     0.336003 ms
+ Validation: PASSED
+[358_vbcp_s_vbcp] PASSED
+[359_vbcqcg_s_vbcqcg] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[360_vbcs_s_vbcs] Running...
+----------------------------------------------------------------------
+ Average time:     0.088406 ms
+ Validation: PASSED
+[360_vbcs_s_vbcs] PASSED
+
+----------------------------------------------------------------------
+[361_vbcu_s_vbcu] Running...
+----------------------------------------------------------------------
+ Average time:     0.885701 ms
+ Validation: PASSED
+[361_vbcu_s_vbcu] PASSED
+
+----------------------------------------------------------------------
+[362_vbcv_s_vbcv] Running...
+----------------------------------------------------------------------
+ Average time:     0.180674 ms
+ Validation: PASSED
+[362_vbcv_s_vbcv] PASSED
+
+----------------------------------------------------------------------
+[363_vbcw_s_vbcw] Running...
+----------------------------------------------------------------------
+ Average time:     0.312519 ms
+ Validation: PASSED
+[363_vbcw_s_vbcw] PASSED
+
+----------------------------------------------------------------------
+[364_vbcwc_s_vbcwc] Running...
+----------------------------------------------------------------------
+ Average time:     0.122380 ms
+ Validation: PASSED
+[364_vbcwc_s_vbcwc] PASSED
+[365_vculs_s_vculs] SKIP: No benchmark available
+[366_vculs0_s_vculs0] SKIP: No benchmark available
+[367_vculuvw_s_vculuvw] SKIP: No benchmark available
+[368_vint11_s_vint11] SKIP: No benchmark available
+[369_vint13_s_vint13] SKIP: No benchmark available
+[370_vint133a_s_vint133a] SKIP: No benchmark available
+[371_vint133g_s_vint133g] SKIP: No benchmark available
+[372_vint133r_s_vint133r] SKIP: No benchmark available
+[373_vint31a_s_vint31a] SKIP: No benchmark available
+[374_vint31g_s_vint31g] SKIP: No benchmark available
+[375_vint31r_s_vint31r] SKIP: No benchmark available
+[376_vint31s_s_vint31s] SKIP: No benchmark available
+[377_vint31uv_s_vint31uv] SKIP: No benchmark available
+[378_vintgpv_s_vintgpv] SKIP: No benchmark available
+[379_vintsnd_s_vintsnd] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[380_vspdmp_s_vspdmp] Running...
+----------------------------------------------------------------------
+[380_vspdmp_s_vspdmp] FAILED
+[381_vspp_s_vspp] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[382_vspqv_s_vspqv] Running...
+----------------------------------------------------------------------
+[382_vspqv_s_vspqv] FAILED
+
+----------------------------------------------------------------------
+[383_vsps_subroutine] Running...
+----------------------------------------------------------------------
+[383_vsps_subroutine] FAILED
+
+----------------------------------------------------------------------
+[384_vsps0_s_vsps0] Running...
+----------------------------------------------------------------------
+[384_vsps0_s_vsps0] FAILED
+
+----------------------------------------------------------------------
+[385_vspuvw_subroutine] Running...
+----------------------------------------------------------------------
+[385_vspuvw_subroutine] FAILED
+[386_xy2ij_s_xy2ij] SKIP: No benchmark available
+
+----------------------------------------------------------------------
+[387_xy2ll_s_xy2ll] Running...
+----------------------------------------------------------------------
+[387_xy2ll_s_xy2ll] FAILED
+
+==============================================================================
+ Summary
+==============================================================================
+ Total directories:    387
+ Passed:               117
+ Failed:               7
+ Skipped (not built):  7
+ No benchmark:         256
+==============================================================================
+
+Passed benchmarks:
+  - 003_adjstni_subroutine
+  - 007_adjstq_subroutine
+  - 009_adjstuv_subroutine_sec1
+  - 010_adjstuv_subroutine_sec2
+  - 012_advbspi_subroutine
+  - 013_advbspt_subroutine
+  - 014_advp_subroutine
+  - 015_advs_subroutine
+  - 016_advuvw_subroutine
+  - 017_aggregat_s_aggregat
+  - 024_baserho_s_baserho
+  - 025_bbcw_s_bbcw
+  - 027_bc4news_s_bc4news
+  - 028_bc8u_s_bc8u
+  - 029_bc8v_s_bc8v
+  - 030_bc8w_s_bc8w
+  - 031_bcbase_s_bcbase
+  - 037_bcten_s_bcten
+  - 038_bcycle_s_bcycle
+  - 039_bcyclex_s_bcyclex
+  - 040_bcycley_s_bcycley
+  - 041_bruntv_s_bruntv
+  - 042_bulksfc_s_bulksfc
+  - 043_buoytke_s_buoytke
+  - 044_buoywb_s_buoywb
+  - 046_buoywsi_s_buoywsi
+  - 050_chkitr_s_chkitr
+  - 054_chkrain_s_chkrain
+  - 055_chksat_s_chksat
+  - 056_cloudcov_s_cloudcov
+  - 061_collect_s_collect
+  - 063_convers_s_convers
+  - 067_copy3d_s_copy3d
+  - 068_copy4d_s_copy4d
+  - 069_coriuv_subroutine
+  - 073_curveuvw_s_curveuvw
+  - 075_defomssq_s_defomssq
+  - 078_depsit_s_depsit
+  - 083_diagni_s_diagni
+  - 085_diagnw_s_diagnw
+  - 087_disptke_s_disptke
+  - 088_distrpg_s_distrpg
+  - 090_diver2d_s_diver2d
+  - 091_diver3d_s_diver3d
+  - 093_diverpih_s_diverpih
+  - 094_diverpiv_s_diverpiv
+  - 095_eddydif_s_eddydif
+  - 097_eddyvis_subroutine
+  - 098_eddyvisj_s_eddyvisj
+  - 102_exbcpt_s_exbcpt
+  - 103_exbcq_s_exbcq
+  - 104_exbcss_s_exbcss
+  - 105_exbcu_subroutine
+  - 106_exbcv_s_exbcv
+  - 113_forcesfc_s_forcesfc
+  - 114_freezing_s_freezing
+  - 115_gaussel_subroutine
+  - 125_getexner_s_getexner
+  - 136_getrich_s_getrich
+  - 140_gettrn_s_gettrn_sec1
+  - 142_getvdens_s_getvdens
+  - 146_getzlow_s_getzlow
+  - 164_heatsfc_s_heatsfc
+  - 179_initund_s_initund
+  - 181_jacobian_s_jacobian
+  - 182_kh8uv_s_kh8uv
+  - 183_lbcs_s_lbcs
+  - 190_lbcw_s_lbcw
+  - 202_melting_s_melting
+  - 206_newblk_subroutine
+  - 212_nuc1stc_s_nuc1stc
+  - 213_nuc1stv_s_nuc1stv
+  - 214_nuc2nd_s_nuc2nd
+  - 230_pgrad_subroutine
+  - 231_pgradiv_s_pgradiv
+  - 236_phy2cnt_s_phy2cnt
+  - 239_phycood_s_phycood_sec3
+  - 240_prodctwg_s_prodctwg
+  - 247_radiat_s_radiat
+  - 249_rbcq_s_rbcq
+  - 251_rbcs_s_rbcs
+  - 252_rbcs0_s_rbcs0
+  - 256_rbcw_s_rbcw
+  - 264_roughitr_s_roughitr
+  - 265_roughnxt_s_roughnxt
+  - 266_rstuvwc_s_rstuvwc
+  - 278_setbase_s_setbase
+  - 280_setblk_s_setblk
+  - 285_setcst3d_s_setcst3d_sec1
+  - 291_setsfc_s_setsfc
+  - 293_sfcflx_subroutine
+  - 294_sheartke_s_sheartke
+  - 295_shedding_s_shedding
+  - 302_smoo4qv_s_smoo4qv
+  - 303_smoo4s_subroutine
+  - 304_smoo4uvw_s_smoo4uvw
+  - 305_sndwave_s_sndwave
+  - 308_steppi_s_steppi
+  - 311_steptund_s_steptund_sec1
+  - 313_stepuv_subroutine
+  - 315_stepwi_subroutine
+  - 318_strsten_s_strsten
+  - 323_termblk_s_termblk
+  - 331_totalqwi_s_totalqwi
+  - 333_trilat_s_trilat
+  - 336_turbs_subroutine
+  - 337_turbtke_s_turbtke
+  - 338_turbuvw_subroutine
+  - 347_upwnp_s_upwnp
+  - 349_upwqp_subroutine
+  - 353_var8uvw_s_var8uvw
+  - 358_vbcp_s_vbcp
+  - 360_vbcs_s_vbcs
+  - 361_vbcu_s_vbcu
+  - 362_vbcv_s_vbcv
+  - 363_vbcw_s_vbcw
+  - 364_vbcwc_s_vbcwc
+
+Failed benchmarks:
+  - 200_mapfct_s_mapfct
+  - 380_vspdmp_s_vspdmp
+  - 382_vspqv_s_vspqv
+  - 383_vsps_subroutine
+  - 384_vsps0_s_vsps0
+  - 385_vspuvw_subroutine
+  - 387_xy2ll_s_xy2ll
+
+==============================================================================
+ Completed at Tue Jan 20 06:44:38 PM JST 2026
+==============================================================================

@@ -1,0 +1,21 @@
+# Variable List for phycood.f90
+# Discovered via default(none) method
+# Source: Src/phycood.f90
+
+## Shared variables (to be dumped)
+ht
+htuiv
+htuivz
+ni
+nj
+nk
+nkm1
+nkm2
+zflat
+zflat0
+zph
+zsfc
+zsth
+
+## Summary
+Total variables: 13

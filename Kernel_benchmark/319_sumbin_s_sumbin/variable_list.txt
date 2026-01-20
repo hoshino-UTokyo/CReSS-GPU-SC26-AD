@@ -1,0 +1,15 @@
+# Variable List for sumbin.f90
+# Discovered via default(none) method
+# Source: Src/sumbin.f90
+
+## Shared variables (to be dumped)
+mbin
+ni
+nj
+nk
+nq
+qall
+rbv
+
+## Summary
+Total variables: 7

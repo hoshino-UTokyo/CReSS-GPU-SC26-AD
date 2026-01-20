@@ -1,0 +1,24 @@
+# Variable List for pblv.f90
+# Discovered via default(none) method
+# Source: Src/pblv.f90
+
+## Shared variables (to be dumped)
+ce
+dtdzv
+dtdzv2
+jcb8w
+kms
+levp1
+levpbl
+ni
+nj
+rbr
+rr
+rst8v
+ss
+tmp1
+tmp2
+tt
+
+## Summary
+Total variables: 16

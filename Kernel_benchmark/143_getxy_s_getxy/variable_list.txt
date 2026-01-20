@@ -1,0 +1,21 @@
+# Variable List for getxy.f90
+# Discovered via default(none) method
+# Source: Src/getxy.f90
+
+## Shared variables (to be dumped)
+dx
+dy
+ies2
+ies23
+imax
+imin
+jes2
+jes23
+jmax
+jmin
+x
+xo
+y
+
+## Summary
+Total variables: 13

@@ -1,0 +1,26 @@
+# Variable List for diverpih.f90
+# Discovered via default(none) method
+# Source: Src/diverpih.f90
+
+## Shared variables (to be dumped)
+dziv
+j31
+j32
+mf
+mfcopt
+mpopt
+ni
+nj
+nk
+nkm1
+pdiv
+rcsq
+tmp1
+tmp2
+tmp3
+trnopt
+u
+v
+
+## Summary
+Total variables: 18

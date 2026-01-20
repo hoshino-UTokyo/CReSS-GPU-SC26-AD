@@ -1,0 +1,15 @@
+# Variable List for undefsst.f90
+# Discovered via default(none) method
+# Source: Src/undefsst.f90
+
+## Shared variables (to be dumped)
+nid
+nidm1
+njd
+njdm1
+sstdat
+t268v
+und
+
+## Summary
+Total variables: 7

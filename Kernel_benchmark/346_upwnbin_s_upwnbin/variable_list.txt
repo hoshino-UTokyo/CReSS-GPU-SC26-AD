@@ -1,0 +1,20 @@
+# Variable List for upwnbin.f90
+# Discovered via default(none) method
+# Source: Src/upwnbin.f90
+
+## Shared variables (to be dumped)
+dzvdt2
+nbflx
+nbin
+ncp
+ni
+nj
+nk
+nkm1
+nkm2
+rbr
+rst
+ubn
+
+## Summary
+Total variables: 12

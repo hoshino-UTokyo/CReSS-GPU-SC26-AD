@@ -1,0 +1,49 @@
+# Variable List for defomten.f90
+# Discovered via default(none) method
+# Source: Src/defomten.f90
+
+## Shared variables (to be dumped)
+dxiv
+dxv25
+dyiv
+dyv25
+dziv
+dzv125
+dzv25
+ieast
+iwest
+j31
+j32
+jcb
+jcb8u
+jcb8v
+jcb8w
+jnorth
+jsouth
+mf
+mf8u
+mf8v
+mfcopt
+mpopt
+ni
+nj
+nk
+s11
+s12
+s13
+s22
+s23
+s31
+s32
+s33
+tmp1
+tmp2
+tmp3
+tmp4
+trnopt
+u
+v
+w
+
+## Summary
+Total variables: 41

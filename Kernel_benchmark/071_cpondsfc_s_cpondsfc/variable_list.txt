@@ -1,0 +1,17 @@
+# Variable List for cpondsfc.f90
+# Discovered via default(none) method
+# Source: Src/cpondsfc.f90
+
+## Shared variables (to be dumped)
+iend
+istr
+jend
+jstr
+land
+lnduse_lnd
+numctg_lnd
+sfcvar
+sfcvar_lnd
+
+## Summary
+Total variables: 9

@@ -1,0 +1,40 @@
+# Variable List for turbtke (s_turbtke)
+# Discovered via default(none) method
+# Source: Src/turbtke.f90
+
+## OpenMP Section 1 (lines 279-656)
+
+### Shared variables (to be dumped)
+ni       - Grid dimension in x direction (integer)
+nj       - Grid dimension in y direction (integer)
+nk       - Grid dimension in z direction (integer)
+trnopt   - Option for terrain height setting (integer, derived from fptrnopt)
+mpopt    - Option for map projection (integer, derived from fpmpopt)
+mfcopt   - Option for map scale factor (integer, derived from fpmfcopt)
+dxiv2    - 2.0 x inverse of dx (real, computed as 2.e0*dxiv)
+dyiv2    - 2.0 x inverse of dy (real, computed as 2.e0*dyiv)
+dziv2    - 2.0 x inverse of dz (real, computed as 2.e0*dziv)
+j31      - z-x components of Jacobian, real(0:ni+1,0:nj+1,1:nk), intent(in)
+j32      - z-y components of Jacobian, real(0:ni+1,0:nj+1,1:nk), intent(in)
+jcb8u    - Jacobian at u points, real(0:ni+1,0:nj+1,1:nk), intent(in)
+jcb8v    - Jacobian at v points, real(0:ni+1,0:nj+1,1:nk), intent(in)
+mf       - Map scale factors, real(0:ni+1,0:nj+1), intent(in)
+rmf      - Related parameters of map scale factors, real(0:ni+1,0:nj+1,1:4), intent(in)
+rmf8u    - Related parameters of map scale factors at u points, real(0:ni+1,0:nj+1,1:3), intent(in)
+rmf8v    - Related parameters of map scale factors at v points, real(0:ni+1,0:nj+1,1:3), intent(in)
+h1       - x components of turbulent fluxes, real(0:ni+1,0:nj+1,1:nk), intent(in)
+h2       - y components of turbulent fluxes, real(0:ni+1,0:nj+1,1:nk), intent(in)
+h3       - z components of turbulent fluxes, real(0:ni+1,0:nj+1,1:nk), intent(in)
+tkefrc   - Forcing term in TKE equation, real(0:ni+1,0:nj+1,1:nk), intent(inout)
+tmp1     - Temporary array, real(0:ni+1,0:nj+1,1:nk), intent(inout)
+tmp2     - Temporary array, real(0:ni+1,0:nj+1,1:nk), intent(inout)
+tmp3     - Temporary array, real(0:ni+1,0:nj+1,1:nk), intent(inout)
+
+### Private variables
+k        - Loop index in z direction (outer loop)
+i, j     - Loop indices in x,y direction (inner loops, in !$omp do)
+
+### Summary
+Input arrays:  j31, j32, jcb8u, jcb8v, mf, rmf, rmf8u, rmf8v, h1, h2, h3
+InOut arrays:  tkefrc, tmp1, tmp2, tmp3
+Parameters:    ni, nj, nk, trnopt, mpopt, mfcopt, dxiv2, dyiv2, dziv2

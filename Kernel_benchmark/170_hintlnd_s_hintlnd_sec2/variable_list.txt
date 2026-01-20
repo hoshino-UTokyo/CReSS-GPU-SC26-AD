@@ -1,0 +1,16 @@
+# Variable List for hintlnd.f90
+# Discovered via default(none) method
+# Source: Src/hintlnd.f90
+
+## Shared variables (to be dumped)
+land
+landat
+mpopt
+ni
+nid
+nj
+ri
+rj
+
+## Summary
+Total variables: 8

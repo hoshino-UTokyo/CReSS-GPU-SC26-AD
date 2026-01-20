@@ -1,0 +1,16 @@
+# Variable List for vbcwc.f90
+# Discovered via default(none) method
+# Source: Src/vbcwc.f90
+
+## Shared variables (to be dumped)
+bbc
+ni
+nj
+nk
+nkm1
+nkm2
+tbc
+wc
+
+## Summary
+Total variables: 8

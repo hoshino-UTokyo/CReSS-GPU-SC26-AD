@@ -1,0 +1,15 @@
+# Variable List for bcycley.f90
+# Discovered via default(none) method
+# Source: Src/bcycley.f90
+
+## Shared variables (to be dumped)
+jnrcv
+jnsnd
+jsrcv
+jssnd
+kmax
+nbc
+ni
+njsub
+sbc
+var

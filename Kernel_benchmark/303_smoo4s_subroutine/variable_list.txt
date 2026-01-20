@@ -1,0 +1,28 @@
+# Variable List for smoo4s.f90
+# Discovered via default(none) method
+# Source: Src/smoo4s.f90
+
+## Shared variables (to be dumped)
+ieast
+iwest
+jnorth
+jsouth
+ni
+nj
+nk
+nkm1
+nkm2
+rbr
+rbrs
+rbrs2
+s
+sfrc
+smhcoe
+smtopt
+smvcoe
+tmp1
+tmp2
+tmp3
+
+## Summary
+Total variables: 20

@@ -1,0 +1,25 @@
+# Variable List for diagnsg.f90
+# Discovered via default(none) method
+# Source: Src/diagnsg.f90
+
+## Shared variables (to be dumped)
+cdiaqg
+cdiaqh
+cdiaqs
+haiopt
+mg0iv2
+mgmiv2
+mh0iv2
+mhmiv2
+ms0iv2
+msmiv2
+ni
+nidia
+nj
+nk
+qice
+rbr
+rbv
+
+## Summary
+Total variables: 17

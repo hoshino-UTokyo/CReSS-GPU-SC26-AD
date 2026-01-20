@@ -1,0 +1,42 @@
+# Variable List for lspuvw.f90
+# Discovered via default(none) method
+# Source: Src/lspuvw.f90
+
+## Shared variables (to be dumped)
+gpvvar
+gtinc
+lsnews
+lsnorm
+lspopt
+lspsmt
+lspvar
+ni
+nj
+nk
+rbc8uv
+rbcx
+rbcxy
+rbcy
+rst8u
+rst8v
+rst8w
+tmp1
+ubr
+ufrc
+ugpv
+up
+utd
+vbr
+vfrc
+vgpv
+vp
+vtd
+wdnews
+wdnorm
+wfrc
+wgpv
+wp
+wtd
+
+## Summary
+Total variables: 34

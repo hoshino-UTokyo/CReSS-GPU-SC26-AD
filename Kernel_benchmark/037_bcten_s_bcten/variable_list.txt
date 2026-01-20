@@ -1,0 +1,12 @@
+# Variable List for bcten.f90
+# Discovered via default(none) method
+# Source: Src/bcten.f90
+
+## Shared variables (to be dumped)
+bbc
+ni
+nj
+nk
+nkm2
+tbc
+ten

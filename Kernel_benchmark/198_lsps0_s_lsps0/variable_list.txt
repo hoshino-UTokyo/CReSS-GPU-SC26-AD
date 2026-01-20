@@ -1,0 +1,19 @@
+# Variable List for lsps0.f90
+# Discovered via default(none) method
+# Source: Src/lsps0.f90
+
+## Shared variables (to be dumped)
+lsnews
+lspopt
+lspsmt
+ni
+nj
+nk
+rbcxy
+rst
+sfrc
+sp
+tmp1
+
+## Summary
+Total variables: 11

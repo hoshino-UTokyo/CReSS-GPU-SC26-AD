@@ -1,0 +1,26 @@
+# Variable List for cnt2phy.f90
+# Discovered via default(none) method
+# Source: Src/cnt2phy.f90
+
+## Shared variables (to be dumped)
+j31
+j31u2
+j32
+j32v2
+jcb8w
+mf
+mf25
+mfcopt
+mpopt
+ni
+nj
+nk
+sthopt
+trnopt
+u
+v
+w
+wc
+
+## Summary
+Total variables: 18

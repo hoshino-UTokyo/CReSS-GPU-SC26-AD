@@ -1,0 +1,14 @@
+# Variable List for gsmoos.f90
+# Discovered via default(none) method
+# Source: Src/gsmoos.f90
+
+## Shared variables (to be dumped)
+dfs
+dtcoe
+ni
+nj
+nk
+sgpv
+
+## Summary
+Total variables: 6

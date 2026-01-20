@@ -1,0 +1,29 @@
+# Variable List for nuc1stc.f90
+# Discovered via default(none) method
+# Source: Src/nuc1stc.f90
+
+## Shared variables (to be dumped)
+cc45
+cdar
+cknd
+diaqc
+dtb
+kp
+kpa25
+kpa50
+lv
+mu
+ncc
+ni
+nj
+nk
+nuci
+p
+qc
+rwdt2
+t
+tcel
+thresq
+
+## Summary
+Total variables: 21

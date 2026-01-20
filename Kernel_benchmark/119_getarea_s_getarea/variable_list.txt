@@ -1,0 +1,35 @@
+# Variable List for getarea.f90
+# Discovered via default(none) method
+# Source: Src/getarea.f90
+
+## Shared variables (to be dumped)
+dxdy
+dxdz
+dydz
+ebc
+ebe
+ebn
+ebs
+ebw
+iend
+istr
+isub
+jcb8u
+jcb8v
+jend
+jstr
+jsub
+mfcopt
+mpopt
+ni
+nisub
+nj
+njsub
+nk
+rmf
+rmf8u
+rmf8v
+wbc
+
+## Summary
+Total variables: 27

@@ -1,0 +1,190 @@
+!***********************************************************************
+! Kernel Benchmark: vbcv (s_vbcv)
+!***********************************************************************
+!
+! Source: Src/vbcv.f90
+! Description: Sets vertical boundary conditions for y-velocity component
+!              by copying values from adjacent levels at bottom and top.
+!
+!***********************************************************************
+program kernel_benchmark_vbcv
+  use omp_lib
+  implicit none
+
+  integer :: ni, nj, nk
+
+  real, allocatable :: vf(:,:,:)
+  real, allocatable :: vf_ref(:,:,:)
+  real, allocatable :: vf_input(:,:,:)
+
+  integer :: num_iterations, warmup_iterations
+  character(len=256) :: data_dir
+
+  real(8) :: t_start, t_end, t_total, t_avg
+  real(8), allocatable :: times(:)
+
+  real :: max_error, rel_error, tolerance
+  integer :: error_count
+  logical :: validation_passed
+  integer :: iter, i, j, k
+
+  call read_config(data_dir, num_iterations, warmup_iterations, tolerance)
+  call read_parameters(trim(data_dir)//'/params.txt', ni, nj, nk)
+
+  write(*,'(A)') '=================================================='
+  write(*,'(A)') ' Kernel Benchmark: vbcv'
+  write(*,'(A)') '=================================================='
+  write(*,'(A,I6,A,I6,A,I6)') ' Grid size: ni=', ni, ', nj=', nj, ', nk=', nk
+  write(*,'(A,I6)') ' OpenMP threads: ', omp_get_max_threads()
+  write(*,'(A)') '=================================================='
+
+  allocate(vf(0:ni+1, 0:nj+1, 1:nk))
+  allocate(vf_ref(0:ni+1, 0:nj+1, 1:nk))
+  allocate(vf_input(0:ni+1, 0:nj+1, 1:nk))
+  allocate(times(num_iterations))
+
+  call read_array_3d(trim(data_dir)//'/vf_in.bin', vf_input, 0, ni+1, 0, nj+1, 1, nk)
+  call read_array_3d(trim(data_dir)//'/vf_ref.bin', vf_ref, 0, ni+1, 0, nj+1, 1, nk)
+
+  ! Warmup
+  do iter = 1, warmup_iterations
+    vf = vf_input
+    call kernel_vbcv(ni, nj, nk, vf)
+  end do
+
+  ! Benchmark
+  t_total = 0.0d0
+  do iter = 1, num_iterations
+    vf = vf_input
+    t_start = omp_get_wtime()
+    call kernel_vbcv(ni, nj, nk, vf)
+    t_end = omp_get_wtime()
+    times(iter) = t_end - t_start
+    t_total = t_total + times(iter)
+  end do
+  t_avg = t_total / dble(num_iterations)
+
+  ! Validate
+  max_error = 0.0
+  error_count = 0
+  do k = 1, nk
+    do j = 1, nj
+      do i = 1, ni-1
+        rel_error = abs(vf(i,j,k) - vf_ref(i,j,k))
+        if (abs(vf_ref(i,j,k)) > 1.0e-20) rel_error = rel_error / abs(vf_ref(i,j,k))
+        if (rel_error > max_error) max_error = rel_error
+        if (rel_error > tolerance) error_count = error_count + 1
+      end do
+    end do
+  end do
+  validation_passed = (error_count == 0)
+
+  write(*,'(A)') '=================================================='
+  write(*,'(A,F12.6,A)') ' Average time: ', t_avg * 1000.0d0, ' ms'
+  write(*,'(A,ES12.4)') ' Max error:    ', max_error
+  if (validation_passed) then
+    write(*,'(A)') ' Validation: PASSED'
+  else
+    write(*,'(A)') ' Validation: FAILED'
+  end if
+  write(*,'(A)') '=================================================='
+
+  deallocate(vf, vf_ref, vf_input, times)
+  if (.not. validation_passed) stop 1
+
+contains
+
+  subroutine kernel_vbcv(ni, nj, nk, vf)
+    integer, intent(in) :: ni, nj, nk
+    real, intent(inout) :: vf(0:ni+1, 0:nj+1, 1:nk)
+    integer :: i, j, nkm1, nkm2
+
+    nkm1 = nk - 1
+    nkm2 = nk - 2
+
+    !$omp parallel default(shared)
+    !$omp do schedule(runtime) private(i,j)
+    do j = 1, nj
+      do i = 1, ni-1
+        vf(i,j,1) = vf(i,j,2)
+      end do
+    end do
+    !$omp end do
+
+    !$omp do schedule(runtime) private(i,j)
+    do j = 1, nj
+      do i = 1, ni-1
+        vf(i,j,nkm1) = vf(i,j,nkm2)
+      end do
+    end do
+    !$omp end do
+    !$omp end parallel
+
+  end subroutine kernel_vbcv
+
+  subroutine read_config(data_dir, num_iter, warmup_iter, tol)
+    character(len=*), intent(out) :: data_dir
+    integer, intent(out) :: num_iter, warmup_iter
+    real, intent(out) :: tol
+    integer :: ios
+    logical :: exists
+
+    data_dir = './data'
+    num_iter = 10
+    warmup_iter = 2
+    tol = 1.0e-5
+
+    inquire(file='benchmark.conf', exist=exists)
+    if (exists) then
+      open(unit=10, file='benchmark.conf', status='old', iostat=ios)
+      if (ios == 0) then
+        read(10, '(A)', iostat=ios) data_dir
+        read(10, *, iostat=ios) num_iter
+        read(10, *, iostat=ios) warmup_iter
+        read(10, *, iostat=ios) tol
+        close(10)
+      end if
+    end if
+  end subroutine read_config
+
+  subroutine read_parameters(filename, ni, nj, nk)
+    character(len=*), intent(in) :: filename
+    integer, intent(out) :: ni, nj, nk
+    character(len=256) :: line, key, val
+    integer :: ios, eq_pos
+
+    open(unit=10, file=filename, status='old', iostat=ios)
+    if (ios /= 0) stop 'Cannot open params file'
+    do while (.true.)
+      read(10, '(A)', iostat=ios) line
+      if (ios /= 0) exit
+      eq_pos = index(line, '=')
+      if (eq_pos > 0) then
+        key = adjustl(line(1:eq_pos-1))
+        val = adjustl(line(eq_pos+1:))
+        select case (trim(key))
+          case ('ni')
+            read(val, *) ni
+          case ('nj')
+            read(val, *) nj
+          case ('nk')
+            read(val, *) nk
+        end select
+      end if
+    end do
+    close(10)
+  end subroutine read_parameters
+
+  subroutine read_array_3d(filename, arr, i1, i2, j1, j2, k1, k2)
+    character(len=*), intent(in) :: filename
+    integer, intent(in) :: i1, i2, j1, j2, k1, k2
+    real, intent(out) :: arr(i1:i2, j1:j2, k1:k2)
+    integer :: ios
+
+    open(unit=10, file=filename, status='old', access='stream', form='unformatted', iostat=ios)
+    if (ios /= 0) stop 'Cannot open data file'
+    read(10) arr
+    close(10)
+  end subroutine read_array_3d
+
+end program kernel_benchmark_vbcv

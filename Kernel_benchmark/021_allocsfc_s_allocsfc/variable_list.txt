@@ -1,0 +1,5 @@
+# Variable List for allocsfc.f90
+# Discovered via default(none) method
+# Source: Src/allocsfc.f90
+
+## Shared variables (to be dumped)

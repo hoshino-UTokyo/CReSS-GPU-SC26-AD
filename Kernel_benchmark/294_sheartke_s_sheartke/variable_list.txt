@@ -1,0 +1,23 @@
+# Variable List for sheartke (s_sheartke)
+# Discovered via default(none) method
+# Source: Src/sheartke.f90
+
+## OpenMP Section 1 (lines 170-186)
+
+### Shared variables (to be dumped)
+ni      - Grid dimension in x direction (integer)
+nj      - Grid dimension in y direction (integer)
+nk      - Grid dimension in z direction (integer)
+jcb     - Jacobian array, real(0:ni+1,0:nj+1,1:nk), intent(in)
+ssq     - Magnitude of deformation squared, real(0:ni+1,0:nj+1,1:nk), intent(in)
+rkv     - rbr x vertical eddy viscosity, real(0:ni+1,0:nj+1,1:nk), intent(in)
+tkefrc  - Forcing term in TKE equation, real(0:ni+1,0:nj+1,1:nk), intent(inout)
+
+### Private variables
+k       - Loop index in z direction (outer loop)
+i, j    - Loop indices in x,y direction (inner loops, in !$omp do)
+
+### Summary
+Input arrays:  jcb, ssq, rkv
+InOut arrays:  tkefrc
+Parameters:    ni, nj, nk

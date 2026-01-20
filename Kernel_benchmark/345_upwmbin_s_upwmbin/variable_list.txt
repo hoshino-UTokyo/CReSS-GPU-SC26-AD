@@ -1,0 +1,27 @@
+# Variable List for upwmbin.f90
+# Discovered via default(none) method
+# Source: Src/upwmbin.f90
+
+## Shared variables (to be dumped)
+advopt
+dtp
+dtp05
+dzvdt2
+mbflx
+mbin
+ncp
+ni
+nj
+nk
+nkm1
+nkm2
+nq
+precip
+rbr
+rbv
+rst
+rwv500
+ubm
+
+## Summary
+Total variables: 19

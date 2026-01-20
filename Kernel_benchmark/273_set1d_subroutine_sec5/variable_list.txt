@@ -1,0 +1,28 @@
+# Variable List for set1d.f90
+# Discovered via default(none) method
+# Source: Src/set1d.f90
+
+## Shared variables (to be dumped)
+cpdvrd
+es001
+gdvcp2
+gdvrd2
+lpmin
+ltmp1
+ltmp2
+nlev
+nlev25
+p0iv
+p1d
+pimin
+pt1d
+qv1d
+rddvcp
+rddvg
+sndtyp
+t1d
+thresq
+z1d
+
+## Summary
+Total variables: 20

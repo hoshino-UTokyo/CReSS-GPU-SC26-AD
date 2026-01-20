@@ -1,0 +1,38 @@
+# Variable List for rbcw.f90
+# Discovered via default(none) method
+# Source: Src/rbcw.f90
+
+## Shared variables (to be dumped)
+dmpdt
+ebc
+ebe
+ebn
+ebs
+ebw
+gpvvar
+isub
+jsub
+lspopt
+nbc
+nggopt
+ni
+nim1
+nim2
+nisub
+nj
+njm1
+njm2
+njsub
+nk
+sbc
+tpdt
+vspopt
+w
+wbc
+wcpx
+wcpy
+wgpv
+wtd
+
+## Summary
+Total variables: 30

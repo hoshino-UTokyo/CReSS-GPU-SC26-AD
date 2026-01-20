@@ -1,0 +1,32 @@
+# Variable List for setgpv.f90
+# Discovered via default(none) method
+# Source: Src/setgpv.f90
+
+## Shared variables (to be dumped)
+cphopt
+gpviv
+gpvvar
+haiopt
+ird
+ni
+nj
+nk
+ppgpv
+pptd
+ptpgpv
+ptptd
+qigpv
+qitd
+qvgpv
+qvtd
+qwgpv
+qwtd
+ugpv
+utd
+vgpv
+vtd
+wgpv
+wtd
+
+## Summary
+Total variables: 24

@@ -1,0 +1,13 @@
+# Variable List for move2d.f90
+# Discovered via default(none) method
+# Source: Src/move2d.f90
+
+## Shared variables (to be dumped)
+nlev
+u1d
+umove
+v1d
+vmove
+
+## Summary
+Total variables: 5

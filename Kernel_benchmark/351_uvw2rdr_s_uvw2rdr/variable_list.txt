@@ -1,0 +1,25 @@
+# Variable List for uvw2rdr.f90
+# Discovered via default(none) method
+# Source: Src/uvw2rdr.f90
+
+## Shared variables (to be dumped)
+ngrdmp
+ngrvar
+ni
+nj
+nk
+rst8u
+rst8v
+rst8w
+ufrc
+up
+urdr
+vfrc
+vp
+vrdr
+wfrc
+wp
+wrdr
+
+## Summary
+Total variables: 17

@@ -1,0 +1,42 @@
+# Variable List for steptund.f90
+# Discovered via default(none) method
+# Source: Src/steptund.f90
+
+## Shared variables (to be dumped)
+cap
+ctg1
+ctgm1
+cts1
+ctsm1
+hs
+land
+le
+ni
+nj
+nund
+nundm1
+nuu
+rkg
+rks
+rld
+rlu
+rr
+rsd
+s1g
+s1s
+sfcopt
+skg
+sks
+ss
+sst
+sstd
+stinc
+t
+tkg
+tks
+tt
+tundf
+tundp
+
+## Summary
+Total variables: 34

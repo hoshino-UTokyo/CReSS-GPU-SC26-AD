@@ -1,0 +1,27 @@
+# Variable List for remapbw.f90
+# Discovered via default(none) method
+# Source: Src/remapbw.f90
+
+## Shared variables (to be dumped)
+bmw
+bmws
+bmwsl
+bmwsr
+dbmw
+k
+mwbin
+mws
+ni
+nj
+nqw
+nqwp1
+nqws
+nstr
+nw0
+nwbin
+nws
+nwtd
+rbmw
+
+## Summary
+Total variables: 19

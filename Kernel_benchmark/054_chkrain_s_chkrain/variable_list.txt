@@ -1,0 +1,13 @@
+# Variable List for chkrain.f90
+# Discovered via default(none) method
+# Source: Src/chkrain.f90
+
+## Shared variables (to be dumped)
+cphopt
+fall
+fmois
+haiopt
+ni
+nj
+price
+prwtr

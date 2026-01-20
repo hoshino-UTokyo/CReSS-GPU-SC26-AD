@@ -1,0 +1,19 @@
+# Variable List for sfcflx.f90
+# Discovered via default(none) method
+# Source: Src/sfcflx.f90
+
+## Shared variables (to be dumped)
+ce
+ch
+cm
+cq
+ct
+land
+ni
+nj
+rbr
+rddwkp
+va
+
+## Summary
+Total variables: 11

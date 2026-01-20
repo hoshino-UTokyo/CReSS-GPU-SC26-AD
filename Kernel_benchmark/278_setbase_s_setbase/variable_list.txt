@@ -1,0 +1,21 @@
+# Variable List for setbase.f90
+# Discovered via default(none) method
+# Source: Src/setbase.f90
+
+## Shared variables (to be dumped)
+ni
+nj
+nk
+p0iv
+pbr
+pibr
+ptbr
+ptvbr
+qvbr
+rbr
+rddvcp
+zph
+zph8s
+
+## Summary
+Total variables: 13

@@ -1,0 +1,69 @@
+# Variable List for collect.f90
+# Discovered via default(none) method
+# Source: Src/collect.f90
+
+## Shared variables (to be dumped)
+bug2
+bur2
+bus2
+cclcg
+cclcr
+cclcs
+cclig
+cclis
+cclrg
+cclri
+cclrs
+cclrsn
+cclsg
+cclsg3
+cclsgn
+cclsr
+clcg
+clcr
+clcs
+clig
+clir
+clis
+clrg
+clri
+clrin
+clrs
+clrsn
+clsg
+clsgn
+clsr
+clsrn
+cphopt
+diaqc
+diaqg
+diaqr
+diaqs
+ecs
+esgiv
+mi
+mu
+ncg
+ncr
+ncs
+ni
+nj
+nk
+qc
+qg
+qi
+qr
+qs
+rbr
+rwdv9
+t
+thresq
+ugn
+ugq
+urn
+urq
+usn
+usq
+
+## Summary
+Total variables: 61

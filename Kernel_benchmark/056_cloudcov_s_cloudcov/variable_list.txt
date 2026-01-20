@@ -1,0 +1,37 @@
+# Variable List for cloudcov.f90
+# Discovered via default(none) method
+# Source: Src/cloudcov.f90
+
+## Shared variables (to be dumped)
+cdh
+cdl
+cdm
+cphopt
+dz
+es0iv2
+fmois
+fproc
+ni
+nj
+nk
+p
+qall
+qsum
+qsumh
+qsuml
+qsumm
+qv
+rcdh
+rcdl
+rcdm
+rh24
+rh32
+rh48
+rh72
+rst
+t
+zph
+zph8s
+
+## Summary
+Total variables: 29

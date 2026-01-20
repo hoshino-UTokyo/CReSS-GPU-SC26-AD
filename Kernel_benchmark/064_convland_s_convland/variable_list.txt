@@ -1,0 +1,13 @@
+# Variable List for convland.f90
+# Discovered via default(none) method
+# Source: Src/convland.f90
+
+## Shared variables (to be dumped)
+fproc
+land
+ni
+nj
+rland
+
+## Summary
+Total variables: 5

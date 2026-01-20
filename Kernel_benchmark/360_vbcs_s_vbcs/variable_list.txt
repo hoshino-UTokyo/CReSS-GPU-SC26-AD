@@ -1,0 +1,13 @@
+# Variable List for vbcs.f90
+# Discovered via default(none) method
+# Source: Src/vbcs.f90
+
+## Shared variables (to be dumped)
+ni
+nj
+nkm1
+nkm2
+sf
+
+## Summary
+Total variables: 5

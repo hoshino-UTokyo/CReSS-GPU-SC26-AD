@@ -1,0 +1,21 @@
+# Variable List for distrqp.f90
+# Discovered via default(none) method
+# Source: Src/distrqp.f90
+
+## Shared variables (to be dumped)
+cphopt
+datype_rdr
+haiopt
+ni
+nj
+nk
+qice
+qirdr
+qprdr
+qwrdr
+qwtr
+rbr
+thresq
+
+## Summary
+Total variables: 13

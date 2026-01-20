@@ -1,0 +1,27 @@
+# Variable List for smoo2uvw.f90
+# Discovered via default(none) method
+# Source: Src/smoo2uvw.f90
+
+## Shared variables (to be dumped)
+jcb8w
+ni
+nj
+nk
+rbr
+rst8w
+smhc5
+smhcoe
+smvc5
+smvcoe
+tmp1
+u
+ubr
+ufrc
+v
+vbr
+vfrc
+w
+wfrc
+
+## Summary
+Total variables: 19

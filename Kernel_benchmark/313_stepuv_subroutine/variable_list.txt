@@ -1,0 +1,20 @@
+# Variable List for stepuv.f90
+# Discovered via default(none) method
+# Source: Src/stepuv.f90
+
+## Shared variables (to be dumped)
+dts
+ni
+nj
+nk
+rst8u
+rst8v
+uf
+ufrc
+usml
+vf
+vfrc
+vsml
+
+## Summary
+Total variables: 12

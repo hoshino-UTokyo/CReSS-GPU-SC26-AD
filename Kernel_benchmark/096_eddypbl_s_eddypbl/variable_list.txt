@@ -1,0 +1,21 @@
+# Variable List for eddypbl.f90
+# Discovered via default(none) method
+# Source: Src/eddypbl.f90
+
+## Shared variables (to be dumped)
+dzv225
+gdziv2
+jcb8w
+khs
+kms
+levpbl
+ni
+nj
+ptv
+u
+v
+vk
+zph
+
+## Summary
+Total variables: 13

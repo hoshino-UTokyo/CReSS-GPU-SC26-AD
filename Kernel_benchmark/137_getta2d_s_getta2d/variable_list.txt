@@ -1,0 +1,14 @@
+# Variable List for getta2d.f90
+# Discovered via default(none) method
+# Source: Src/getta2d.f90
+
+## Shared variables (to be dumped)
+ni
+nj
+pi
+ptbr
+ptp
+t
+
+## Summary
+Total variables: 6

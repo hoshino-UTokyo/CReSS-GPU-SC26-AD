@@ -1,0 +1,20 @@
+# Variable List for buoywsi.f90
+# Discovered via default(none) method
+# Source: Src/buoywsi.f90
+
+## Shared variables (to be dumped)
+dtw
+fp
+fw
+g05n
+gwmopt
+ni
+nj
+nk
+pp
+ptbr
+ptp
+rbr
+rcsq
+rst
+wb8s

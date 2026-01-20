@@ -1,0 +1,15 @@
+# Variable List for adjstbw.f90
+# Discovered via default(none) method
+# Source: Src/adjstbw.f90
+
+## Shared variables (to be dumped)
+bmw
+mwbin
+ni
+nj
+nk
+nqw
+nwbin
+
+## Summary
+Total variables: 7

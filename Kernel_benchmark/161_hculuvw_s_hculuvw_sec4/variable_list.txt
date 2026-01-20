@@ -1,0 +1,37 @@
+# Variable List for hculuvw.f90
+# Discovered via default(none) method
+# Source: Src/hculuvw.f90
+
+## Shared variables (to be dumped)
+advd
+advopt
+cdxt1
+cdxt2
+cdxt3
+cdyt1
+cdyt2
+cdyt3
+dxt16
+dxt22
+dxt36e
+dxt36w
+dyt16
+dyt22
+dyt36n
+dyt36s
+mf8u
+mf8v
+mfcopt
+mpopt
+ni
+nj
+nk
+uf
+up
+vf
+vp
+wf
+wp
+
+## Summary
+Total variables: 29

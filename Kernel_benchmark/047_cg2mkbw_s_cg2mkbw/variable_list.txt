@@ -1,0 +1,13 @@
+# Variable List for cg2mkbw.f90
+# Discovered via default(none) method
+# Source: Src/cg2mkbw.f90
+
+## Shared variables (to be dumped)
+mwbin
+ni
+nj
+nk
+nqw
+nwbin
+prr
+rbv

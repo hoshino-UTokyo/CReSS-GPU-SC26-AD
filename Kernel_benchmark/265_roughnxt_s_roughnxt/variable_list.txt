@@ -1,0 +1,15 @@
+# Variable List for roughnxt.f90
+# Discovered via default(none) method
+# Source: Src/roughnxt.f90
+
+## Shared variables (to be dumped)
+cm
+land
+ni
+nj
+va
+z0h
+z0m
+
+## Summary
+Total variables: 7
