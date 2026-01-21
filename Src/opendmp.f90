@@ -340,7 +340,7 @@ if (dump_call_count_opendmp == DUMP_TARGET_opendmp .and. .not. dump_done_opendmp
   call dump_scalar_i8('ctime', ctime)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
-  ! FIXME: nk is array - call dump_scalar_i('nk', nk)
+  call dump_scalar_i('nk', nk)
   ! FIXME: fdmp is array - call dump_scalar_r('fdmp', fdmp)
   ! FIXME: z1d is an array, not scalar
   ! ! FIXME: z1d is array - call dump_scalar_i('z1d', z1d)

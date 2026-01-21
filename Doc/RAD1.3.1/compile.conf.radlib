@@ -1,0 +1,76 @@
+################################################################################
+#                                                                              #
+#     User configuration file, compile.conf                                    #
+#                                                                              #
+#     You can set the compile options.                                         #
+#                                                                              #
+#     Author      : Sakakibara Atsushi                                         #
+#     Date        : 1999/01/20                                                 #
+#     Modification: 1999/01/25, 1999/11/19, 2002/06/17                         #
+#                                                                              #
+#     Author      : Mayumi Yoshioka                                            #
+#     Modification: 2009/05/15 (for ES2),                                      #
+#                   2015/03/16 (for rad)                                       #
+#                                                                              #
+#     Author      : Masaya Kato                                                #
+#     Modification: 2016/04/25                                                 #
+#                                                                              #
+# ---------------------------------------------------------------------------- #
+#                                                                              #
+#     < Notice >                                                               #
+#                                                                              #
+#     RRTM library archive file in compiling of solver, to skip re-build       #
+#     RRTM object/module files, which take too much long time.                 #
+#                                                                              #
+#     < How to compile >                                                       #
+#                                                                              #
+#     $ ./compile_radlib.csh radlib compile.conf (compile only rad-scheme)     #
+#     $ ./compile_radlib.csh solver compile.conf (compile solver.exe)          #
+#                                                                              #
+#       or                                                                     #
+#                                                                              #
+#     $ ./compile_radlib.csh solver compile.conf                               #
+#                       (compile rad-scheme first and solver.exe secondly)     #
+#                                                                              #
+#     < How to remove *.exe, *.o, *.mod, rad-scheme_library(lib*.a) >          #
+#                                                                              #
+#     $ ./compile_radlib.csh clean                                             #
+#                                                                              #
+#     < How to remove *.exe, *.o, *.mod >                                      #
+#                                                                              #
+#     $ ./compile_radlib.csh crscln                                            #
+#                                                                              #
+#     < How to remove rad-scheme_files(*.exe,*.o,*.mod,lib*.a) >               #
+#                                                                              #
+#     $ ./compile_radlib.csh radcln                                            #
+#                                                                              #
+################################################################################
+
+LOCALLIBS = -L"./" -lrrtmg_kgkgb   # for rad-scheme
+
+LDFLAGS  = 
+FFLAGS   = -gmalloc ${DEBUGS} -Wf"-msg b" -Wf"-msg d" -Wf"-msg o" -Wf"-pvctl fullmsg" ${ADDFLAGS}
+DEBUGS   = -R5
+ADDFLAGS = -Wf"-O extendreorder" -Wf"-pvctl cond_mem_opt" ${ESINLINE}
+
+#------------------------------------------------------------------------------#
+#                                                                              #
+# In the following section,                                                    #
+#     if your machine's fortran compiler command is neither mpif90 nor f90,    #
+#     you have to set the following macro to adjust.                           #
+#                                                                              #
+#------------------------------------------------------------------------------#
+FC      =	/SX/usr/bin/sxmpif90
+###FC      =	/ES/usr/bin/esmpif90
+
+#------------------------------------------------------------------------------#
+#                                                                              #
+# In the following section,                                                    #
+#     if your skip several times of compile for radiation block,               #
+#     you should make a library pachage with rrtmg_*_k_g_kgb* subrouties.      #
+#                                                                              #
+#------------------------------------------------------------------------------#
+AR = sxar
+
+ESINLINE = -pi line=200 "expin=rrtmg_sw_vrtqdr.f90,rrtmg_sw_reftra.f90"
+

@@ -236,7 +236,7 @@ call profile_start(prof_id1)
 dump_call_count_adjstni = dump_call_count_adjstni + 1
 if (dump_call_count_adjstni == DUMP_TARGET_adjstni .and. .not. dump_done_adjstni) then
   call dump_init('adjstni')
-  ! FIXME: ni is array - call dump_scalar_i('ni', ni)
+  call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
   call dump_scalar_i('haiopt', haiopt)

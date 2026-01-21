@@ -268,7 +268,7 @@ if (dump_call_count_exbcss == DUMP_TARGET_exbcss .and. .not. dump_done_exbcss) t
   call dump_scalar_i('nk', nk)
   call dump_scalar_r('dts', dts)
   call dump_scalar_r('gtinc', gtinc)
-  call dump_array_3d('s.bin', s, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('s_in.bin', s, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('scpx.bin', scpx, 1, nj, 1, nk, 1, 2)
   call dump_array_3d('scpy.bin', scpy, 1, ni, 1, nk, 1, 2)
   call dump_array_3d('sgpv.bin', sgpv, 0, ni+1, 0, nj+1, 1, nk)
@@ -577,6 +577,7 @@ end if
 
 ! Dump output data at target call
 if (dump_call_count_exbcss == DUMP_TARGET_exbcss .and. .not. dump_done_exbcss) then
+  call dump_array_3d('s_ref.bin', s, 0, ni+1, 0, nj+1, 1, nk)
   call dump_finalize()
   dump_done_exbcss = .true.
 end if

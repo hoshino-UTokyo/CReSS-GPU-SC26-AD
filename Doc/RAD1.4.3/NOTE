@@ -1,0 +1,16 @@
+f 面計算時の初期値・境界値:
+通常の現実大気計算と同様に, 3 次元の大気データを用意する.
+
+f 面計算時の user.conf 必要設定:
+* mpopt = 4 で固定
+* ulat, ulon は任意, ulat は f 面の基準緯度を指定.
+* riu, rju は計算領域の中心に充てる (方がわかりやすい/充てなくてもよい).
+
+&gridset_gpv
+* mpopt_gpv = 4 で固定
+* ulat_gpv, ulon_gpv は ulat, ulon に合わせる
+* riu_gpv, rju_gpv は初期値・境界値データの中心に充てる (飽方がわかりやすい/充てなくてもよい).
+
+&coriolis
+coropt を負にすることで f 面用のコリオリ力が設定される.
+coropt = -1, coropt = -2 はそれぞれ, f 面上で coropt = 1/2 と同じ機能を果たす.

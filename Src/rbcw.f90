@@ -305,7 +305,7 @@ if (dump_call_count_rbcw == DUMP_TARGET_rbcw .and. .not. dump_done_rbcw) then
   call dump_scalar_i('nk', nk)
   call dump_scalar_r('dts', dts)
   call dump_scalar_r('gtinc', gtinc)
-  call dump_array_3d('w.bin', w, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('w_in.bin', w, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('wcpx.bin', wcpx, 1, nj, 1, nk, 1, 2)
   call dump_array_3d('wcpy.bin', wcpy, 1, ni, 1, nk, 1, 2)
   call dump_array_3d('wgpv.bin', wgpv, 0, ni+1, 0, nj+1, 1, nk)
@@ -656,6 +656,7 @@ end if
 
 ! Dump output data at target call
 if (dump_call_count_rbcw == DUMP_TARGET_rbcw .and. .not. dump_done_rbcw) then
+  call dump_array_3d('w_ref.bin', w, 0, ni+1, 0, nj+1, 1, nk)
   call dump_finalize()
   dump_done_rbcw = .true.
 end if

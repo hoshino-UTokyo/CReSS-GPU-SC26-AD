@@ -276,12 +276,9 @@ if (dump_call_count_jacobian == DUMP_TARGET_jacobian .and. .not. dump_done_jacob
   call dump_array_3d('rmf.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
   call dump_array_3d('rmf8u.bin', rmf8u, 0, ni+1, 0, nj+1, 1, 3)
   call dump_array_3d('rmf8v.bin', rmf8v, 0, ni+1, 0, nj+1, 1, 3)
-  ! FIXME: x is an array, not scalar
-  ! ! FIXME: x is array - call dump_scalar_r('x', x)
-  ! FIXME: y is an array, not scalar
-  ! ! FIXME: y is array - call dump_scalar_r('y', y)
-  ! FIXME: z is an array, not scalar
-  ! ! FIXME: z is array - call dump_scalar_r('z', z)
+  call dump_array_1d('x.bin', x, 0, ni+1)
+  call dump_array_1d('y.bin', y, 0, nj+1)
+  call dump_array_1d('z.bin', z, 1, nk)
 end if
 
 !$omp parallel default(shared) private(k)

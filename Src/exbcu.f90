@@ -266,7 +266,7 @@ if (dump_call_count_exbcu == DUMP_TARGET_exbcu .and. .not. dump_done_exbcu) then
   call dump_scalar_i('nk', nk)
   call dump_scalar_r('dts', dts)
   call dump_scalar_r('gtinc', gtinc)
-  call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('u_in.bin', u, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('ucpx.bin', ucpx, 1, nj, 1, nk, 1, 2)
   call dump_array_3d('ucpy.bin', ucpy, 1, ni, 1, nk, 1, 2)
   call dump_array_3d('ugpv.bin', ugpv, 0, ni+1, 0, nj+1, 1, nk)
@@ -461,6 +461,7 @@ end if
 
 ! Dump output data at target call
 if (dump_call_count_exbcu == DUMP_TARGET_exbcu .and. .not. dump_done_exbcu) then
+  call dump_array_3d('u_ref.bin', u, 0, ni+1, 0, nj+1, 1, nk)
   call dump_finalize()
   dump_done_exbcu = .true.
 end if

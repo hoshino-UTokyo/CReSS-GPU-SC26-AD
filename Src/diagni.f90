@@ -213,12 +213,12 @@ loop_len = int((nk-1)-(1)+1,8) &
 dump_call_count_diagni = dump_call_count_diagni + 1
 if (dump_call_count_diagni == DUMP_TARGET_diagni .and. .not. dump_done_diagni) then
   call dump_init('diagni')
-  ! FIXME: ni is array - call dump_scalar_i('ni', ni)
+  call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
   call dump_scalar_i('nqi', nqi)
   call dump_scalar_i('nni', nni)
-  ! FIXME: haiopt is array - call dump_scalar_i('haiopt', haiopt)
+  call dump_scalar_i('haiopt', haiopt)
   call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_4d('qice.bin', qice, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
   call dump_scalar_r('cdiaqg', cdiaqg)

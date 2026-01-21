@@ -280,7 +280,7 @@ if (dump_call_count_advuvw == DUMP_TARGET_advuvw .and. .not. dump_done_advuvw) t
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
-  ! FIXME: advopt is array - call dump_scalar_i('advopt', advopt)
+  call dump_scalar_i('advopt', advopt)
   call dump_scalar_i('iwest', iwest)
   call dump_scalar_i('ieast', ieast)
   call dump_scalar_i('jsouth', jsouth)

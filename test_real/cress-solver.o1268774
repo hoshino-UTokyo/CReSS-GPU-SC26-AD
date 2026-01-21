@@ -1,0 +1,37 @@
+[mg0065:48646:0:48646] Caught signal 11 (Segmentation fault: invalid permissions for mapped object at address 0x40003d0e0000)
+==== backtrace (tid:  48646) ====
+ 0 0x00000000000d0c20 __f90io_usw_write()  ???:0
+ 1 0x0000000000408b9c m_dump_kernel_dump_array_4d_()  /work/jh250015/g24000/SC26/CReSS3.5.1m_SPN_RAD1.4.3_20230323_upload/Src/dump_kernel_data.f90:263
+ 2 0x00000000006db89c m_steps_s_steps_()  /work/jh250015/g24000/SC26/CReSS3.5.1m_SPN_RAD1.4.3_20230323_upload/Src/steps.f90:591
+ 3 0x0000000000564924 m_intgdrv_s_intgdrv_()  /work/jh250015/g24000/SC26/CReSS3.5.1m_SPN_RAD1.4.3_20230323_upload/Src/intgdrv.f90:866
+ 4 0x00000000006b80b0 m_slvdrv_s_slvdrv_()  /work/jh250015/g24000/SC26/CReSS3.5.1m_SPN_RAD1.4.3_20230323_upload/Src/slvdrv.f90:1306
+ 5 0x0000000000404988 MAIN_()  /work/jh250015/g24000/SC26/CReSS3.5.1m_SPN_RAD1.4.3_20230323_upload/Src/solver.f90:211
+ 6 0x00000000004032b4 main()  ???:0
+ 7 0x000000000002c7a0 __libc_start_call_main()  ???:0
+ 8 0x000000000002c878 __libc_start_main_alias_2()  :0
+ 9 0x0000000000403170 _start()  ???:0
+=================================
+[mg0065:48646] *** Process received signal ***
+[mg0065:48646] Signal: Segmentation fault (11)
+[mg0065:48646] Signal code:  (-6)
+[mg0065:48646] Failing at address: 0x9e120000be06
+[mg0065:48646] [ 0] linux-vdso.so.1(__kernel_rt_sigreturn+0x0)[0x40003b0d07f0]
+[mg0065:48646] [ 1] /work/opt/local/aarch64/cores/nvidia/25.9/Linux_aarch64/25.9/compilers/lib/libnvf.so(__f90io_usw_write+0x860)[0x40003b5b0c20]
+[mg0065:48646] [ 2] ./solver.exe[0x408b9c]
+[mg0065:48646] [ 3] ./solver.exe[0x6db89c]
+[mg0065:48646] [ 4] ./solver.exe[0x564924]
+[mg0065:48646] [ 5] ./solver.exe[0x6b80b0]
+[mg0065:48646] [ 6] ./solver.exe[0x404988]
+[mg0065:48646] [ 7] ./solver.exe[0x4032b4]
+[mg0065:48646] [ 8] /lib64/libc.so.6(+0x2c7a0)[0x40003bf2c7a0]
+[mg0065:48646] [ 9] /lib64/libc.so.6(__libc_start_main+0x98)[0x40003bf2c878]
+[mg0065:48646] [10] ./solver.exe[0x403170]
+[mg0065:48646] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 0 with PID 0 on node mg0065 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
+Cgroup memsw limit exceeded: 

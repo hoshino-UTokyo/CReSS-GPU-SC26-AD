@@ -379,7 +379,7 @@ if (dump_call_count_forcept == DUMP_TARGET_forcept .and. .not. dump_done_forcept
   call dump_scalar_i('nk', nk)
   call dump_scalar_r('nggdmp', nggdmp)
   call dump_scalar_r('gtinc', gtinc)
-  call dump_array_3d('pt.bin', pt, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('pt_in.bin', pt, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('j31.bin', j31, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('j32.bin', j32, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('jcb.bin', jcb, 0, ni+1, 0, nj+1, 1, nk)
@@ -435,6 +435,7 @@ end if
 
 ! Dump output data at target call
 if (dump_call_count_forcept == DUMP_TARGET_forcept .and. .not. dump_done_forcept) then
+  call dump_array_3d('pt_ref.bin', pt, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('ptfrc_ref.bin', ptfrc, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('h3_ref.bin', h3, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('tmp1_ref.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)

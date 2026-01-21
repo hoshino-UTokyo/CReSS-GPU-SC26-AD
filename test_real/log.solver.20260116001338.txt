@@ -1,0 +1,3311 @@
+Now the program, solver start.
+[DUMP] SKIP: inidef (data already exists)
+[DUMP] SKIP: inimod (data already exists)
+ 
+  ##### Information #####
+ 
+  i/o: procedure, setnlslv;
+    Read out user configuration from the standard input.
+ 
+  messages: procedure, chknlslv;
+    Specified the directory, "./result/" for CReSS processing files.
+    Specified the directory, "./gpv/" for external data files.
+[DUMP] SKIP: setname (data already exists)
+[DUMP] SKIP: allociot (data already exists)
+[DUMP] SKIP: allocslv (data already exists)
+[DUMP] SKIP: setcst1d (data already exists)
+[DUMP] SKIP: allocbuf (data already exists)
+[DUMP] SKIP: rdgrp (data already exists)
+[DUMP] SKIP: xy2ll (data already exists)
+[DUMP] SKIP: mapfct (data already exists)
+[DUMP] SKIP: trilat (data already exists)
+[DUMP] SKIP: gettrn (data already exists)
+[DUMP] SKIP: getz (data already exists)
+[DUMP] SKIP: copy1d (data already exists)
+[DUMP] SKIP: phycood (data already exists)
+[DUMP] SKIP: getxy (data already exists)
+[DUMP] SKIP: jacobian (data already exists)
+[DUMP] SKIP: getarea (data already exists)
+[DUMP] SKIP: inisfc (data already exists)
+ 
+  i/o: procedure, rdgpvini;
+    Open the file(s), "TC2214.gpv.check.txt" with unit number 00011.
+ 
+  i/o: procedure, rdgpvini;
+    Read out the data from the file(s) of unit number 00011.
+ 
+  i/o: procedure, rdgpvini;
+    Closed the file(s) of unit number 00011.
+ 
+  i/o: procedure, rdgpvini;
+    Open the file(s), "TC2214.gpv00000000.pe0000.bin" with unit number 00011.
+ 
+  i/o: procedure, rdgpvini;
+    Read out the data from the file(s) of unit number 00011.
+ 
+  i/o: procedure, rdgpvini;
+    Closed the file(s) of unit number 00011.
+[DUMP] SKIP: chkmoist (data already exists)
+[DUMP] SKIP: setbase (data already exists)
+[DUMP] SKIP: bcbase (data already exists)
+[DUMP] SKIP: baserho (data already exists)
+[DUMP] SKIP: var8uvw (data already exists)
+[DUMP] SKIP: bc8w (data already exists)
+[DUMP] SKIP: bcyclex (data already exists)
+[DUMP] SKIP: bcycley (data already exists)
+[DUMP] SKIP: diagni (data already exists)
+[DUMP] SKIP: copy4d (data already exists)
+[DUMP] SKIP: setcst4d (data already exists)
+[DUMP] SKIP: setcst3d (data already exists)
+[DUMP] SKIP: vspdmp (data already exists)
+[DUMP] SKIP: initund (data already exists)
+[DUMP] SKIP: sndwave (data already exists)
+ 
+  i/o: procedure, outgeo;
+    Open the file(s), "TC2214.geography.check.txt" with unit number 00011.
+ 
+  i/o: procedure, outgeo;
+    Read in the data to the file(s) of unit number 00011.
+ 
+  i/o: procedure, outgeo;
+    Closed the file(s) of unit number 00011.
+ 
+  i/o: procedure, outgeo;
+    Open the file(s), "TC2214.geography.pe0000.bin" with unit number 00011.
+ 
+  i/o: procedure, outgeo;
+    Dumped the 2d variable, terrain height [m], ht.
+    Dumped the 2d variable, latitude [degree], alat.
+    Dumped the 2d variable, longitude [degree], alon.
+    Dumped the 2d variable, map scale factor, map.
+    Dumped the 2d variable, Coriolis parameter, fs.
+    Dumped the 2d variable, real land use categories, rland.
+ 
+  i/o: procedure, outgeo;
+    Closed the file(s) of unit number 00011.
+ 
+  #######################
+ 
+  ##### Information at time, 0.000 [s] #####
+ 
+  i/o: procedure, rdgpvnxt;
+    Open the file(s), "TC2214.gpv.check.txt" with unit number 00011.
+ 
+  i/o: procedure, rdgpvnxt;
+    Read out the data from the file(s) of unit number 00011.
+ 
+  i/o: procedure, rdgpvnxt;
+    Closed the file(s) of unit number 00011.
+ 
+  i/o: procedure, rdgpvnxt;
+    Open the file(s), "TC2214.gpv00000000.pe0000.bin" with unit number 00011.
+ 
+  i/o: procedure, rdgpvnxt;
+    Read out the data from the file(s) of unit number 00011.
+ 
+  i/o: procedure, rdgpvnxt;
+    Closed the file(s) of unit number 00011.
+ 
+  i/o: procedure, rdgpvnxt;
+    Open the file(s), "TC2214.gpv00021600.pe0000.bin" with unit number 00011.
+ 
+  i/o: procedure, rdgpvnxt;
+    Read out the data from the file(s) of unit number 00011.
+ 
+  i/o: procedure, rdgpvnxt;
+    Closed the file(s) of unit number 00011.
+[DUMP] SKIP: chksat (data already exists)
+[DUMP] SKIP: adjstq (data already exists)
+[DUMP] SKIP: setgpv (data already exists)
+ 
+  i/o: procedure, opendmp;
+    Open the file(s), "TC2214.dmp.check.txt" with unit number 00011.
+ 
+  i/o: procedure, opendmp;
+    Open the file(s), "TC2214.mon.check.txt" with unit number 00012.
+ 
+  i/o: procedure, opendmp;
+    Open the file(s), "TC2214.dmp00000000.pe0000.bin" with unit number 00013.
+ 
+  i/o: procedure, opendmp;
+    Open the file(s), "TC2214.mon00000000.pe0000.bin" with unit number 00014.
+ 
+  i/o: procedure, outcheck;
+    Read in the data to the file(s) of unit number 00011.
+ 
+  i/o: procedure, outcheck;
+    Read in the data to the file(s) of unit number 00012.
+[DUMP] SKIP: roughitr (data already exists)
+[DUMP] SKIP: chkitr (data already exists)
+ 
+  i/o: procedure, outdmp[2d|3d];
+    Dumped the 2d variable, x components of velocity at an altitude of 10m [m/s], us.
+    Dumped the 2d variable, y components of velocity at an altitude of 10m [m/s], vs.
+    Dumped the 2d variable, pressure at an altitude of 1.5m [Pa], ps.
+    Dumped the 2d variable, potential temperature at an altitude of 1.5m [K], pts.
+    Dumped the 2d variable, water vapor mixing ratio at an altitude of 1.5m [kg/kg], qvs.
+    Dumped the 2d variable, soil and sea surface temperature [K], tgs.
+    Dumped the 2d variable, sensible heat over surface [W/m^2], hs.
+    Dumped the 2d variable, latent heat over surface [W/m^2], le.
+    Dumped the 2d variable, global solar radiation [W/m^2], rgd.
+    Dumped the 2d variable, net downward short wave radiation [W/m^2], rsd.
+    Dumped the 2d variable, downward long wave radiation [W/m^2], rld.
+    Dumped the 2d variable, upward long wave radiation [W/m^2], rlu.
+    Dumped the 2d variable, cloud cover in lower layer, cdl.
+    Dumped the 2d variable, cloud cover in middle layer, cdm.
+    Dumped the 2d variable, cloud cover in upper layer, cdh.
+    Dumped the 2d variable, averaged cloud cover, cdave.
+    Dumped the 2d variable, surface momentum flux for x components of velocity [N/m^2], usflx.
+    Dumped the 2d variable, surface momentum flux for y components of velocity [N/m^2], vsflx.
+    Dumped the 2d variable, surface heat flux [(kg K)/(m^2 s)], ptsflx.
+    Dumped the 2d variable, surface moisture flux [kg/(m^2 s)], qvsflx.
+    Dumped the 3d variable, x components of velocity [m/s], u.
+    Dumped the 3d variable, y components of velocity [m/s], v.
+    Dumped the 3d variable, z components of velocity [m/s], w.
+    Dumped the 3d variable, pressure [Pa], p.
+    Dumped the 3d variable, potential temperature [K], pt.
+    Dumped the 3d variable, water vapor mixing ratio [kg/kg], qv.
+    Dumped the 3d variable, cloud water mixing ratio [kg/kg], qc.
+    Dumped the 3d variable, rain water mixing ratio [kg/kg], qr.
+    Dumped the 3d variable, cloud ice mixing ratio [kg/kg], qi.
+    Dumped the 3d variable, snow mixing ratio [kg/kg], qs.
+    Dumped the 3d variable, graupel mixing ratio [kg/kg], qg.
+    Dumped the 3d variable, cloud ice concentrations [1/kg], nci.
+    Dumped the 3d variable, snow concentrations [1/kg], ncs.
+    Dumped the 3d variable, graupel concentrations [1/kg], ncg.
+    Dumped the 3d variable, turbulent kinetic energy [J/kg], tke.
+    Dumped the 2d variable, cloud water fall rate [m/s], pcr.
+    Dumped the 2d variable, accumulated cloud water fall [m], pca.
+    Dumped the 2d variable, rain fall rate [m/s], prr.
+    Dumped the 2d variable, accumulated rain fall [m], pra.
+    Dumped the 2d variable, cloud ice fall rate [m/s], pir.
+    Dumped the 2d variable, accumulated cloud ice fall [m], pia.
+    Dumped the 2d variable, snow fall rate [m/s], psr.
+    Dumped the 2d variable, accumulated snow fall [m], psa.
+    Dumped the 2d variable, graupel fall rate [m/s], pgr.
+    Dumped the 2d variable, accumulated graupel fall [m], pga.
+    Dumped the 3d variable, z physical coordinates [m], zph.
+ 
+  i/o: procedure, closedmp;
+    Closed the file(s) of unit number 00011.
+ 
+  i/o: procedure, closedmp;
+    Closed the file(s) of unit number 00012.
+ 
+  i/o: procedure, closedmp;
+    Closed the file(s) of unit number 00013.
+ 
+  i/o: procedure, closedmp;
+    Closed the file(s) of unit number 00014.
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37450954E+02 [m/s]   at (   425,   449,     7)
+    umin    = -0.41028778E+02 [m/s]   at (   426,   516,     7)
+    vmax    =  0.42918980E+02 [m/s]   at (   474,   472,     7)
+    vmin    = -0.33484116E+02 [m/s]   at (   376,   494,     7)
+    wmax    =  0.00000000E+00 [m/s]   at (   898,   898,   128)
+    wmin    = -0.00000000E+00 [m/s]   at (     1,     1,     1)
+    ppmax   =  0.11061538E+04 [Pa]    at (   898,   898,     1)
+    ppmin   = -0.43939087E+04 [Pa]    at (   425,   493,     1)
+    ptpmax  =  0.13508840E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.57047992E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24149785E-01 [kg/kg] at (   425,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.00000000E+00 [J/kg]  at (   898,   898,   127)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  ##### Information at time, 5.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37168270E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41022949E+02 [m/s]   at (   430,   516,     7)
+    vmax    =  0.42661934E+02 [m/s]   at (   474,   472,     7)
+    vmin    = -0.33217430E+02 [m/s]   at (   376,   493,     7)
+    wmax    =  0.21665299E+00 [m/s]   at (   423,   497,    12)
+    wmin    = -0.13207285E+00 [m/s]   at (     2,   384,    82)
+    ppmax   =  0.11352313E+04 [Pa]    at (   895,   896,     1)
+    ppmin   = -0.43709580E+04 [Pa]    at (   425,   475,     1)
+    ptpmax  =  0.13508237E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.57047997E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24152238E-01 [kg/kg] at (   425,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   112)
+    qcmax   =  0.91526053E-05 [kg/kg] at (   398,   474,    60)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.39339362E-07 [kg/kg] at (   279,    71,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39339363E+05 [1/kg]  at (   279,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.18563292E-02 [J/kg]  at (   449,   516,     3)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time step  =        1, real time =        5.000 [s]
+ 
+  ##### Information at time, 10.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37160187E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41049442E+02 [m/s]   at (   430,   516,     7)
+    vmax    =  0.42632622E+02 [m/s]   at (   474,   472,     7)
+    vmin    = -0.33184006E+02 [m/s]   at (   376,   493,     7)
+    wmax    =  0.41708153E+00 [m/s]   at (   453,   472,    31)
+    wmin    = -0.10280991E+00 [m/s]   at (     2,   384,    81)
+    ppmax   =  0.11613555E+04 [Pa]    at (   896,   896,     1)
+    ppmin   = -0.43994194E+04 [Pa]    at (   424,   474,     1)
+    ptpmax  =  0.13504805E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.57047825E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24154825E-01 [kg/kg] at (   425,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   112)
+    qcmax   =  0.28760272E-04 [kg/kg] at (   404,   497,     9)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.39339362E-07 [kg/kg] at (   279,    71,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39339363E+05 [1/kg]  at (   279,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.37121647E-02 [J/kg]  at (   449,   516,     3)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =        2, real time =       10.000 [s]
+ 
+  ##### Information at time, 15.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37066799E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41073357E+02 [m/s]   at (   432,   516,     7)
+    vmax    =  0.42540588E+02 [m/s]   at (   474,   473,     7)
+    vmin    = -0.33097672E+02 [m/s]   at (   376,   493,     7)
+    wmax    =  0.63610923E+00 [m/s]   at (   455,   473,    44)
+    wmin    = -0.11611918E+00 [m/s]   at (   351,   265,   105)
+    ppmax   =  0.11583799E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44279702E+04 [Pa]    at (   424,   475,     1)
+    ptpmax  =  0.13501002E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.57046270E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24157038E-01 [kg/kg] at (   425,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   112)
+    qcmax   =  0.36153513E-04 [kg/kg] at (   405,   498,     9)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.64605466E-07 [kg/kg] at (   259,    71,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.14089138E-09 [kg/kg] at (   279,    71,    98)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.40173109E+05 [1/kg]  at (   259,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.80051923E+00 [1/kg]  at (   279,    71,    98)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.56034368E-02 [J/kg]  at (   449,   516,     3)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =        3, real time =       15.000 [s]
+ 
+  ##### Information at time, 20.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37045818E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41103390E+02 [m/s]   at (   432,   516,     7)
+    vmax    =  0.42519104E+02 [m/s]   at (   474,   473,     7)
+    vmin    = -0.33074715E+02 [m/s]   at (   376,   493,     7)
+    wmax    =  0.85770911E+00 [m/s]   at (   456,   473,    58)
+    wmin    = -0.14476126E+00 [m/s]   at (   345,   520,    93)
+    ppmax   =  0.11511908E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44670454E+04 [Pa]    at (   424,   476,     1)
+    ptpmax  =  0.13497077E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.57045999E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24159361E-01 [kg/kg] at (   425,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   112)
+    qcmax   =  0.46519293E-04 [kg/kg] at (   405,   498,     9)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.69104878E-07 [kg/kg] at (   279,    71,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.18772837E-09 [kg/kg] at (   898,   337,    98)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39004313E+05 [1/kg]  at (   278,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.12100086E+01 [1/kg]  at (   898,   337,    98)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.74934447E-02 [J/kg]  at (   449,   516,     3)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =        4, real time =       20.000 [s]
+ 
+  ##### Information at time, 25.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.36995743E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41137085E+02 [m/s]   at (   433,   516,     7)
+    vmax    =  0.42490807E+02 [m/s]   at (   474,   473,     7)
+    vmin    = -0.33032364E+02 [m/s]   at (   376,   493,     7)
+    wmax    =  0.95830691E+00 [m/s]   at (   456,   472,    61)
+    wmin    = -0.14073668E+00 [m/s]   at (   345,   521,    98)
+    ppmax   =  0.11450514E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.45022593E+04 [Pa]    at (   424,   476,     1)
+    ptpmax  =  0.13494058E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.57044125E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24161458E-01 [kg/kg] at (   425,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   112)
+    qcmax   =  0.54951372E-04 [kg/kg] at (   406,   499,     9)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.96251462E-07 [kg/kg] at (   259,    71,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.46601195E-09 [kg/kg] at (   898,   337,    98)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39856914E+05 [1/kg]  at (   259,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.25182185E+01 [1/kg]  at (   898,   337,    98)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.94039105E-02 [J/kg]  at (   449,   516,     3)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =        5, real time =       25.000 [s]
+ 
+  ##### Information at time, 30.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.36982704E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41172359E+02 [m/s]   at (   434,   516,     7)
+    vmax    =  0.42482578E+02 [m/s]   at (   474,   473,     7)
+    vmin    = -0.33012909E+02 [m/s]   at (   376,   493,     7)
+    wmax    =  0.10054597E+01 [m/s]   at (   457,   472,    74)
+    wmin    = -0.16593200E+00 [m/s]   at (   345,   521,    86)
+    ppmax   =  0.11419655E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.45277969E+04 [Pa]    at (   425,   478,     1)
+    ptpmax  =  0.13489972E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.57043557E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24163609E-01 [kg/kg] at (   425,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   112)
+    qcmax   =  0.66003347E-04 [kg/kg] at (   406,   499,     9)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.10619485E-06 [kg/kg] at (   278,    71,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.63929845E-09 [kg/kg] at (   898,   337,    98)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39075266E+05 [1/kg]  at (   278,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.34871216E+01 [1/kg]  at (   898,   337,    98)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.11319540E-01 [J/kg]  at (   449,   516,     3)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =        6, real time =       30.000 [s]
+ 
+  ##### Information at time, 35.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.36958015E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41209435E+02 [m/s]   at (   435,   516,     7)
+    vmax    =  0.42510731E+02 [m/s]   at (   474,   480,    13)
+    vmin    = -0.32986271E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.95932519E+00 [m/s]   at (   458,   472,    80)
+    wmin    = -0.19219273E+00 [m/s]   at (   371,   578,    85)
+    ppmax   =  0.11395901E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.45452627E+04 [Pa]    at (   425,   478,     1)
+    ptpmax  =  0.13485331E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.57041426E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24165558E-01 [kg/kg] at (   425,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   112)
+    qcmax   =  0.72627168E-04 [kg/kg] at (   442,   465,     9)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.13465605E-06 [kg/kg] at (   259,    71,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.12639286E-08 [kg/kg] at (   477,   462,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39601781E+05 [1/kg]  at (   269,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.69383683E+01 [1/kg]  at (   477,   462,    89)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.14974720E-01 [J/kg]  at (   473,   493,   100)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =        7, real time =       35.000 [s]
+ 
+  ##### Information at time, 40.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.36955093E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41245037E+02 [m/s]   at (   435,   516,     7)
+    vmax    =  0.42539726E+02 [m/s]   at (   474,   481,    13)
+    vmin    = -0.32971889E+02 [m/s]   at (   376,   493,     7)
+    wmax    =  0.86242014E+00 [m/s]   at (   458,   472,    82)
+    wmin    = -0.22877581E+00 [m/s]   at (   346,   522,    86)
+    ppmax   =  0.11383706E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.45454644E+04 [Pa]    at (   425,   479,     1)
+    ptpmax  =  0.13480197E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.57040410E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24167521E-01 [kg/kg] at (   425,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   112)
+    qcmax   =  0.79297497E-04 [kg/kg] at (   442,   465,     9)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.15012311E-06 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.20613438E-08 [kg/kg] at (   477,   462,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39092262E+05 [1/kg]  at (   278,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.11212656E+02 [1/kg]  at (   477,   462,    89)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.21709315E-01 [J/kg]  at (   473,   493,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =        8, real time =       40.000 [s]
+ 
+  ##### Information at time, 45.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.36943897E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41277081E+02 [m/s]   at (   435,   516,     7)
+    vmax    =  0.42574535E+02 [m/s]   at (   474,   482,    13)
+    vmin    = -0.32958260E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.69576901E+00 [m/s]   at (   459,   472,    76)
+    wmin    = -0.26251242E+00 [m/s]   at (   346,   522,    85)
+    ppmax   =  0.11382263E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.45287085E+04 [Pa]    at (   425,   480,     1)
+    ptpmax  =  0.13478629E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.57038097E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24169313E-01 [kg/kg] at (   425,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   112)
+    qcmax   =  0.80383732E-04 [kg/kg] at (   442,   464,     9)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.17953710E-06 [kg/kg] at (   275,    71,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.40239256E-08 [kg/kg] at (   477,   462,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39431199E+05 [1/kg]  at (   278,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.21488379E+02 [1/kg]  at (   477,   462,    89)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.30648043E-01 [J/kg]  at (   473,   493,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =        9, real time =       45.000 [s]
+ 
+  ##### Information at time, 50.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.36945213E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41305332E+02 [m/s]   at (   436,   516,     7)
+    vmax    =  0.42609009E+02 [m/s]   at (   474,   482,    13)
+    vmin    = -0.32949608E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.53548658E+00 [m/s]   at (   460,   472,    57)
+    wmin    = -0.29418832E+00 [m/s]   at (   417,   477,    87)
+    ppmax   =  0.11388387E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.45041240E+04 [Pa]    at (   425,   480,     1)
+    ptpmax  =  0.13478200E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.57036557E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24171077E-01 [kg/kg] at (   425,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   112)
+    qcmax   =  0.80022022E-04 [kg/kg] at (   442,   463,     9)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.20117014E-06 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.62706267E-08 [kg/kg] at (   477,   462,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39107117E+05 [1/kg]  at (   278,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.33106297E+02 [1/kg]  at (   477,   462,    89)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.40892728E-01 [J/kg]  at (   473,   493,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       10, real time =       50.000 [s]
+ 
+  ##### Information at time, 55.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.36939159E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41331566E+02 [m/s]   at (   436,   516,     7)
+    vmax    =  0.42644135E+02 [m/s]   at (   474,   483,    14)
+    vmin    = -0.32943535E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.40420529E+00 [m/s]   at (   459,   472,    43)
+    wmin    = -0.36050597E+00 [m/s]   at (   417,   478,    84)
+    ppmax   =  0.11396521E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44751372E+04 [Pa]    at (   425,   480,     1)
+    ptpmax  =  0.13478290E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.57034025E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24172708E-01 [kg/kg] at (   425,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   112)
+    qcmax   =  0.77067460E-04 [kg/kg] at (   441,   463,     9)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.23167622E-06 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.10579019E-07 [kg/kg] at (   477,   462,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39315211E+05 [1/kg]  at (   278,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.55015068E+02 [1/kg]  at (   477,   462,    89)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.52944425E-01 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       11, real time =       55.000 [s]
+ 
+  ##### Information at time, 60.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.36940575E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41354900E+02 [m/s]   at (   436,   516,     7)
+    vmax    =  0.42677216E+02 [m/s]   at (   474,   483,    14)
+    vmin    = -0.32938477E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.31813893E+00 [m/s]   at (   454,   472,    35)
+    wmin    = -0.36023286E+00 [m/s]   at (   434,   483,    77)
+    ppmax   =  0.11411411E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44507056E+04 [Pa]    at (   425,   480,     1)
+    ptpmax  =  0.13478271E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.57031994E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24174297E-01 [kg/kg] at (   425,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   112)
+    qcmax   =  0.74584066E-04 [kg/kg] at (   441,   462,     9)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.25834268E-06 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.15723684E-07 [kg/kg] at (   477,   462,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39094281E+05 [1/kg]  at (   278,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.80781815E+02 [1/kg]  at (   477,   462,    89)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.66409469E-01 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       12, real time =       60.000 [s]
+ 
+  ##### Information at time, 65.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.36937210E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41375248E+02 [m/s]   at (   436,   516,     7)
+    vmax    =  0.42708584E+02 [m/s]   at (   474,   483,    14)
+    vmin    = -0.32931881E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.25548860E+00 [m/s]   at (   451,   472,    31)
+    wmin    = -0.30272752E+00 [m/s]   at (   435,   482,    74)
+    ppmax   =  0.11428658E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44294341E+04 [Pa]    at (   426,   481,     1)
+    ptpmax  =  0.13478233E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.57029185E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24175778E-01 [kg/kg] at (   425,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   112)
+    qcmax   =  0.70501526E-04 [kg/kg] at (   441,   462,     9)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.29089284E-06 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.24216847E-07 [kg/kg] at (   451,   445,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39241488E+05 [1/kg]  at (   278,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.12246031E+03 [1/kg]  at (   451,   445,    89)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.81525132E-01 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       13, real time =       65.000 [s]
+ 
+  ##### Information at time, 70.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.36936699E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41395527E+02 [m/s]   at (   437,   517,     7)
+    vmax    =  0.42738415E+02 [m/s]   at (   474,   483,    14)
+    vmin    = -0.32921989E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.21669377E+00 [m/s]   at (   451,   472,    32)
+    wmin    = -0.20256367E+00 [m/s]   at (   443,   480,    70)
+    ppmax   =  0.11438198E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44040347E+04 [Pa]    at (   426,   481,     1)
+    ptpmax  =  0.13477239E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.57026672E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24177203E-01 [kg/kg] at (   425,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   112)
+    qcmax   =  0.64461114E-04 [kg/kg] at (   440,   461,     9)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.32129256E-06 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.34454867E-07 [kg/kg] at (   451,   445,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39166902E+05 [1/kg]  at (   278,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.17188432E+03 [1/kg]  at (   451,   445,    89)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.98052755E-01 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       14, real time =       70.000 [s]
+ 
+  ##### Information at time, 75.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.36932518E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41419907E+02 [m/s]   at (   437,   517,     7)
+    vmax    =  0.42765785E+02 [m/s]   at (   474,   483,    14)
+    vmin    = -0.32910618E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.30420056E+00 [m/s]   at (   425,   471,    52)
+    wmin    = -0.10843822E+00 [m/s]   at (   444,   479,    65)
+    ppmax   =  0.11434596E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.43797002E+04 [Pa]    at (   426,   481,     1)
+    ptpmax  =  0.13475209E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.57023635E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24178531E-01 [kg/kg] at (   425,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   112)
+    qcmax   =  0.56097240E-04 [kg/kg] at (   439,   461,     9)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.35598356E-06 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.49705083E-07 [kg/kg] at (   451,   445,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39328387E+05 [1/kg]  at (   278,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.24428230E+03 [1/kg]  at (   451,   445,    89)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.11605511E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       15, real time =       75.000 [s]
+ 
+  ##### Information at time, 80.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.36932999E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41440865E+02 [m/s]   at (   437,   517,     7)
+    vmax    =  0.42789799E+02 [m/s]   at (   474,   483,    14)
+    vmin    = -0.32901016E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.41305199E+00 [m/s]   at (   425,   471,    55)
+    wmin    = -0.79993151E-01 [m/s]   at (   230,   850,    23)
+    ppmax   =  0.11428577E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.43730586E+04 [Pa]    at (   426,   481,     1)
+    ptpmax  =  0.13471715E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.57020788E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24179813E-01 [kg/kg] at (   425,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   112)
+    qcmax   =  0.51405594E-04 [kg/kg] at (   409,   504,     9)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.38966408E-06 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.68176043E-07 [kg/kg] at (   451,   445,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39336574E+05 [1/kg]  at (   278,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.33022641E+03 [1/kg]  at (   451,   445,    89)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.13543183E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       16, real time =       80.000 [s]
+ 
+  ##### Information at time, 85.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.36938244E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41456791E+02 [m/s]   at (   437,   517,     7)
+    vmax    =  0.42807892E+02 [m/s]   at (   474,   483,    14)
+    vmin    = -0.32897873E+02 [m/s]   at (   376,   491,     7)
+    wmax    =  0.52733982E+00 [m/s]   at (   425,   471,    54)
+    wmin    = -0.82370110E-01 [m/s]   at (   229,   850,    24)
+    ppmax   =  0.11426560E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.43928960E+04 [Pa]    at (   426,   481,     1)
+    ptpmax  =  0.13467184E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.57017517E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24181036E-01 [kg/kg] at (   425,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   112)
+    qcmax   =  0.54431257E-04 [kg/kg] at (   410,   504,     9)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.42650970E-06 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.93842914E-07 [kg/kg] at (   451,   445,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39490070E+05 [1/kg]  at (   278,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.44753363E+03 [1/kg]  at (   451,   445,    89)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.15614448E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       17, real time =       85.000 [s]
+ 
+  ##### Information at time, 90.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.36952488E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41467873E+02 [m/s]   at (   437,   517,     7)
+    vmax    =  0.42819466E+02 [m/s]   at (   474,   483,    14)
+    vmin    = -0.32902607E+02 [m/s]   at (   376,   491,     7)
+    wmax    =  0.68176699E+00 [m/s]   at (   453,   472,    51)
+    wmin    = -0.94500378E-01 [m/s]   at (   343,   520,    96)
+    ppmax   =  0.11424381E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44276958E+04 [Pa]    at (   426,   481,     1)
+    ptpmax  =  0.13461929E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.57014294E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24182219E-01 [kg/kg] at (   425,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   112)
+    qcmax   =  0.61676415E-04 [kg/kg] at (   437,   482,     9)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.46308210E-06 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.12502130E-06 [kg/kg] at (   451,   445,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39535434E+05 [1/kg]  at (   278,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.58707587E+03 [1/kg]  at (   451,   445,    89)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.17811713E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       18, real time =       90.000 [s]
+ 
+  ##### Information at time, 95.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.36973278E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41474350E+02 [m/s]   at (   437,   517,     7)
+    vmax    =  0.42823505E+02 [m/s]   at (   474,   483,    13)
+    vmin    = -0.32913383E+02 [m/s]   at (   376,   491,     7)
+    wmax    =  0.83134049E+00 [m/s]   at (   455,   472,    56)
+    wmin    = -0.12070249E+00 [m/s]   at (   342,   521,    95)
+    ppmax   =  0.11418448E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44676509E+04 [Pa]    at (   426,   482,     1)
+    ptpmax  =  0.13456536E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.57010770E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24183348E-01 [kg/kg] at (   425,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   112)
+    qcmax   =  0.71393646E-04 [kg/kg] at (   436,   482,     9)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.50202823E-06 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.16610579E-06 [kg/kg] at (   451,   445,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39655965E+05 [1/kg]  at (   278,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.76728064E+03 [1/kg]  at (   451,   445,    89)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.20124274E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       19, real time =       95.000 [s]
+ 
+  ##### Information at time, 100.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37000637E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41478161E+02 [m/s]   at (   437,   517,     7)
+    vmax    =  0.42822552E+02 [m/s]   at (   474,   482,    13)
+    vmin    = -0.32928146E+02 [m/s]   at (   376,   491,     7)
+    wmax    =  0.93013525E+00 [m/s]   at (   456,   472,    61)
+    wmin    = -0.14173092E+00 [m/s]   at (   342,   521,    93)
+    ppmax   =  0.11409274E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.45065215E+04 [Pa]    at (   426,   482,     1)
+    ptpmax  =  0.13451199E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.57007256E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24184436E-01 [kg/kg] at (   425,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   112)
+    qcmax   =  0.80581107E-04 [kg/kg] at (   436,   482,     9)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.54115071E-06 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.21547207E-06 [kg/kg] at (   451,   445,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39683059E+05 [1/kg]  at (   278,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.97880725E+03 [1/kg]  at (   451,   445,    89)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.22542742E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       20, real time =      100.000 [s]
+ 
+  ##### Information at time, 105.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37033337E+02 [m/s]   at (   425,   449,     7)
+    umin    = -0.41480587E+02 [m/s]   at (   437,   517,     7)
+    vmax    =  0.42816830E+02 [m/s]   at (   474,   482,    13)
+    vmin    = -0.32945679E+02 [m/s]   at (   376,   491,     7)
+    wmax    =  0.95958644E+00 [m/s]   at (   458,   472,    67)
+    wmin    = -0.16012457E+00 [m/s]   at (   342,   521,    91)
+    ppmax   =  0.11399131E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.45380376E+04 [Pa]    at (   426,   482,     1)
+    ptpmax  =  0.13445910E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.57003522E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24186350E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   112)
+    qcmax   =  0.89001769E-04 [kg/kg] at (   415,   508,     9)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.58208718E-06 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.27733708E-06 [kg/kg] at (   451,   445,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39744031E+05 [1/kg]  at (   278,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.12377015E+04 [1/kg]  at (   451,   445,    89)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.25050271E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       21, real time =      105.000 [s]
+ 
+  ##### Information at time, 110.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37070072E+02 [m/s]   at (   425,   449,     7)
+    umin    = -0.41482803E+02 [m/s]   at (   437,   517,     7)
+    vmax    =  0.42807709E+02 [m/s]   at (   474,   482,    13)
+    vmin    = -0.32965534E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.91956216E+00 [m/s]   at (   458,   472,    71)
+    wmin    = -0.18179640E+00 [m/s]   at (   343,   522,    89)
+    ppmax   =  0.11389625E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.45574185E+04 [Pa]    at (   426,   482,     1)
+    ptpmax  =  0.13440640E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.56999750E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24189284E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   112)
+    qcmax   =  0.96503674E-04 [kg/kg] at (   416,   509,     9)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.62344765E-06 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.35203911E-06 [kg/kg] at (   452,   445,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39737043E+05 [1/kg]  at (   278,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.15468834E+04 [1/kg]  at (   452,   445,    89)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.27640924E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       22, real time =      110.000 [s]
+ 
+  ##### Information at time, 115.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37108047E+02 [m/s]   at (   425,   449,     7)
+    umin    = -0.41485748E+02 [m/s]   at (   437,   517,     7)
+    vmax    =  0.42796459E+02 [m/s]   at (   474,   482,    13)
+    vmin    = -0.32987015E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.82149547E+00 [m/s]   at (   459,   472,    72)
+    wmin    = -0.20642798E+00 [m/s]   at (   344,   522,    88)
+    ppmax   =  0.11381987E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.45620386E+04 [Pa]    at (   426,   482,     1)
+    ptpmax  =  0.13435966E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.56995783E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24192147E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   112)
+    qcmax   =  0.10116530E-03 [kg/kg] at (   416,   510,     9)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.66621874E-06 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.44491438E-06 [kg/kg] at (   452,   445,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39746785E+05 [1/kg]  at (   279,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.19259501E+04 [1/kg]  at (   452,   445,    89)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.30293229E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       23, real time =      115.000 [s]
+ 
+  ##### Information at time, 120.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37145893E+02 [m/s]   at (   425,   449,     7)
+    umin    = -0.41490055E+02 [m/s]   at (   437,   517,     7)
+    vmax    =  0.42784588E+02 [m/s]   at (   474,   482,    13)
+    vmin    = -0.33008846E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.69427955E+00 [m/s]   at (   458,   472,    59)
+    wmin    = -0.22931196E+00 [m/s]   at (   344,   521,    88)
+    ppmax   =  0.11377113E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.45527676E+04 [Pa]    at (   425,   483,     1)
+    ptpmax  =  0.13432547E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.56991754E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24194915E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   112)
+    qcmax   =  0.10429878E-03 [kg/kg] at (   465,   475,    48)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.70952694E-06 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.54361396E-06 [kg/kg] at (   452,   445,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39708707E+05 [1/kg]  at (   279,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.22999102E+04 [1/kg]  at (   452,   445,    89)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.32995901E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       24, real time =      120.000 [s]
+ 
+  ##### Information at time, 125.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37181492E+02 [m/s]   at (   425,   449,     7)
+    umin    = -0.41496914E+02 [m/s]   at (   437,   517,     7)
+    vmax    =  0.42784977E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33030094E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.57449162E+00 [m/s]   at (   456,   472,    52)
+    wmin    = -0.26647875E+00 [m/s]   at (   416,   479,    83)
+    ppmax   =  0.11375317E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.45329590E+04 [Pa]    at (   425,   483,     1)
+    ptpmax  =  0.13430417E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.56987543E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24197603E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.11084252E-03 [kg/kg] at (   463,   474,    48)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.75394212E-06 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.65016593E-06 [kg/kg] at (   452,   445,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39679340E+05 [1/kg]  at (   279,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.26755637E+04 [1/kg]  at (   449,   445,    89)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.35732564E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       25, real time =      125.000 [s]
+ 
+  ##### Information at time, 130.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37214172E+02 [m/s]   at (   425,   449,     7)
+    umin    = -0.41506351E+02 [m/s]   at (   438,   517,     7)
+    vmax    =  0.42829613E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33050049E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.49395066E+00 [m/s]   at (   451,   472,    44)
+    wmin    = -0.32897979E+00 [m/s]   at (   434,   484,    78)
+    ppmax   =  0.11376515E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.45079683E+04 [Pa]    at (   425,   483,     1)
+    ptpmax  =  0.13429039E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.56983252E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24200201E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.11430460E-03 [kg/kg] at (   463,   474,    48)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.79891601E-06 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.75879126E-06 [kg/kg] at (   450,   445,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39619855E+05 [1/kg]  at (   279,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.30219026E+04 [1/kg]  at (   449,   445,    89)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.38493526E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       26, real time =      130.000 [s]
+ 
+  ##### Information at time, 135.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37243019E+02 [m/s]   at (   425,   449,     7)
+    umin    = -0.41518139E+02 [m/s]   at (   438,   517,     7)
+    vmax    =  0.42872158E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33067455E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.44055820E+00 [m/s]   at (   451,   472,    41)
+    wmin    = -0.34724471E+00 [m/s]   at (   434,   484,    77)
+    ppmax   =  0.11380286E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44822603E+04 [Pa]    at (   425,   483,     1)
+    ptpmax  =  0.13427851E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.56978793E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24202719E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.11431575E-03 [kg/kg] at (   463,   474,    48)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.84475829E-06 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.86982197E-06 [kg/kg] at (   450,   445,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39573520E+05 [1/kg]  at (   279,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.33315999E+04 [1/kg]  at (   447,   445,    89)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.41269749E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       27, real time =      135.000 [s]
+ 
+  ##### Information at time, 140.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37267914E+02 [m/s]   at (   425,   449,     7)
+    umin    = -0.41531834E+02 [m/s]   at (   437,   517,     7)
+    vmax    =  0.42911560E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33081181E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.42436630E+00 [m/s]   at (   448,   495,    42)
+    wmin    = -0.31310555E+00 [m/s]   at (   436,   484,    74)
+    ppmax   =  0.11385333E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44578389E+04 [Pa]    at (   425,   482,     1)
+    ptpmax  =  0.13426552E+02 [K]     at (   424,   493,   109)
+    ptpmin  = -0.56974235E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24205152E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.11217878E-03 [kg/kg] at (   463,   474,    48)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.89111944E-06 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.98071393E-06 [kg/kg] at (   450,   445,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39522629E+05 [1/kg]  at (   279,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.36000723E+04 [1/kg]  at (   447,   445,    89)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.44057003E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       28, real time =      140.000 [s]
+ 
+  ##### Information at time, 145.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37288654E+02 [m/s]   at (   425,   449,     7)
+    umin    = -0.41547485E+02 [m/s]   at (   437,   517,     7)
+    vmax    =  0.42947411E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33090816E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.45027918E+00 [m/s]   at (   448,   495,    44)
+    wmin    = -0.24766420E+00 [m/s]   at (   440,   482,    71)
+    ppmax   =  0.11389734E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44359712E+04 [Pa]    at (   425,   482,     1)
+    ptpmax  =  0.13424686E+02 [K]     at (   424,   493,   109)
+    ptpmin  = -0.56969538E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24207503E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.11026931E-03 [kg/kg] at (   463,   474,    49)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.93815066E-06 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.11023373E-05 [kg/kg] at (   420,   448,    88)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39494211E+05 [1/kg]  at (   279,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.38267102E+04 [1/kg]  at (   448,   445,    89)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.46849316E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       29, real time =      145.000 [s]
+ 
+  ##### Information at time, 150.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37305748E+02 [m/s]   at (   425,   449,     7)
+    umin    = -0.41564434E+02 [m/s]   at (   437,   517,     7)
+    vmax    =  0.42980282E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33096840E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.51111090E+00 [m/s]   at (   448,   495,    47)
+    wmin    = -0.16712603E+00 [m/s]   at (   441,   481,    68)
+    ppmax   =  0.11392361E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44199155E+04 [Pa]    at (   425,   482,     1)
+    ptpmax  =  0.13421857E+02 [K]     at (   424,   493,   109)
+    ptpmin  = -0.56964746E+01 [K]     at (   886,   898,    17)
+    qvmax   =  0.24209773E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.11047009E-03 [kg/kg] at (   459,   473,    49)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.98562157E-06 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.12306896E-05 [kg/kg] at (   420,   448,    88)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.00000000E+00 [kg/kg] at (   898,   898,   127)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39466988E+05 [1/kg]  at (   279,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.40150442E+04 [1/kg]  at (   448,   445,    89)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.00000000E+00 [1/kg]  at (   898,   898,   127)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.49642223E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       30, real time =      150.000 [s]
+ 
+  ##### Information at time, 155.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37321709E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41582485E+02 [m/s]   at (   437,   517,     7)
+    vmax    =  0.43011654E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33100777E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.60098833E+00 [m/s]   at (   448,   495,    49)
+    wmin    = -0.10681321E+00 [m/s]   at (   230,   849,    22)
+    ppmax   =  0.11393619E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44151826E+04 [Pa]    at (   425,   482,     1)
+    ptpmax  =  0.13417967E+02 [K]     at (   424,   493,   109)
+    ptpmin  = -0.56962190E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24211967E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.11334225E-03 [kg/kg] at (   395,   491,    57)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.12177982E-11 [kg/kg] at (   402,   477,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.10335850E-05 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.13596429E-05 [kg/kg] at (   420,   448,    88)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.29004280E-14 [kg/kg] at (   402,   479,    61)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39449238E+05 [1/kg]  at (   279,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.41817959E+04 [1/kg]  at (   473,   494,    90)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.41434687E-03 [1/kg]  at (   402,   479,    61)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.52432722E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       31, real time =      155.000 [s]
+ 
+  ##### Information at time, 160.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37337242E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41600971E+02 [m/s]   at (   437,   517,     7)
+    vmax    =  0.43042774E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33104309E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.70427102E+00 [m/s]   at (   448,   495,    50)
+    wmin    = -0.10666666E+00 [m/s]   at (   230,   849,    22)
+    ppmax   =  0.11394324E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44251006E+04 [Pa]    at (   425,   483,     1)
+    ptpmax  =  0.13413149E+02 [K]     at (   424,   493,   109)
+    ptpmin  = -0.56960483E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24214100E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.11801539E-03 [kg/kg] at (   395,   491,    57)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.14460069E-11 [kg/kg] at (   402,   477,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.10818850E-05 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.14879295E-05 [kg/kg] at (   420,   448,    88)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.16758582E-13 [kg/kg] at (   400,   480,    61)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39422223E+05 [1/kg]  at (   279,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.43206274E+04 [1/kg]  at (   473,   494,    90)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.23940832E-02 [1/kg]  at (   400,   480,    61)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.55215150E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       32, real time =      160.000 [s]
+ 
+  ##### Information at time, 165.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37352482E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41620125E+02 [m/s]   at (   437,   517,     7)
+    vmax    =  0.43074429E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33108196E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.80301440E+00 [m/s]   at (   448,   495,    51)
+    wmin    = -0.11082111E+00 [m/s]   at (   230,   849,    22)
+    ppmax   =  0.11394473E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44470537E+04 [Pa]    at (   425,   483,     1)
+    ptpmax  =  0.13407714E+02 [K]     at (   424,   493,   109)
+    ptpmin  = -0.56958690E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24216166E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.12314094E-03 [kg/kg] at (   396,   491,    57)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.15456963E-11 [kg/kg] at (   401,   476,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.11305120E-05 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.16158564E-05 [kg/kg] at (   420,   448,    88)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.30322973E-13 [kg/kg] at (   470,   473,    61)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39388207E+05 [1/kg]  at (   279,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.44323091E+04 [1/kg]  at (   473,   494,    90)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.43318532E-02 [1/kg]  at (   470,   473,    61)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.57983732E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       33, real time =      165.000 [s]
+ 
+  ##### Information at time, 170.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37367775E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41640022E+02 [m/s]   at (   437,   517,     7)
+    vmax    =  0.43106644E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33112743E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.87858570E+00 [m/s]   at (   448,   495,    52)
+    wmin    = -0.12057523E+00 [m/s]   at (   341,   522,    94)
+    ppmax   =  0.11393513E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44748984E+04 [Pa]    at (   425,   483,     1)
+    ptpmax  =  0.13402015E+02 [K]     at (   424,   493,   109)
+    ptpmin  = -0.56956811E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24218170E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.12867211E-03 [kg/kg] at (   395,   491,    57)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.14491356E-11 [kg/kg] at (   450,   488,    62)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.11793527E-05 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.17431828E-05 [kg/kg] at (   420,   448,    88)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.41399193E-13 [kg/kg] at (   470,   474,    61)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39330836E+05 [1/kg]  at (   279,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.45139502E+04 [1/kg]  at (   473,   494,    90)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.59141703E-02 [1/kg]  at (   470,   474,    61)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.60731226E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       34, real time =      170.000 [s]
+ 
+  ##### Information at time, 175.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37382847E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41660915E+02 [m/s]   at (   437,   517,     7)
+    vmax    =  0.43138943E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33117432E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.92482501E+00 [m/s]   at (   457,   473,    58)
+    wmin    = -0.13994862E+00 [m/s]   at (   341,   522,    93)
+    ppmax   =  0.11391259E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.45019937E+04 [Pa]    at (   425,   483,     1)
+    ptpmax  =  0.13396328E+02 [K]     at (   424,   493,   109)
+    ptpmin  = -0.56954861E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24220105E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.13759267E-03 [kg/kg] at (   457,   473,    49)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.21105446E-11 [kg/kg] at (   402,   477,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.12283620E-05 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.18703900E-05 [kg/kg] at (   420,   448,    88)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.22454640E-12 [kg/kg] at (   400,   469,    62)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39247734E+05 [1/kg]  at (   279,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.45582529E+04 [1/kg]  at (   473,   494,    90)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.31263430E-01 [1/kg]  at (   400,   469,    62)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.63449621E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       35, real time =      175.000 [s]
+ 
+  ##### Information at time, 180.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37397324E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41683006E+02 [m/s]   at (   437,   517,     7)
+    vmax    =  0.43170612E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33121651E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.95126748E+00 [m/s]   at (   458,   473,    61)
+    wmin    = -0.15879473E+00 [m/s]   at (   342,   523,    91)
+    ppmax   =  0.11388136E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.45227339E+04 [Pa]    at (   425,   483,     1)
+    ptpmax  =  0.13390824E+02 [K]     at (   424,   493,   109)
+    ptpmin  = -0.56952815E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24221977E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.14816014E-03 [kg/kg] at (   457,   473,    48)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.23779698E-11 [kg/kg] at (   402,   477,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.12774489E-05 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.19971187E-05 [kg/kg] at (   420,   448,    88)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.27595650E-12 [kg/kg] at (   399,   470,    62)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39132387E+05 [1/kg]  at (   279,    72,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.46074883E+04 [1/kg]  at (   473,   489,    90)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.32917000E-01 [1/kg]  at (   399,   470,    62)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.66128659E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       36, real time =      180.000 [s]
+ 
+  ##### Information at time, 185.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37410809E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41706135E+02 [m/s]   at (   437,   517,     7)
+    vmax    =  0.43200901E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33124660E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.92215663E+00 [m/s]   at (   458,   473,    62)
+    wmin    = -0.17803815E+00 [m/s]   at (   343,   524,    90)
+    ppmax   =  0.11384901E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.45334214E+04 [Pa]    at (   425,   484,     1)
+    ptpmax  =  0.13385674E+02 [K]     at (   424,   493,   109)
+    ptpmin  = -0.56950707E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24223773E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.15894040E-03 [kg/kg] at (   457,   473,    48)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.24701213E-11 [kg/kg] at (   401,   476,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.13265470E-05 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.21252822E-05 [kg/kg] at (   420,   448,    88)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.44887626E-12 [kg/kg] at (   400,   469,    62)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39023074E+05 [1/kg]  at (   279,    71,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.46571987E+04 [1/kg]  at (   474,   487,    90)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.37174214E-01 [1/kg]  at (   400,   469,    62)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.68764067E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       37, real time =      185.000 [s]
+ 
+  ##### Information at time, 190.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37422867E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41730213E+02 [m/s]   at (   437,   517,     7)
+    vmax    =  0.43229488E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33126560E+02 [m/s]   at (   376,   492,     7)
+    wmax    =  0.84756112E+00 [m/s]   at (   458,   473,    60)
+    wmin    = -0.20002733E+00 [m/s]   at (   350,   537,    92)
+    ppmax   =  0.11382279E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.45318818E+04 [Pa]    at (   425,   484,     1)
+    ptpmax  =  0.13381133E+02 [K]     at (   424,   493,   109)
+    ptpmin  = -0.56948500E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24225498E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.16863925E-03 [kg/kg] at (   457,   473,    48)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.25680551E-11 [kg/kg] at (   401,   475,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.13755756E-05 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.22557781E-05 [kg/kg] at (   420,   448,    88)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.55213559E-12 [kg/kg] at (   400,   469,    62)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.38920988E+05 [1/kg]  at (   279,    72,    98)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.46808887E+04 [1/kg]  at (   474,   487,    90)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.39149079E-01 [1/kg]  at (   400,   469,    62)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.71374530E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       38, real time =      190.000 [s]
+ 
+  ##### Information at time, 195.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37433041E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41754810E+02 [m/s]   at (   437,   517,     7)
+    vmax    =  0.43255718E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33127426E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.76849914E+00 [m/s]   at (   451,   473,    51)
+    wmin    = -0.21580884E+00 [m/s]   at (   350,   537,    92)
+    ppmax   =  0.11380840E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.45186328E+04 [Pa]    at (   425,   484,     1)
+    ptpmax  =  0.13377457E+02 [K]     at (   424,   493,   109)
+    ptpmin  = -0.56946225E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24227144E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.17646477E-03 [kg/kg] at (   456,   473,    48)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.34318587E-11 [kg/kg] at (   402,   477,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.14244591E-05 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.23889804E-05 [kg/kg] at (   420,   448,    88)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.13189701E-11 [kg/kg] at (   465,   474,    63)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.38981043E+05 [1/kg]  at (   257,    71,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.46897646E+04 [1/kg]  at (   474,   488,    90)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.49056351E-01 [1/kg]  at (   465,   474,    63)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.74106389E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       39, real time =      195.000 [s]
+ 
+  ##### Information at time, 200.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37440964E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41779816E+02 [m/s]   at (   436,   517,     7)
+    vmax    =  0.43280003E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33129704E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.71389610E+00 [m/s]   at (   448,   495,    47)
+    wmin    = -0.28969827E+00 [m/s]   at (   435,   484,    73)
+    ppmax   =  0.11380925E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44964468E+04 [Pa]    at (   425,   484,     1)
+    ptpmax  =  0.13374677E+02 [K]     at (   424,   493,   109)
+    ptpmin  = -0.56943865E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24228714E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.18193439E-03 [kg/kg] at (   456,   473,    48)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.39132430E-11 [kg/kg] at (   402,   477,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.14731194E-05 [kg/kg] at (   898,   337,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.25245795E-05 [kg/kg] at (   420,   448,    88)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.16230658E-11 [kg/kg] at (   465,   474,    63)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39107277E+05 [1/kg]  at (   257,    71,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.46903291E+04 [1/kg]  at (   474,   488,    90)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.51667862E-01 [1/kg]  at (   465,   474,    63)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.76725692E+00 [J/kg]  at (   473,   494,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       40, real time =      200.000 [s]
+ 
+  ##### Information at time, 205.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37446499E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41805176E+02 [m/s]   at (   436,   517,     7)
+    vmax    =  0.43301929E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33130371E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.67399383E+00 [m/s]   at (   448,   495,    46)
+    wmin    = -0.34138748E+00 [m/s]   at (   435,   484,    74)
+    ppmax   =  0.11382607E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44693525E+04 [Pa]    at (   425,   484,     1)
+    ptpmax  =  0.13372544E+02 [K]     at (   424,   493,   109)
+    ptpmin  = -0.56941428E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24230206E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.18487230E-03 [kg/kg] at (   456,   473,    48)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.44692761E-11 [kg/kg] at (   402,   477,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.15214898E-05 [kg/kg] at (   898,   336,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.26719633E-05 [kg/kg] at (   474,   474,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.25386154E-11 [kg/kg] at (   465,   474,    63)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39230180E+05 [1/kg]  at (   257,    71,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.46874199E+04 [1/kg]  at (   474,   488,    90)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.57781082E-01 [1/kg]  at (   465,   474,    63)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.79534054E+00 [J/kg]  at (   472,   495,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       41, real time =      205.000 [s]
+ 
+  ##### Information at time, 210.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37449718E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41830376E+02 [m/s]   at (   436,   517,     7)
+    vmax    =  0.43321533E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33129402E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.65027505E+00 [m/s]   at (   448,   495,    45)
+    wmin    = -0.35842508E+00 [m/s]   at (   436,   484,    74)
+    ppmax   =  0.11385667E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44412397E+04 [Pa]    at (   425,   484,     1)
+    ptpmax  =  0.13370643E+02 [K]     at (   424,   493,   109)
+    ptpmin  = -0.56938906E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24231618E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.18850120E-03 [kg/kg] at (   448,   495,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.50998689E-11 [kg/kg] at (   402,   477,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.15696054E-05 [kg/kg] at (   898,   336,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.28321431E-05 [kg/kg] at (   474,   474,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.38113093E-11 [kg/kg] at (   463,   474,    64)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39354688E+05 [1/kg]  at (   258,    71,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.46846084E+04 [1/kg]  at (   474,   488,    90)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.64466923E-01 [1/kg]  at (   463,   474,    64)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.82260990E+00 [J/kg]  at (   472,   495,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       42, real time =      210.000 [s]
+ 
+  ##### Information at time, 215.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37450867E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41854687E+02 [m/s]   at (   436,   517,     7)
+    vmax    =  0.43338615E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33126747E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.64624935E+00 [m/s]   at (   448,   495,    45)
+    wmin    = -0.33928382E+00 [m/s]   at (   437,   484,    73)
+    ppmax   =  0.11389591E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44150830E+04 [Pa]    at (   425,   484,     1)
+    ptpmax  =  0.13368556E+02 [K]     at (   424,   493,   109)
+    ptpmin  = -0.56936316E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24232959E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.19197162E-03 [kg/kg] at (   448,   495,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.57958430E-11 [kg/kg] at (   402,   477,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.16172615E-05 [kg/kg] at (   898,   336,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.29901605E-05 [kg/kg] at (   474,   474,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.51849644E-11 [kg/kg] at (   465,   474,    64)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39484297E+05 [1/kg]  at (   258,    71,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.47039355E+04 [1/kg]  at (   442,   448,    90)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.69623344E-01 [1/kg]  at (   465,   474,    64)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.85155135E+00 [J/kg]  at (   472,   495,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       43, real time =      215.000 [s]
+ 
+  ##### Information at time, 220.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37450500E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41877739E+02 [m/s]   at (   436,   517,     7)
+    vmax    =  0.43353592E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33122528E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.66589093E+00 [m/s]   at (   448,   495,    46)
+    wmin    = -0.29069155E+00 [m/s]   at (   438,   483,    71)
+    ppmax   =  0.11393684E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.43932393E+04 [Pa]    at (   425,   484,     1)
+    ptpmax  =  0.13365941E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.56933632E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24234226E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.19583513E-03 [kg/kg] at (   448,   495,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.64302639E-11 [kg/kg] at (   402,   477,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.16643841E-05 [kg/kg] at (   898,   336,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.31528507E-05 [kg/kg] at (   474,   474,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.75170287E-11 [kg/kg] at (   463,   474,    64)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39621520E+05 [1/kg]  at (   258,    71,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.47929438E+04 [1/kg]  at (   442,   448,    91)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.76397642E-01 [1/kg]  at (   463,   474,    64)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.87950820E+00 [J/kg]  at (   472,   495,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       44, real time =      220.000 [s]
+ 
+  ##### Information at time, 225.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37449074E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41899273E+02 [m/s]   at (   436,   517,     7)
+    vmax    =  0.43366920E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33117508E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.71143025E+00 [m/s]   at (   448,   495,    47)
+    wmin    = -0.22345735E+00 [m/s]   at (   439,   483,    69)
+    ppmax   =  0.11397423E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.43781963E+04 [Pa]    at (   425,   484,     1)
+    ptpmax  =  0.13362719E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.56930885E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24235427E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.20072823E-03 [kg/kg] at (   448,   495,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.72444125E-11 [kg/kg] at (   402,   477,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.17108857E-05 [kg/kg] at (   898,   336,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.33189046E-05 [kg/kg] at (   474,   474,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.96503569E-11 [kg/kg] at (   465,   474,    64)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39764262E+05 [1/kg]  at (   258,    71,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.48785825E+04 [1/kg]  at (   443,   448,    91)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.81321292E-01 [1/kg]  at (   465,   474,    64)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.90806907E+00 [J/kg]  at (   472,   495,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       45, real time =      225.000 [s]
+ 
+  ##### Information at time, 230.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37447437E+02 [m/s]   at (   424,   449,     7)
+    umin    = -0.41919327E+02 [m/s]   at (   436,   517,     7)
+    vmax    =  0.43379719E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33112450E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.77883315E+00 [m/s]   at (   448,   495,    48)
+    wmin    = -0.15013355E+00 [m/s]   at (   439,   483,    67)
+    ppmax   =  0.11400604E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.43724063E+04 [Pa]    at (   425,   484,     1)
+    ptpmax  =  0.13358736E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.56928053E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24236562E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.20679861E-03 [kg/kg] at (   448,   495,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.80764527E-11 [kg/kg] at (   402,   477,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.17566887E-05 [kg/kg] at (   898,   336,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.34902573E-05 [kg/kg] at (   474,   475,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.12147964E-10 [kg/kg] at (   461,   474,    65)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39910602E+05 [1/kg]  at (   258,    71,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.49521187E+04 [1/kg]  at (   444,   448,    91)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.86822420E-01 [1/kg]  at (   461,   474,    65)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.93605715E+00 [J/kg]  at (   472,   495,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       46, real time =      230.000 [s]
+ 
+  ##### Information at time, 235.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37447250E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.41938015E+02 [m/s]   at (   436,   517,     7)
+    vmax    =  0.43392742E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33108299E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.85743368E+00 [m/s]   at (   448,   495,    49)
+    wmin    = -0.11962107E+00 [m/s]   at (   230,   849,    21)
+    ppmax   =  0.11403226E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.43769297E+04 [Pa]    at (   425,   484,     1)
+    ptpmax  =  0.13354044E+02 [K]     at (   425,   493,   109)
+    ptpmin  = -0.56925144E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24237642E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.21451908E-03 [kg/kg] at (   448,   496,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.89013510E-11 [kg/kg] at (   402,   477,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.18017093E-05 [kg/kg] at (   898,   336,    98)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.36668118E-05 [kg/kg] at (   474,   475,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.17776568E-10 [kg/kg] at (   460,   474,    65)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.40054543E+05 [1/kg]  at (   258,    71,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.50157847E+04 [1/kg]  at (   444,   448,    91)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.95492221E-01 [1/kg]  at (   460,   474,    65)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.96398789E+00 [J/kg]  at (   472,   495,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       47, real time =      235.000 [s]
+ 
+  ##### Information at time, 240.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37448063E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.41955616E+02 [m/s]   at (   436,   517,     7)
+    vmax    =  0.43407009E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33105667E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.93575299E+00 [m/s]   at (   448,   496,    50)
+    wmin    = -0.12190612E+00 [m/s]   at (   230,   849,    21)
+    ppmax   =  0.11405256E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.43902104E+04 [Pa]    at (   425,   484,     1)
+    ptpmax  =  0.13348934E+02 [K]     at (   425,   493,   110)
+    ptpmin  = -0.56922169E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24238665E-01 [kg/kg] at (   426,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.22399823E-03 [kg/kg] at (   448,   496,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.97574848E-11 [kg/kg] at (   402,   477,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.18468933E-05 [kg/kg] at (   257,    71,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.38477851E-05 [kg/kg] at (   474,   475,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.23110088E-10 [kg/kg] at (   461,   474,    65)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.40192148E+05 [1/kg]  at (   258,    71,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.50682046E+04 [1/kg]  at (   444,   448,    91)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.10377347E+00 [1/kg]  at (   461,   474,    65)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.99142897E+00 [J/kg]  at (   472,   495,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       48, real time =      240.000 [s]
+ 
+  ##### Information at time, 245.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37449993E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.41972427E+02 [m/s]   at (   436,   517,     7)
+    vmax    =  0.43422348E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33104763E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.99948984E+00 [m/s]   at (   448,   496,    51)
+    wmin    = -0.12707990E+00 [m/s]   at (   230,   849,    21)
+    ppmax   =  0.11406582E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44083613E+04 [Pa]    at (   426,   484,     1)
+    ptpmax  =  0.13343931E+02 [K]     at (   424,   493,   110)
+    ptpmin  = -0.56919107E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24239883E-01 [kg/kg] at (   427,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.23424183E-03 [kg/kg] at (   448,   496,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.10742291E-10 [kg/kg] at (   402,   477,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.18978081E-05 [kg/kg] at (   257,    71,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.40337682E-05 [kg/kg] at (   474,   475,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.28663249E-10 [kg/kg] at (   461,   474,    65)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.40317820E+05 [1/kg]  at (   258,    71,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.51120562E+04 [1/kg]  at (   444,   448,    91)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.11406269E+00 [1/kg]  at (   448,   495,    66)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.10184195E+01 [J/kg]  at (   472,   495,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       49, real time =      245.000 [s]
+ 
+  ##### Information at time, 250.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37453186E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.41988716E+02 [m/s]   at (   436,   517,     7)
+    vmax    =  0.43439137E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33105438E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.10348580E+01 [m/s]   at (   448,   496,    51)
+    wmin    = -0.13781646E+00 [m/s]   at (   349,   537,    96)
+    ppmax   =  0.11407168E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44263267E+04 [Pa]    at (   426,   484,     1)
+    ptpmax  =  0.13338948E+02 [K]     at (   424,   493,   110)
+    ptpmin  = -0.56915975E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24242379E-01 [kg/kg] at (   427,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.24510035E-03 [kg/kg] at (   448,   496,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.11808457E-10 [kg/kg] at (   402,   477,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.19483500E-05 [kg/kg] at (   257,    71,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.42246616E-05 [kg/kg] at (   474,   475,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.36782168E-10 [kg/kg] at (   461,   474,    65)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.40429090E+05 [1/kg]  at (   258,    71,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.51459648E+04 [1/kg]  at (   444,   448,    91)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.13019612E+00 [1/kg]  at (   448,   495,    66)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.10449269E+01 [J/kg]  at (   472,   495,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       50, real time =      250.000 [s]
+ 
+  ##### Information at time, 255.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37457531E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42004593E+02 [m/s]   at (   436,   517,     7)
+    vmax    =  0.43456890E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33107342E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.10379684E+01 [m/s]   at (   448,   496,    51)
+    wmin    = -0.16113372E+00 [m/s]   at (   350,   537,    94)
+    ppmax   =  0.11407180E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44396118E+04 [Pa]    at (   426,   485,     1)
+    ptpmax  =  0.13334170E+02 [K]     at (   425,   493,   110)
+    ptpmin  = -0.56912766E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24244813E-01 [kg/kg] at (   427,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.25627689E-03 [kg/kg] at (   448,   496,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.13036806E-10 [kg/kg] at (   402,   477,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.19984884E-05 [kg/kg] at (   257,    71,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.44205017E-05 [kg/kg] at (   474,   475,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.50017355E-10 [kg/kg] at (   448,   495,    66)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.40534961E+05 [1/kg]  at (   279,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.51725762E+04 [1/kg]  at (   444,   448,    91)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.15874168E+00 [1/kg]  at (   448,   495,    66)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.10708243E+01 [J/kg]  at (   472,   495,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       51, real time =      255.000 [s]
+ 
+  ##### Information at time, 260.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37462780E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42020103E+02 [m/s]   at (   436,   517,     7)
+    vmax    =  0.43475288E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33110123E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.10136818E+01 [m/s]   at (   447,   496,    50)
+    wmin    = -0.18333535E+00 [m/s]   at (   350,   537,    93)
+    ppmax   =  0.11406965E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44446836E+04 [Pa]    at (   426,   485,     1)
+    ptpmax  =  0.13329924E+02 [K]     at (   425,   493,   110)
+    ptpmin  = -0.56909475E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24247183E-01 [kg/kg] at (   427,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.26728079E-03 [kg/kg] at (   448,   496,    51)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.14361350E-10 [kg/kg] at (   402,   477,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.20481868E-05 [kg/kg] at (   257,    71,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.46215882E-05 [kg/kg] at (   474,   475,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.60747019E-10 [kg/kg] at (   448,   496,    66)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.40637504E+05 [1/kg]  at (   279,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.51996455E+04 [1/kg]  at (   446,   445,    91)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.18155476E+00 [1/kg]  at (   448,   496,    66)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.10962682E+01 [J/kg]  at (   472,   495,   101)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       52, real time =      260.000 [s]
+ 
+  ##### Information at time, 265.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37468590E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42035210E+02 [m/s]   at (   436,   517,     7)
+    vmax    =  0.43494347E+02 [m/s]   at (   474,   474,     8)
+    vmin    = -0.33113529E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.97490841E+00 [m/s]   at (   447,   496,    49)
+    wmin    = -0.20118172E+00 [m/s]   at (   350,   537,    92)
+    ppmax   =  0.11406941E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44399160E+04 [Pa]    at (   426,   485,     1)
+    ptpmax  =  0.13326205E+02 [K]     at (   425,   493,   110)
+    ptpmin  = -0.56906123E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24249483E-01 [kg/kg] at (   427,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.27818148E-03 [kg/kg] at (   447,   496,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.15790015E-10 [kg/kg] at (   402,   477,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.20973896E-05 [kg/kg] at (   257,    71,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.48275178E-05 [kg/kg] at (   474,   475,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.76051054E-10 [kg/kg] at (   460,   474,    66)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.40724945E+05 [1/kg]  at (   279,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.52228350E+04 [1/kg]  at (   446,   445,    91)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.21533112E+00 [1/kg]  at (   448,   496,    66)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.11234467E+01 [J/kg]  at (   472,   496,   102)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       53, real time =      265.000 [s]
+ 
+  ##### Information at time, 270.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37474762E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42049767E+02 [m/s]   at (   436,   517,     7)
+    vmax    =  0.43513374E+02 [m/s]   at (   474,   475,     8)
+    vmin    = -0.33117378E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.92936426E+00 [m/s]   at (   447,   496,    48)
+    wmin    = -0.24698642E+00 [m/s]   at (   435,   484,    69)
+    ppmax   =  0.11407487E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44256704E+04 [Pa]    at (   426,   485,     1)
+    ptpmax  =  0.13323094E+02 [K]     at (   425,   493,   110)
+    ptpmin  = -0.56902690E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24251712E-01 [kg/kg] at (   427,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.28887720E-03 [kg/kg] at (   447,   496,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.17299001E-10 [kg/kg] at (   402,   477,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.21460251E-05 [kg/kg] at (   257,    71,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.50390222E-05 [kg/kg] at (   474,   475,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.12177320E-09 [kg/kg] at (   448,   495,    67)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.40799320E+05 [1/kg]  at (   279,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.52774438E+04 [1/kg]  at (   448,   449,    92)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.28844959E+00 [1/kg]  at (   448,   495,    67)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.11555432E+01 [J/kg]  at (   472,   496,   102)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       54, real time =      270.000 [s]
+ 
+  ##### Information at time, 275.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37481239E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42063690E+02 [m/s]   at (   436,   517,     7)
+    vmax    =  0.43536575E+02 [m/s]   at (   474,   475,     8)
+    vmin    = -0.33121487E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.88686925E+00 [m/s]   at (   447,   496,    47)
+    wmin    = -0.30912322E+00 [m/s]   at (   435,   484,    71)
+    ppmax   =  0.11408840E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.44039766E+04 [Pa]    at (   426,   485,     1)
+    ptpmax  =  0.13320585E+02 [K]     at (   425,   493,   110)
+    ptpmin  = -0.56899185E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24253869E-01 [kg/kg] at (   427,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.29828624E-03 [kg/kg] at (   447,   496,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.19190701E-10 [kg/kg] at (   402,   476,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.21939977E-05 [kg/kg] at (   257,    71,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.52555961E-05 [kg/kg] at (   474,   475,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.14277060E-09 [kg/kg] at (   448,   496,    67)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.40862348E+05 [1/kg]  at (   279,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.53500942E+04 [1/kg]  at (   448,   449,    92)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.32402912E+00 [1/kg]  at (   448,   496,    67)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.11890149E+01 [J/kg]  at (   472,   496,   102)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       55, real time =      275.000 [s]
+ 
+  ##### Information at time, 280.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37487576E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42076843E+02 [m/s]   at (   436,   517,     7)
+    vmax    =  0.43559887E+02 [m/s]   at (   474,   475,     8)
+    vmin    = -0.33125694E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.85455519E+00 [m/s]   at (   447,   496,    46)
+    wmin    = -0.35128155E+00 [m/s]   at (   436,   484,    71)
+    ppmax   =  0.11411116E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.43778887E+04 [Pa]    at (   426,   485,     1)
+    ptpmax  =  0.13318536E+02 [K]     at (   425,   493,   110)
+    ptpmin  = -0.56895614E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24255952E-01 [kg/kg] at (   427,   472,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.30639945E-03 [kg/kg] at (   447,   496,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.21484097E-10 [kg/kg] at (   402,   476,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.22412196E-05 [kg/kg] at (   257,    71,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.54780535E-05 [kg/kg] at (   474,   475,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.22518325E-09 [kg/kg] at (   448,   496,    67)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.40917254E+05 [1/kg]  at (   279,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.54136299E+04 [1/kg]  at (   448,   449,    92)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.47201246E+00 [1/kg]  at (   448,   496,    67)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.12215748E+01 [J/kg]  at (   472,   496,   102)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       56, real time =      280.000 [s]
+ 
+  ##### Information at time, 285.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37493942E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42089161E+02 [m/s]   at (   436,   517,     7)
+    vmax    =  0.43582928E+02 [m/s]   at (   474,   475,     8)
+    vmin    = -0.33129795E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.83724684E+00 [m/s]   at (   447,   496,    46)
+    wmin    = -0.36710849E+00 [m/s]   at (   436,   484,    72)
+    ppmax   =  0.11414210E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.43506792E+04 [Pa]    at (   426,   485,     1)
+    ptpmax  =  0.13316695E+02 [K]     at (   425,   493,   110)
+    ptpmin  = -0.56891966E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24258152E-01 [kg/kg] at (   427,   473,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.31350800E-03 [kg/kg] at (   447,   496,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.24105318E-10 [kg/kg] at (   402,   476,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.22876054E-05 [kg/kg] at (   258,    71,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.57062171E-05 [kg/kg] at (   474,   475,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.27377128E-09 [kg/kg] at (   447,   496,    67)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.40966918E+05 [1/kg]  at (   279,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.54696709E+04 [1/kg]  at (   447,   449,    92)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.55600893E+00 [1/kg]  at (   447,   496,    67)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.12547227E+01 [J/kg]  at (   472,   496,   102)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       57, real time =      285.000 [s]
+ 
+  ##### Information at time, 290.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37500305E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42100536E+02 [m/s]   at (   436,   517,     7)
+    vmax    =  0.43605724E+02 [m/s]   at (   474,   475,     8)
+    vmin    = -0.33133633E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.83875936E+00 [m/s]   at (   447,   496,    46)
+    wmin    = -0.35400203E+00 [m/s]   at (   437,   484,    71)
+    ppmax   =  0.11417897E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.43252407E+04 [Pa]    at (   426,   485,     1)
+    ptpmax  =  0.13314780E+02 [K]     at (   425,   493,   110)
+    ptpmin  = -0.56888256E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24260744E-01 [kg/kg] at (   427,   473,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.32013629E-03 [kg/kg] at (   447,   496,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.27069229E-10 [kg/kg] at (   402,   476,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.23331675E-05 [kg/kg] at (   258,    71,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.59416088E-05 [kg/kg] at (   453,   449,    88)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.34806516E-09 [kg/kg] at (   448,   496,    67)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.41014508E+05 [1/kg]  at (   279,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.55307598E+04 [1/kg]  at (   450,   449,    93)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.68300891E+00 [1/kg]  at (   448,   496,    67)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.12868547E+01 [J/kg]  at (   472,   496,   102)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       58, real time =      290.000 [s]
+ 
+  ##### Information at time, 295.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37506413E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42111008E+02 [m/s]   at (   436,   517,     7)
+    vmax    =  0.43628071E+02 [m/s]   at (   474,   475,     8)
+    vmin    = -0.33137203E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.86132717E+00 [m/s]   at (   447,   496,    46)
+    wmin    = -0.31608665E+00 [m/s]   at (   437,   484,    70)
+    ppmax   =  0.11421843E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.43039404E+04 [Pa]    at (   426,   485,     1)
+    ptpmax  =  0.13312540E+02 [K]     at (   425,   493,   110)
+    ptpmin  = -0.56884465E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24263276E-01 [kg/kg] at (   427,   473,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.32688034E-03 [kg/kg] at (   447,   496,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.30206233E-10 [kg/kg] at (   402,   476,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.23778118E-05 [kg/kg] at (   258,    71,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.61891865E-05 [kg/kg] at (   453,   449,    88)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.42547157E-09 [kg/kg] at (   459,   474,    67)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.41061848E+05 [1/kg]  at (   279,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.56044897E+04 [1/kg]  at (   450,   449,    93)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.79542434E+00 [1/kg]  at (   447,   496,    67)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.13193972E+01 [J/kg]  at (   472,   496,   102)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       59, real time =      295.000 [s]
+ 
+  ##### Information at time, 300.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37512741E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42120594E+02 [m/s]   at (   436,   517,     7)
+    vmax    =  0.43650509E+02 [m/s]   at (   474,   475,     8)
+    vmin    = -0.33140663E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.90432924E+00 [m/s]   at (   447,   496,    46)
+    wmin    = -0.26040697E+00 [m/s]   at (   437,   484,    69)
+    ppmax   =  0.11425751E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.42886719E+04 [Pa]    at (   426,   485,     1)
+    ptpmax  =  0.13309809E+02 [K]     at (   425,   493,   110)
+    ptpmin  = -0.56880617E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24265749E-01 [kg/kg] at (   427,   473,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.33427958E-03 [kg/kg] at (   447,   496,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.33700605E-10 [kg/kg] at (   402,   476,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.24214867E-05 [kg/kg] at (   258,    71,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.64444916E-05 [kg/kg] at (   453,   449,    88)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.57467664E-09 [kg/kg] at (   448,   496,    68)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.41108805E+05 [1/kg]  at (   279,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.56724097E+04 [1/kg]  at (   449,   449,    93)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.11683642E+01 [1/kg]  at (   448,   496,    68)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.13509207E+01 [J/kg]  at (   472,   496,   102)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       60, real time =      300.000 [s]
+ 
+  ##### Information at time, 305.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37519234E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42129539E+02 [m/s]   at (   436,   517,     7)
+    vmax    =  0.43672832E+02 [m/s]   at (   474,   475,     8)
+    vmin    = -0.33144375E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.96405953E+00 [m/s]   at (   447,   496,    47)
+    wmin    = -0.19798301E+00 [m/s]   at (   437,   484,    67)
+    ppmax   =  0.11429408E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.42807363E+04 [Pa]    at (   426,   485,     1)
+    ptpmax  =  0.13306525E+02 [K]     at (   425,   493,   110)
+    ptpmin  = -0.56876693E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24268163E-01 [kg/kg] at (   427,   473,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.34256699E-03 [kg/kg] at (   447,   496,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.37513395E-10 [kg/kg] at (   402,   476,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.24641722E-05 [kg/kg] at (   258,    71,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.67287388E-05 [kg/kg] at (   452,   449,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.69084699E-09 [kg/kg] at (   447,   496,    68)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.41153871E+05 [1/kg]  at (   279,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.58003535E+04 [1/kg]  at (   472,   496,    90)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.13813248E+01 [1/kg]  at (   447,   496,    68)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.13824600E+01 [J/kg]  at (   472,   496,   102)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       61, real time =      305.000 [s]
+ 
+  ##### Information at time, 310.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37526295E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42143906E+02 [m/s]   at (   438,   518,     7)
+    vmax    =  0.43695801E+02 [m/s]   at (   474,   475,     8)
+    vmin    = -0.33148685E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.10318232E+01 [m/s]   at (   447,   496,    48)
+    wmin    = -0.13951968E+00 [m/s]   at (   437,   484,    66)
+    ppmax   =  0.11432699E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.42803828E+04 [Pa]    at (   426,   485,     1)
+    ptpmax  =  0.13302737E+02 [K]     at (   425,   493,   110)
+    ptpmin  = -0.56872706E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24270521E-01 [kg/kg] at (   427,   473,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.35176202E-03 [kg/kg] at (   447,   496,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.41636479E-10 [kg/kg] at (   402,   476,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.25058557E-05 [kg/kg] at (   258,    71,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.70306437E-05 [kg/kg] at (   452,   449,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.10722575E-08 [kg/kg] at (   447,   496,    68)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.41193543E+05 [1/kg]  at (   279,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.60030415E+04 [1/kg]  at (   472,   496,    90)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.20928717E+01 [1/kg]  at (   447,   496,    68)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.14130425E+01 [J/kg]  at (   472,   496,   102)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       62, real time =      310.000 [s]
+ 
+  ##### Information at time, 315.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37533978E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42159306E+02 [m/s]   at (   438,   518,     7)
+    vmax    =  0.43719528E+02 [m/s]   at (   474,   475,     8)
+    vmin    = -0.33153854E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.10968250E+01 [m/s]   at (   447,   496,    48)
+    wmin    = -0.12637809E+00 [m/s]   at (   229,   849,    20)
+    ppmax   =  0.11435566E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.42863149E+04 [Pa]    at (   426,   485,     1)
+    ptpmax  =  0.13298582E+02 [K]     at (   425,   493,   110)
+    ptpmin  = -0.56868649E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24272827E-01 [kg/kg] at (   427,   473,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.36173229E-03 [kg/kg] at (   447,   496,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.46066383E-10 [kg/kg] at (   402,   476,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.25465217E-05 [kg/kg] at (   258,    71,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.73406750E-05 [kg/kg] at (   452,   449,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.13047138E-08 [kg/kg] at (   447,   496,    68)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.41224535E+05 [1/kg]  at (   279,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.61916343E+04 [1/kg]  at (   472,   496,    90)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.24901912E+01 [1/kg]  at (   447,   496,    68)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.14435315E+01 [J/kg]  at (   472,   496,   102)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       63, real time =      315.000 [s]
+ 
+  ##### Information at time, 320.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37542454E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42173820E+02 [m/s]   at (   438,   518,     7)
+    vmax    =  0.43744320E+02 [m/s]   at (   474,   475,     8)
+    vmin    = -0.33159901E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.11479144E+01 [m/s]   at (   447,   496,    49)
+    wmin    = -0.13017406E+00 [m/s]   at (   229,   849,    20)
+    ppmax   =  0.11437981E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.42957920E+04 [Pa]    at (   426,   485,     1)
+    ptpmax  =  0.13294249E+02 [K]     at (   425,   493,   110)
+    ptpmin  = -0.56864533E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24275079E-01 [kg/kg] at (   427,   473,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.37230249E-03 [kg/kg] at (   447,   496,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.50688429E-10 [kg/kg] at (   402,   476,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.25861470E-05 [kg/kg] at (   258,    71,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.76594833E-05 [kg/kg] at (   452,   449,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.16551128E-08 [kg/kg] at (   447,   496,    68)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.41242621E+05 [1/kg]  at (   279,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.63523955E+04 [1/kg]  at (   472,   496,    90)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.30900235E+01 [1/kg]  at (   447,   496,    68)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.14741501E+01 [J/kg]  at (   472,   496,   102)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       64, real time =      320.000 [s]
+ 
+  ##### Information at time, 325.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37551685E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42189594E+02 [m/s]   at (   438,   518,     7)
+    vmax    =  0.43770054E+02 [m/s]   at (   474,   475,     8)
+    vmin    = -0.33166748E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.11766154E+01 [m/s]   at (   447,   496,    49)
+    wmin    = -0.14673755E+00 [m/s]   at (   349,   537,    95)
+    ppmax   =  0.11439962E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.43053555E+04 [Pa]    at (   426,   486,     1)
+    ptpmax  =  0.13290121E+02 [K]     at (   425,   492,   110)
+    ptpmin  = -0.56860337E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24277279E-01 [kg/kg] at (   427,   473,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.38322565E-03 [kg/kg] at (   447,   496,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.55501086E-10 [kg/kg] at (   402,   476,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.26246823E-05 [kg/kg] at (   258,    71,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.79839147E-05 [kg/kg] at (   452,   449,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.21181465E-08 [kg/kg] at (   447,   496,    68)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.41244887E+05 [1/kg]  at (   279,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.64899634E+04 [1/kg]  at (   472,   496,    90)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.36658828E+01 [1/kg]  at (   447,   496,    68)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.15040150E+01 [J/kg]  at (   472,   496,   102)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       65, real time =      325.000 [s]
+ 
+  ##### Information at time, 330.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37561516E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42204857E+02 [m/s]   at (   438,   518,     7)
+    vmax    =  0.43796612E+02 [m/s]   at (   474,   475,     8)
+    vmin    = -0.33174103E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.11793764E+01 [m/s]   at (   447,   496,    49)
+    wmin    = -0.16654289E+00 [m/s]   at (   349,   537,    94)
+    ppmax   =  0.11441631E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.43112036E+04 [Pa]    at (   426,   486,     1)
+    ptpmax  =  0.13286459E+02 [K]     at (   425,   492,   110)
+    ptpmin  = -0.56856093E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24279417E-01 [kg/kg] at (   427,   473,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.39422369E-03 [kg/kg] at (   447,   496,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.60706523E-10 [kg/kg] at (   402,   476,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.26620580E-05 [kg/kg] at (   258,    71,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.83148825E-05 [kg/kg] at (   453,   449,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.24506794E-08 [kg/kg] at (   447,   496,    68)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.41228465E+05 [1/kg]  at (   279,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.65986851E+04 [1/kg]  at (   472,   496,    90)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.41114545E+01 [1/kg]  at (   447,   496,    68)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.15342711E+01 [J/kg]  at (   472,   496,   102)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       66, real time =      330.000 [s]
+ 
+  ##### Information at time, 335.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37571732E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42220875E+02 [m/s]   at (   438,   518,     7)
+    vmax    =  0.43823734E+02 [m/s]   at (   474,   475,     8)
+    vmin    = -0.33181728E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.11581379E+01 [m/s]   at (   447,   496,    49)
+    wmin    = -0.18434048E+00 [m/s]   at (   349,   537,    94)
+    ppmax   =  0.11443197E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.43106045E+04 [Pa]    at (   426,   486,     1)
+    ptpmax  =  0.13283141E+02 [K]     at (   425,   492,   110)
+    ptpmin  = -0.56851773E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24281498E-01 [kg/kg] at (   427,   473,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.40488353E-03 [kg/kg] at (   447,   496,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.66433047E-10 [kg/kg] at (   402,   476,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.26986656E-05 [kg/kg] at (   279,    72,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.86515347E-05 [kg/kg] at (   453,   449,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.33926528E-08 [kg/kg] at (   447,   496,    69)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.41192285E+05 [1/kg]  at (   279,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.66836372E+04 [1/kg]  at (   472,   496,    90)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.60179806E+01 [1/kg]  at (   447,   496,    69)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.15639099E+01 [J/kg]  at (   472,   496,   102)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       67, real time =      335.000 [s]
+ 
+  ##### Information at time, 340.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37582195E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42236507E+02 [m/s]   at (   438,   518,     7)
+    vmax    =  0.43850986E+02 [m/s]   at (   474,   475,     8)
+    vmin    = -0.33189346E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.11190628E+01 [m/s]   at (   447,   496,    49)
+    wmin    = -0.20160761E+00 [m/s]   at (   436,   484,    67)
+    ppmax   =  0.11444930E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.43021934E+04 [Pa]    at (   426,   486,     1)
+    ptpmax  =  0.13280268E+02 [K]     at (   425,   492,   110)
+    ptpmin  = -0.56847396E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24283513E-01 [kg/kg] at (   427,   473,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.41479830E-03 [kg/kg] at (   447,   496,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.72873887E-10 [kg/kg] at (   402,   476,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.27348678E-05 [kg/kg] at (   279,    72,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.89925261E-05 [kg/kg] at (   453,   449,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.39898413E-08 [kg/kg] at (   447,   496,    69)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.41139598E+05 [1/kg]  at (   280,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.69489761E+04 [1/kg]  at (   898,   336,    98)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.69086642E+01 [1/kg]  at (   447,   496,    69)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.15939038E+01 [J/kg]  at (   472,   496,   102)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       68, real time =      340.000 [s]
+ 
+  ##### Information at time, 345.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37592602E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42252228E+02 [m/s]   at (   438,   518,     7)
+    vmax    =  0.43878075E+02 [m/s]   at (   474,   475,     8)
+    vmin    = -0.33196754E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.10714170E+01 [m/s]   at (   447,   496,    48)
+    wmin    = -0.26080552E+00 [m/s]   at (   436,   484,    68)
+    ppmax   =  0.11447064E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.42861406E+04 [Pa]    at (   426,   486,     1)
+    ptpmax  =  0.13277897E+02 [K]     at (   425,   492,   110)
+    ptpmin  = -0.56842952E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24285462E-01 [kg/kg] at (   427,   473,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.42363090E-03 [kg/kg] at (   447,   496,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.80195565E-10 [kg/kg] at (   402,   476,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.27697411E-05 [kg/kg] at (   279,    72,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.93368499E-05 [kg/kg] at (   453,   449,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.49825988E-08 [kg/kg] at (   447,   496,    69)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.41068875E+05 [1/kg]  at (   280,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.72734956E+04 [1/kg]  at (   898,   337,    97)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.84992628E+01 [1/kg]  at (   447,   496,    69)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.16315789E+01 [J/kg]  at (   472,   496,   103)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       69, real time =      345.000 [s]
+ 
+  ##### Information at time, 350.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37602676E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42267525E+02 [m/s]   at (   438,   518,     7)
+    vmax    =  0.43904922E+02 [m/s]   at (   474,   475,     8)
+    vmin    = -0.33203758E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.10235031E+01 [m/s]   at (   447,   496,    47)
+    wmin    = -0.31204531E+00 [m/s]   at (   436,   484,    69)
+    ppmax   =  0.11449796E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.42639482E+04 [Pa]    at (   426,   486,     1)
+    ptpmax  =  0.13275998E+02 [K]     at (   425,   492,   110)
+    ptpmin  = -0.56838450E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24287343E-01 [kg/kg] at (   427,   473,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.43119126E-03 [kg/kg] at (   447,   496,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.87767238E-10 [kg/kg] at (   402,   476,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.28032073E-05 [kg/kg] at (   279,    72,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.96860449E-05 [kg/kg] at (   453,   450,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.58579697E-08 [kg/kg] at (   447,   496,    69)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.40980871E+05 [1/kg]  at (   280,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.76124976E+04 [1/kg]  at (   898,   337,    97)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.97855568E+01 [1/kg]  at (   447,   496,    69)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.16708028E+01 [J/kg]  at (   472,   496,   103)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       70, real time =      350.000 [s]
+ 
+  ##### Information at time, 355.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37612259E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42282433E+02 [m/s]   at (   438,   518,     7)
+    vmax    =  0.43931080E+02 [m/s]   at (   474,   475,     8)
+    vmin    = -0.33210148E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.98342150E+00 [m/s]   at (   447,   496,    47)
+    wmin    = -0.34710929E+00 [m/s]   at (   436,   484,    69)
+    ppmax   =  0.11453198E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.42380659E+04 [Pa]    at (   426,   486,     1)
+    ptpmax  =  0.13274463E+02 [K]     at (   425,   492,   110)
+    ptpmin  = -0.56833882E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24289155E-01 [kg/kg] at (   427,   473,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.43853614E-03 [kg/kg] at (   447,   497,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.95846643E-10 [kg/kg] at (   402,   476,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.28352074E-05 [kg/kg] at (   279,    72,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.10047493E-04 [kg/kg] at (   453,   450,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.73766997E-08 [kg/kg] at (   447,   496,    69)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.40879008E+05 [1/kg]  at (   280,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.79599829E+04 [1/kg]  at (   898,   337,    97)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.11577852E+02 [1/kg]  at (   447,   496,    69)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.17095737E+01 [J/kg]  at (   472,   496,   103)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       71, real time =      355.000 [s]
+ 
+  ##### Information at time, 360.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37621208E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42296825E+02 [m/s]   at (   438,   518,     7)
+    vmax    =  0.43959328E+02 [m/s]   at (   474,   476,     8)
+    vmin    = -0.33215820E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.96228582E+00 [m/s]   at (   447,   497,    47)
+    wmin    = -0.36025122E+00 [m/s]   at (   436,   484,    70)
+    ppmax   =  0.11457251E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.42114067E+04 [Pa]    at (   427,   486,     1)
+    ptpmax  =  0.13273101E+02 [K]     at (   425,   492,   110)
+    ptpmin  = -0.56829257E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24290901E-01 [kg/kg] at (   427,   473,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.44669842E-03 [kg/kg] at (   447,   497,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.10445434E-09 [kg/kg] at (   402,   476,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.28657025E-05 [kg/kg] at (   279,    72,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.10414537E-04 [kg/kg] at (   453,   450,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.83430098E-08 [kg/kg] at (   447,   496,    69)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.40766125E+05 [1/kg]  at (   280,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.83160244E+04 [1/kg]  at (   898,   336,    97)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.12748282E+02 [1/kg]  at (   447,   496,    69)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.17485189E+01 [J/kg]  at (   472,   496,   103)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       72, real time =      360.000 [s]
+ 
+  ##### Information at time, 365.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37629551E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42310631E+02 [m/s]   at (   438,   518,     7)
+    vmax    =  0.43987934E+02 [m/s]   at (   474,   476,     8)
+    vmin    = -0.33220604E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.96073073E+00 [m/s]   at (   447,   497,    47)
+    wmin    = -0.34965050E+00 [m/s]   at (   436,   484,    69)
+    ppmax   =  0.11461812E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.41862510E+04 [Pa]    at (   427,   486,     1)
+    ptpmax  =  0.13271697E+02 [K]     at (   425,   492,   110)
+    ptpmin  = -0.56824565E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24292577E-01 [kg/kg] at (   427,   473,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.45436047E-03 [kg/kg] at (   447,   497,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.11622957E-09 [kg/kg] at (   402,   475,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.28946802E-05 [kg/kg] at (   279,    72,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.10788202E-04 [kg/kg] at (   453,   450,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.10253475E-07 [kg/kg] at (   447,   496,    69)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.40646133E+05 [1/kg]  at (   280,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.86804346E+04 [1/kg]  at (   898,   336,    97)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.15633366E+02 [1/kg]  at (   447,   496,    70)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.17870493E+01 [J/kg]  at (   472,   496,   103)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       73, real time =      365.000 [s]
+ 
+  ##### Information at time, 370.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37637199E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42323997E+02 [m/s]   at (   438,   518,     7)
+    vmax    =  0.44015671E+02 [m/s]   at (   474,   476,     8)
+    vmin    = -0.33224503E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.97821987E+00 [m/s]   at (   447,   497,    47)
+    wmin    = -0.31885889E+00 [m/s]   at (   437,   484,    68)
+    ppmax   =  0.11466700E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.41647275E+04 [Pa]    at (   427,   486,     1)
+    ptpmax  =  0.13270048E+02 [K]     at (   425,   492,   110)
+    ptpmin  = -0.56819820E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24294192E-01 [kg/kg] at (   427,   473,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.46200489E-03 [kg/kg] at (   447,   497,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.12895970E-09 [kg/kg] at (   402,   475,    61)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.29221453E-05 [kg/kg] at (   279,    72,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.11169268E-04 [kg/kg] at (   453,   450,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.11681102E-07 [kg/kg] at (   447,   496,    69)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.40520379E+05 [1/kg]  at (   280,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.90979121E+04 [1/kg]  at (   898,   338,    96)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.18475048E+02 [1/kg]  at (   447,   496,    70)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.18259616E+01 [J/kg]  at (   472,   496,   103)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       74, real time =      370.000 [s]
+ 
+  ##### Information at time, 375.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37644363E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42336834E+02 [m/s]   at (   438,   518,     7)
+    vmax    =  0.44042797E+02 [m/s]   at (   474,   476,     8)
+    vmin    = -0.33227650E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.10135814E+01 [m/s]   at (   447,   497,    47)
+    wmin    = -0.27286845E+00 [m/s]   at (   437,   484,    67)
+    ppmax   =  0.11471703E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.41484131E+04 [Pa]    at (   427,   486,     1)
+    ptpmax  =  0.13268018E+02 [K]     at (   425,   492,   110)
+    ptpmin  = -0.56815014E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24295742E-01 [kg/kg] at (   427,   473,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.47002762E-03 [kg/kg] at (   447,   497,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.14452181E-09 [kg/kg] at (   447,   488,    62)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.29481221E-05 [kg/kg] at (   279,    72,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.11558599E-04 [kg/kg] at (   453,   450,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.13758609E-07 [kg/kg] at (   447,   496,    70)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.40390359E+05 [1/kg]  at (   280,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.96100967E+04 [1/kg]  at (   898,   338,    96)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.21908623E+02 [1/kg]  at (   447,   496,    70)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.18644804E+01 [J/kg]  at (   472,   496,   103)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       75, real time =      375.000 [s]
+ 
+  ##### Information at time, 380.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37651150E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42349442E+02 [m/s]   at (   438,   518,     7)
+    vmax    =  0.44069088E+02 [m/s]   at (   474,   476,     8)
+    vmin    = -0.33230259E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.10668648E+01 [m/s]   at (   446,   497,    47)
+    wmin    = -0.21991859E+00 [m/s]   at (   437,   484,    66)
+    ppmax   =  0.11476648E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.41381812E+04 [Pa]    at (   427,   486,     1)
+    ptpmax  =  0.13265649E+02 [K]     at (   426,   492,   110)
+    ptpmin  = -0.56810150E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24297232E-01 [kg/kg] at (   427,   473,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.47869433E-03 [kg/kg] at (   447,   497,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.16283400E-09 [kg/kg] at (   447,   489,    62)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.29726423E-05 [kg/kg] at (   279,    72,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.11956916E-04 [kg/kg] at (   453,   450,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.16183840E-07 [kg/kg] at (   447,   496,    70)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.40255012E+05 [1/kg]  at (   280,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.10168088E+05 [1/kg]  at (   898,   338,    96)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.25702370E+02 [1/kg]  at (   447,   497,    70)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.19032819E+01 [J/kg]  at (   472,   496,   103)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       76, real time =      380.000 [s]
+ 
+  ##### Information at time, 385.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37657761E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42362629E+02 [m/s]   at (   437,   518,     7)
+    vmax    =  0.44095371E+02 [m/s]   at (   474,   476,     8)
+    vmin    = -0.33232563E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.11273220E+01 [m/s]   at (   446,   497,    47)
+    wmin    = -0.16905063E+00 [m/s]   at (   437,   484,    65)
+    ppmax   =  0.11481401E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.41339932E+04 [Pa]    at (   427,   486,     1)
+    ptpmax  =  0.13263078E+02 [K]     at (   426,   491,   109)
+    ptpmin  = -0.56805229E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24298668E-01 [kg/kg] at (   427,   473,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.48812525E-03 [kg/kg] at (   447,   497,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.18226122E-09 [kg/kg] at (   447,   489,    62)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.29957382E-05 [kg/kg] at (   279,    72,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.12364560E-04 [kg/kg] at (   453,   450,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.18835754E-07 [kg/kg] at (   447,   497,    70)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.40112535E+05 [1/kg]  at (   280,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.10734234E+05 [1/kg]  at (   898,   338,    96)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.29390221E+02 [1/kg]  at (   447,   497,    70)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.19417174E+01 [J/kg]  at (   472,   496,   103)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       77, real time =      385.000 [s]
+ 
+  ##### Information at time, 390.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37664383E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42375820E+02 [m/s]   at (   437,   518,     7)
+    vmax    =  0.44121078E+02 [m/s]   at (   474,   476,     8)
+    vmin    = -0.33234791E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.11850585E+01 [m/s]   at (   446,   497,    48)
+    wmin    = -0.12844983E+00 [m/s]   at (   437,   484,    64)
+    ppmax   =  0.11485879E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.41347900E+04 [Pa]    at (   427,   486,     1)
+    ptpmax  =  0.13260144E+02 [K]     at (   426,   491,   109)
+    ptpmin  = -0.56800251E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24300044E-01 [kg/kg] at (   427,   473,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.49822888E-03 [kg/kg] at (   447,   497,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.20200090E-09 [kg/kg] at (   447,   489,    62)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.30174538E-05 [kg/kg] at (   280,    72,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.12781465E-04 [kg/kg] at (   453,   450,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.23279622E-07 [kg/kg] at (   447,   497,    70)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39960250E+05 [1/kg]  at (   280,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.11309365E+05 [1/kg]  at (   898,   338,    96)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.34362988E+02 [1/kg]  at (   447,   497,    70)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.19800459E+01 [J/kg]  at (   472,   496,   103)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       78, real time =      390.000 [s]
+ 
+  ##### Information at time, 395.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37671150E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42389519E+02 [m/s]   at (   437,   518,     7)
+    vmax    =  0.44147015E+02 [m/s]   at (   474,   476,     8)
+    vmin    = -0.33237061E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.12317894E+01 [m/s]   at (   446,   497,    48)
+    wmin    = -0.13181974E+00 [m/s]   at (   349,   536,    95)
+    ppmax   =  0.11490049E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.41385098E+04 [Pa]    at (   427,   486,     1)
+    ptpmax  =  0.13257024E+02 [K]     at (   426,   491,   109)
+    ptpmin  = -0.56795216E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24301371E-01 [kg/kg] at (   427,   473,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.50979399E-03 [kg/kg] at (   446,   497,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.22445761E-09 [kg/kg] at (   447,   489,    62)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.30380311E-05 [kg/kg] at (   280,    72,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.13207377E-04 [kg/kg] at (   453,   450,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.26486200E-07 [kg/kg] at (   447,   497,    70)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39794707E+05 [1/kg]  at (   280,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.11884147E+05 [1/kg]  at (   898,   338,    96)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.37957520E+02 [1/kg]  at (   447,   497,    70)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.20178699E+01 [J/kg]  at (   472,   496,   103)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       79, real time =      395.000 [s]
+ 
+  ##### Information at time, 400.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37678135E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42402302E+02 [m/s]   at (   437,   518,     7)
+    vmax    =  0.44172791E+02 [m/s]   at (   474,   476,     8)
+    vmin    = -0.33239410E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.12603805E+01 [m/s]   at (   446,   497,    48)
+    wmin    = -0.14796963E+00 [m/s]   at (   349,   536,    94)
+    ppmax   =  0.11493931E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.41424824E+04 [Pa]    at (   427,   486,     1)
+    ptpmax  =  0.13253912E+02 [K]     at (   426,   491,   109)
+    ptpmin  = -0.56790128E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24303446E-01 [kg/kg] at (   428,   473,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.52337605E-03 [kg/kg] at (   446,   497,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.25020264E-09 [kg/kg] at (   447,   489,    62)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.30571571E-05 [kg/kg] at (   280,    72,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.13641829E-04 [kg/kg] at (   453,   450,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.31778448E-07 [kg/kg] at (   447,   497,    70)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39612684E+05 [1/kg]  at (   280,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.12453232E+05 [1/kg]  at (   898,   338,    96)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.43609932E+02 [1/kg]  at (   447,   497,    70)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.20592616E+01 [J/kg]  at (   472,   497,   104)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       80, real time =      400.000 [s]
+ 
+  ##### Information at time, 405.000 [s] #####
+ 
+  maximum and minimum: procedure, outmxn;
+    umax    =  0.37685364E+02 [m/s]   at (   423,   449,     7)
+    umin    = -0.42415043E+02 [m/s]   at (   437,   518,     7)
+    vmax    =  0.44198845E+02 [m/s]   at (   474,   476,     8)
+    vmin    = -0.33241768E+02 [m/s]   at (   375,   492,     7)
+    wmax    =  0.12678500E+01 [m/s]   at (   446,   497,    48)
+    wmin    = -0.16475643E+00 [m/s]   at (   349,   536,    94)
+    ppmax   =  0.11497592E+04 [Pa]    at (   897,   897,     1)
+    ppmin   = -0.41439854E+04 [Pa]    at (   427,   486,     1)
+    ptpmax  =  0.13250989E+02 [K]     at (   426,   491,   109)
+    ptpmin  = -0.56784978E+01 [K]     at (   898,   898,    17)
+    qvmax   =  0.24306111E-01 [kg/kg] at (   428,   473,     2)
+    qvmin   =  0.00000000E+00 [kg/kg] at (     1,     1,   111)
+    qcmax   =  0.53699123E-03 [kg/kg] at (   446,   497,    52)
+    qcmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qrmax   =  0.27628635E-09 [kg/kg] at (   447,   489,    62)
+    qrmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qimax   =  0.30747422E-05 [kg/kg] at (   280,    72,    97)
+    qimin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qsmax   =  0.14084256E-04 [kg/kg] at (   453,   450,    89)
+    qsmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    qgmax   =  0.35987014E-07 [kg/kg] at (   447,   497,    70)
+    qgmin   =  0.00000000E+00 [kg/kg] at (     1,     1,     1)
+    ncimax  =  0.39411113E+05 [1/kg]  at (   280,    72,    97)
+    ncimin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncsmax  =  0.13015601E+05 [1/kg]  at (   898,   338,    96)
+    ncsmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    ncgmax  =  0.47638618E+02 [1/kg]  at (   447,   497,    70)
+    ncgmin  =  0.00000000E+00 [1/kg]  at (     1,     1,     1)
+    tkemax  =  0.21072395E+01 [J/kg]  at (   472,   497,   104)
+    tkemin  =  0.00000000E+00 [J/kg]  at (     1,     1,     1)
+ 
+  #######################
+ 
+  end of time steps =       81, real time =      405.000 [s]

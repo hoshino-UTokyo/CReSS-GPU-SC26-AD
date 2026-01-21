@@ -283,7 +283,7 @@ if (dump_call_count_initund == DUMP_TARGET_initund .and. .not. dump_done_initund
   call dump_scalar_r('dzgrd', dzgrd)
   call dump_scalar_r('tgdeep', tgdeep)
   call dump_scalar_r('sstcst', sstcst)
-  ! FIXME: ni is array - call dump_scalar_i('ni', ni)
+  call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
   call dump_scalar_i('nund', nund)

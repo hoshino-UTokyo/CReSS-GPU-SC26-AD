@@ -572,7 +572,10 @@ if (dump_call_count_steps == DUMP_TARGET_steps .and. .not. dump_done_steps) then
   call dump_scalar_i('qcgopt', qcgopt)
   call dump_scalar_r('dtb', dtb)
   call dump_scalar_c('fmois', fmois)
+  call dump_array_3d('rst.bin', rst, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('dtdrst_in.bin', dtdrst, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ptpp.bin', ptpp, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('ptfrc.bin', ptfrc, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('ptpf_in.bin', ptpf, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('qvf_in.bin', qvf, 0, ni+1, 0, nj+1, 1, nk)
   if (nqw >= 1) then

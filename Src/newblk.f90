@@ -423,7 +423,7 @@ call profile_start(prof_id1)
 dump_call_count_newblk = dump_call_count_newblk + 1
 if (dump_call_count_newblk == DUMP_TARGET_newblk .and. .not. dump_done_newblk) then
   call dump_init('newblk')
-  ! FIXME: cphopt is array - call dump_scalar_i('cphopt', cphopt)
+  call dump_scalar_i('cphopt', cphopt)
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)

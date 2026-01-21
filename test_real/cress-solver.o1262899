@@ -1,0 +1,43 @@
+[mg0055:272575:0:272575] Caught signal 11 (Segmentation fault: invalid permissions for mapped object at address 0x40003c39dac8)
+==== backtrace (tid: 272575) ====
+ 0 0x00000000000d0c20 __f90io_usw_write()  ???:0
+ 1 0x0000000000408480 m_dump_kernel_dump_array_3d_()  /work/jh250015/g24000/SC26/CReSS3.5.1m_SPN_RAD1.4.3_20230323_upload/Src/dump_kernel_data.f90:217
+ 2 0x0000000000592d54 m_newblk_s_newblk_()  /work/jh250015/g24000/SC26/CReSS3.5.1m_SPN_RAD1.4.3_20230323_upload/Src/newblk.f90:491
+ 3 0x00000000006c742c m_srcblk_s_srcblk_()  /work/jh250015/g24000/SC26/CReSS3.5.1m_SPN_RAD1.4.3_20230323_upload/Src/srcblk.f90:611
+ 4 0x00000000004b206c m_coldblk_s_coldblk_()  /work/jh250015/g24000/SC26/CReSS3.5.1m_SPN_RAD1.4.3_20230323_upload/Src/coldblk.f90:379
+ 5 0x00000000004ae068 m_cloudphy_s_cloudphy_()  /work/jh250015/g24000/SC26/CReSS3.5.1m_SPN_RAD1.4.3_20230323_upload/Src/cloudphy.f90:0
+ 6 0x000000000056326c m_intgdrv_s_intgdrv_()  /work/jh250015/g24000/SC26/CReSS3.5.1m_SPN_RAD1.4.3_20230323_upload/Src/intgdrv.f90:942
+ 7 0x00000000006b58b0 m_slvdrv_s_slvdrv_()  /work/jh250015/g24000/SC26/CReSS3.5.1m_SPN_RAD1.4.3_20230323_upload/Src/slvdrv.f90:1306
+ 8 0x0000000000404988 MAIN_()  /work/jh250015/g24000/SC26/CReSS3.5.1m_SPN_RAD1.4.3_20230323_upload/Src/solver.f90:211
+ 9 0x00000000004032b4 main()  ???:0
+10 0x000000000002c7a0 __libc_start_call_main()  ???:0
+11 0x000000000002c878 __libc_start_main_alias_2()  :0
+12 0x0000000000403170 _start()  ???:0
+=================================
+[mg0055:272575] *** Process received signal ***
+[mg0055:272575] Signal: Segmentation fault (11)
+[mg0055:272575] Signal code:  (-6)
+[mg0055:272575] Failing at address: 0x9e12000428bf
+[mg0055:272575] [ 0] linux-vdso.so.1(__kernel_rt_sigreturn+0x0)[0x4000223c07f0]
+[mg0055:272575] [ 1] /work/opt/local/aarch64/cores/nvidia/25.9/Linux_aarch64/25.9/compilers/lib/libnvf.so(__f90io_usw_write+0x860)[0x4000228a0c20]
+[mg0055:272575] [ 2] ./solver.exe[0x408480]
+[mg0055:272575] [ 3] ./solver.exe[0x592d54]
+[mg0055:272575] [ 4] ./solver.exe[0x6c742c]
+[mg0055:272575] [ 5] ./solver.exe[0x4b206c]
+[mg0055:272575] [ 6] ./solver.exe[0x4ae068]
+[mg0055:272575] [ 7] ./solver.exe[0x56326c]
+[mg0055:272575] [ 8] ./solver.exe[0x6b58b0]
+[mg0055:272575] [ 9] ./solver.exe[0x404988]
+[mg0055:272575] [10] ./solver.exe[0x4032b4]
+[mg0055:272575] [11] /lib64/libc.so.6(+0x2c7a0)[0x40002321c7a0]
+[mg0055:272575] [12] /lib64/libc.so.6(__libc_start_main+0x98)[0x40002321c878]
+[mg0055:272575] [13] ./solver.exe[0x403170]
+[mg0055:272575] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 0 with PID 0 on node mg0055 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
+Cgroup memsw limit exceeded: 

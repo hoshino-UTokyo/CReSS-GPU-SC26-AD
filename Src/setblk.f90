@@ -357,7 +357,7 @@ if (dump_call_count_setblk == DUMP_TARGET_setblk .and. .not. dump_done_setblk) t
   call dump_scalar_r('thresq', thresq)
   call dump_array_3d('p.bin', p, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('t.bin', t, 0, ni+1, 0, nj+1, 1, nk)
-  ! FIXME: t0 is array - call dump_scalar_r('t0', t0)
+  call dump_scalar_r('t0', t0)
   call dump_scalar_r('epsva', epsva)
   call dump_scalar_r('es0', es0)
   call dump_scalar_r('lv0', lv0)

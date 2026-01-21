@@ -253,8 +253,7 @@ if (dump_call_count_phycood == DUMP_TARGET_phycood .and. .not. dump_done_phycood
   call dump_scalar_i('nkm1', nkm1)
   call dump_scalar_i('nkm2', nkm2)
   call dump_scalar_r('zflat0', zflat0)
-  ! FIXME: zsth is an array, not scalar
-  ! ! FIXME: zsth is array - call dump_scalar_r('zsth', zsth)
+  call dump_array_1d('zsth_in.bin', zsth, 1, nk)
 end if
 
 !$omp parallel default(shared)
@@ -274,6 +273,7 @@ end if
 ! Dump output data at target call
 if (dump_call_count_phycood == DUMP_TARGET_phycood .and. .not. dump_done_phycood) then
   call dump_array_3d('zph_ref.bin', zph, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_1d('zsth_ref.bin', zsth, 1, nk)
   call dump_finalize()
   dump_done_phycood = .true.
 end if

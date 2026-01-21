@@ -1,0 +1,1125 @@
+SKIP: adjstbw.f90 - Already processed
+SKIP: adjstnci.f90 - Already processed
+SKIP: adjstni.f90 - Already processed
+SKIP: adjstnp.f90 - Already processed
+SKIP: adjstnsg.f90 - Already processed
+SKIP: adjstnw.f90 - Already processed
+SKIP: adjstqa.f90 - Already processed
+SKIP: adjstq.f90 - Already processed
+SKIP: adjstuv.f90 - Already processed
+SKIP: advbspe.f90 - Already processed
+SKIP: advbspi.f90 - Already processed
+SKIP: advbspt.f90 - Already processed
+SKIP: advp.f90 - Already processed
+SKIP: advs.f90 - Already processed
+SKIP: advuvw.f90 - Already processed
+SKIP: aggregat.f90 - Already processed
+SKIP: allocbuf.f90 - Already processed
+SKIP: allocgrp.f90 - Already processed
+SKIP: allociot.f90 - Already processed
+SKIP: allocsfc.f90 - Already processed
+SKIP: allocslv.f90 - Already processed
+SKIP: allocuni.f90 - Already processed
+SKIP: baserho.f90 - Already processed
+SKIP: bbcw.f90 - Already processed
+SKIP: bc2d.f90 - Already processed
+SKIP: bc4news.f90 - Already processed
+SKIP: bc8u.f90 - Already processed
+SKIP: bc8v.f90 - Already processed
+SKIP: bc8w.f90 - Already processed
+SKIP: bcbase.f90 - Already processed
+SKIP: bcgsms.f90 - Already processed
+SKIP: bcgsmu.f90 - Already processed
+SKIP: bcgsmv.f90 - Already processed
+SKIP: bcgsmw.f90 - Already processed
+SKIP: bcphi.f90 - Already processed
+SKIP: bcten.f90 - Already processed
+SKIP: bcycle.f90 - Already processed
+SKIP: bcyclex.f90 - Already processed
+SKIP: bcycley.f90 - Already processed
+SKIP: bruntv.f90 - Already processed
+SKIP: bulksfc.f90 - Already processed
+SKIP: buoytke.f90 - Already processed
+SKIP: buoywb.f90 - Already processed
+SKIP: buoywse.f90 - Already processed
+SKIP: buoywsi.f90 - Already processed
+SKIP: cg2mkbw.f90 - Already processed
+SKIP: charging.f90 - Already processed
+SKIP: chkfile.f90 - Already processed
+SKIP: chkitr.f90 - Already processed
+SKIP: chkmoist.f90 - Already processed
+SKIP: chkmxn.f90 - Already processed
+SKIP: chkrain.f90 - Already processed
+SKIP: chksat.f90 - Already processed
+SKIP: cloudcov.f90 - Already processed
+SKIP: cnt2phy.f90 - Already processed
+SKIP: coalbw.f90 - Already processed
+SKIP: collc2r.f90 - Already processed
+SKIP: collect.f90 - Already processed
+SKIP: convc2r.f90 - Already processed
+SKIP: convers.f90 - Already processed
+SKIP: convland.f90 - Already processed
+SKIP: copy1d.f90 - Already processed
+SKIP: copy2d.f90 - Already processed
+SKIP: copy3d.f90 - Already processed
+SKIP: copy4d.f90 - Already processed
+SKIP: coriuv.f90 - Already processed
+SKIP: coriuvw.f90 - Already processed
+SKIP: cpondsfc.f90 - Already processed
+SKIP: cpondtrn.f90 - Already processed
+SKIP: curveuvw.f90 - Already processed
+SKIP: dbz2kg.f90 - Already processed
+SKIP: defomssq.f90 - Already processed
+SKIP: defomten.f90 - Already processed
+SKIP: depsitbw.f90 - Already processed
+SKIP: depsit.f90 - Already processed
+SKIP: diabat.f90 - Already processed
+SKIP: diagnci.f90 - Already processed
+SKIP: diagni.f90 - Already processed
+SKIP: diagnsg.f90 - Already processed
+SKIP: diagnw.f90 - Already processed
+SKIP: diffequa.f90 - Already processed
+SKIP: disptke.f90 - Already processed
+SKIP: distrpg.f90 - Already processed
+SKIP: distrqp.f90 - Already processed
+SKIP: diver2d.f90 - Already processed
+SKIP: diver3d.f90 - Already processed
+SKIP: diverpe.f90 - Already processed
+SKIP: diverpih.f90 - Already processed
+SKIP: diverpiv.f90 - Already processed
+SKIP: eddypbl.f90 - Already processed
+SKIP: eddyvis.f90 - Already processed
+SKIP: eddyvisj.f90 - Already processed
+SKIP: emitqt.f90 - Already processed
+SKIP: estimsfc.f90 - Already processed
+SKIP: evapr2v.f90 - Already processed
+SKIP: exbcpt.f90 - Already processed
+SKIP: exbcq.f90 - Already processed
+SKIP: exbcss.f90 - Already processed
+SKIP: exbcu.f90 - Already processed
+SKIP: exbcv.f90 - Already processed
+SKIP: exbcw.f90 - Already processed
+SKIP: fallblk.f90 - Already processed
+SKIP: fallbw.f90 - Already processed
+SKIP: fallqr.f90 - Already processed
+SKIP: fituvwc.f90 - Already processed
+SKIP: forcept.f90 - Already processed
+SKIP: forcesfc.f90 - Already processed
+SKIP: freezing.f90 - Already processed
+SKIP: gaussel.f90 - Already processed
+SKIP: get1d.f90 - Already processed
+SKIP: getarea.f90 - Already processed
+SKIP: getbufgx.f90 - Already processed
+SKIP: getbufgy.f90 - Already processed
+SKIP: getbufsx.f90 - Already processed
+SKIP: getbufsy.f90 - Already processed
+SKIP: getetop.f90 - Already processed
+SKIP: getexner.f90 - Already processed
+SKIP: getkref.f90 - Already processed
+SKIP: getmxn.f90 - Already processed
+SKIP: getpt0.f90 - Already processed
+SKIP: getqt0.f90 - Already processed
+SKIP: getqvs.f90 - Already processed
+SKIP: getrich.f90 - Already processed
+SKIP: getta2d.f90 - Already processed
+SKIP: getta3d.f90 - Already processed
+SKIP: gettlcl.f90 - Already processed
+SKIP: gettrn.f90 - Already processed
+SKIP: getz11.f90 - Already processed
+SKIP: getz.f90 - Already processed
+SKIP: getzlow.f90 - Already processed
+SKIP: gseidel.f90 - Already processed
+SKIP: gsmoos.f90 - Already processed
+
+=== Processing: gsmoow.f90 -> ../Kernel_benchmark/154_gsmoow_s_gsmoow_sec1 ===
+Processing: gsmoow.f90 -> ../Kernel_benchmark/154_gsmoow_s_gsmoow_sec1
+  Iteration 1: Found vars: dfw ni nj nk wgpv 
+  Iteration 2: Found vars: dtcoe 
+  Iteration 3: Compilation successful!
+Created: ../Kernel_benchmark/154_gsmoow_s_gsmoow_sec1/variable_list.txt
+Total variables: 6
+
+=== Processing: heatsfc.f90 -> ../Kernel_benchmark/164_heatsfc_s_heatsfc ===
+Processing: heatsfc.f90 -> ../Kernel_benchmark/164_heatsfc_s_heatsfc
+  Iteration 1: Found vars: cq cwmci fmois hs kai land le ni nj 
+  Iteration 2: Found vars: ct qvsfc tice 
+  Iteration 3: Found vars: qv t tund 
+  Iteration 4: Compilation successful!
+Created: ../Kernel_benchmark/164_heatsfc_s_heatsfc/variable_list.txt
+Total variables: 15
+
+=== Processing: hint2d.f90 -> ../Kernel_benchmark/165_hint2d_s_hint2d_sec1 ===
+Processing: hint2d.f90 -> ../Kernel_benchmark/165_hint2d_s_hint2d_sec1
+  Iteration 1: Found vars: dat di dj intopt istr jstr mpopt nid ri rj var 
+  Iteration 2: Found vars: iend jend 
+  Iteration 3: Compilation successful!
+Created: ../Kernel_benchmark/165_hint2d_s_hint2d_sec1/variable_list.txt
+Total variables: 13
+
+=== Processing: hint3d.f90 -> ../Kernel_benchmark/167_hint3d_s_hint3d_sec1 ===
+Processing: hint3d.f90 -> ../Kernel_benchmark/167_hint3d_s_hint3d_sec1
+  Iteration 1: Found vars: di dj intopt istr jstr mpopt nid nk ri rj var varef 
+  Iteration 2: Found vars: iend jend 
+  Iteration 3: Compilation successful!
+Created: ../Kernel_benchmark/167_hint3d_s_hint3d_sec1/variable_list.txt
+Total variables: 14
+
+=== Processing: hintlnd.f90 -> ../Kernel_benchmark/169_hintlnd_s_hintlnd_sec1 ===
+Processing: hintlnd.f90 -> ../Kernel_benchmark/169_hintlnd_s_hintlnd_sec1
+  Iteration 1: Found vars: land mpopt ni nid nj ri rj 
+  Iteration 2: Found vars: landat 
+  Iteration 3: Compilation successful!
+Created: ../Kernel_benchmark/169_hintlnd_s_hintlnd_sec1/variable_list.txt
+Total variables: 8
+
+=== Processing: ini0name.f90 -> ../Kernel_benchmark/172_ini0name_s_ini0name ===
+Processing: ini0name.f90 -> ../Kernel_benchmark/172_ini0name_s_ini0name
+  Iteration 1: Found vars: albe_lnd beta_lnd cap_lnd lnduse_lnd nuu_lnd z0h_lnd z0m_lnd 
+  Iteration 2: Compilation successful!
+Created: ../Kernel_benchmark/172_ini0name_s_ini0name/variable_list.txt
+Total variables: 7
+
+=== Processing: inidisbw.f90 -> ../Kernel_benchmark/174_inidisbw_s_inidisbw ===
+Processing: inidisbw.f90 -> ../Kernel_benchmark/174_inidisbw_s_inidisbw
+  Iteration 1: Found vars: brw c ccd1 cd1 d d1 d2 d3 d4 fi gi jcb8w mwbin nccn ni nj nk nqw nwbin ptp qcciv qv qwtmp rbv w 
+  Iteration 2: Found vars: cc40 cc43 cc80 dzvdt2 nnw pi ptptmp qvtmp rbrw rwiv3 t 
+  Iteration 3: Compilation successful!
+Created: ../Kernel_benchmark/174_inidisbw_s_inidisbw/variable_list.txt
+Total variables: 36
+SKIP: inimod.f90 - Already processed
+SKIP: ininame.f90 - Already processed
+
+=== Processing: inisfc.f90 -> ../Kernel_benchmark/177_inisfc_subroutine ===
+Processing: inisfc.f90 -> ../Kernel_benchmark/177_inisfc_subroutine
+  Iteration 1: Found vars: albe beta cap dstopt gralbe grbeta grcap grnuu grz0h grz0m kai land lnduse ni nj nuu sfcdat z0h z0m zph 
+  Iteration 2: Found vars: zsfc 
+  Iteration 3: Compilation successful!
+Created: ../Kernel_benchmark/177_inisfc_subroutine/variable_list.txt
+Total variables: 21
+
+=== Processing: initke.f90 -> ../Kernel_benchmark/178_initke_s_initke ===
+Processing: initke.f90 -> ../Kernel_benchmark/178_initke_s_initke
+  Iteration 1: Found vars: isoopt mfcopt mpopt ni nj nk rkv rmf rst tkep 
+  Iteration 2: Found vars: ckmdz rbr 
+  Iteration 3: Found vars: jcb 
+  Iteration 4: Found vars: ckmds3 
+  Iteration 5: Compilation successful!
+mv: cannot stat 'initke.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/178_initke_s_initke/variable_list.txt
+Total variables: 14
+
+=== Processing: initund.f90 -> ../Kernel_benchmark/179_initund_s_initund ===
+Processing: initund.f90 -> ../Kernel_benchmark/179_initund_s_initund
+  Iteration 1: Found vars: advopt ek land ni nj nund ptbr sfcdat sfcopt sstcst tgdeep tund tundp 
+  Iteration 2: Found vars: dzgrd enkm1v ptp sst 
+  Iteration 3: Found vars: enk pbr 
+  Iteration 4: Found vars: pp 
+  Iteration 5: Found vars: p0iv 
+  Iteration 6: Found vars: rddvcp 
+  Iteration 7: Compilation successful!
+mv: cannot stat 'initund.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/179_initund_s_initund/variable_list.txt
+Total variables: 22
+
+=== Processing: instvel.f90 -> ../Kernel_benchmark/180_instvel_s_instvel ===
+Processing: instvel.f90 -> ../Kernel_benchmark/180_instvel_s_instvel
+  Iteration 1: Found vars: maxvl ni nj nk u v w 
+  Iteration 2: Found vars: tke 
+  Iteration 3: Compilation successful!
+mv: cannot move 'instvel.f90.bak' to 'instvel.f90': No such file or directory
+Created: ../Kernel_benchmark/180_instvel_s_instvel/variable_list.txt
+Total variables: 8
+
+=== Processing: jacobian.f90 -> ../Kernel_benchmark/181_jacobian_s_jacobian ===
+Processing: jacobian.f90 -> ../Kernel_benchmark/181_jacobian_s_jacobian
+  Iteration 1: Found vars: j31 j32 jcb ni nj nk 
+  Iteration 2: Found vars: y z zph 
+  Iteration 3: Found vars: x 
+  Iteration 4: Compilation successful!
+mv: cannot move 'jacobian.f90.bak' to 'jacobian.f90': No such file or directory
+Created: ../Kernel_benchmark/181_jacobian_s_jacobian/variable_list.txt
+Total variables: 10
+
+=== Processing: kh8uv.f90 -> ../Kernel_benchmark/182_kh8uv_s_kh8uv ===
+Processing: kh8uv.f90 -> ../Kernel_benchmark/182_kh8uv_s_kh8uv
+  Iteration 1: Found vars: mfcopt ni nj nk rkh8u rkh8v rmf 
+  Iteration 2: Found vars: mpopt rkh 
+  Iteration 3: Compilation successful!
+Created: ../Kernel_benchmark/182_kh8uv_s_kh8uv/variable_list.txt
+Total variables: 9
+
+=== Processing: lbcs.f90 -> ../Kernel_benchmark/183_lbcs_s_lbcs ===
+Processing: lbcs.f90 -> ../Kernel_benchmark/183_lbcs_s_lbcs
+  Iteration 1: Found vars: advopt ebc ebe ebn ebs ebw nbc ni nim1 nj njm1 nk sbc sf wbc 
+  Iteration 2: Found vars: isub jsub nim2 nisub njm2 njsub 
+  Iteration 3: Compilation successful!
+mv: cannot stat 'lbcs.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/183_lbcs_s_lbcs/variable_list.txt
+Total variables: 21
+
+=== Processing: lbculs.f90 -> ../Kernel_benchmark/185_lbculs_s_lbculs ===
+Processing: lbculs.f90 -> ../Kernel_benchmark/185_lbculs_s_lbculs
+  Iteration 1: Found vars: ebe ebn ebs ebw ni nj njm3 nk s sbc wbc 
+  Iteration 2: Found vars: ebc isub jsub nbc nim3 nisub njm2 njsub 
+  Iteration 3: Found vars: nim2 njm1 
+  Iteration 4: Found vars: nim1 
+  Iteration 5: Compilation successful!
+mv: cannot move 'lbculs.f90.bak' to 'lbculs.f90': No such file or directory
+Created: ../Kernel_benchmark/185_lbculs_s_lbculs/variable_list.txt
+Total variables: 22
+
+=== Processing: lbculv.f90 -> ../Kernel_benchmark/187_lbculv_s_lbculv ===
+Processing: lbculv.f90 -> ../Kernel_benchmark/187_lbculv_s_lbculv
+cp: cannot create regular file 'lbculv.f90.bak': File exists
+  Iteration 1: Found vars: ebe ebn ebs ebw ni nj njp1 nk sbc v wbc 
+  Iteration 2: Found vars: ebc isub jsub nbc nim3 nisub njm2 njsub 
+  Iteration 3: Found vars: nim2 njm1 
+  Iteration 4: Found vars: nim1 
+  Iteration 5: Compilation successful!
+mv: cannot stat 'lbculv.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/187_lbculv_s_lbculv/variable_list.txt
+Total variables: 22
+
+=== Processing: lbcv.f90 -> ../Kernel_benchmark/189_lbcv_s_lbcv ===
+Processing: lbcv.f90 -> ../Kernel_benchmark/189_lbcv_s_lbcv
+cp: cannot create regular file 'lbcv.f90.bak': File exists
+  Iteration 1: Found vars: advopt ebc ebe ebn ebs ebw nbc ni nim1 nj njm2 nk sbc vf wbc 
+  Iteration 2: Found vars: isub jsub nim2 nisub njsub 
+  Iteration 3: Compilation successful!
+mv: cannot stat 'lbcv.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/189_lbcv_s_lbcv/variable_list.txt
+Total variables: 20
+
+=== Processing: lbcw.f90 -> ../Kernel_benchmark/190_lbcw_s_lbcw ===
+Processing: lbcw.f90 -> ../Kernel_benchmark/190_lbcw_s_lbcw
+  Iteration 1: Found vars: advopt ebc ebe ebn ebs ebw nbc ni nim1 nj njm1 nk sbc wbc wf 
+  Iteration 2: Found vars: isub jsub nim2 nisub njm2 njsub 
+  Iteration 3: Compilation successful!
+mv: cannot stat 'lbcw.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/190_lbcw_s_lbcw/variable_list.txt
+Total variables: 21
+
+=== Processing: lspdmp.f90 -> ../Kernel_benchmark/193_lspdmp_s_lspdmp_sec1 ===
+Processing: lspdmp.f90 -> ../Kernel_benchmark/193_lspdmp_s_lspdmp_sec1
+  Iteration 1: Found vars: ebe ebn ebne ebnw ebs ebse ebsw ebw igs jgs ni nj rbcx rbcxy rbcy sbc wbc wd1x wd1y wd2 wd21x wd21y wd23 wdnews 
+  Iteration 2: Found vars: ebc nbc wd1xn wd1yn wd21xn wd21yn wd23n wd2n wdiv5 wdnorm 
+  Iteration 3: Found vars: wdiv5n 
+  Iteration 4: Compilation successful!
+mv: cannot stat 'lspdmp.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/193_lspdmp_s_lspdmp_sec1/variable_list.txt
+Total variables: 35
+
+=== Processing: lspqv.f90 -> ../Kernel_benchmark/196_lspqv_s_lspqv ===
+Processing: lspqv.f90 -> ../Kernel_benchmark/196_lspqv_s_lspqv
+  Iteration 1: Found vars: gpvvar lspsmt ni nj nk qvbr qvfrc tmp1 wdnews 
+  Iteration 2: Found vars: lspopt rbcxy rst 
+  Iteration 3: Found vars: lsnews qvp 
+  Iteration 4: Found vars: qvgpv 
+  Iteration 5: Found vars: qvtd 
+  Iteration 6: Found vars: gtinc 
+  Iteration 7: Compilation successful!
+mv: cannot move 'lspqv.f90.bak' to 'lspqv.f90': No such file or directory
+Created: ../Kernel_benchmark/196_lspqv_s_lspqv/variable_list.txt
+Total variables: 17
+SKIP: lsps0.f90 - Already processed
+
+=== Processing: lspuvw.f90 -> ../Kernel_benchmark/199_lspuvw_subroutine ===
+Processing: lspuvw.f90 -> ../Kernel_benchmark/199_lspuvw_subroutine
+  Iteration 1: Found vars: gpvvar lspopt lspsmt ni nj nk rbc8uv rbcx rbcy rst8v rst8w tmp1 ubr ufrc vbr vfrc wdnews wfrc 
+  Iteration 2: Found vars: lsnews lsnorm rbcxy rst8u vp wdnorm wp 
+  Iteration 3: Found vars: lspvar up vgpv wgpv 
+  Iteration 4: Found vars: ugpv vtd wtd 
+  Iteration 5: Found vars: utd 
+  Iteration 6: Found vars: gtinc 
+  Iteration 7: Compilation successful!
+Created: ../Kernel_benchmark/199_lspuvw_subroutine/variable_list.txt
+Total variables: 34
+SKIP: mapfct.f90 - Already processed
+
+=== Processing: melting.f90 -> ../Kernel_benchmark/202_melting_s_melting ===
+Processing: melting.f90 -> ../Kernel_benchmark/202_melting_s_melting
+  Iteration 1: Found vars: mlgr mlic mlsr ni nj nk qg qi qs rbv 
+  Iteration 2: Found vars: cc2dt thresq vntg vnts 
+  Iteration 3: Found vars: clcg clcs kp 
+  Iteration 4: Found vars: clrg clrs tcel 
+  Iteration 5: Found vars: lf lv 
+  Iteration 6: Found vars: dv 
+  Iteration 7: Found vars: rbr 
+  Iteration 8: Found vars: qvsst0 
+  Iteration 9: Compilation successful!
+mv: 'melting.f90.bak' and 'melting.f90' are the same file
+Created: ../Kernel_benchmark/202_melting_s_melting/variable_list.txt
+Total variables: 25
+
+=== Processing: more0q.f90 -> ../Kernel_benchmark/204_more0q_s_more0q ===
+Processing: more0q.f90 -> ../Kernel_benchmark/204_more0q_s_more0q
+cp: cannot create regular file 'more0q.f90.bak': File exists
+  Iteration 1: Found vars: clir clri clsr ni nj nk nuci qcf qcp qgf qgp qif qip qrf qrp qsf qsp vdvg vdvi vdvr vdvs 
+  Iteration 2: Found vars: clcr clis clrs clsg thresq 
+  Iteration 3: Found vars: clcs clig clrg cnsg 
+  Iteration 4: Found vars: clcg clrsg cnis 
+  Iteration 5: Found vars: cncr frrg nuvi 
+  Iteration 6: Found vars: mlic mlsr spsi 
+  Iteration 7: Found vars: mlgr spgi 
+  Iteration 8: Found vars: shsr 
+  Iteration 9: Found vars: shgr 
+  Iteration 10: Compilation successful!
+mv: cannot stat 'more0q.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/204_more0q_s_more0q/variable_list.txt
+Total variables: 43
+SKIP: move2d.f90 - Already processed
+
+=== Processing: newblk_noevap.f90 -> ../Kernel_benchmark/207_newblk_noevap_s_newblk_noevap ===
+Processing: newblk_noevap.f90 -> ../Kernel_benchmark/207_newblk_noevap_s_newblk_noevap
+  Iteration 1: Found vars: agin clcr clcs clir clri clsr cnis mlgr mlsr ncif ncsf ni nj nuci pi ptpf qcf qcp qgf qif qip qrf qsf qvf spsi 
+  Iteration 2: Found vars: agsn clcg clis clrs clsg cncr cphopt mi mlic nccf nccp ncgf ncrf nk qgp qrp qsp shgr shsr spgi thresq vdvr 
+  Iteration 3: Found vars: agcn agrn clig clrg clsrn cnsg lv mi0iv ncgp 
+  Iteration 4: Found vars: clrsg clrsn clsgn lf mr0iv ms0iv 
+  Iteration 5: Found vars: clrin cnsgn frrg vdvi 
+  Iteration 6: Found vars: frrgn ncsp vdvs 
+  Iteration 7: Found vars: vdvg 
+  Iteration 8: Found vars: nuvi 
+  Iteration 9: Found vars: ls 
+  Iteration 10: Compilation successful!
+mv: cannot stat 'newblk_noevap.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/207_newblk_noevap_s_newblk_noevap/variable_list.txt
+Total variables: 72
+SKIP: newsindx.f90 - Already processed
+SKIP: nlsmqv.f90 - Already processed
+SKIP: nlsms.f90 - Already processed
+
+=== Processing: nuc1stc.f90 -> ../Kernel_benchmark/212_nuc1stc_s_nuc1stc ===
+Processing: nuc1stc.f90 -> ../Kernel_benchmark/212_nuc1stc_s_nuc1stc
+  Iteration 1: Found vars: cc45 cdar cknd dtb kp lv ni nj nk nuci p qc t tcel 
+  Iteration 2: Found vars: diaqc kpa25 mu rwdt2 thresq 
+  Iteration 3: Found vars: kpa50 ncc 
+  Iteration 4: Compilation successful!
+Created: ../Kernel_benchmark/212_nuc1stc_s_nuc1stc/variable_list.txt
+Total variables: 21
+
+=== Processing: nuc1stv.f90 -> ../Kernel_benchmark/213_nuc1stv_s_nuc1stv ===
+Processing: nuc1stv.f90 -> ../Kernel_benchmark/213_nuc1stv_s_nuc1stv
+  Iteration 1: Found vars: ni nj nk nuvi qv qvsi 
+  Iteration 2: Found vars: rbv t thresq 
+  Iteration 3: Found vars: qi 
+  Iteration 4: Compilation successful!
+mv: cannot move 'nuc1stv.f90.bak' to 'nuc1stv.f90': No such file or directory
+Created: ../Kernel_benchmark/213_nuc1stv_s_nuc1stv/variable_list.txt
+Total variables: 10
+
+=== Processing: opendmp.f90 -> ../Kernel_benchmark/215_opendmp_s_opendmp ===
+Processing: opendmp.f90 -> ../Kernel_benchmark/215_opendmp_s_opendmp
+cp: cannot create regular file 'opendmp.f90.bak': File exists
+  Iteration 1: Found vars: dmplev fdmp nk z1d zsth 
+  Iteration 2: Found vars: dz 
+  Iteration 3: Compilation successful!
+mv: cannot stat 'opendmp.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/215_opendmp_s_opendmp/variable_list.txt
+Total variables: 6
+SKIP: outctl.f90 - Already processed
+
+=== Processing: outmxn.f90 -> ../Kernel_benchmark/218_outmxn_s_outmxn_sec1 ===
+Processing: outmxn.f90 -> ../Kernel_benchmark/218_outmxn_s_outmxn_sec1
+  Iteration 1: Found vars: ies istr jes jstr kstr maxeps mineps var 
+  Iteration 2: Found vars: chkeps iend jend kend 
+  Iteration 3: Compilation successful!
+mv: 'outmxn.f90.bak' and 'outmxn.f90' are the same file
+Created: ../Kernel_benchmark/218_outmxn_s_outmxn_sec1/variable_list.txt
+Total variables: 12
+
+=== Processing: outpbl.f90 -> ../Kernel_benchmark/220_outpbl_s_outpbl ===
+Processing: outpbl.f90 -> ../Kernel_benchmark/220_outpbl_s_outpbl
+cp: cannot create regular file 'outpbl.f90.bak': File exists
+  Iteration 1: Found vars: cdave cdrat ch cm fmois land ni nj p15 pt15 ptsflx qv15 qvfrc qvsfc qvsflx tsfc u10 usflx v10 vsflx 
+  Iteration 2: Found vars: cdl ch15 cm10 kai p ptfrc ptv qv u ufrc v vfrc 
+  Iteration 3: Found vars: cdm rddwkp tice za 
+  Iteration 4: Found vars: cdh tund 
+  Iteration 5: Compilation successful!
+Created: ../Kernel_benchmark/220_outpbl_s_outpbl/variable_list.txt
+Total variables: 38
+
+=== Processing: paractl.f90 -> ../Kernel_benchmark/222_paractl_s_paractl_sec1 ===
+Processing: paractl.f90 -> ../Kernel_benchmark/222_paractl_s_paractl_sec1
+  Iteration 1: Compilation successful!
+mv: cannot stat 'paractl.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/222_paractl_s_paractl_sec1/variable_list.txt
+Total variables: 0
+
+=== Processing: pbldrv.f90 -> ../Kernel_benchmark/224_pbldrv_s_pbldrv ===
+Processing: pbldrv.f90 -> ../Kernel_benchmark/224_pbldrv_s_pbldrv
+  Iteration 1: Found vars: fmois levpbl ni nj ptp qv 
+  Iteration 2: Found vars: ptv 
+  Iteration 3: Found vars: ptbr 
+  Iteration 4: Compilation successful!
+mv: cannot move 'pbldrv.f90.bak' to 'pbldrv.f90': No such file or directory
+Created: ../Kernel_benchmark/224_pbldrv_s_pbldrv/variable_list.txt
+Total variables: 8
+
+=== Processing: pblqv.f90 -> ../Kernel_benchmark/226_pblqv_s_pblqv ===
+Processing: pblqv.f90 -> ../Kernel_benchmark/226_pblqv_s_pblqv
+cp: cannot create regular file 'pblqv.f90.bak': File exists
+  Iteration 1: Found vars: levp1 levpbl ni nj qv rr ss tmp1 tt 
+  Iteration 2: Found vars: cq qvsfc rbr 
+  Iteration 3: Found vars: khs rst 
+  Iteration 4: Found vars: dtdzv jcb8w 
+  Iteration 5: Found vars: dtdzv2 
+  Iteration 6: Compilation successful!
+mv: cannot move 'pblqv.f90.bak' to 'pblqv.f90': No such file or directory
+Created: ../Kernel_benchmark/226_pblqv_s_pblqv/variable_list.txt
+Total variables: 17
+
+=== Processing: pblv.f90 -> ../Kernel_benchmark/228_pblv_s_pblv ===
+Processing: pblv.f90 -> ../Kernel_benchmark/228_pblv_s_pblv
+  Iteration 1: Found vars: levp1 levpbl ni nj rr ss tmp1 tmp2 tt 
+  Iteration 2: Found vars: ce jcb8w rbr 
+  Iteration 3: Found vars: kms rst8v 
+  Iteration 4: Found vars: dtdzv dtdzv2 
+  Iteration 5: Compilation successful!
+Created: ../Kernel_benchmark/228_pblv_s_pblv/variable_list.txt
+Total variables: 16
+
+=== Processing: pgrad.f90 -> ../Kernel_benchmark/230_pgrad_subroutine ===
+Processing: pgrad.f90 -> ../Kernel_benchmark/230_pgrad_subroutine
+cp: cannot create regular file 'pgrad.f90.bak': File exists
+  Iteration 1: Found vars: divch divopt dziv25 j31 jcb mf8u mf8v mfcopt mpopt ni nj nk tmp2 tmp3 trnopt upg vpg wpg 
+  Iteration 2: Found vars: divcv dxiv dyiv dziv j32 pp 
+  Iteration 3: Found vars: tmp1 
+  Iteration 4: Compilation successful!
+Created: ../Kernel_benchmark/230_pgrad_subroutine/variable_list.txt
+Total variables: 25
+SKIP: pgradiv.f90 - Already processed
+
+=== Processing: phvbcuvw.f90 -> ../Kernel_benchmark/233_phvbcuvw_s_phvbcuvw ===
+Processing: phvbcuvw.f90 -> ../Kernel_benchmark/233_phvbcuvw_s_phvbcuvw
+  Iteration 1: Found vars: cpavex cpavey dtsdb dxdt ebc ebe ebw exbvar gdxdt gdxdtn gdydtn mfcopt ni nim1 nim2 nj nk nkm3v rmf8u u ucpx ucpy uf up wbc 
+  Iteration 2: Found vars: dxdt5 dydt5 ebn ebs gdydt gtinc1 gtinc2 istr isub jstr mpopt nbc nim3 nisub njm1 njm2 njm3 rmf8v sbc u8v ugpv v8u vcpx vf vp 
+  Iteration 3: Found vars: dydt iend jend jsub njsub nkm2v rmf utd v vcpy vgpv w wcpx wcpy wf wp 
+  Iteration 4: Found vars: gtinc0 vtd wgpv 
+  Iteration 5: Found vars: wtd 
+  Iteration 6: Compilation successful!
+Created: ../Kernel_benchmark/233_phvbcuvw_s_phvbcuvw/variable_list.txt
+Total variables: 70
+SKIP: phvs.f90 - Already processed
+
+=== Processing: phy2cnt.f90 -> ../Kernel_benchmark/236_phy2cnt_s_phy2cnt ===
+Processing: phy2cnt.f90 -> ../Kernel_benchmark/236_phy2cnt_s_phy2cnt
+  Iteration 1: Found vars: j31u2 j32v2 jcb8w mf mf25 mfcopt mpopt ni nj nk sthopt trnopt wc 
+  Iteration 2: Found vars: u v w 
+  Iteration 3: Found vars: j31 j32 
+  Iteration 4: Compilation successful!
+Created: ../Kernel_benchmark/236_phy2cnt_s_phy2cnt/variable_list.txt
+Total variables: 18
+
+=== Processing: phycood.f90 -> ../Kernel_benchmark/237_phycood_s_phycood_sec1 ===
+Processing: phycood.f90 -> ../Kernel_benchmark/237_phycood_s_phycood_sec1
+  Iteration 1: Found vars: ht htuivz ni nj nk nkm1 zph zsth 
+  Iteration 2: Found vars: htuiv nkm2 zflat zflat0 
+  Iteration 3: Found vars: zsfc 
+  Iteration 4: Compilation successful!
+mv: cannot stat 'phycood.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/237_phycood_s_phycood_sec1/variable_list.txt
+Total variables: 13
+
+=== Processing: prodctwg.f90 -> ../Kernel_benchmark/240_prodctwg_s_prodctwg ===
+Processing: prodctwg.f90 -> ../Kernel_benchmark/240_prodctwg_s_prodctwg
+  Iteration 1: Found vars: clcg clir clsgn clsr clsrn cphopt eigiv esgiv lf ncs ni nj nk pgwet qg qi qs tcel 
+  Iteration 2: Found vars: clis clrg thresq vntg 
+  Iteration 3: Found vars: cc2dtn clig 
+  Iteration 4: Found vars: clsg lv 
+  Iteration 5: Found vars: dv 
+  Iteration 6: Found vars: rbr 
+  Iteration 7: Found vars: qvsst0 
+  Iteration 8: Found vars: kp 
+  Iteration 9: Compilation successful!
+Created: ../Kernel_benchmark/240_prodctwg_s_prodctwg/variable_list.txt
+Total variables: 30
+
+=== Processing: putbufgy.f90 -> ../Kernel_benchmark/242_putbufgy_s_putbufgy ===
+Processing: putbufgy.f90 -> ../Kernel_benchmark/242_putbufgy_s_putbufgy
+  Iteration 1: Found vars: ebn ebs fproc jgrp jsub kmax nb nbc ni njgrp njsub sbc sbufy 
+  Iteration 2: Found vars: ib jnsnd 
+  Iteration 3: Found vars: var 
+  Iteration 4: Found vars: jssnd 
+  Iteration 5: Compilation successful!
+mv: cannot move 'putbufgy.f90.bak' to 'putbufgy.f90': No such file or directory
+Created: ../Kernel_benchmark/242_putbufgy_s_putbufgy/variable_list.txt
+Total variables: 17
+
+=== Processing: putbufsy.f90 -> ../Kernel_benchmark/244_putbufsy_s_putbufsy ===
+Processing: putbufsy.f90 -> ../Kernel_benchmark/244_putbufsy_s_putbufsy
+  Iteration 1: Found vars: fproc jsub kmax nb nbc ni njsub sbc sbufy 
+  Iteration 2: Found vars: ib jnsnd 
+  Iteration 3: Found vars: var 
+  Iteration 4: Found vars: jssnd 
+  Iteration 5: Compilation successful!
+mv: cannot move 'putbufsy.f90.bak' to 'putbufsy.f90': No such file or directory
+Created: ../Kernel_benchmark/244_putbufsy_s_putbufsy/variable_list.txt
+Total variables: 13
+
+=== Processing: qv2rdr.f90 -> ../Kernel_benchmark/246_qv2rdr_s_qv2rdr ===
+Processing: qv2rdr.f90 -> ../Kernel_benchmark/246_qv2rdr_s_qv2rdr
+  Iteration 1: Found vars: etop ni nj nk qvfrc rhr tlcl tsfc zph8s 
+  Iteration 2: Found vars: ngrqv ptbr zph 
+  Iteration 3: Found vars: ptpp rst 
+  Iteration 4: Found vars: pbr qvs 
+  Iteration 5: Found vars: ppp qvp 
+  Iteration 6: Found vars: p0iv 
+  Iteration 7: Found vars: rddvcp 
+  Iteration 8: Compilation successful!
+Created: ../Kernel_benchmark/246_qv2rdr_s_qv2rdr/variable_list.txt
+Total variables: 20
+
+=== Processing: rbcpt.f90 -> ../Kernel_benchmark/248_rbcpt_s_rbcpt ===
+Processing: rbcpt.f90 -> ../Kernel_benchmark/248_rbcpt_s_rbcpt
+  Iteration 1: Found vars: advopt ebe ebn ebs ebw nbc nggopt ni nim1 nim2 nj njm1 njm2 nk ptcpy ptp ptpf ptpp tpdt 
+  Iteration 2: Found vars: dmpdt isub jsub lspopt nisub njsub ptcpx ptpgpv 
+  Iteration 3: Found vars: ebc ptptd vspopt wbc 
+  Iteration 4: Found vars: gtinc sbc 
+  Iteration 5: Compilation successful!
+Created: ../Kernel_benchmark/248_rbcpt_s_rbcpt/variable_list.txt
+Total variables: 33
+
+=== Processing: rbcqv.f90 -> ../Kernel_benchmark/250_rbcqv_s_rbcqv ===
+Processing: rbcqv.f90 -> ../Kernel_benchmark/250_rbcqv_s_rbcqv
+  Iteration 1: Found vars: advopt ebe ebn ebs ebw gpvvar nbc ni nim2 nj njm1 njm2 nk qv qvbr qvcpy qvf tpdt 
+  Iteration 2: Found vars: isub jsub nggopt nim1 nisub njsub qvgpv qvp 
+  Iteration 3: Found vars: ebc lspopt qvcpx qvtd wbc 
+  Iteration 4: Found vars: gtinc sbc vspopt 
+  Iteration 5: Found vars: dmpdt 
+  Iteration 6: Compilation successful!
+mv: cannot stat 'rbcqv.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/250_rbcqv_s_rbcqv/variable_list.txt
+Total variables: 35
+SKIP: rbcs0.f90 - Already processed
+
+=== Processing: rbcss.f90 -> ../Kernel_benchmark/253_rbcss_subroutine ===
+Processing: rbcss.f90 -> ../Kernel_benchmark/253_rbcss_subroutine
+  Iteration 1: Found vars: ebe ebn ebs ebw nbc nggopt ni nim2 nj njm1 njm2 nk s scpy sgpv 
+  Iteration 2: Found vars: isub jsub lspopt nim1 nisub njsub scpx std 
+  Iteration 3: Found vars: ebc tpdt vspopt wbc 
+  Iteration 4: Found vars: dmpdt sbc 
+  Iteration 5: Compilation successful!
+mv: cannot stat 'rbcss.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/253_rbcss_subroutine/variable_list.txt
+Total variables: 29
+
+=== Processing: rbcv.f90 -> ../Kernel_benchmark/255_rbcv_s_rbcv ===
+Processing: rbcv.f90 -> ../Kernel_benchmark/255_rbcv_s_rbcv
+  Iteration 1: Found vars: ebc ebe ebn ebs ebw nbc nggopt ni nim1 nj nk sbc v vbr vcpx wbc 
+  Iteration 2: Found vars: isub jsub lspopt nim2 nisub njm1 njsub tdmpdt vcpy 
+  Iteration 3: Found vars: vgpv vspopt 
+  Iteration 4: Found vars: vtd 
+  Iteration 5: Found vars: tpdt 
+  Iteration 6: Found vars: ndmpdt 
+  Iteration 7: Compilation successful!
+mv: cannot stat 'rbcv.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/255_rbcv_s_rbcv/variable_list.txt
+Total variables: 30
+
+=== Processing: rdgrp.f90 -> ../Kernel_benchmark/257_rdgrp_s_rdgrp ===
+Processing: rdgrp.f90 -> ../Kernel_benchmark/257_rdgrp_s_rdgrp
+cp: cannot create regular file 'rdgrp.f90.bak': File exists
+  Iteration 1: Found vars: grpxy nigrp njgrp 
+  Iteration 2: Compilation successful!
+Created: ../Kernel_benchmark/257_rdgrp_s_rdgrp/variable_list.txt
+Total variables: 3
+
+=== Processing: rdsfcdmp.f90 -> ../Kernel_benchmark/258_rdsfcdmp_s_rdsfcdmp ===
+Processing: rdsfcdmp.f90 -> ../Kernel_benchmark/258_rdsfcdmp_s_rdsfcdmp
+  Iteration 1: Found vars: ht land ni nj sfcopt 
+  Iteration 2: Found vars: zsfc 
+  Iteration 3: Compilation successful!
+Created: ../Kernel_benchmark/258_rdsfcdmp_s_rdsfcdmp/variable_list.txt
+Total variables: 6
+
+=== Processing: repsit2d.f90 -> ../Kernel_benchmark/260_repsit2d_s_repsit2d ===
+Processing: repsit2d.f90 -> ../Kernel_benchmark/260_repsit2d_s_repsit2d
+cp: cannot create regular file 'repsit2d.f90.bak': File exists
+  Iteration 1: Found vars: dib djb ebe ebn ebs ebw iendb jstrb nk xo 
+  Iteration 2: Found vars: istrb isub jendb jsub nisub njsub var2dx_rst var2dy_rst 
+  Iteration 3: Found vars: isub_rst jsub_rst nisub_rst njsub_rst var2dx var2dy 
+  Iteration 4: Compilation successful!
+mv: cannot move 'repsit2d.f90.bak' to 'repsit2d.f90': No such file or directory
+Created: ../Kernel_benchmark/260_repsit2d_s_repsit2d/variable_list.txt
+Total variables: 24
+
+=== Processing: rotuvm2s.f90 -> ../Kernel_benchmark/262_rotuvm2s_s_rotuvm2s ===
+Processing: rotuvm2s.f90 -> ../Kernel_benchmark/262_rotuvm2s_s_rotuvm2s
+cp: cannot create regular file 'rotuvm2s.f90.bak': File exists
+  Iteration 1: Found vars: d2rcpj istr jstr kstr lon mpopt rpol u 
+  Iteration 2: Found vars: iend jend kend tlon v 
+  Iteration 3: Compilation successful!
+Created: ../Kernel_benchmark/262_rotuvm2s_s_rotuvm2s/variable_list.txt
+Total variables: 13
+
+=== Processing: roughitr.f90 -> ../Kernel_benchmark/264_roughitr_s_roughitr ===
+Processing: roughitr.f90 -> ../Kernel_benchmark/264_roughitr_s_roughitr
+cp: cannot create regular file 'roughitr.f90.bak': File exists
+  Iteration 1: Found vars: cm dz0m land ni nj z0h 
+  Iteration 2: Found vars: va z0m 
+  Iteration 3: Compilation successful!
+Created: ../Kernel_benchmark/264_roughitr_s_roughitr/variable_list.txt
+Total variables: 8
+
+=== Processing: rstuvwc.f90 -> ../Kernel_benchmark/266_rstuvwc_s_rstuvwc ===
+Processing: rstuvwc.f90 -> ../Kernel_benchmark/266_rstuvwc_s_rstuvwc
+  Iteration 1: Found vars: jnorth mf8u mf8v mfcopt mpopt ni nj nk rstxu rstxv rstxwc 
+  Iteration 2: Found vars: ieast jsouth rst8u rst8v rst8w 
+  Iteration 3: Found vars: iwest u v wc 
+  Iteration 4: Compilation successful!
+Created: ../Kernel_benchmark/266_rstuvwc_s_rstuvwc/variable_list.txt
+Total variables: 20
+SKIP: sadjstbw.f90 - Already processed
+
+=== Processing: set1d.f90 -> ../Kernel_benchmark/269_set1d_subroutine_sec1 ===
+Processing: set1d.f90 -> ../Kernel_benchmark/269_set1d_subroutine_sec1
+  Iteration 1: Found vars: cpdvrd lpmin ltmp1 ltmp2 nlev nlev25 p1d pimin pt1d qv1d sndtyp t1d 
+  Iteration 2: Found vars: es001 p0iv rddvcp thresq z1d 
+  Iteration 3: Found vars: gdvcp2 gdvrd2 rddvg 
+  Iteration 4: Compilation successful!
+mv: cannot stat 'set1d.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/269_set1d_subroutine_sec1/variable_list.txt
+Total variables: 20
+
+=== Processing: setbase.f90 -> ../Kernel_benchmark/278_setbase_s_setbase ===
+Processing: setbase.f90 -> ../Kernel_benchmark/278_setbase_s_setbase
+  Iteration 1: Found vars: ni nj nk pibr ptvbr rbr zph8s 
+  Iteration 2: Found vars: pbr ptbr zph 
+  Iteration 3: Found vars: p0iv qvbr 
+  Iteration 4: Found vars: rddvcp 
+  Iteration 5: Compilation successful!
+Created: ../Kernel_benchmark/278_setbase_s_setbase/variable_list.txt
+Total variables: 13
+SKIP: setbin.f90 - Already processed
+
+=== Processing: setcst1d.f90 -> ../Kernel_benchmark/281_setcst1d_s_setcst1d_sec1 ===
+Processing: setcst1d.f90 -> ../Kernel_benchmark/281_setcst1d_s_setcst1d_sec1
+  Iteration 1: Found vars: kmin outvar 
+  Iteration 2: Found vars: invar kmax 
+  Iteration 3: Compilation successful!
+mv: cannot move 'setcst1d.f90.bak' to 'setcst1d.f90': No such file or directory
+Created: ../Kernel_benchmark/281_setcst1d_s_setcst1d_sec1/variable_list.txt
+Total variables: 4
+
+=== Processing: setcst2d.f90 -> ../Kernel_benchmark/283_setcst2d_s_setcst2d_sec1 ===
+Processing: setcst2d.f90 -> ../Kernel_benchmark/283_setcst2d_s_setcst2d_sec1
+cp: cannot create regular file 'setcst2d.f90.bak': File exists
+  Iteration 1: Found vars: imin jmin outvar 
+  Iteration 2: Found vars: imax invar jmax 
+  Iteration 3: Compilation successful!
+mv: cannot stat 'setcst2d.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/283_setcst2d_s_setcst2d_sec1/variable_list.txt
+Total variables: 6
+
+=== Processing: setcst3d.f90 -> ../Kernel_benchmark/285_setcst3d_s_setcst3d_sec1 ===
+Processing: setcst3d.f90 -> ../Kernel_benchmark/285_setcst3d_s_setcst3d_sec1
+cp: cannot create regular file 'setcst3d.f90.bak': File exists
+  Iteration 1: Found vars: imin jmin kmin outvar 
+  Iteration 2: Found vars: imax invar jmax kmax 
+  Iteration 3: Compilation successful!
+mv: cannot stat 'setcst3d.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/285_setcst3d_s_setcst3d_sec1/variable_list.txt
+Total variables: 8
+
+=== Processing: setcst4d.f90 -> ../Kernel_benchmark/287_setcst4d_s_setcst4d ===
+Processing: setcst4d.f90 -> ../Kernel_benchmark/287_setcst4d_s_setcst4d
+cp: cannot create regular file 'setcst4d.f90.bak': File exists
+  Iteration 1: Found vars: imin jmin kmin nmin outvar 
+  Iteration 2: Found vars: imax invar jmax kmax nmax 
+  Iteration 3: Compilation successful!
+mv: cannot stat 'setcst4d.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/287_setcst4d_s_setcst4d/variable_list.txt
+Total variables: 10
+
+=== Processing: setname.f90 -> ../Kernel_benchmark/289_setname_s_setname ===
+Processing: setname.f90 -> ../Kernel_benchmark/289_setname_s_setname
+  Iteration 1: Found vars: beta_lnd cap_lnd iname numctg_lnd nuu_lnd rname z0h_lnd z0m_lnd 
+  Iteration 2: Found vars: albe_lnd lnduse_lnd 
+  Iteration 3: Compilation successful!
+Created: ../Kernel_benchmark/289_setname_s_setname/variable_list.txt
+Total variables: 10
+
+=== Processing: setsfc.f90 -> ../Kernel_benchmark/291_setsfc_s_setsfc ===
+Processing: setsfc.f90 -> ../Kernel_benchmark/291_setsfc_s_setsfc
+cp: cannot create regular file 'setsfc.f90.bak': File exists
+  Iteration 1: Found vars: cphopt fall fmois land levpbl ni nj nk p ps pt ptv qv qvsfc qvsice qvsts t tice tubopt tund u v va w 
+  Iteration 2: Found vars: kai p0iv pbr ptbr 
+  Iteration 3: Found vars: beta pp ptp rddvcp 
+  Iteration 4: Compilation successful!
+Created: ../Kernel_benchmark/291_setsfc_s_setsfc/variable_list.txt
+Total variables: 32
+
+=== Processing: sfcflx.f90 -> ../Kernel_benchmark/293_sfcflx_subroutine ===
+Processing: sfcflx.f90 -> ../Kernel_benchmark/293_sfcflx_subroutine
+  Iteration 1: Found vars: ce cq ct land ni nj rbr 
+  Iteration 2: Found vars: ch cm rddwkp 
+  Iteration 3: Found vars: va 
+  Iteration 4: Compilation successful!
+Created: ../Kernel_benchmark/293_sfcflx_subroutine/variable_list.txt
+Total variables: 11
+SKIP: sheartke.f90 - Already processed
+
+=== Processing: siadjst.f90 -> ../Kernel_benchmark/296_siadjst_s_siadjst ===
+Processing: siadjst.f90 -> ../Kernel_benchmark/296_siadjst_s_siadjst
+cp: cannot create regular file 'siadjst.f90.bak': File exists
+  Iteration 1: Found vars: cwmci mi0iv nci ni nj nk p ptbr qi 
+  Iteration 2: Found vars: ptp thresq 
+  Iteration 3: Found vars: pi qv 
+  Iteration 4: Compilation successful!
+Created: ../Kernel_benchmark/296_siadjst_s_siadjst/variable_list.txt
+Total variables: 13
+
+=== Processing: smoo2qv.f90 -> ../Kernel_benchmark/298_smoo2qv_s_smoo2qv ===
+Processing: smoo2qv.f90 -> ../Kernel_benchmark/298_smoo2qv_s_smoo2qv
+  Iteration 1: Found vars: ni nj nk qvfrc rbrqv 
+  Iteration 2: Found vars: rbr smvcoe 
+  Iteration 3: Found vars: qv smhcoe 
+  Iteration 4: Found vars: qvbr 
+  Iteration 5: Compilation successful!
+Created: ../Kernel_benchmark/298_smoo2qv_s_smoo2qv/variable_list.txt
+Total variables: 10
+SKIP: smoo2s.f90 - Already processed
+
+=== Processing: smoo2uvw.f90 -> ../Kernel_benchmark/300_smoo2uvw_s_smoo2uvw ===
+Processing: smoo2uvw.f90 -> ../Kernel_benchmark/300_smoo2uvw_s_smoo2uvw
+  Iteration 1: Found vars: ni nj nk rst8w tmp1 ufrc v vfrc wfrc 
+  Iteration 2: Found vars: rbr smvc5 smvcoe vbr w 
+  Iteration 3: Found vars: jcb8w smhc5 smhcoe u 
+  Iteration 4: Found vars: ubr 
+  Iteration 5: Compilation successful!
+mv: cannot stat 'smoo2uvw.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/300_smoo2uvw_s_smoo2uvw/variable_list.txt
+Total variables: 19
+
+=== Processing: smoo4p.f90 -> ../Kernel_benchmark/301_smoo4p_s_smoo4p ===
+Processing: smoo4p.f90 -> ../Kernel_benchmark/301_smoo4p_s_smoo4p
+  Iteration 1: Found vars: ni nj nk nkm1 pfrc pp2 smtopt tmp1 tmp2 tmp3 
+  Iteration 2: Found vars: ieast jnorth nkm2 pp smhcoe 
+  Iteration 3: Found vars: iwest jsouth smvcoe 
+  Iteration 4: Compilation successful!
+Created: ../Kernel_benchmark/301_smoo4p_s_smoo4p/variable_list.txt
+Total variables: 18
+
+=== Processing: smoo4qv.f90 -> ../Kernel_benchmark/302_smoo4qv_s_smoo4qv ===
+Processing: smoo4qv.f90 -> ../Kernel_benchmark/302_smoo4qv_s_smoo4qv
+  Iteration 1: Found vars: ni nj nk nkm1 qvfrc rbrqv rbrqv2 smtopt tmp1 tmp2 tmp3 
+  Iteration 2: Found vars: ieast jnorth nkm2 rbr smhcoe 
+  Iteration 3: Found vars: iwest jsouth qv smvcoe 
+  Iteration 4: Found vars: qvbr 
+  Iteration 5: Compilation successful!
+mv: cannot stat 'smoo4qv.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/302_smoo4qv_s_smoo4qv/variable_list.txt
+Total variables: 21
+
+=== Processing: smoo4s.f90 -> ../Kernel_benchmark/303_smoo4s_subroutine ===
+Processing: smoo4s.f90 -> ../Kernel_benchmark/303_smoo4s_subroutine
+cp: cannot create regular file 'smoo4s.f90.bak': File exists
+  Iteration 1: Found vars: ni nj nk nkm1 rbrs rbrs2 sfrc smtopt tmp1 tmp2 tmp3 
+  Iteration 2: Found vars: ieast jnorth nkm2 rbr smhcoe 
+  Iteration 3: Found vars: iwest jsouth s smvcoe 
+  Iteration 4: Compilation successful!
+mv: cannot move 'smoo4s.f90.bak' to 'smoo4s.f90': No such file or directory
+Created: ../Kernel_benchmark/303_smoo4s_subroutine/variable_list.txt
+Total variables: 20
+
+=== Processing: smoo4uvw.f90 -> ../Kernel_benchmark/304_smoo4uvw_s_smoo4uvw ===
+Processing: smoo4uvw.f90 -> ../Kernel_benchmark/304_smoo4uvw_s_smoo4uvw
+  Iteration 1: Found vars: ni nj nk nkm1 rst8v rst8w smtopt tmp1 tmp2 tmp3 tmp4 tmp5 ufrc vfrc wfrc 
+  Iteration 2: Found vars: ieast jnorth nkm2 rst8u smhcoe v w 
+  Iteration 3: Found vars: iwest jcb8w jsouth smvcoe u vbr 
+  Iteration 4: Found vars: jcb8v ubr 
+  Iteration 5: Found vars: jcb8u 
+  Iteration 6: Compilation successful!
+Created: ../Kernel_benchmark/304_smoo4uvw_s_smoo4uvw/variable_list.txt
+Total variables: 31
+SKIP: sndwave.f90 - Already processed
+SKIP: sparprt.f90 - Already processed
+
+=== Processing: steppi.f90 -> ../Kernel_benchmark/308_steppi_s_steppi ===
+Processing: steppi.f90 -> ../Kernel_benchmark/308_steppi_s_steppi
+  Iteration 1: Found vars: ni nj nk ppf 
+  Iteration 2: Found vars: fp 
+  Iteration 3: Found vars: dts 
+  Iteration 4: Found vars: jcb 
+  Iteration 5: Compilation successful!
+Created: ../Kernel_benchmark/308_steppi_s_steppi/variable_list.txt
+Total variables: 7
+
+=== Processing: steps.f90 -> ../Kernel_benchmark/310_steps_s_steps ===
+Processing: steps.f90 -> ../Kernel_benchmark/310_steps_s_steps
+cp: cannot create regular file 'steps.f90.bak': File exists
+  Iteration 1: Found vars: advopt dtb dtdrst fmois haiopt ni nicef nj nk nni nnw nqa nqi nqw nwtrf ptpf qaslf qcgopt qcicef qcwtrf qicef qtf qvf qwtrf tkef 
+  Iteration 2: Found vars: gwmopt nicep nwtrp ptpp qaslp qcicep qcwtrp qicep qtp qvp qwtrp rst tkep 
+  Iteration 3: Found vars: aslopt dtb2 ptfrc qvfrc 
+  Iteration 4: Found vars: trkopt 
+  Iteration 5: Found vars: tubopt 
+  Iteration 6: Found vars: cphopt 
+  Iteration 7: Compilation successful!
+Created: ../Kernel_benchmark/310_steps_s_steps/variable_list.txt
+Total variables: 45
+SKIP: steptund.f90 - Already processed
+SKIP: stepuv.f90 - Already processed
+SKIP: stepwe.f90 - Already processed
+
+=== Processing: stretch.f90 -> ../Kernel_benchmark/316_stretch_s_stretch_sec1 ===
+Processing: stretch.f90 -> ../Kernel_benchmark/316_stretch_s_stretch_sec1
+  Iteration 1: Found vars: a b c dzhigh dzsth klow nk sthopt zsth 
+  Iteration 2: Found vars: dzall dzmid dzmin kmid 
+  Iteration 3: Found vars: zsfc 
+  Iteration 4: Compilation successful!
+mv: cannot stat 'stretch.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/316_stretch_s_stretch_sec1/variable_list.txt
+Total variables: 14
+SKIP: strsten.f90 - Already processed
+
+=== Processing: sumbin.f90 -> ../Kernel_benchmark/319_sumbin_s_sumbin ===
+Processing: sumbin.f90 -> ../Kernel_benchmark/319_sumbin_s_sumbin
+  Iteration 1: Found vars: ni nj nk nq qall 
+  Iteration 2: Found vars: rbv 
+  Iteration 3: Found vars: mbin 
+  Iteration 4: Compilation successful!
+Created: ../Kernel_benchmark/319_sumbin_s_sumbin/variable_list.txt
+Total variables: 7
+
+=== Processing: swp2nxt.f90 -> ../Kernel_benchmark/321_swp2nxt_s_swp2nxt ===
+Processing: swp2nxt.f90 -> ../Kernel_benchmark/321_swp2nxt_s_swp2nxt
+  Iteration 1: Found vars: haiopt ni nicef nicep nj nk nwtrf nwtrp ppf ppp ptpf ptpp qcwtrp qicef qicep qvf qvp qwtrf qwtrp uf up vf vp wf wp 
+  Iteration 2: Found vars: cphopt fmois ieast jnorth nice nni nnw nqi nqw nwtr pp ptp qaslf qaslp qcgopt qcicef qcicep qcwtr qcwtrf qice qv qwtr u v w 
+  Iteration 3: Found vars: advopt aslopt dtsoil iwest jsouth nqa nund qasl qcice qtf qtp sfcopt tkef tkep trkopt tubopt tundf tundp 
+  Iteration 4: Found vars: qt tke tund 
+  Iteration 5: Compilation successful!
+Created: ../Kernel_benchmark/321_swp2nxt_s_swp2nxt/variable_list.txt
+Total variables: 71
+SKIP: t2pt.f90 - Already processed
+SKIP: termblk.f90 - Already processed
+
+=== Processing: termbw3d.f90 -> ../Kernel_benchmark/325_termbw3d_s_termbw3d ===
+Processing: termbw3d.f90 -> ../Kernel_benchmark/325_termbw3d_s_termbw3d
+  Iteration 1: Found vars: c1 c2 c3 c4 c5 geta4v ncp ni nj nk rbr rbw rbwm2 t ubw ubwmax 
+  Iteration 2: Found vars: etav48 g163 geta29 rbv rbwmiv rhow03 rrbw 
+  Iteration 3: Found vars: eta05 
+  Iteration 4: Compilation successful!
+mv: cannot move 'termbw3d.f90.bak' to 'termbw3d.f90': No such file or directory
+Created: ../Kernel_benchmark/325_termbw3d_s_termbw3d/variable_list.txt
+Total variables: 24
+
+=== Processing: timeflt.f90 -> ../Kernel_benchmark/327_timeflt_s_timeflt ===
+Processing: timeflt.f90 -> ../Kernel_benchmark/327_timeflt_s_timeflt
+  Iteration 1: Found vars: cphopt fmois haiopt ni nice nj nk nni nnw nqa nqi nqw nwtr pp ptp qasl qcgopt qcice qcwtr qice qv qwtr u v w 
+  Iteration 2: Found vars: aslopt dtsoil land m1fc2 nicef nund nwtrf ppf ptpf qaslf qcicef qcwtrf qicef qt qvf qwtrf sfcopt tke trkopt tubopt tund vf wf 
+  Iteration 3: Found vars: m1fc4 nicep nwtrp ppp ptpp qaslp qcicep qcwtrp qicep qtf qvp qwtrp tundf uf vp wp 
+  Iteration 4: Found vars: qtp tkef tundp up 
+  Iteration 5: Found vars: filcoe tkep 
+  Iteration 6: Found vars: fc2 
+  Iteration 7: Compilation successful!
+mv: cannot stat 'timeflt.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/327_timeflt_s_timeflt/variable_list.txt
+Total variables: 71
+SKIP: tkeflx.f90 - Already processed
+
+=== Processing: totalqwi.f90 -> ../Kernel_benchmark/331_totalqwi_s_totalqwi ===
+Processing: totalqwi.f90 -> ../Kernel_benchmark/331_totalqwi_s_totalqwi
+  Iteration 1: Found vars: cphopt haiopt ni nj nk nqi nqw qall qice 
+  Iteration 2: Found vars: qwtr 
+  Iteration 3: Compilation successful!
+mv: cannot stat 'totalqwi.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/331_totalqwi_s_totalqwi/variable_list.txt
+Total variables: 10
+SKIP: totals.f90 - Already processed
+
+=== Processing: turbflx.f90 -> ../Kernel_benchmark/334_turbflx_s_turbflx_sec1 ===
+Processing: turbflx.f90 -> ../Kernel_benchmark/334_turbflx_s_turbflx_sec1
+  Iteration 1: Found vars: h1 h2 h3 j31s j32s jcbs ni nj nk sfcopt sfrc trnopt 
+  Iteration 2: Found vars: dzv125 j32 rkh8u rkh8v rkv8w s 
+  Iteration 3: Found vars: dxv05 dyv05 dziv j31 jcb 
+  Iteration 4: Compilation successful!
+Created: ../Kernel_benchmark/334_turbflx_s_turbflx_sec1/variable_list.txt
+Total variables: 23
+SKIP: turbtke.f90 - Already processed
+SKIP: turbuvw.f90 - Already processed
+
+=== Processing: undefice.f90 -> ../Kernel_benchmark/339_undefice_s_undefice_sec1 ===
+Processing: undefice.f90 -> ../Kernel_benchmark/339_undefice_s_undefice_sec1
+  Iteration 1: Found vars: icedat nid njd njdm1 und 
+  Iteration 2: Found vars: nidm1 
+  Iteration 3: Compilation successful!
+Created: ../Kernel_benchmark/339_undefice_s_undefice_sec1/variable_list.txt
+Total variables: 6
+
+=== Processing: undefsst.f90 -> ../Kernel_benchmark/342_undefsst_s_undefsst_sec1 ===
+Processing: undefsst.f90 -> ../Kernel_benchmark/342_undefsst_s_undefsst_sec1
+  Iteration 1: Found vars: nid njd njdm1 sstdat t268v und 
+  Iteration 2: Found vars: nidm1 
+  Iteration 3: Compilation successful!
+Created: ../Kernel_benchmark/342_undefsst_s_undefsst_sec1/variable_list.txt
+Total variables: 7
+
+=== Processing: upwmbin.f90 -> ../Kernel_benchmark/345_upwmbin_s_upwmbin ===
+Processing: upwmbin.f90 -> ../Kernel_benchmark/345_upwmbin_s_upwmbin
+  Iteration 1: Found vars: advopt dtp dtp05 mbflx ni nj nk nkm1 nq precip rst 
+  Iteration 2: Found vars: dzvdt2 nkm2 rbr rbv 
+  Iteration 3: Found vars: rwv500 ubm 
+  Iteration 4: Found vars: mbin 
+  Iteration 5: Found vars: ncp 
+  Iteration 6: Compilation successful!
+Created: ../Kernel_benchmark/345_upwmbin_s_upwmbin/variable_list.txt
+Total variables: 19
+SKIP: upwnbin.f90 - Already processed
+SKIP: upwnp.f90 - Already processed
+
+=== Processing: uvw2gpv.f90 -> ../Kernel_benchmark/350_uvw2gpv_s_uvw2gpv ===
+Processing: uvw2gpv.f90 -> ../Kernel_benchmark/350_uvw2gpv_s_uvw2gpv
+  Iteration 1: Found vars: nggvar ni nj nk ufrc vfrc wfrc 
+  Iteration 2: Found vars: rst8u rst8v rst8w 
+  Iteration 3: Found vars: nggdmp vgpv wgpv 
+  Iteration 4: Found vars: ugpv vtd wtd 
+  Iteration 5: Found vars: utd vp wp 
+  Iteration 6: Found vars: gtinc 
+  Iteration 7: Found vars: up 
+  Iteration 8: Compilation successful!
+Created: ../Kernel_benchmark/350_uvw2gpv_s_uvw2gpv/variable_list.txt
+Total variables: 21
+
+=== Processing: var8uvw.f90 -> ../Kernel_benchmark/353_var8uvw_s_var8uvw ===
+Processing: var8uvw.f90 -> ../Kernel_benchmark/353_var8uvw_s_var8uvw
+  Iteration 1: Found vars: ni nj nk var8u var8v var8w 
+  Iteration 2: Found vars: var 
+  Iteration 3: Compilation successful!
+Created: ../Kernel_benchmark/353_var8uvw_s_var8uvw/variable_list.txt
+Total variables: 7
+
+=== Processing: var8w8u.f90 -> ../Kernel_benchmark/356_var8w8u_s_var8w8u ===
+Processing: var8w8u.f90 -> ../Kernel_benchmark/356_var8w8u_s_var8w8u
+  Iteration 1: Found vars: ni nj nk var8u 
+  Iteration 2: Found vars: var8w 
+  Iteration 3: Compilation successful!
+Created: ../Kernel_benchmark/356_var8w8u_s_var8w8u/variable_list.txt
+Total variables: 5
+
+=== Processing: vbcp.f90 -> ../Kernel_benchmark/358_vbcp_s_vbcp ===
+Processing: vbcp.f90 -> ../Kernel_benchmark/358_vbcp_s_vbcp
+  Iteration 1: Found vars: bbc ni nj nkm1 ppf 
+  Iteration 2: Found vars: nkm2 
+  Iteration 3: Compilation successful!
+Created: ../Kernel_benchmark/358_vbcp_s_vbcp/variable_list.txt
+Total variables: 6
+SKIP: vbcs.f90 - Already processed
+
+=== Processing: vbcv.f90 -> ../Kernel_benchmark/362_vbcv_s_vbcv ===
+Processing: vbcv.f90 -> ../Kernel_benchmark/362_vbcv_s_vbcv
+  Iteration 1: Found vars: ni nj nkm1 vf 
+  Iteration 2: Found vars: nkm2 
+  Iteration 3: Compilation successful!
+Created: ../Kernel_benchmark/362_vbcv_s_vbcv/variable_list.txt
+Total variables: 5
+
+=== Processing: vculs0.f90 -> ../Kernel_benchmark/366_vculs0_s_vculs0 ===
+Processing: vculs0.f90 -> ../Kernel_benchmark/366_vculs0_s_vculs0
+  Iteration 1: Found vars: dzt1 dzt16 dzt22 ni nj nk nkm1 nkm2 sf sp wc8s 
+  Iteration 2: Found vars: dzt36 nkm3 
+  Iteration 3: Found vars: nkm4 
+  Iteration 4: Compilation successful!
+Created: ../Kernel_benchmark/366_vculs0_s_vculs0/variable_list.txt
+Total variables: 14
+
+=== Processing: vculuvw.f90 -> ../Kernel_benchmark/367_vculuvw_s_vculuvw ===
+Processing: vculuvw.f90 -> ../Kernel_benchmark/367_vculuvw_s_vculuvw
+  Iteration 1: Found vars: dzt1 dzt16 dzt22 ni nj nk nkm1 nkm2 uf up vf vp wc wc8s wf wp 
+  Iteration 2: Found vars: dzt36 nkm3 
+  Iteration 3: Found vars: nkm4 
+  Iteration 4: Compilation successful!
+Created: ../Kernel_benchmark/367_vculuvw_s_vculuvw/variable_list.txt
+Total variables: 19
+SKIP: vint11.f90 - Already processed
+SKIP: vint133a.f90 - Already processed
+SKIP: vint133g.f90 - Already processed
+
+=== Processing: vint13.f90 -> ../Kernel_benchmark/369_vint13_s_vint13 ===
+Processing: vint13.f90 -> ../Kernel_benchmark/369_vint13_s_vint13
+  Iteration 1: Found vars: dkivl istr jstr kmin nlev nlevm1 outvar z1d 
+  Iteration 2: Found vars: dkivh iend jend kmax var1d zph 
+  Iteration 3: Compilation successful!
+mv: cannot stat 'vint13.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/369_vint13_s_vint13/variable_list.txt
+Total variables: 14
+
+=== Processing: vint31g.f90 -> ../Kernel_benchmark/374_vint31g_s_vint31g ===
+Processing: vint31g.f90 -> ../Kernel_benchmark/374_vint31g_s_vint31g
+  Iteration 1: Found vars: etrvar_gpv nid njd nk nkdm1 refsfc_gpv varef zdat zlow 
+  Iteration 2: Found vars: ape nkd vardat 
+  Iteration 3: Found vars: z 
+  Iteration 4: Compilation successful!
+Created: ../Kernel_benchmark/374_vint31g_s_vint31g/variable_list.txt
+Total variables: 13
+
+=== Processing: vint31s.f90 -> ../Kernel_benchmark/376_vint31s_s_vint31s ===
+Processing: vint31s.f90 -> ../Kernel_benchmark/376_vint31s_s_vint31s
+cp: cannot create regular file 'vint31s.f90.bak': File exists
+  Iteration 1: Found vars: invar ni nj nk outvar zph8s 
+  Iteration 2: Found vars: z1d 
+  Iteration 3: Found vars: nkm2 
+  Iteration 4: Compilation successful!
+mv: cannot move 'vint31s.f90.bak' to 'vint31s.f90': No such file or directory
+Created: ../Kernel_benchmark/376_vint31s_s_vint31s/variable_list.txt
+Total variables: 8
+
+=== Processing: vintgpv.f90 -> ../Kernel_benchmark/378_vintgpv_s_vintgpv ===
+Processing: vintgpv.f90 -> ../Kernel_benchmark/378_vintgpv_s_vintgpv
+cp: cannot create regular file 'vintgpv.f90.bak': File exists
+  Iteration 1: Found vars: nid njd nk varef 
+  Iteration 2: Found vars: z 
+  Iteration 3: Compilation successful!
+mv: cannot stat 'vintgpv.f90.bak': No such file or directory
+Created: ../Kernel_benchmark/378_vintgpv_s_vintgpv/variable_list.txt
+Total variables: 5
+
+=== Processing: vspdmp.f90 -> ../Kernel_benchmark/380_vspdmp_s_vspdmp ===
+Processing: vspdmp.f90 -> ../Kernel_benchmark/380_vspdmp_s_vspdmp
+  Iteration 1: Found vars: botbar botgpv cbar05 ksp0 ni nj nk rbct vspopt z1dmax zph 
+  Iteration 2: Found vars: nkm1 
+  Iteration 3: Found vars: cgpv05 
+  Iteration 4: Compilation successful!
+Created: ../Kernel_benchmark/380_vspdmp_s_vspdmp/variable_list.txt
+Total variables: 13
+
+=== Processing: vspqv.f90 -> ../Kernel_benchmark/382_vspqv_s_vspqv ===
+Processing: vspqv.f90 -> ../Kernel_benchmark/382_vspqv_s_vspqv
+  Iteration 1: Found vars: ksp0 ni nj qvbr qvfrc vspopt 
+  Iteration 2: Found vars: gpvvar nk rbct 
+  Iteration 3: Found vars: rst 
+  Iteration 4: Found vars: qvp 
+  Iteration 5: Found vars: qvgpv 
+  Iteration 6: Found vars: qvtd 
+  Iteration 7: Found vars: gtinc 
+  Iteration 8: Compilation successful!
+Created: ../Kernel_benchmark/382_vspqv_s_vspqv/variable_list.txt
+Total variables: 14
+
+=== Processing: vsps.f90 -> ../Kernel_benchmark/383_vsps_subroutine ===
+Processing: vsps.f90 -> ../Kernel_benchmark/383_vsps_subroutine
+  Iteration 1: Found vars: ksp0 ni nj sfrc vspopt 
+  Iteration 2: Found vars: gpvvar nk rbct 
+  Iteration 3: Found vars: apg rst 
+  Iteration 4: Found vars: sp 
+  Iteration 5: Found vars: sgpv 
+  Iteration 6: Found vars: std 
+  Iteration 7: Found vars: gtinc 
+  Iteration 8: Compilation successful!
+mv: cannot move 'vsps.f90.bak' to 'vsps.f90': No such file or directory
+Created: ../Kernel_benchmark/383_vsps_subroutine/variable_list.txt
+Total variables: 14
+
+=== Processing: xy2ij.f90 -> ../Kernel_benchmark/386_xy2ij_s_xy2ij ===
+Processing: xy2ij.f90 -> ../Kernel_benchmark/386_xy2ij_s_xy2ij
+  Iteration 1: Found vars: istr jstr ri rj 
+  Iteration 2: Found vars: iend jend x2d y2d 
+  Iteration 3: Found vars: dxiv dyiv 
+  Iteration 4: Compilation successful!
+mv: cannot move 'xy2ij.f90.bak' to 'xy2ij.f90': No such file or directory
+Created: ../Kernel_benchmark/386_xy2ij_s_xy2ij/variable_list.txt
+Total variables: 10
+
+=== Summary ===
+Processed: 94
+Skipped: 166
+Failed: 0

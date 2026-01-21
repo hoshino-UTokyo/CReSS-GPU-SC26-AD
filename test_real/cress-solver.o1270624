@@ -1,0 +1,45 @@
+[mg0067:951963:0:951963] Caught signal 11 (Segmentation fault: invalid permissions for mapped object at address 0x40003f390000)
+==== backtrace (tid: 951963) ====
+ 0 0x00000000000d0c20 __f90io_usw_write()  ???:0
+ 1 0x00000000003a554c __io_write_i8()  nvcm07dK07Nl3Vv.ll:0
+ 2 0x00000000003a53f4 __fortio_loop_i8()  ???:0
+ 3 0x00000000003a55f4 __fortio_main_i8()  ???:0
+ 4 0x000000000036ff54 pghpfio_usw_write64()  ???:0
+ 5 0x0000000000408e40 m_dump_kernel_dump_array_4d_()  /work/jh250015/g24000/SC26/CReSS3.5.1m_SPN_RAD1.4.3_20230323_upload/Src/dump_kernel_data.f90:269
+ 6 0x00000000006dbb9c m_steps_s_steps_()  /work/jh250015/g24000/SC26/CReSS3.5.1m_SPN_RAD1.4.3_20230323_upload/Src/steps.f90:591
+ 7 0x0000000000564c24 m_intgdrv_s_intgdrv_()  /work/jh250015/g24000/SC26/CReSS3.5.1m_SPN_RAD1.4.3_20230323_upload/Src/intgdrv.f90:866
+ 8 0x00000000006b83b0 m_slvdrv_s_slvdrv_()  /work/jh250015/g24000/SC26/CReSS3.5.1m_SPN_RAD1.4.3_20230323_upload/Src/slvdrv.f90:1306
+ 9 0x0000000000404a08 MAIN_()  /work/jh250015/g24000/SC26/CReSS3.5.1m_SPN_RAD1.4.3_20230323_upload/Src/solver.f90:211
+10 0x0000000000403334 main()  ???:0
+11 0x000000000002c7a0 __libc_start_call_main()  ???:0
+12 0x000000000002c878 __libc_start_main_alias_2()  :0
+13 0x00000000004031f0 _start()  ???:0
+=================================
+[mg0067:951963] *** Process received signal ***
+[mg0067:951963] Signal: Segmentation fault (11)
+[mg0067:951963] Signal code:  (-6)
+[mg0067:951963] Failing at address: 0x9e12000e869b
+[mg0067:951963] [ 0] linux-vdso.so.1(__kernel_rt_sigreturn+0x0)[0x40003d3807f0]
+[mg0067:951963] [ 1] /work/opt/local/aarch64/cores/nvidia/25.9/Linux_aarch64/25.9/compilers/lib/libnvf.so(__f90io_usw_write+0x860)[0x40003d860c20]
+[mg0067:951963] [ 2] /work/opt/local/aarch64/cores/nvidia/25.9/Linux_aarch64/25.9/compilers/lib/libnvf.so(+0x3a554c)[0x40003db3554c]
+[mg0067:951963] [ 3] /work/opt/local/aarch64/cores/nvidia/25.9/Linux_aarch64/25.9/compilers/lib/libnvf.so(__fortio_loop_i8+0x74)[0x40003db353f4]
+[mg0067:951963] [ 4] /work/opt/local/aarch64/cores/nvidia/25.9/Linux_aarch64/25.9/compilers/lib/libnvf.so(__fortio_main_i8+0x74)[0x40003db355f4]
+[mg0067:951963] [ 5] /work/opt/local/aarch64/cores/nvidia/25.9/Linux_aarch64/25.9/compilers/lib/libnvf.so(pghpfio_usw_write64+0x14)[0x40003dafff54]
+[mg0067:951963] [ 6] ./solver.exe[0x408e40]
+[mg0067:951963] [ 7] ./solver.exe[0x6dbb9c]
+[mg0067:951963] [ 8] ./solver.exe[0x564c24]
+[mg0067:951963] [ 9] ./solver.exe[0x6b83b0]
+[mg0067:951963] [10] ./solver.exe[0x404a08]
+[mg0067:951963] [11] ./solver.exe[0x403334]
+[mg0067:951963] [12] /lib64/libc.so.6(+0x2c7a0)[0x40003e1dc7a0]
+[mg0067:951963] [13] /lib64/libc.so.6(__libc_start_main+0x98)[0x40003e1dc878]
+[mg0067:951963] [14] ./solver.exe[0x4031f0]
+[mg0067:951963] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 0 with PID 0 on node mg0067 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
+Cgroup memsw limit exceeded: 

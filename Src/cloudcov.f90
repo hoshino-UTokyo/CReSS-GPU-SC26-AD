@@ -277,9 +277,9 @@ if (dump_call_count_cloudcov == DUMP_TARGET_cloudcov .and. .not. dump_done_cloud
   call dump_scalar_r('es0iv2', es0iv2)
   call dump_scalar_c('fmois', fmois)
   call dump_scalar_c('fproc', fproc)
-  ! FIXME: rcdh is array - call dump_scalar_r('rcdh', rcdh)
-  ! FIXME: rcdl is array - call dump_scalar_r('rcdl', rcdl)
-  ! FIXME: rcdm is array - call dump_scalar_r('rcdm', rcdm)
+  call dump_array_1d('rcdl.bin', rcdl, 0, 101)
+  call dump_array_1d('rcdm.bin', rcdm, 0, 101)
+  call dump_array_1d('rcdh.bin', rcdh, 0, 101)
 end if
 
 !$omp parallel default(shared) private(k)

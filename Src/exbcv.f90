@@ -266,7 +266,7 @@ if (dump_call_count_exbcv == DUMP_TARGET_exbcv .and. .not. dump_done_exbcv) then
   call dump_scalar_i('nk', nk)
   call dump_scalar_r('dts', dts)
   call dump_scalar_r('gtinc', gtinc)
-  call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_3d('v_in.bin', v, 0, ni+1, 0, nj+1, 1, nk)
   call dump_array_3d('vcpx.bin', vcpx, 1, nj, 1, nk, 1, 2)
   call dump_array_3d('vcpy.bin', vcpy, 1, ni, 1, nk, 1, 2)
   call dump_array_3d('vgpv.bin', vgpv, 0, ni+1, 0, nj+1, 1, nk)
@@ -461,6 +461,7 @@ end if
 
 ! Dump output data at target call
 if (dump_call_count_exbcv == DUMP_TARGET_exbcv .and. .not. dump_done_exbcv) then
+  call dump_array_3d('v_ref.bin', v, 0, ni+1, 0, nj+1, 1, nk)
   call dump_finalize()
   dump_done_exbcv = .true.
 end if
