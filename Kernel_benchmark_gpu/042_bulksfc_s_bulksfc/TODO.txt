@@ -1,0 +1,33 @@
+042_bulksfc_s_bulksfc GPU Benchmark - Validation Issue
+=======================================================
+
+STATUS: Validation FAILED (same as original CPU benchmark)
+
+ISSUE SUMMARY:
+- Max relative error (cm): 1.0 (100%)
+- Max relative error (ch): 0.54
+- Error count: 1,612,808 out of ~808K grid points
+- Tolerance: 1.0e-5
+
+ROOT CAUSE ANALYSIS:
+
+BOTH CPU AND GPU VERSIONS FAIL WITH SAME ERRORS:
+- The original CPU benchmark (Kernel_benchmark/042_bulksfc_s_bulksfc) also fails
+  validation with identical error count (1,612,808) and similar max errors
+- This indicates the reference output files (cm_ref.bin, ch_ref.bin) may have
+  been generated with different input parameters or code version
+
+LIKELY CAUSES:
+1. Reference data mismatch with input data
+2. Input parameters in params.txt may not match what was used to generate reference
+3. Complex conditional logic (land type, stability conditions) may have changed
+   between when reference was generated and current kernel version
+
+GPU IMPLEMENTATION:
+- The OpenACC implementation is correct (collapse(2) on independent 2D loops)
+- All conditionals and calculations match the CPU version exactly
+- Performance: ~0.02 ms on GPU vs ~0.44 ms on CPU (20x speedup)
+
+RECOMMENDATIONS:
+1. Regenerate reference output using the current CPU benchmark
+2. Verify that params.txt matches the simulation conditions used for reference

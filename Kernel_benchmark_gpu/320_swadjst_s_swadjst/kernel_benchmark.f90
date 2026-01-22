@@ -1,0 +1,453 @@
+!***********************************************************************
+! GPU Kernel Benchmark: swadjst (s_swadjst)
+!***********************************************************************
+!
+! Source: Src/swadjst.f90
+! Description: Saturation adjustment for water - converts between water vapor
+!              and cloud water based on saturation conditions
+! GPU Port: OpenACC with Unified Memory
+!
+!***********************************************************************
+program kernel_benchmark_gpu_swadjst
+  use omp_lib
+  implicit none
+
+  ! Array dimensions
+  integer :: ni, nj, nk
+
+  ! Physical constants and options
+  integer :: cphopt
+  real :: thresq, cp, t0, epsva, es0, lv0
+
+  ! Input arrays
+  real, allocatable :: ptbr(:,:,:)  ! Base state potential temperature
+  real, allocatable :: pi(:,:,:)    ! Exner function
+  real, allocatable :: p(:,:,:)     ! Pressure
+  real, allocatable :: w(:,:,:)     ! Vertical velocity (not used for cphopt<=3)
+
+  ! Input/output arrays
+  real, allocatable :: ptp(:,:,:)   ! Potential temperature perturbation
+  real, allocatable :: qv(:,:,:)    ! Water vapor mixing ratio
+  real, allocatable :: qc(:,:,:)    ! Cloud water mixing ratio
+
+  ! Reference outputs
+  real, allocatable :: ptp_ref(:,:,:)
+  real, allocatable :: qv_ref(:,:,:)
+  real, allocatable :: qc_ref(:,:,:)
+
+  ! Input copies for repeated runs
+  real, allocatable :: ptp_in(:,:,:)
+  real, allocatable :: qv_in(:,:,:)
+  real, allocatable :: qc_in(:,:,:)
+
+  ! Benchmark control
+  integer :: num_iterations, warmup_iterations
+  character(len=256) :: data_dir
+
+  ! Timing
+  real(8) :: t_start, t_end, t_total, t_avg
+  real(8), allocatable :: times(:)
+
+  ! Validation
+  real :: max_error, tolerance
+  integer :: error_count, total_errors
+  logical :: validation_passed
+
+  ! Loop variables
+  integer :: iter
+
+  !---------------------------------------------------------------------
+  ! Read benchmark configuration
+  !---------------------------------------------------------------------
+  call read_config(data_dir, num_iterations, warmup_iterations, tolerance)
+
+  !---------------------------------------------------------------------
+  ! Read parameters
+  !---------------------------------------------------------------------
+  call read_parameters(trim(data_dir)//'/params.txt', &
+       ni, nj, nk, cphopt, thresq, cp, t0, epsva, es0, lv0)
+
+  write(*,'(A)') '=================================================='
+  write(*,'(A)') ' GPU Kernel Benchmark: swadjst'
+  write(*,'(A)') '=================================================='
+  write(*,'(A,I6,A,I6,A,I6)') ' Grid size: ni=', ni, ', nj=', nj, ', nk=', nk
+  write(*,'(A,I6)') ' cphopt: ', cphopt
+  write(*,'(A,I6)') ' Warmup iterations: ', warmup_iterations
+  write(*,'(A,I6)') ' Benchmark iterations: ', num_iterations
+  write(*,'(A)') '=================================================='
+
+  !---------------------------------------------------------------------
+  ! Allocate arrays
+  !---------------------------------------------------------------------
+  allocate(ptbr(0:ni+1, 0:nj+1, 1:nk))
+  allocate(pi(0:ni+1, 0:nj+1, 1:nk))
+  allocate(p(0:ni+1, 0:nj+1, 1:nk))
+  allocate(w(0:ni+1, 0:nj+1, 1:nk))
+  allocate(ptp(0:ni+1, 0:nj+1, 1:nk))
+  allocate(qv(0:ni+1, 0:nj+1, 1:nk))
+  allocate(qc(0:ni+1, 0:nj+1, 1:nk))
+  allocate(ptp_ref(0:ni+1, 0:nj+1, 1:nk))
+  allocate(qv_ref(0:ni+1, 0:nj+1, 1:nk))
+  allocate(qc_ref(0:ni+1, 0:nj+1, 1:nk))
+  allocate(ptp_in(0:ni+1, 0:nj+1, 1:nk))
+  allocate(qv_in(0:ni+1, 0:nj+1, 1:nk))
+  allocate(qc_in(0:ni+1, 0:nj+1, 1:nk))
+  allocate(times(num_iterations))
+
+  !---------------------------------------------------------------------
+  ! Read input data
+  !---------------------------------------------------------------------
+  write(*,'(A)') ' Loading input data...'
+  call read_array_3d(trim(data_dir)//'/ptbr.bin', ptbr, 0, ni+1, 0, nj+1, 1, nk)
+  call read_array_3d(trim(data_dir)//'/pi.bin', pi, 0, ni+1, 0, nj+1, 1, nk)
+  call read_array_3d(trim(data_dir)//'/p.bin', p, 0, ni+1, 0, nj+1, 1, nk)
+  call read_array_3d(trim(data_dir)//'/w.bin', w, 0, ni+1, 0, nj+1, 1, nk)
+  call read_array_3d(trim(data_dir)//'/ptp_in.bin', ptp_in, 0, ni+1, 0, nj+1, 1, nk)
+  call read_array_3d(trim(data_dir)//'/qv_in.bin', qv_in, 0, ni+1, 0, nj+1, 1, nk)
+  call read_array_3d(trim(data_dir)//'/qc_in.bin', qc_in, 0, ni+1, 0, nj+1, 1, nk)
+
+  !---------------------------------------------------------------------
+  ! Read reference outputs
+  !---------------------------------------------------------------------
+  write(*,'(A)') ' Loading reference output...'
+  call read_array_3d(trim(data_dir)//'/ptp_ref.bin', ptp_ref, 0, ni+1, 0, nj+1, 1, nk)
+  call read_array_3d(trim(data_dir)//'/qv_ref.bin', qv_ref, 0, ni+1, 0, nj+1, 1, nk)
+  call read_array_3d(trim(data_dir)//'/qc_ref.bin', qc_ref, 0, ni+1, 0, nj+1, 1, nk)
+
+  !---------------------------------------------------------------------
+  ! Warmup iterations
+  !---------------------------------------------------------------------
+  write(*,'(A)') ' Running warmup iterations...'
+  do iter = 1, warmup_iterations
+    ptp = ptp_in
+    qv = qv_in
+    qc = qc_in
+    call kernel_swadjst(cphopt, ni, nj, nk, thresq, cp, t0, epsva, es0, lv0, &
+         ptbr, pi, p, ptp, qv, qc)
+    !$acc wait
+  end do
+
+  !---------------------------------------------------------------------
+  ! Benchmark iterations
+  !---------------------------------------------------------------------
+  write(*,'(A)') ' Running benchmark iterations...'
+  t_total = 0.0d0
+
+  do iter = 1, num_iterations
+    ptp = ptp_in
+    qv = qv_in
+    qc = qc_in
+
+    !$acc wait
+    t_start = omp_get_wtime()
+
+    call kernel_swadjst(cphopt, ni, nj, nk, thresq, cp, t0, epsva, es0, lv0, &
+         ptbr, pi, p, ptp, qv, qc)
+
+    !$acc wait
+    t_end = omp_get_wtime()
+    times(iter) = t_end - t_start
+    t_total = t_total + times(iter)
+  end do
+
+  t_avg = t_total / dble(num_iterations)
+
+  !---------------------------------------------------------------------
+  ! Validate outputs
+  !---------------------------------------------------------------------
+  write(*,'(A)') ' Validating output...'
+  total_errors = 0
+
+  call validate_array(ptp, ptp_ref, tolerance, 'ptp', max_error, error_count)
+  total_errors = total_errors + error_count
+
+  call validate_array(qv, qv_ref, tolerance, 'qv', max_error, error_count)
+  total_errors = total_errors + error_count
+
+  call validate_array(qc, qc_ref, tolerance, 'qc', max_error, error_count)
+  total_errors = total_errors + error_count
+
+  validation_passed = (total_errors == 0)
+
+  !---------------------------------------------------------------------
+  ! Report results
+  !---------------------------------------------------------------------
+  write(*,'(A)') ''
+  write(*,'(A)') '=================================================='
+  write(*,'(A)') ' Results'
+  write(*,'(A)') '=================================================='
+  write(*,'(A,F12.6,A)') ' Average time: ', t_avg * 1000.0d0, ' ms'
+  write(*,'(A,F12.6,A)') ' Total time:   ', t_total * 1000.0d0, ' ms'
+  write(*,'(A,F12.6,A)') ' Min time:     ', minval(times) * 1000.0d0, ' ms'
+  write(*,'(A,F12.6,A)') ' Max time:     ', maxval(times) * 1000.0d0, ' ms'
+  write(*,'(A)') '--------------------------------------------------'
+  write(*,'(A,ES12.4)') ' Tolerance:          ', tolerance
+  write(*,'(A,I12)') ' Total error count:  ', total_errors
+  if (validation_passed) then
+    write(*,'(A)') ' Validation: PASSED'
+  else
+    write(*,'(A)') ' Validation: FAILED'
+  end if
+  write(*,'(A)') '=================================================='
+
+  !---------------------------------------------------------------------
+  ! Cleanup
+  !---------------------------------------------------------------------
+  deallocate(ptbr, pi, p, w, ptp, qv, qc)
+  deallocate(ptp_ref, qv_ref, qc_ref)
+  deallocate(ptp_in, qv_in, qc_in, times)
+
+  if (.not. validation_passed) stop 1
+
+contains
+
+  !=====================================================================
+  ! GPU Kernel: swadjst (for cphopt <= 3) - OpenACC
+  !=====================================================================
+  subroutine kernel_swadjst(cphopt, ni, nj, nk, thresq, cp, t0, epsva, es0, lv0, &
+       ptbr, pi, p, ptp, qv, qc)
+    implicit none
+
+    integer, intent(in) :: cphopt, ni, nj, nk
+    real, intent(in) :: thresq, cp, t0, epsva, es0, lv0
+    real, intent(in) :: ptbr(0:ni+1, 0:nj+1, 1:nk)
+    real, intent(in) :: pi(0:ni+1, 0:nj+1, 1:nk)
+    real, intent(in) :: p(0:ni+1, 0:nj+1, 1:nk)
+    real, intent(inout) :: ptp(0:ni+1, 0:nj+1, 1:nk)
+    real, intent(inout) :: qv(0:ni+1, 0:nj+1, 1:nk)
+    real, intent(inout) :: qc(0:ni+1, 0:nj+1, 1:nk)
+
+    integer :: i, j, k
+    real :: t, esw, qvsw, lvcpi, dqc, a, b
+
+    if (abs(cphopt) <= 3) then
+
+      !$acc kernels
+      !$acc loop independent
+      do k = 1, nk-1
+        !$acc loop independent
+        do j = 1, nj-1
+          !$acc loop independent
+          do i = 1, ni-1
+            t = (ptbr(i,j,k) + ptp(i,j,k)) * pi(i,j,k)
+
+            a = 1.0e0 / (t - 35.86e0)
+            b = a * (t - t0)
+
+            esw = es0 * exp(17.269e0 * b)
+            qvsw = epsva * esw / (p(i,j,k) - esw)
+
+            if (qc(i,j,k) > thresq .or. qv(i,j,k) > qvsw) then
+
+              lvcpi = lv0 * exp((0.167e0 + 3.67e-4*t) * log(t0/t)) / (cp * pi(i,j,k))
+
+              dqc = (qvsw - qv(i,j,k)) &
+                   / (1.0e0 + 17.269e0*a*(1.0e0-b)*qvsw*lvcpi*pi(i,j,k))
+
+              if (qc(i,j,k) > dqc) then
+                ptp(i,j,k) = ptp(i,j,k) - dqc * lvcpi
+                qv(i,j,k) = qv(i,j,k) + dqc
+                qc(i,j,k) = qc(i,j,k) - dqc
+              else
+                ptp(i,j,k) = ptp(i,j,k) - qc(i,j,k) * lvcpi
+                qv(i,j,k) = qv(i,j,k) + qc(i,j,k)
+                qc(i,j,k) = 0.0e0
+              end if
+
+              ! Second iteration
+              t = (ptbr(i,j,k) + ptp(i,j,k)) * pi(i,j,k)
+
+              a = 1.0e0 / (t - 35.86e0)
+              b = a * (t - t0)
+
+              esw = es0 * exp(17.269e0 * b)
+              qvsw = epsva * esw / (p(i,j,k) - esw)
+
+              if (qc(i,j,k) > thresq .or. qv(i,j,k) > qvsw) then
+
+                lvcpi = lv0 * exp((0.167e0 + 3.67e-4*t) * log(t0/t)) / (cp * pi(i,j,k))
+
+                dqc = (qvsw - qv(i,j,k)) &
+                     / (1.0e0 + 17.269e0*a*(1.0e0-b)*qvsw*lvcpi*pi(i,j,k))
+
+                if (qc(i,j,k) > dqc) then
+                  ptp(i,j,k) = ptp(i,j,k) - dqc * lvcpi
+                  qv(i,j,k) = qv(i,j,k) + dqc
+                  qc(i,j,k) = qc(i,j,k) - dqc
+                else
+                  ptp(i,j,k) = ptp(i,j,k) - qc(i,j,k) * lvcpi
+                  qv(i,j,k) = qv(i,j,k) + qc(i,j,k)
+                  qc(i,j,k) = 0.0e0
+                end if
+
+              end if
+
+            end if
+
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+    end if
+
+  end subroutine kernel_swadjst
+
+  !=====================================================================
+  ! Validation helper
+  !=====================================================================
+  subroutine validate_array(arr, ref, tol, name, max_err, err_count)
+    real, intent(in) :: arr(0:,0:,1:), ref(0:,0:,1:)
+    real, intent(in) :: tol
+    character(len=*), intent(in) :: name
+    real, intent(out) :: max_err
+    integer, intent(out) :: err_count
+
+    real :: rel_err
+    integer :: i, j, k, ni_l, nj_l, nk_l
+    integer :: max_i, max_j, max_k
+
+    ni_l = ubound(arr,1) - 1
+    nj_l = ubound(arr,2) - 1
+    nk_l = ubound(arr,3)
+
+    max_err = 0.0
+    err_count = 0
+    max_i = 1
+    max_j = 1
+    max_k = 1
+
+    do k = 1, nk_l-1
+      do j = 1, nj_l-1
+        do i = 1, ni_l-1
+          rel_err = abs(arr(i,j,k) - ref(i,j,k))
+          if (abs(ref(i,j,k)) > 1.0e-20) then
+            rel_err = rel_err / abs(ref(i,j,k))
+          end if
+          if (rel_err > max_err) then
+            max_err = rel_err
+            max_i = i
+            max_j = j
+            max_k = k
+          end if
+          if (rel_err > tol) err_count = err_count + 1
+        end do
+      end do
+    end do
+
+    write(*,'(A,A,A,I8,A,ES12.4)') '   ', name, ': errors=', err_count, ', max_rel_err=', max_err
+    if (trim(name) == 'qc') then
+      write(*,'(A,I0,A,I0,A,I0,A)') '   Max qc error at (', max_i, ',', max_j, ',', max_k, ')'
+      write(*,'(A,ES15.8,A,ES15.8)') '   qc GPU=', arr(max_i,max_j,max_k), ' ref=', ref(max_i,max_j,max_k)
+    end if
+
+  end subroutine validate_array
+
+  !=====================================================================
+  ! Configuration reader
+  !=====================================================================
+  subroutine read_config(data_dir, num_iter, warmup_iter, tol)
+    character(len=*), intent(out) :: data_dir
+    integer, intent(out) :: num_iter, warmup_iter
+    real, intent(out) :: tol
+
+    character(len=256) :: config_file
+    integer :: ios
+    logical :: exists
+
+    data_dir = './data'
+    num_iter = 10
+    warmup_iter = 2
+    tol = 1.0e-5
+
+    config_file = 'benchmark.conf'
+    inquire(file=config_file, exist=exists)
+
+    if (exists) then
+      open(unit=10, file=config_file, status='old', iostat=ios)
+      if (ios == 0) then
+        read(10, '(A)', iostat=ios) data_dir
+        read(10, *, iostat=ios) num_iter
+        read(10, *, iostat=ios) warmup_iter
+        read(10, *, iostat=ios) tol
+        close(10)
+      end if
+    end if
+
+  end subroutine read_config
+
+  !=====================================================================
+  ! Parameter reader
+  !=====================================================================
+  subroutine read_parameters(filename, ni, nj, nk, cphopt, thresq, cp, t0, &
+       epsva, es0, lv0)
+    character(len=*), intent(in) :: filename
+    integer, intent(out) :: ni, nj, nk, cphopt
+    real, intent(out) :: thresq, cp, t0, epsva, es0, lv0
+
+    character(len=256) :: line, key, val
+    integer :: ios, eq_pos
+
+    open(unit=10, file=filename, status='old', iostat=ios)
+    if (ios /= 0) then
+      write(*,*) 'ERROR: Cannot open parameter file: ', trim(filename)
+      stop 1
+    end if
+
+    do while (.true.)
+      read(10, '(A)', iostat=ios) line
+      if (ios /= 0) exit
+      eq_pos = index(line, '=')
+      if (eq_pos > 0) then
+        key = adjustl(line(1:eq_pos-1))
+        val = adjustl(line(eq_pos+1:))
+        select case (trim(key))
+          case ('ni')
+            read(val, *) ni
+          case ('nj')
+            read(val, *) nj
+          case ('nk')
+            read(val, *) nk
+          case ('cphopt')
+            read(val, *) cphopt
+          case ('thresq')
+            read(val, *) thresq
+          case ('cp')
+            read(val, *) cp
+          case ('t0')
+            read(val, *) t0
+          case ('epsva')
+            read(val, *) epsva
+          case ('es0')
+            read(val, *) es0
+          case ('lv0')
+            read(val, *) lv0
+        end select
+      end if
+    end do
+    close(10)
+
+  end subroutine read_parameters
+
+  !=====================================================================
+  ! Binary array reader
+  !=====================================================================
+  subroutine read_array_3d(filename, arr, i1, i2, j1, j2, k1, k2)
+    character(len=*), intent(in) :: filename
+    integer, intent(in) :: i1, i2, j1, j2, k1, k2
+    real, intent(out) :: arr(i1:i2, j1:j2, k1:k2)
+
+    integer :: ios
+
+    open(unit=10, file=filename, status='old', access='stream', &
+         form='unformatted', iostat=ios)
+    if (ios /= 0) then
+      write(*,*) 'ERROR: Cannot open file: ', trim(filename)
+      stop 1
+    end if
+    read(10) arr
+    close(10)
+
+  end subroutine read_array_3d
+
+end program kernel_benchmark_gpu_swadjst
