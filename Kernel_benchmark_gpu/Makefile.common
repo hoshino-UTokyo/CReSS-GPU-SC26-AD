@@ -1,0 +1,34 @@
+# Common Makefile settings for GPU Kernel Benchmarks
+# Include this file from each benchmark's Makefile
+
+# Compiler settings for NVIDIA GPU with OpenACC
+FC = nvfortran
+FFLAGS = -O3 -acc -gpu=managed -mp -Mbyteswapio -Minfo=accel
+
+# Note on flags:
+#   -O3           : Optimization level 3
+#   -acc          : Enable OpenACC
+#   -gpu=managed  : Use NVIDIA Unified Memory (managed memory)
+#   -mp           : Enable OpenMP (for omp_get_wtime)
+#   -Mbyteswapio  : Enable byte-swapping for binary I/O (required for big-endian data files)
+#   -Minfo=accel  : Show accelerator optimization information
+
+# Target executable name
+BENCHMARK = kernel_benchmark
+
+# Default target
+all: $(BENCHMARK)
+
+# Build rule
+$(BENCHMARK): kernel_benchmark.f90
+	$(FC) $(FFLAGS) -o $@ $<
+
+# Run target
+run: $(BENCHMARK)
+	./$(BENCHMARK)
+
+# Clean target
+clean:
+	rm -f $(BENCHMARK) *.o *.mod
+
+.PHONY: all run clean
