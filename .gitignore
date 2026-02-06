@@ -30,5 +30,18 @@ test_real/kernel_dump/
 
 # Kernel benchmark executables and data symlinks
 Kernel_benchmark/*/kernel_benchmark
+Kernel_benchmark/*/kernel_benchmark_*
 Kernel_benchmark/*/generate_data
 Kernel_benchmark/*/data
+Kernel_benchmark/*/check_*
+
+# GPU kernel benchmark executables and data symlinks
+Kernel_benchmark_gpu/*/kernel_benchmark
+Kernel_benchmark_gpu/*/generate_data
+Kernel_benchmark_gpu/*/data
+Kernel_benchmark_gpu/*/check_*
+Kernel_benchmark_gpu/*/debug_*
+Kernel_benchmark_gpu/*/trace_*
+
+# Archive files
+*.tar.gz
