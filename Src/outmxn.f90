@@ -180,6 +180,7 @@
       integer, save :: dump_call_count_outmxn = 0
       integer, parameter :: DUMP_TARGET_outmxn = 5415
       logical, save :: dump_done_outmxn = .false.
+      logical, save :: dump_done_outmxn_sec2 = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -342,6 +343,33 @@ call profile_stop(prof_id1, loop_len)
 !   - Or use two-pass: first find values, then find indices
 !   - Consider storing linear index then decomposing to i,j,k
 !@llm end meta_info ------------------------------------------------------
+
+! Dump input data for sec2 at target call
+if (dump_call_count_outmxn == DUMP_TARGET_outmxn .and. .not. dump_done_outmxn_sec2) then
+  call dump_init('outmxn_sec2')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('istr', istr)
+  call dump_scalar_i('iend', iend)
+  call dump_scalar_i('jstr', jstr)
+  call dump_scalar_i('jend', jend)
+  call dump_scalar_i('kstr', kstr)
+  call dump_scalar_i('kend', kend)
+  call dump_scalar_i('ies', ies)
+  call dump_scalar_i('jes', jes)
+  call dump_scalar_r('chkeps', chkeps)
+  call dump_scalar_r('maxeps', maxeps)
+  call dump_scalar_r('mineps', mineps)
+  call dump_scalar_i('maxi', maxi)
+  call dump_scalar_i('maxj', maxj)
+  call dump_scalar_i('maxk', maxk)
+  call dump_scalar_i('mini', mini)
+  call dump_scalar_i('minj', minj)
+  call dump_scalar_i('mink', mink)
+  call dump_array_3d('var.bin', var, 0, ni+1, 0, nj+1, 1, nk)
+end if
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j,k,ipies,jpjes,cvl)               &
@@ -379,6 +407,18 @@ call profile_stop(prof_id1, loop_len)
 !$omp end do
 
 !$omp end parallel
+
+! Dump output data for sec2 at target call
+if (dump_call_count_outmxn == DUMP_TARGET_outmxn .and. .not. dump_done_outmxn_sec2) then
+  call dump_scalar_i('maxi_ref', maxi)
+  call dump_scalar_i('maxj_ref', maxj)
+  call dump_scalar_i('maxk_ref', maxk)
+  call dump_scalar_i('mini_ref', mini)
+  call dump_scalar_i('minj_ref', minj)
+  call dump_scalar_i('mink_ref', mink)
+  call dump_finalize()
+  dump_done_outmxn_sec2 = .true.
+end if
 
 ! -----
 

@@ -165,6 +165,7 @@
       integer, save :: dump_call_count_phycood = 0
       integer, parameter :: DUMP_TARGET_phycood = 1
       logical, save :: dump_done_phycood = .false.
+      logical, save :: dump_done_phycood_sec3 = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -248,11 +249,6 @@ if (dump_call_count_phycood == DUMP_TARGET_phycood .and. .not. dump_done_phycood
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
   call dump_array_2d('ht.bin', ht, 0, ni+1, 0, nj+1)
-  call dump_scalar_r('htuiv', htuiv)
-  call dump_scalar_r('htuivz', htuivz)
-  call dump_scalar_i('nkm1', nkm1)
-  call dump_scalar_i('nkm2', nkm2)
-  call dump_scalar_r('zflat0', zflat0)
   call dump_array_1d('zsth_in.bin', zsth, 1, nk)
 end if
 
@@ -403,6 +399,23 @@ call profile_stop(prof_id1, loop_len)
 !   - Keep 1D zsth loop separate or use OpenACC loop
 !   - Straightforward GPU port with data region
 !@llm end meta_info ------------------------------------------------------
+
+! Dump input data for sec3 at target call
+if (dump_call_count_phycood == DUMP_TARGET_phycood .and. .not. dump_done_phycood_sec3) then
+  call dump_init('phycood_sec3')
+  call dump_scalar_i('ni', ni)
+  call dump_scalar_i('nj', nj)
+  call dump_scalar_i('nk', nk)
+  call dump_scalar_i('nkm1', nkm1)
+  call dump_scalar_i('nkm2', nkm2)
+  call dump_scalar_r('htuiv', htuiv)
+  call dump_scalar_r('htuivz', htuivz)
+  call dump_scalar_r('zflat0', zflat0)
+  call dump_scalar_r('zsfc', zsfc)
+  call dump_array_1d('zsth_in.bin', zsth, 1, nk)
+  call dump_array_2d('ht.bin', ht, 0, ni+1, 0, nj+1)
+end if
+
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-1
@@ -452,6 +465,14 @@ call profile_stop(prof_id1, loop_len)
 !$omp end do
 
 !$omp end parallel
+
+! Dump output data for sec3 at target call
+if (dump_call_count_phycood == DUMP_TARGET_phycood .and. .not. dump_done_phycood_sec3) then
+  call dump_array_3d('zph_ref.bin', zph, 0, ni+1, 0, nj+1, 1, nk)
+  call dump_array_1d('zsth_ref.bin', zsth, 1, nk)
+  call dump_finalize()
+  dump_done_phycood_sec3 = .true.
+end if
 
 ! -----
 

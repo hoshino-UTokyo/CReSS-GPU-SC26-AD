@@ -140,10 +140,7 @@ if (dump_call_count_copy1d == DUMP_TARGET_copy1d .and. .not. dump_done_copy1d) t
   call dump_init('copy1d')
   call dump_scalar_i('kmin', kmin)
   call dump_scalar_i('kmax', kmax)
-  ! FIXME: invar is an array, not scalar
-  ! ! FIXME: invar is array - call dump_scalar_r('invar', invar)
-  ! FIXME: outvar is an array, not scalar
-  ! ! FIXME: outvar is array - call dump_scalar_r('outvar', outvar)
+  call dump_array_1d('invar.bin', invar, kmin, kmax)
 end if
 
 !$omp parallel default(shared)
@@ -160,6 +157,7 @@ end if
 
 ! Dump output data at target call
 if (dump_call_count_copy1d == DUMP_TARGET_copy1d .and. .not. dump_done_copy1d) then
+  call dump_array_1d('outvar_ref.bin', outvar, kmin, kmax)
   call dump_finalize()
   dump_done_copy1d = .true.
 end if

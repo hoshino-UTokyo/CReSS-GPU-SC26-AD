@@ -273,14 +273,12 @@ if (dump_call_count_mapfct == DUMP_TARGET_mapfct .and. .not. dump_done_mapfct) t
   call dump_scalar_i('nj', nj)
   call dump_array_2d('lat.bin', lat, 0, ni+1, 0, nj+1)
   call dump_array_2d('tmp1_in.bin', tmp1, 0, ni+1, 0, nj+1)
-  ! FIXME: cpj is an array, not scalar
-  ! ! FIXME: cpj is array - call dump_scalar_r('cpj', cpj)
+  call dump_array_1d('cpj.bin', cpj, 1, 7)
   call dump_scalar_r('dxv625', dxv625)
   call dump_scalar_r('dyv625', dyv625)
   call dump_scalar_r('pol05', pol05)
   call dump_scalar_r('pold2r', pold2r)
-  ! FIXME: x is an array, not scalar
-  ! ! FIXME: x is array - call dump_scalar_r('x', x)
+  call dump_array_1d('x.bin', x, 0, ni+1)
 end if
 
 !$omp parallel default(shared)
