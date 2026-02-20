@@ -43,5 +43,10 @@ Kernel_benchmark_gpu/*/check_*
 Kernel_benchmark_gpu/*/debug_*
 Kernel_benchmark_gpu/*/trace_*
 
+# Simulation logs and results
+test_real/log.solver.*.err
+test_real/log.solver.*.txt
+test_real/result/
+
 # Archive files
 *.tar.gz
