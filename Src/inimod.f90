@@ -198,10 +198,12 @@ call profile_start(prof_id1)
 dump_call_count_inimod = dump_call_count_inimod + 1
 if (dump_call_count_inimod == DUMP_TARGET_inimod .and. .not. dump_done_inimod) then
   call dump_init('inimod')
-  ! FIXME: iname is array - call dump_scalar_r('iname', iname)
-  ! FIXME: riname is array - call dump_scalar_r('riname', riname)
-  ! FIXME: rname is array - call dump_scalar_r('rname', rname)
-  ! FIXME: rrname is array - call dump_scalar_r('rrname', rrname)
+  call dump_scalar_i('nin', nin)
+  call dump_scalar_i('nrn', nrn)
+  call dump_array_1d_int('iname_in.bin', iname, 1, nin)
+  call dump_array_1d_int('riname_in.bin', riname, 1, nin)
+  call dump_array_1d('rname_in.bin', rname, 1, nrn)
+  call dump_array_1d('rrname_in.bin', rrname, 1, nrn)
 end if
 
 !$omp parallel default(shared)
@@ -228,6 +230,10 @@ end if
 
 ! Dump output data at target call
 if (dump_call_count_inimod == DUMP_TARGET_inimod .and. .not. dump_done_inimod) then
+  call dump_array_1d_int('iname_ref.bin', iname, 1, nin)
+  call dump_array_1d_int('riname_ref.bin', riname, 1, nin)
+  call dump_array_1d('rname_ref.bin', rname, 1, nrn)
+  call dump_array_1d('rrname_ref.bin', rrname, 1, nrn)
   call dump_finalize()
   dump_done_inimod = .true.
 end if

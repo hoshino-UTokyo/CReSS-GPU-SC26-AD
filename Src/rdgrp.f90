@@ -488,13 +488,13 @@ call profile_start(prof_id1)
 dump_call_count_rdgrp = dump_call_count_rdgrp + 1
 if (dump_call_count_rdgrp == DUMP_TARGET_rdgrp .and. .not. dump_done_rdgrp) then
   call dump_init('rdgrp')
-  call dump_scalar_c('exprim', exprim)
-  call dump_scalar_c('crsdir', crsdir)
-  call dump_scalar_i('ncexp', ncexp)
-  call dump_scalar_i('nccrs', nccrs)
-  ! FIXME: grpxy is array - call dump_scalar_r('grpxy', grpxy)
   call dump_scalar_i('nigrp', nigrp)
   call dump_scalar_i('njgrp', njgrp)
+  call dump_array_2d_int('grpxy.bin', grpxy, 1, nigrp, 1, njgrp)
+  call dump_scalar_i('iwred_in', iwred)
+  call dump_scalar_i('jsred_in', jsred)
+  call dump_scalar_i('iered_in', iered)
+  call dump_scalar_i('jnred_in', jnred)
 end if
 
 !$omp parallel default(shared)
@@ -534,6 +534,10 @@ end if
 
 ! Dump output data at target call
 if (dump_call_count_rdgrp == DUMP_TARGET_rdgrp .and. .not. dump_done_rdgrp) then
+  call dump_scalar_i('iwred_ref', iwred)
+  call dump_scalar_i('jsred_ref', jsred)
+  call dump_scalar_i('iered_ref', iered)
+  call dump_scalar_i('jnred_ref', jnred)
   call dump_finalize()
   dump_done_rdgrp = .true.
 end if

@@ -47,7 +47,7 @@ module m_dump_kernel
   public :: dump_init, dump_finalize, dump_is_active
   public :: dump_scalar_i, dump_scalar_i8, dump_scalar_r, dump_scalar_d, dump_scalar_c
   public :: dump_scalar_s  ! Alias for dump_scalar_c (string)
-  public :: dump_array_1d, dump_array_2d, dump_array_3d, dump_array_4d
+  public :: dump_array_1d, dump_array_1d_r8, dump_array_2d, dump_array_3d, dump_array_4d
   public :: dump_array_1d_int, dump_array_2d_int, dump_array_3d_int
   public :: dump_array_1d_i, dump_array_2d_i, dump_array_3d_i  ! Aliases
 
@@ -317,6 +317,30 @@ contains
     write(*,'(A,I10,A)') '[DUMP] 1D: '//trim(filename)//' (', nelements, ')'
 
   end subroutine dump_array_1d
+
+  !=====================================================================
+  ! Dump 1D real*8 array to binary file
+  !=====================================================================
+  subroutine dump_array_1d_r8(filename, arr, i1, i2)
+    character(len=*), intent(in) :: filename
+    integer, intent(in) :: i1, i2
+    real(8), intent(in) :: arr(i1:i2)
+
+    character(len=512) :: filepath
+    integer :: nelements
+
+    if (.not. dump_active) return
+
+    filepath = trim(dump_dir)//'/'//trim(filename)
+    open(unit=dump_unit, file=filepath, status='replace', &
+         access='stream', form='unformatted')
+    write(dump_unit) arr
+    close(dump_unit)
+
+    nelements = i2 - i1 + 1
+    write(*,'(A,I10,A)') '[DUMP] 1D_r8: '//trim(filename)//' (', nelements, ')'
+
+  end subroutine dump_array_1d_r8
 
   !=====================================================================
   ! Dump 2D real array to binary file

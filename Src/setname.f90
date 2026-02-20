@@ -586,16 +586,25 @@ call profile_start(prof_id1)
 dump_call_count_setname = dump_call_count_setname + 1
 if (dump_call_count_setname == DUMP_TARGET_setname .and. .not. dump_done_setname) then
   call dump_init('setname')
-  ! FIXME: albe_lnd is array - call dump_scalar_r('albe_lnd', albe_lnd)
-  ! FIXME: beta_lnd is array - call dump_scalar_r('beta_lnd', beta_lnd)
-  ! FIXME: cap_lnd is array - call dump_scalar_r('cap_lnd', cap_lnd)
-  ! FIXME: iname is array - call dump_scalar_r('iname', iname)
-  ! FIXME: lnduse_lnd is array - call dump_scalar_r('lnduse_lnd', lnduse_lnd)
-  ! FIXME: numctg_lnd is array - call dump_scalar_r('numctg_lnd', numctg_lnd)
-  ! FIXME: nuu_lnd is array - call dump_scalar_r('nuu_lnd', nuu_lnd)
-  ! FIXME: rname is array - call dump_scalar_r('rname', rname)
-  ! FIXME: z0h_lnd is array - call dump_scalar_r('z0h_lnd', z0h_lnd)
-  ! FIXME: z0m_lnd is array - call dump_scalar_r('z0m_lnd', z0m_lnd)
+  call dump_scalar_i('numctg_lnd', numctg_lnd)
+  call dump_scalar_i('idlnduse_lnd', idlnduse_lnd)
+  call dump_scalar_i('idalbe_lnd', idalbe_lnd)
+  call dump_scalar_i('idbeta_lnd', idbeta_lnd)
+  call dump_scalar_i('idz0m_lnd', idz0m_lnd)
+  call dump_scalar_i('idz0h_lnd', idz0h_lnd)
+  call dump_scalar_i('idcap_lnd', idcap_lnd)
+  call dump_scalar_i('idnuu_lnd', idnuu_lnd)
+  call dump_scalar_i('nin', nin)
+  call dump_scalar_i('nrn', nrn)
+  call dump_array_1d_int('lnduse_lnd.bin', lnduse_lnd, 1, 100)
+  call dump_array_1d('albe_lnd.bin', albe_lnd, 1, 100)
+  call dump_array_1d('beta_lnd.bin', beta_lnd, 1, 100)
+  call dump_array_1d('z0m_lnd.bin', z0m_lnd, 1, 100)
+  call dump_array_1d('z0h_lnd.bin', z0h_lnd, 1, 100)
+  call dump_array_1d('cap_lnd.bin', cap_lnd, 1, 100)
+  call dump_array_1d('nuu_lnd.bin', nuu_lnd, 1, 100)
+  call dump_array_1d_int('iname_in.bin', iname, -1, nin)
+  call dump_array_1d('rname_in.bin', rname, 1, nrn)
 end if
 
 !$omp parallel default(shared)
@@ -660,6 +669,8 @@ end if
 
 ! Dump output data at target call
 if (dump_call_count_setname == DUMP_TARGET_setname .and. .not. dump_done_setname) then
+  call dump_array_1d_int('iname_ref.bin', iname, -1, nin)
+  call dump_array_1d('rname_ref.bin', rname, 1, nrn)
   call dump_finalize()
   dump_done_setname = .true.
 end if

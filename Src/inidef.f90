@@ -621,13 +621,13 @@ call profile_start(prof_id1)
 dump_call_count_inidef = dump_call_count_inidef + 1
 if (dump_call_count_inidef == DUMP_TARGET_inidef .and. .not. dump_done_inidef) then
   call dump_init('inidef')
-  ! FIXME: albe_lnd is array - call dump_scalar_r('albe_lnd', albe_lnd)
-  ! FIXME: beta_lnd is array - call dump_scalar_r('beta_lnd', beta_lnd)
-  ! FIXME: cap_lnd is array - call dump_scalar_r('cap_lnd', cap_lnd)
-  ! FIXME: lnduse_lnd is array - call dump_scalar_r('lnduse_lnd', lnduse_lnd)
-  ! FIXME: nuu_lnd is array - call dump_scalar_r('nuu_lnd', nuu_lnd)
-  ! FIXME: z0h_lnd is array - call dump_scalar_r('z0h_lnd', z0h_lnd)
-  ! FIXME: z0m_lnd is array - call dump_scalar_r('z0m_lnd', z0m_lnd)
+  call dump_array_1d_int('lnduse_lnd_in.bin', lnduse_lnd, 1, 100)
+  call dump_array_1d('albe_lnd_in.bin', albe_lnd, 1, 100)
+  call dump_array_1d('beta_lnd_in.bin', beta_lnd, 1, 100)
+  call dump_array_1d('z0m_lnd_in.bin', z0m_lnd, 1, 100)
+  call dump_array_1d('z0h_lnd_in.bin', z0h_lnd, 1, 100)
+  call dump_array_1d('cap_lnd_in.bin', cap_lnd, 1, 100)
+  call dump_array_1d('nuu_lnd_in.bin', nuu_lnd, 1, 100)
 end if
 
 !$omp parallel default(shared)
@@ -652,6 +652,13 @@ end if
 
 ! Dump output data at target call
 if (dump_call_count_inidef == DUMP_TARGET_inidef .and. .not. dump_done_inidef) then
+  call dump_array_1d_int('lnduse_lnd_ref.bin', lnduse_lnd, 1, 100)
+  call dump_array_1d('albe_lnd_ref.bin', albe_lnd, 1, 100)
+  call dump_array_1d('beta_lnd_ref.bin', beta_lnd, 1, 100)
+  call dump_array_1d('z0m_lnd_ref.bin', z0m_lnd, 1, 100)
+  call dump_array_1d('z0h_lnd_ref.bin', z0h_lnd, 1, 100)
+  call dump_array_1d('cap_lnd_ref.bin', cap_lnd, 1, 100)
+  call dump_array_1d('nuu_lnd_ref.bin', nuu_lnd, 1, 100)
   call dump_finalize()
   dump_done_inidef = .true.
 end if

@@ -174,8 +174,7 @@ if (dump_call_count_setcst4d == DUMP_TARGET_setcst4d .and. .not. dump_done_setcs
   call dump_scalar_i('kmax', kmax)
   call dump_scalar_i('nmin', nmin)
   call dump_scalar_i('nmax', nmax)
-  ! FIXME: invar is array - call dump_scalar_r('invar', invar)
-  ! FIXME: outvar is array - ! FIXME: outvar is array - call dump_scalar_r('outvar', outvar)
+  call dump_scalar_r('invar', invar)
 end if
 
 !$omp parallel default(shared) private(k,n)
@@ -202,6 +201,8 @@ end if
 
 ! Dump output data at target call
 if (dump_call_count_setcst4d == DUMP_TARGET_setcst4d .and. .not. dump_done_setcst4d) then
+  call dump_array_4d('outvar_ref.bin', outvar, imin, imax, jmin, jmax, &
+ &  kmin, kmax, nmin, nmax)
   call dump_finalize()
   dump_done_setcst4d = .true.
 end if

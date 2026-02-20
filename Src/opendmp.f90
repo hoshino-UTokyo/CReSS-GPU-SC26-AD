@@ -341,11 +341,9 @@ if (dump_call_count_opendmp == DUMP_TARGET_opendmp .and. .not. dump_done_opendmp
   call dump_scalar_i('ni', ni)
   call dump_scalar_i('nj', nj)
   call dump_scalar_i('nk', nk)
-  ! FIXME: fdmp is array - call dump_scalar_r('fdmp', fdmp)
-  ! FIXME: z1d is an array, not scalar
-  ! ! FIXME: z1d is array - call dump_scalar_i('z1d', z1d)
-  ! FIXME: zsth is an array, not scalar
-  ! ! FIXME: zsth is array - call dump_scalar_r('zsth', zsth)
+  call dump_scalar_c('fdmp', fdmp)
+  call dump_array_1d('zsth.bin', zsth, 1, nk)
+  call dump_array_1d('z1d_in.bin', z1d, 1, nk)
 end if
 
 !$omp parallel default(shared)
@@ -380,6 +378,7 @@ end if
 
 ! Dump output data at target call
 if (dump_call_count_opendmp == DUMP_TARGET_opendmp .and. .not. dump_done_opendmp) then
+  call dump_array_1d('z1d_ref.bin', z1d, 1, nk)
   call dump_finalize()
   dump_done_opendmp = .true.
 end if

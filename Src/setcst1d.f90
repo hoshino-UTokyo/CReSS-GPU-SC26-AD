@@ -141,9 +141,7 @@ if (dump_call_count_setcst1d == DUMP_TARGET_setcst1d .and. .not. dump_done_setcs
   call dump_init('setcst1d')
   call dump_scalar_i('kmin', kmin)
   call dump_scalar_i('kmax', kmax)
-  ! FIXME: invar is array - call dump_scalar_r('invar', invar)
-  ! FIXME: outvar is an array, not scalar
-  ! ! FIXME: outvar is array - ! FIXME: outvar is array - call dump_scalar_r('outvar', outvar)
+  call dump_scalar_r('invar', invar)
 end if
 
 !$omp parallel default(shared)
@@ -160,6 +158,7 @@ end if
 
 ! Dump output data at target call
 if (dump_call_count_setcst1d == DUMP_TARGET_setcst1d .and. .not. dump_done_setcst1d) then
+  call dump_array_1d('outvar_ref.bin', outvar, kmin, kmax)
   call dump_finalize()
   dump_done_setcst1d = .true.
 end if
@@ -200,6 +199,11 @@ call profile_stop(prof_id1, loop_len)
       integer, save :: prof_id1 = -1
       integer(8) :: loop_len
 
+      ! Dump variables
+      integer, save :: dump_call_count_setcst1d_r8 = 0
+      integer, parameter :: DUMP_TARGET_setcst1d_r8 = 1
+      logical, save :: dump_done_setcst1d_r8 = .false.
+
 !-----7--------------------------------------------------------------7--
 
 ! Fill in the array with the constant value.
@@ -227,6 +231,16 @@ end if
 loop_len = int((kmax)-(kmin)+1,8)
 call profile_start(prof_id1)
 
+! Dump input data at target call
+dump_call_count_setcst1d_r8 = dump_call_count_setcst1d_r8 + 1
+if (dump_call_count_setcst1d_r8 == DUMP_TARGET_setcst1d_r8 &
+ &  .and. .not. dump_done_setcst1d_r8) then
+  call dump_init('setcst1d_r8')
+  call dump_scalar_i('kmin', kmin)
+  call dump_scalar_i('kmax', kmax)
+  call dump_scalar_r('invar', invar)
+end if
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(k)
@@ -238,6 +252,14 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
+
+! Dump output data at target call
+if (dump_call_count_setcst1d_r8 == DUMP_TARGET_setcst1d_r8 &
+ &  .and. .not. dump_done_setcst1d_r8) then
+  call dump_array_1d_r8('outvar_ref.bin', outvar, kmin, kmax)
+  call dump_finalize()
+  dump_done_setcst1d_r8 = .true.
+end if
 
 call profile_stop(prof_id1, loop_len)
 
