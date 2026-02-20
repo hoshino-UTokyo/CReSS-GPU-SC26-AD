@@ -22,8 +22,12 @@ program kernel_benchmark_gpu_mapfct
 
   ! Projection parameters
   integer :: mpopt
-  real :: disr, dxiv, dyiv, d2r, eps
+  real :: disr, dxiv, dyiv
   real :: dxv625, dyv625
+
+  ! Mathematical constants (from m_commath)
+  real, parameter :: d2r = 3.141592e0 / 180.e0
+  real, parameter :: eps = 1.0e-20
 
   ! cpj array (map projection parameters)
   real :: cpj(1:7)
@@ -79,10 +83,6 @@ program kernel_benchmark_gpu_mapfct
 
   ! Read parameters
   call read_params(trim(data_dir) // '/params.txt')
-
-  ! Compute derived values
-  dxv625 = 0.0625e0 * dxiv
-  dyv625 = 0.0625e0 * dyiv
 
   write(*,'(A,I6,A,I6)') ' Grid size: ni=', ni, ', nj=', nj
   write(*,'(A,I6)') ' mpopt: ', mpopt
@@ -396,8 +396,8 @@ contains
         case ('disr'); read(value_str, *) disr
         case ('dxiv'); read(value_str, *) dxiv
         case ('dyiv'); read(value_str, *) dyiv
-        case ('d2r'); read(value_str, *) d2r
-        case ('eps'); read(value_str, *) eps
+        case ('dxv625'); read(value_str, *) dxv625
+        case ('dyv625'); read(value_str, *) dyv625
       end select
     end do
     close(unit_num)
