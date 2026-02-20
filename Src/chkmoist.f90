@@ -21,8 +21,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
-      use m_dump_kernel
       use m_commpi
       use m_defmpi
 
@@ -108,14 +106,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_chkmoist = 0
-      integer, parameter :: DUMP_TARGET_chkmoist = 1
-      logical, save :: dump_done_chkmoist = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -124,52 +115,12 @@
 
       qvmax=lim36n
 
-! -----
 
 ! Check the air moisture in each processor element.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: chkmoist.f90 :: s_chkmoist
-! Summary : Find maximum water vapor mixing ratio to determine if atmosphere
-!           is moist or dry with max reduction
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function/subroutine calls inside parallel region
-!   - Uses reduction(max:) on single variable qvmax
-!   - Uses intrinsic function (max)
-!   - Simple 3D loop with element-wise max computation
-!   - MPI_allreduce called after parallel region (not inside)
-! Next:
-!   - Direct OpenACC with collapse(3) and reduction(max:)
-!   - GPU reduction primitives well-suited for this pattern
-! Runtime:
-!   - Calls: 1
-!   - AvgLoops: 102.4M
-!   - TotalTime: 0.001s (0.00%)
-!   - AvgTime: 1.117ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('chkmoist.f90', 's_chkmoist', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_chkmoist = dump_call_count_chkmoist + 1
-if (dump_call_count_chkmoist == DUMP_TARGET_chkmoist .and. .not. dump_done_chkmoist) then
-  call dump_init('chkmoist')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_array_3d('qv.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_051)
 !----------------------------------------------------------------------
@@ -210,16 +161,9 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_chkmoist == DUMP_TARGET_chkmoist .and. .not. dump_done_chkmoist) then
-  call dump_finalize()
-  dump_done_chkmoist = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
 ! Reduce the maximum value in each processor element and hold the common
 ! maximum value between all processor elements.
@@ -229,7 +173,6 @@ call profile_stop(prof_id1, loop_len)
 
       qvmax=tmp1
 
-! -----
 
 ! Set the common control flag fmois.
 
@@ -243,7 +186,6 @@ call profile_stop(prof_id1, loop_len)
 
       end if
 
-! -----
 
       end subroutine s_chkmoist
 

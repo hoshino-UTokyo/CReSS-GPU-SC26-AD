@@ -21,8 +21,6 @@
 ! Module reference
 
       use m_defdim
-      use m_comprofile
-      use m_dump_kernel
       use m_defname
       use m_inichar
 
@@ -77,17 +75,6 @@
 ! Internal private variable
 
       integer iid      ! Index of do loops
-
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
-      ! Dump variables
-      integer, save :: dump_call_count_inidef = 0
-      integer, parameter :: DUMP_TARGET_inidef = 1
-      logical, save :: dump_done_inidef = .false.
-
 
 !-----7--------------------------------------------------------------7--
 
@@ -589,47 +576,6 @@
 
 ! For the table.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: inidef.f90 :: s_inidef
-! Summary : Initialize land-use table arrays (lnduse_lnd, albe_lnd, etc.) to zero
-! GPU diff: Easy
-! Findings:
-!   - Simple loop over 100 elements initializing arrays to zero
-!   - No function calls within the parallel region
-!   - No global writes beyond array initialization
-!   - No sync constructs or thread-dependent logic
-! Next:
-!   - Can be directly ported to GPU with OpenACC parallel loop
-!   - Consider using array syntax for simpler GPU offload
-! Runtime:
-!   - Calls: 1
-!   - AvgLoops: 100
-!   - TotalTime: 0.003s (0.00%)
-!   - AvgTime: 3.142ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('inidef.f90', 's_inidef', &
-   & 'OMP section 1')
-end if
-loop_len = int((100)-(1)+1,8)
-call profile_start(prof_id1)
-
-
-! Dump input data at target call
-dump_call_count_inidef = dump_call_count_inidef + 1
-if (dump_call_count_inidef == DUMP_TARGET_inidef .and. .not. dump_done_inidef) then
-  call dump_init('inidef')
-  call dump_array_1d_int('lnduse_lnd_in.bin', lnduse_lnd, 1, 100)
-  call dump_array_1d('albe_lnd_in.bin', albe_lnd, 1, 100)
-  call dump_array_1d('beta_lnd_in.bin', beta_lnd, 1, 100)
-  call dump_array_1d('z0m_lnd_in.bin', z0m_lnd, 1, 100)
-  call dump_array_1d('z0h_lnd_in.bin', z0h_lnd, 1, 100)
-  call dump_array_1d('cap_lnd_in.bin', cap_lnd, 1, 100)
-  call dump_array_1d('nuu_lnd_in.bin', nuu_lnd, 1, 100)
-end if
-
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(iid)
@@ -649,22 +595,6 @@ end if
 !$omp end do
 
 !$omp end parallel
-
-! Dump output data at target call
-if (dump_call_count_inidef == DUMP_TARGET_inidef .and. .not. dump_done_inidef) then
-  call dump_array_1d_int('lnduse_lnd_ref.bin', lnduse_lnd, 1, 100)
-  call dump_array_1d('albe_lnd_ref.bin', albe_lnd, 1, 100)
-  call dump_array_1d('beta_lnd_ref.bin', beta_lnd, 1, 100)
-  call dump_array_1d('z0m_lnd_ref.bin', z0m_lnd, 1, 100)
-  call dump_array_1d('z0h_lnd_ref.bin', z0h_lnd, 1, 100)
-  call dump_array_1d('cap_lnd_ref.bin', cap_lnd, 1, 100)
-  call dump_array_1d('nuu_lnd_ref.bin', nuu_lnd, 1, 100)
-  call dump_finalize()
-  dump_done_inidef = .true.
-end if
-
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

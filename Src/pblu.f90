@@ -21,7 +21,6 @@
 ! Module reference
 
       use m_bc8u
-      use m_comprofile
       use m_bcyclex
       use m_combuf
       use m_comindx
@@ -163,11 +162,6 @@
       real b           ! Temporary variable
       real c           ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -195,33 +189,6 @@
 !! Calculate the virtical diffusion for the x components of velocity.
 
 ! Set the coefficient matrix.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: pblu.f90 :: s_pblu
-! Summary : Set up tridiagonal coefficient matrix (rr,ss,tt) for implicit
-!           vertical diffusion of x-velocity component in PBL.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region (pure arithmetic)
-!   - No global/module variable writes (only intent(inout) arrays)
-!   - No sync constructs
-!   - Multiple conditional branches based on levpbl value
-!   - Uses tmp1 and tmp2 arrays for intermediate calculations across k levels
-!   - Followed by MPI buffer operations and gaussel call outside parallel region
-! Next:
-!   - Port coefficient matrix setup to GPU
-!   - Consider batched tridiagonal solver for gaussel on GPU
-!   - MPI operations remain on CPU; need data transfer strategy
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('pblu.f90', 's_pblu', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(2)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -327,8 +294,6 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

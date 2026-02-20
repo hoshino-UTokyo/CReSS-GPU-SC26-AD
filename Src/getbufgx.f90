@@ -17,7 +17,6 @@
 ! Module reference
 
       use m_commpi
-      use m_comprofile
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -119,11 +118,6 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -138,31 +132,6 @@
       if(nigrp.ge.2.and.(wbc.ne.-1.and.ebc.ne.-1)) then
 
         if(fproc(1:3).eq.'all'.or.(wbc.eq.1.and.ebc.eq.1)) then
-
-!@llm start meta_info ----------------------------------------------------
-! Location: getbufgx.f90 :: s_getbufgx
-! Summary : Copy received MPI buffer data to west/east halo regions of
-!           variable array for group domain communication in x direction.
-! GPU diff: Medium
-! Findings:
-!   - Multiple conditional branches based on boundary conditions (wbc, ebc)
-!   - Multiple conditional branches based on fproc, isub, igrp
-!   - Uses MPI module variables (isub, nisub, igrp, nigrp, ebw, ebe)
-!   - Simple 1D copy operations from rbufx to var halo regions
-!   - No reductions or synchronization between threads
-! Next:
-!   - Port with GPU-aware MPI or explicit device-host transfers
-!   - Consider using GPU memcpy for buffer-to-halo copy
-!   - Boundary exchange pattern common in stencil codes
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('getbufgx.f90', 's_getbufgx', &
-   & 'OMP section 1')
-end if
-loop_len = int((kmax)-(1)+1,8) * int((nj+1)-(0)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -295,8 +264,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
         end if
 

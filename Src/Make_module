@@ -10,8 +10,6 @@
 #                                                                              #
 ################################################################################
 
-m_comprofile.mod    : comprofile.o
-m_dump_kernel.mod   : dump_kernel_data.o
 m_abortslv.mod      : abortslv.o
 m_adjstbw.mod       : adjstbw.o
 m_adjstnci.mod      : adjstnci.o

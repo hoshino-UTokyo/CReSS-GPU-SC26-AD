@@ -23,8 +23,6 @@
 ! Module reference
 
       use m_chkerr
-      use m_comprofile
-      use m_dump_kernel
       use m_combuf
       use m_comgrp
       use m_commpi
@@ -187,14 +185,7 @@
       integer jgc_sub  ! Substitute for jgc
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_allocbuf = 0
-      integer, parameter :: DUMP_TARGET_allocbuf = 1
-      logical, save :: dump_done_allocbuf = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -214,14 +205,12 @@
       call getiname(fptrkopt,trkopt)
       call getiname(fptubopt,tubopt)
 
-! -----
 
 ! Set the common used variables.
 
       nigrp1=nigrp+1
       njgrp1=njgrp+1
 
-! -----
 
 ! Count the maximum number of sending and receiving variables.
 
@@ -295,7 +284,6 @@
         nb=nb+1
       end if
 
-! -----
 
 ! Set the communication buffer size.
 
@@ -309,7 +297,6 @@
 
       end if
 
-! -----
 
 !! Allocate the communication buffer.
 
@@ -341,7 +328,6 @@
 
       stat=stat+abs(cstat)
 
-! -----
 
 ! If error occured, call the procedure destroy.
 
@@ -363,7 +349,6 @@
 
       end if
 
-! -----
 
 !! -----
 
@@ -379,65 +364,12 @@
       end do
       end do
 
-! -----
 
 ! Initialize the other table and set boundary conditions.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: allocbuf.f90 :: s_allocbuf
-! Summary : Initialize communication buffers and group domain arrangement
-!           tables (idxbuf, mxnbuf, sbuf, rbuf, grpxy, xgrp, ygrp)
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Writes to module-level arrays from m_combuf and m_comgrp
-!   - Simple initialization loops with no data dependencies
-!   - Conditional blocks for boundary condition setup (wbc, ebc, sbc, nbc)
-! Next:
-!   - Straightforward GPU port with OpenACC parallel loops
-!   - Consider async data transfers for buffer initialization
-!   - May combine multiple initialization loops into single kernel
-! Runtime:
-!   - Calls: 1
-!   - AvgLoops: 1
-!   - TotalTime: 0.000s (0.00%)
-!   - AvgTime: 0.043ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('allocbuf.f90', 's_allocbuf', &
-   & 'OMP section 1')
-end if
-loop_len = int((npe-1)-(0)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_allocbuf = dump_call_count_allocbuf + 1
-if (dump_call_count_allocbuf == DUMP_TARGET_allocbuf .and. .not. dump_done_allocbuf) then
-  call dump_init('allocbuf')
-  call dump_scalar_i('wbc', wbc)
-  call dump_scalar_i('ebc', ebc)
-  call dump_scalar_i('sbc', sbc)
-  call dump_scalar_i('nbc', nbc)
-  call dump_scalar_i('gwmopt', gwmopt)
-  call dump_scalar_i('advopt', advopt)
-  call dump_scalar_i('smtopt', smtopt)
-  call dump_scalar_i('cphopt', cphopt)
-  call dump_scalar_i('qcgopt', qcgopt)
-  call dump_scalar_i('aslopt', aslopt)
-  call dump_scalar_i('trkopt', trkopt)
-  call dump_scalar_i('tubopt', tubopt)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('nqw', nqw)
-  call dump_scalar_i('nnw', nnw)
-  call dump_scalar_i('nqi', nqi)
-  call dump_scalar_i('nni', nni)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_018)
 !----------------------------------------------------------------------
@@ -579,16 +511,9 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_allocbuf == DUMP_TARGET_allocbuf .and. .not. dump_done_allocbuf) then
-  call dump_finalize()
-  dump_done_allocbuf = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
 !! -----
 

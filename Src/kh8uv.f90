@@ -18,8 +18,6 @@
 ! Module reference
 
       use m_getiname
-      use m_comprofile
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -121,14 +119,7 @@
 !          again.
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_kh8uv = 0
-      integer, parameter :: DUMP_TARGET_kh8uv = 360
-      logical, save :: dump_done_kh8uv = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -138,58 +129,12 @@
       call getiname(fpmpopt,mpopt)
       call getiname(fpmfcopt,mfcopt)
 
-! -----
 
 ! Set the horizontal eddy diffusivity at the u and v points.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: kh8uv.f90 :: s_kh8uv
-! Summary : Set horizontal eddy diffusivity at u and v points (rkh8u, rkh8v)
-!           by averaging rkh values, with map scale factor corrections
-! GPU diff: Medium
-! Findings:
-!   - Multiple conditional branches (mfcopt, mpopt)
-!   - Simple arithmetic operations (addition, multiplication)
-!   - Private variables: k, i, j
-!   - Reads from rkh, rmf arrays
-!   - Writes to rkh, rkh8u, rkh8v arrays
-!   - rkh is modified in-place then used (potential ordering concern)
-!   - Multiple omp do regions within single parallel block
-!   - No sync constructs between threads
-! Next:
-!   - Can be ported to GPU with OpenACC parallel loop
-!   - Careful attention needed for rkh modification ordering
-!   - Consider separating different mpopt/mfcopt cases into different kernels
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 102.3M
-!   - TotalTime: 3.068s (0.10%)
-!   - AvgTime: 8.522ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('kh8uv.f90', 's_kh8uv', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(2)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_kh8uv = dump_call_count_kh8uv + 1
-if (dump_call_count_kh8uv == DUMP_TARGET_kh8uv .and. .not. dump_done_kh8uv) then
-  call dump_init('kh8uv')
-  call dump_scalar_i('mpopt', mpopt)
-  call dump_scalar_i('mfcopt', mfcopt)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_array_3d('rmf.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
-  call dump_array_3d('rkh_in.bin', rkh, 0, ni+1, 0, nj+1, 1, nk)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_182)
 !----------------------------------------------------------------------
@@ -440,19 +385,9 @@ end if
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_kh8uv == DUMP_TARGET_kh8uv .and. .not. dump_done_kh8uv) then
-  call dump_array_3d('rkh8u_ref.bin', rkh8u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rkh8v_ref.bin', rkh8v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rkh_ref.bin', rkh, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_kh8uv = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
       end subroutine s_kh8uv
 

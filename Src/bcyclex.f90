@@ -17,8 +17,6 @@
 ! Module reference
 
       use m_commpi
-      use m_comprofile
-      use m_dump_kernel
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -115,14 +113,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_bcyclex = 0
-      integer, parameter :: DUMP_TARGET_bcyclex = 4
-      logical, save :: dump_done_bcyclex = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -132,58 +123,12 @@
       call getiname(fpwbc,wbc)
       call getiname(fpebc,ebc)
 
-! -----
 
 ! Set the periodic boundary conditions in x direction.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: bcyclex.f90 :: s_bcyclex
-! Summary : Sets periodic boundary conditions in x direction by copying
-!           values between west and east boundaries for cyclic domains.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Module variable nisub from m_commpi used (read-only)
-!   - Simple 1D array copy operations along j-dimension
-!   - Sequential k-loop with parallel j loops inside
-!   - No synchronization constructs beyond implicit barriers
-! Next:
-!   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
-!   - Consider collapsing k-loop with j-loop for better GPU utilization
-!   - Ensure nisub is mapped or use firstprivate
-! Runtime:
-!   - Calls: 4
-!   - AvgLoops: 86.7K
-!   - TotalTime: 0.000s (0.00%)
-!   - AvgTime: 0.004ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('bcyclex.f90', 's_bcyclex', &
-   & 'OMP section 1')
-end if
-loop_len = int((kmax)-(1)+1,8) * int((nj+1)-(0)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_bcyclex = dump_call_count_bcyclex + 1
-if (dump_call_count_bcyclex == DUMP_TARGET_bcyclex .and. .not. dump_done_bcyclex) then
-  call dump_init('bcyclex')
-  call dump_scalar_i('wbc', wbc)
-  call dump_scalar_i('ebc', ebc)
-  call dump_scalar_i('iwsnd', iwsnd)
-  call dump_scalar_i('iwrcv', iwrcv)
-  call dump_scalar_i('iesnd', iesnd)
-  call dump_scalar_i('iercv', iercv)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('kmax', kmax)
-  call dump_array_3d('var_in.bin', var, 0, ni+1, 0, nj+1, 1, kmax)
-  call dump_scalar_i('nisub', nisub)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_039)
 !----------------------------------------------------------------------
@@ -256,17 +201,9 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_bcyclex == DUMP_TARGET_bcyclex .and. .not. dump_done_bcyclex) then
-  call dump_array_3d('var_ref.bin', var, 0, ni+1, 0, nj+1, 1, kmax)
-  call dump_finalize()
-  dump_done_bcyclex = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
       end subroutine s_bcyclex
 

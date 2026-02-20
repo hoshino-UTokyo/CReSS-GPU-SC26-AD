@@ -26,7 +26,6 @@
 ! Module reference
 
       use m_getcname
-      use m_comprofile
       use m_getiname
       use m_getrname
       use m_inichar
@@ -228,11 +227,6 @@
 
       real a           ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variables.
@@ -256,39 +250,6 @@
 ! -----
 
 !!! Calculate the lateral sponge damping for the velocity.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: lspuvw.f90 :: subroutine s_lspuvw
-! Summary : Calculates lateral sponge damping for u, v, w velocity
-!           components near domain boundaries to absorb outgoing waves.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region.
-!   - No writes to module/global variables.
-!   - No synchronization constructs.
-!   - Complex code structure with many conditional branches.
-!   - Multiple code paths based on lspvar, lspopt, gpvvar flags.
-!   - Uses tmp1 temporary array for intermediate calculations.
-!   - Optional smoothing term (lspopt >= 10) adds stencil operations.
-!   - All grid points are independent within each loop nest.
-! Next:
-!   - Direct OpenACC kernels for each component section.
-!   - Evaluate conditions outside kernel to select code path.
-!   - Large number of nested conditionals - may need code refactoring.
-!   - Consider separating u, v, w into distinct kernels for clarity.
-!@llm end meta_info ------------------------------------------------------
-
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('lspuvw.f90', 's_lspuvw', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -795,8 +756,6 @@ call profile_start(prof_id1)
 !! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

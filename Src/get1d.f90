@@ -28,7 +28,6 @@
 ! Module reference
 
       use m_chkerr
-      use m_comprofile
       use m_comindx
       use m_commath
       use m_commpi
@@ -224,13 +223,6 @@
 
 !     p1d,pt1d: These variables are also temporary.
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer, save :: prof_id2 = -1
-      integer, save :: prof_id3 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variables.
@@ -289,31 +281,6 @@
 ! -----
 
 !! Get the 1 dimensional variables.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: get1d.f90 :: s_get1d
-! Summary : Compute horizontally averaged 1D profiles of velocity, pressure,
-!           temperature, and moisture by summing over grid and reducing.
-! GPU diff: Hard
-! Findings:
-!   - Multiple reduction operations (+ for pref, u1d, v1d, pt1d, qv1d)
-!   - Complex conditional logic based on fproc, idstr<=idend, gpvvar
-!   - Grid point counting with ngcnt variable in some branches
-!   - Many omp do regions with schedule(runtime)
-!   - Accumulation into 1D arrays indexed by k_sub
-! Next:
-!   - Requires GPU reduction kernels for horizontal averaging
-!   - May need multiple kernel launches for different conditional branches
-!   - Consider restructuring to reduce conditional complexity
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('get1d.f90', 's_get1d', &
-   & 'OMP section 1')
-end if
-loop_len = int((4*kref-3)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared)
 
@@ -797,8 +764,6 @@ call profile_start(prof_id1)
 
 !$omp end parallel
 
-call profile_stop(prof_id1, loop_len)
-
 !! -----
 
 ! Get the reference averaged pressure.
@@ -846,20 +811,6 @@ call profile_stop(prof_id1, loop_len)
 
 ! Calculate the base state virtual potential temperature.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: get1d.f90 :: s_get1d
-! Summary : Convert potential temperature to virtual potential temperature
-!           using water vapor mixing ratio for moist case.
-! GPU diff: Easy
-! Findings:
-!   - Simple 1D element-wise update on pt1d array
-!   - Conditional based on gpvvar flag (outside parallel region)
-!   - No reductions or synchronization
-!   - Uses qv1d for moisture correction
-! Next:
-!   - Direct 1D GPU kernel port
-!   - Small array size (4*nk-3), may be more efficient on CPU
-!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
       if(gpvvar(2:2).eq.'o') then
@@ -934,20 +885,6 @@ call profile_stop(prof_id1, loop_len)
 ! Recalculate the base state potential temperature and get the base
 ! state pressure.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: get1d.f90 :: s_get1d
-! Summary : Recalculate potential temperature from virtual and convert
-!           Exner function to pressure using exponential.
-! GPU diff: Easy
-! Findings:
-!   - Two 1D loops: pt1d recalculation and p1d conversion
-!   - Uses exp and log intrinsic functions
-!   - No reductions or synchronization
-!   - Small array size (4*nk-3)
-! Next:
-!   - Direct 1D GPU kernel port
-!   - Consider keeping on CPU due to small problem size
-!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
       if(gpvvar(2:2).eq.'o') then

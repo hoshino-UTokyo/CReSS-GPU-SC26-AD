@@ -23,8 +23,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
-      use m_dump_kernel
       use m_comphy
 
 !-----7--------------------------------------------------------------7--
@@ -123,14 +121,7 @@
       real a           ! Temporary variable
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_nuc2nd = 0
-      integer, parameter :: DUMP_TARGET_nuc2nd = 45720
-      logical, save :: dump_done_nuc2nd = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -140,56 +131,12 @@
       mi0352=.5e0*3.5e8*mi0
       mi0353=oned3*3.5e8*mi0
 
-! -----
 
 !! Calculate the secondary nucleation rate.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: nuc2nd.f90 :: s_nuc2nd
-! Summary : Calculate secondary ice nucleation rate from snow and graupel
-!           based on temperature and wet/dry graupel conditions.
-! GPU diff: Easy
-! Findings:
-!   - Conditional branch for nk.eq.1 vs nk.gt.1 cases
-!   - Temperature-based conditionals (270.16, 268.16, 265.16 K)
-!   - Output arrays spsi, spgi written independently per grid point
-!   - No function calls; simple arithmetic operations
-!   - No inter-thread dependencies; fully parallel
-! Next:
-!   - Direct port to GPU kernel
-!   - Branch divergence from temperature conditionals
-!   - Consider using select case or predicated assignments
-! Runtime:
-!   - Calls: 45720
-!   - AvgLoops: 806.4K
-!   - TotalTime: 1.550s (0.05%)
-!   - AvgTime: 0.034ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('nuc2nd.f90', 's_nuc2nd', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_nuc2nd = dump_call_count_nuc2nd + 1
-if (dump_call_count_nuc2nd == DUMP_TARGET_nuc2nd .and. .not. dump_done_nuc2nd) then
-  call dump_init('nuc2nd')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_array_3d('rbv.bin', rbv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t.bin', t, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clcs.bin', clcs, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clcg.bin', clcg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('pgwet.bin', pgwet, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('mi0352', mi0352)
-  call dump_scalar_r('mi0353', mi0353)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_214)
 !----------------------------------------------------------------------
@@ -346,7 +293,6 @@ end if
 
 !$omp end do
 
-! -----
 
 ! In the case nk > 1.
 
@@ -426,21 +372,12 @@ end if
 
       end if
 
-! -----
 
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_nuc2nd == DUMP_TARGET_nuc2nd .and. .not. dump_done_nuc2nd) then
-  call dump_array_3d('spsi_ref.bin', spsi, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('spgi_ref.bin', spgi, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_nuc2nd = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

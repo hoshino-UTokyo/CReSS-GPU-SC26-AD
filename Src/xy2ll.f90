@@ -26,8 +26,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
-      use m_dump_kernel
       use m_getindx
       use m_getiname
       use m_getrname
@@ -175,14 +173,7 @@
       real rr          ! Radius on map coordinates system
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_xy2ll = 0
-      integer, parameter :: DUMP_TARGET_xy2ll = 1
-      logical, save :: dump_done_xy2ll = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -193,13 +184,11 @@
       call getiname(fpnspol,nspol)
       call getrname(fptlon,tlon)
 
-! -----
 
 ! Get the maximum and minimim indices of do loops.
 
       call getindx(xo,imin,imax,jmin,jmax,istr,iend,jstr,jend)
 
-! -----
 
 ! Set the common used variables.
 
@@ -211,73 +200,13 @@
 
       tlonw=tlon+180.e0
 
-! -----
 
 !!! Calculate the latitude and the longitude from the x and the y
 !!! coordinates.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: xy2ll.f90 :: s_xy2ll
-! Summary : Convert x,y map coordinates to latitude/longitude using various
-!           map projections (lat-lon, Polar Stereographic, Lambert, Mercator, etc.)
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread usage
-!   - No external function calls; uses intrinsics only (atan, cos, exp, log, sqrt)
-!   - No global variable writes (only output arrays lat, lon)
-!   - No explicit synchronization constructs
-!   - Multiple conditional branches (mpopt) with separate omp do regions
-!   - All omp do regions are mutually exclusive (only one executes per call)
-!   - Element-wise computation with no loop-carried dependencies
-! Next:
-!   - Consider restructuring branches into separate kernels or use runtime selection
-!   - Map x, y, cpj as to, and lat, lon as from
-!   - Intrinsic math functions are GPU-compatible
-! Runtime:
-!   - Calls: 1
-!   - AvgLoops: 810.0K
-!   - TotalTime: 0.000s (0.00%)
-!   - AvgTime: 0.028ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('xy2ll.f90', 's_xy2ll', &
-   & 'OMP section 1')
-end if
-loop_len = int((jend)-(jstr)+1,8) * int((iend)-(istr)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_xy2ll = dump_call_count_xy2ll + 1
-if (dump_call_count_xy2ll == DUMP_TARGET_xy2ll .and. .not. dump_done_xy2ll) then
-  call dump_init('xy2ll')
-  call dump_scalar_i('mpopt', mpopt)
-  call dump_scalar_i('nspol', nspol)
-  call dump_scalar_r('tlon', tlon)
-  call dump_scalar_i('ncpn', ncpn)
-  call dump_scalar_i('imin', imin)
-  call dump_scalar_i('imax', imax)
-  call dump_scalar_i('jmin', jmin)
-  call dump_scalar_i('jmax', jmax)
-  call dump_scalar_r('x0', x0)
-  call dump_scalar_r('y0', y0)
-  call dump_array_1d('x.bin', x, imin, imax)
-  call dump_array_1d('y.bin', y, jmin, jmax)
-  ! FIXME: cpj is an array, not scalar
-  ! ! FIXME: cpj is array - call dump_scalar_r('cpj', cpj)
-  call dump_scalar_i('iend', iend)
-  call dump_scalar_i('istr', istr)
-  call dump_scalar_i('jend', jend)
-  call dump_scalar_i('jstr', jstr)
-  ! FIXME: pname is array - call dump_scalar_r('pname', pname)
-  call dump_scalar_r('r2d2', r2d2)
-  call dump_scalar_r('r2d3', r2d3)
-  call dump_scalar_r('r2d5', r2d5)
-  call dump_scalar_r('rpol', rpol)
-  call dump_scalar_r('tlonw', tlonw)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_387)
 !----------------------------------------------------------------------
@@ -456,7 +385,6 @@ end if
 
 !$omp end do
 
-! -----
 
 ! For the pre and post processors.
 
@@ -485,7 +413,6 @@ end if
 
         end if
 
-! -----
 
 !! -----
 
@@ -524,7 +451,6 @@ end if
 
 !$omp end do
 
-! -----
 
 ! Calculate the latitude and the longitude with the Lambert Conformal
 ! Conic projection method.
@@ -561,7 +487,6 @@ end if
 
 !$omp end do
 
-! -----
 
 ! Calculate the latitude and the longitude with the Mercator projection
 ! method.
@@ -593,7 +518,6 @@ end if
 
 !$omp end do
 
-! -----
 
 ! Calculate the latitude and the longitude directly without any
 ! projection method.
@@ -624,7 +548,6 @@ end if
 
 !$omp end do
 
-! -----
 
 ! Calculate the latitude and the longitude with the circular cylinder
 ! coordinates system.
@@ -656,22 +579,13 @@ end if
 
       end if
 
-! -----
 
 !$omp end parallel
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_xy2ll == DUMP_TARGET_xy2ll .and. .not. dump_done_xy2ll) then
-  call dump_array_2d('lat_ref.bin', lat, imin, imax, jmin, jmax)
-  call dump_array_2d('lon_ref.bin', lon, imin, imax, jmin, jmax)
-  call dump_finalize()
-  dump_done_xy2ll = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

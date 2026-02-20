@@ -20,7 +20,6 @@
 ! Module reference
 
       use m_combin
-      use m_comprofile
       use m_commath
       use m_comphy
       use m_comtable
@@ -129,11 +128,6 @@
 
       real aa          ! Temporary array
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -164,33 +158,6 @@
 ! -----
 
 !! Calculate the bin parameters.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: setbin.f90 :: s_setbin
-! Summary : Calculate bin parameters for water droplets including radius,
-!           mass, coalescence efficiency for bin microphysics scheme
-! GPU diff: Hard
-! Findings:
-!   - Contains !$omp single directive for sequential bin boundary setup
-!   - Multiple separate omp do regions with different loop structures
-!   - Complex conditional branching in coalescence efficiency calculation
-!   - Writes to module arrays brw, bmw, rbrw, rbmw, dbmw, rbw, rrbw, ewbw
-!   - Uses module variables from m_combin, m_comtable (rrdbw, rrcbw, rewbw)
-!   - No synchronization constructs beyond implicit barriers
-! Next:
-!   - !$omp single region must be serialized or restructured for GPU
-!   - Consider kernel fusion for related loop nests
-!   - Coalescence efficiency loop has complex branching affecting GPU performance
-!   - Module arrays need explicit data management on GPU
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('setbin.f90', 's_setbin', &
-   & 'OMP section 1')
-end if
-loop_len = int((nqw+1)-(2)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared)
 
@@ -394,8 +361,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

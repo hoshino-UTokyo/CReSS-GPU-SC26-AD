@@ -22,8 +22,6 @@
 ! Module reference
 
       use m_bcyclex
-      use m_comprofile
-      use m_dump_kernel
       use m_bcycley
       use m_combuf
       use m_comindx
@@ -141,14 +139,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_baserho = 0
-      integer, parameter :: DUMP_TARGET_baserho = 1
-      logical, save :: dump_done_baserho = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -158,53 +149,12 @@
       call getiname(fpadvopt,advopt)
       call getiname(fpsmtopt,smtopt)
 
-! -----
 
 ! The base state density is multiplyed by the Jacobian.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: baserho.f90 :: s_baserho
-! Summary : Multiply base state density by Jacobian to compute rst array
-!           for use in atmospheric dynamics calculations
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Writes to intent(out) array rst
-!   - Simple element-wise computation: rst = abs(jcb) * rbr
-!   - Outer k loop with inner parallel i,j loops
-! Next:
-!   - Straightforward GPU port with OpenACC parallel loops
-!   - Collapse all three loops (k,j,i) for maximum parallelism
-!   - Intrinsic abs function is GPU-compatible
-! Runtime:
-!   - Calls: 1
-!   - AvgLoops: 102.9M
-!   - TotalTime: 0.004s (0.00%)
-!   - AvgTime: 3.750ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('baserho.f90', 's_baserho', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) * int((nj)-(0)+1,8) * int((ni)-(0)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_baserho = dump_call_count_baserho + 1
-if (dump_call_count_baserho == DUMP_TARGET_baserho .and. .not. dump_done_baserho) then
-  call dump_init('baserho')
-  call dump_scalar_i('advopt', advopt)
-  call dump_scalar_i('smtopt', smtopt)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_array_3d('jcb.bin', jcb, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_024)
 !----------------------------------------------------------------------
@@ -246,26 +196,14 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_baserho == DUMP_TARGET_baserho .and. .not. dump_done_baserho) then
-  call dump_array_3d('rst_ref.bin', rst, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rst8u_ref.bin', rst8u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rst8v_ref.bin', rst8v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rst8w_ref.bin', rst8w, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_baserho = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
 ! The rst is averaged to the u, v and w points.
 
       call var8uvw(idwbc,idebc,idexbopt,ni,nj,nk,rst,rst8u,rst8v,rst8w)
 
-! -----
 
 !! Exchange the value in the case the 4th order calculation is
 !! performed.
@@ -292,7 +230,6 @@ call profile_stop(prof_id1, loop_len)
 
         call bcyclex(idwbc,idebc,4,0,ni-3,ni+1,ni,nj,nk,rst8u)
 
-! -----
 
 ! Exchange the value in y direction.
 
@@ -314,7 +251,6 @@ call profile_stop(prof_id1, loop_len)
 
         call bcycley(idsbc,idnbc,4,0,nj-3,nj+1,ni,nj,nk,rst8v)
 
-! -----
 
       end if
 

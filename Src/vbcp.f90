@@ -22,8 +22,6 @@
 ! Module reference
 
       use m_getiname
-      use m_comprofile
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -105,14 +103,7 @@
       integer j        ! Array index in y direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_vbcp = 0
-      integer, parameter :: DUMP_TARGET_vbcp = 14401
-      logical, save :: dump_done_vbcp = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -121,61 +112,18 @@
 
       call getiname(fpbbc,bbc)
 
-! -----
 
 ! Set the common used variables.
 
       nkm1=nk-1
       nkm2=nk-2
 
-! -----
 
 !! Set the bottom and top boundary conditions.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: vbcp.f90 :: s_vbcp
-! Summary : Sets vertical boundary conditions for pressure perturbation at
-!           bottom and top boundaries with extrapolation or copying.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - No global/module variable writes, only local array writes
-!   - No synchronization constructs (barrier, critical, atomic)
-!   - Conditional branching on bbc value (executed by all threads)
-!   - Multiple separate omp do regions within single parallel region
-! Next:
-!   - Direct conversion to OpenACC parallel loop or OpenACC
-!   - Consider using OpenACC kernels directive for multiple loops
-!   - Conditionals can remain as they are data-independent
-! Runtime:
-!   - Calls: 14401
-!   - AvgLoops: 806.4K
-!   - TotalTime: 0.658s (0.02%)
-!   - AvgTime: 0.046ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('vbcp.f90', 's_vbcp', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_vbcp = dump_call_count_vbcp + 1
-if (dump_call_count_vbcp == DUMP_TARGET_vbcp .and. .not. dump_done_vbcp) then
-  call dump_init('vbcp')
-  call dump_scalar_i('bbc', bbc)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_array_3d('ppf_in.bin', ppf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_i('nkm1', nkm1)
-  call dump_scalar_i('nkm2', nkm2)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_358)
 !----------------------------------------------------------------------
@@ -248,7 +196,6 @@ end if
 
       end if
 
-! -----
 
 ! Set the top boundary conditions.
 
@@ -262,21 +209,13 @@ end if
 
 !$omp end do
 
-! -----
 
 !$omp end parallel
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_vbcp == DUMP_TARGET_vbcp .and. .not. dump_done_vbcp) then
-  call dump_array_3d('ppf_ref.bin', ppf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_vbcp = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

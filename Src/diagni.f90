@@ -24,10 +24,8 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
       use m_comphy
       use m_getiname
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -138,14 +136,7 @@
       real rbv         ! Inverse of base state density
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_diagni = 0
-      integer, parameter :: DUMP_TARGET_diagni = 1
-      logical, save :: dump_done_diagni = .false.
 
 !-----7--------------------------------------------------------------7--
 
@@ -153,7 +144,6 @@
 
       call getiname(fphaiopt,haiopt)
 
-! -----
 
 ! Set the common used variables.
 
@@ -172,68 +162,13 @@
       cdiaqg=ng0*ng0*ng0/(cc*rhog)
       cdiaqh=nh0*nh0*nh0/(cc*rhoh)
 
-! -----
 
 !!! Get the diagnostic concentrations of all categories of the ice
 !!! hydrometeor.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: diagni.f90 :: s_diagni
-! Summary : Calculate diagnostic concentrations for all ice hydrometeor
-!           categories (cloud ice, snow, graupel, hail) from mixing ratios.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - Uses intrinsic max, min, sqrt functions (GPU-compatible)
-!   - Private variable k for outer loop; rbv for local scalar
-!   - Writes to nidia output array for multiple ice categories
-!   - Conditional branch based on haiopt (3 vs 4 categories)
-!   - Independent point-wise operations per grid cell
-! Next:
-!   - Direct conversion to OpenACC with collapsed loops
-!   - Handle haiopt conditional outside kernel or use single kernel with masking
-!   - Data managed automatically via Unified Memory
-! Runtime:
-!   - Calls: 1
-!   - AvgLoops: 102.4M
-!   - TotalTime: 0.012s (0.00%)
-!   - AvgTime: 11.720ms
-!@llm end meta_info ------------------------------------------------------
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('diagni.f90', 's_diagni', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
 
-! Dump input data at target call
-dump_call_count_diagni = dump_call_count_diagni + 1
-if (dump_call_count_diagni == DUMP_TARGET_diagni .and. .not. dump_done_diagni) then
-  call dump_init('diagni')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('nqi', nqi)
-  call dump_scalar_i('nni', nni)
-  call dump_scalar_i('haiopt', haiopt)
-  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_4d('qice.bin', qice, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-  call dump_scalar_r('cdiaqg', cdiaqg)
-  call dump_scalar_r('cdiaqh', cdiaqh)
-  call dump_scalar_r('cdiaqs', cdiaqs)
-  call dump_scalar_r('mg0iv2', mg0iv2)
-  call dump_scalar_r('mgmiv2', mgmiv2)
-  call dump_scalar_r('mh0iv2', mh0iv2)
-  call dump_scalar_r('mhmiv2', mhmiv2)
-  call dump_scalar_r('miiv', miiv)
-  call dump_scalar_r('ms0iv2', ms0iv2)
-  call dump_scalar_r('msmiv2', msmiv2)
-end if
 
-call profile_start(prof_id1)
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_083)
 !----------------------------------------------------------------------
@@ -330,13 +265,11 @@ call profile_start(prof_id1)
 
             rbv=1.e0/rbr(i,j,k)
 
-! -----
 
 ! Get the diagnostic concentrations of cloud ice.
 
             nidia(i,j,k,1)=miiv*qice(i,j,k,1)
 
-! -----
 
 ! Get the diagnostic concentrations of snow.
 
@@ -346,7 +279,6 @@ call profile_start(prof_id1)
             nidia(i,j,k,2)=min(max(                                     &
      &        nidia(i,j,k,2),msmiv2*qice(i,j,k,2)),ms0iv2*qice(i,j,k,2))
 
-! -----
 
 ! Get the diagnostic concentrations of graupel.
 
@@ -356,7 +288,6 @@ call profile_start(prof_id1)
             nidia(i,j,k,3)=min(max(                                     &
      &        nidia(i,j,k,3),mgmiv2*qice(i,j,k,3)),mg0iv2*qice(i,j,k,3))
 
-! -----
 
           end do
           end do
@@ -383,13 +314,11 @@ call profile_start(prof_id1)
 
             rbv=1.e0/rbr(i,j,k)
 
-! -----
 
 ! Get the diagnostic concentrations of cloud ice.
 
             nidia(i,j,k,1)=miiv*qice(i,j,k,1)
 
-! -----
 
 ! Get the diagnostic concentrations of snow.
 
@@ -399,7 +328,6 @@ call profile_start(prof_id1)
             nidia(i,j,k,2)=min(max(                                     &
      &        nidia(i,j,k,2),msmiv2*qice(i,j,k,2)),ms0iv2*qice(i,j,k,2))
 
-! -----
 
 ! Get the diagnostic concentrations of graupel.
 
@@ -409,7 +337,6 @@ call profile_start(prof_id1)
             nidia(i,j,k,3)=min(max(                                     &
      &        nidia(i,j,k,3),mgmiv2*qice(i,j,k,3)),mg0iv2*qice(i,j,k,3))
 
-! -----
 
 ! Get the diagnostic concentrations of hail.
 
@@ -419,7 +346,6 @@ call profile_start(prof_id1)
             nidia(i,j,k,4)=min(max(                                     &
      &        nidia(i,j,k,4),mhmiv2*qice(i,j,k,4)),mh0iv2*qice(i,j,k,4))
 
-! -----
 
           end do
           end do
@@ -435,14 +361,7 @@ call profile_start(prof_id1)
 !$omp end parallel
 #endif
 
-call profile_stop(prof_id1, loop_len)
 
-! Dump output data at target call
-if (dump_call_count_diagni == DUMP_TARGET_diagni .and. .not. dump_done_diagni) then
-  call dump_array_4d('nidia_ref.bin', nidia, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
-  call dump_finalize()
-  dump_done_diagni = .true.
-end if
 
 !!! -----
 

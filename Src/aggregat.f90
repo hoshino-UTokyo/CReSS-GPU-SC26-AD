@@ -26,8 +26,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
-      use m_dump_kernel
       use m_comphy
 
 !-----7--------------------------------------------------------------7--
@@ -176,14 +174,7 @@
 !ORIG real diaqr3      ! diaqr^3
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_aggregat = 0
-      integer, parameter :: DUMP_TARGET_aggregat = 45720
-      logical, save :: dump_done_aggregat = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -203,76 +194,12 @@
       cagsn=3.47222e-4*aus*ess*hfbus*dtb                                &
      &  *exp(oned3*(1.e0-bus)*log(cc))*exp(-oned3*(2.e0+bus)*log(rhos))
 
-! -----
 
 !!!! Calculate the aggregation rate.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: aggregat.f90 :: s_aggregat
-! Summary : Calculate aggregation rates for cloud water, rain water,
-!           cloud ice and snow based on cphopt option (2, 3, or 4)
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region (only intrinsic exp, log)
-!   - No global writes; outputs to intent(out) arrays agcn, agrn, agin, agsn
-!   - Multiple conditional branches based on cphopt and nk values
-!   - Uses schedule(runtime) for all do loops
-! Next:
-!   - Collapse nested i,j loops for better GPU occupancy
-!   - Consider using OpenACC data regions to minimize data movement
-!   - Branch divergence from conditionals may impact GPU performance
-! Runtime:
-!   - Calls: 45720
-!   - AvgLoops: 806.4K
-!   - TotalTime: 5.900s (0.20%)
-!   - AvgTime: 0.129ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('aggregat.f90', 's_aggregat', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_aggregat = dump_call_count_aggregat + 1
-if (dump_call_count_aggregat == DUMP_TARGET_aggregat .and. .not. dump_done_aggregat) then
-  call dump_init('aggregat')
-  call dump_scalar_i('cphopt', cphopt)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('dtb', dtb)
-  call dump_scalar_r('thresq', thresq)
-  call dump_scalar_r('r0', r0)
-  call dump_scalar_r('rhoi', rhoi)
-  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rbv.bin', rbv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qc.bin', qc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qr.bin', qr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qi.bin', qi, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qs.bin', qs, 0, ni+1, 0, nj+1, 1, nk)
-  if (abs(cphopt) == 4) then
-    call dump_array_3d('ncc.bin', ncc, 0, ni+1, 0, nj+1, 1, nk)
-    call dump_array_3d('ncr.bin', ncr, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  call dump_array_3d('nci.bin', nci, 0, ni+1, 0, nj+1, 1, nk)
-  if (abs(cphopt) >= 3) then
-    call dump_array_3d('ncs.bin', ncs, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  call dump_array_3d('diaqc.bin', diaqc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('diaqr.bin', diaqr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('cagcn', cagcn)
-  call dump_scalar_r('cagin', cagin)
-  call dump_scalar_r('cagrn2', cagrn2)
-  call dump_scalar_r('cagsn', cagsn)
-  call dump_scalar_r('expo1', expo1)
-  call dump_scalar_r('expo2', expo2)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_017)
 !----------------------------------------------------------------------
@@ -473,7 +400,6 @@ end if
 
             end if
 
-! -----
 
           end do
           end do
@@ -504,7 +430,6 @@ end if
 
             end if
 
-! -----
 
 ! Calculate the aggregation rate for snow.
 
@@ -519,7 +444,6 @@ end if
 
             end if
 
-! -----
 
           end do
           end do
@@ -553,7 +477,6 @@ end if
 
             end if
 
-! -----
 
 ! Calculate the aggregation rate for rain water.
 
@@ -598,7 +521,6 @@ end if
 
             end if
 
-! -----
 
 ! Calculate the aggregation rate for cloud ice.
 
@@ -613,7 +535,6 @@ end if
 
             end if
 
-! -----
 
 ! Calculate the aggregation rate for snow.
 
@@ -628,7 +549,6 @@ end if
 
             end if
 
-! -----
 
           end do
           end do
@@ -669,7 +589,6 @@ end if
 
               end if
 
-! -----
 
             end do
             end do
@@ -704,7 +623,6 @@ end if
 
               end if
 
-! -----
 
 ! Calculate the aggregation rate for snow.
 
@@ -719,7 +637,6 @@ end if
 
               end if
 
-! -----
 
             end do
             end do
@@ -757,7 +674,6 @@ end if
 
               end if
 
-! -----
 
 ! Calculate the aggregation rate for rain water.
 
@@ -802,7 +718,6 @@ end if
 
               end if
 
-! -----
 
 ! Calculate the aggregation rate for cloud ice.
 
@@ -817,7 +732,6 @@ end if
 
               end if
 
-! -----
 
 ! Calculate the aggregation rate for snow.
 
@@ -832,7 +746,6 @@ end if
 
               end if
 
-! -----
 
             end do
             end do
@@ -852,22 +765,8 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_aggregat == DUMP_TARGET_aggregat .and. .not. dump_done_aggregat) then
-  if (abs(cphopt) == 4) then
-    call dump_array_3d('agcn_ref.bin', agcn, 0, ni+1, 0, nj+1, 1, nk)
-    call dump_array_3d('agrn_ref.bin', agrn, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  call dump_array_3d('agin_ref.bin', agin, 0, ni+1, 0, nj+1, 1, nk)
-  if (abs(cphopt) >= 3) then
-    call dump_array_3d('agsn_ref.bin', agsn, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  call dump_finalize()
-  dump_done_aggregat = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !!!! -----
 

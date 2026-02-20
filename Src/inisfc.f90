@@ -25,8 +25,6 @@
 ! Module reference
 
       use m_bc2d
-      use m_comprofile
-      use m_dump_kernel
       use m_bcycle
       use m_bcyclex
       use m_combuf
@@ -246,14 +244,7 @@
       integer j_sub    ! Substitute for j
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_inisfc = 0
-      integer, parameter :: DUMP_TARGET_inisfc = 1
-      logical, save :: dump_done_inisfc = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -262,7 +253,6 @@
 
       call inichar(sfcdat)
 
-! -----
 
 ! Get the required namelist variables.
 
@@ -280,7 +270,6 @@
       call getrname(fpgrcap,grcap)
       call getrname(fpgrnuu,grnuu)
 
-! -----
 
 ! Set the common used variables.
 
@@ -294,7 +283,6 @@
 
       ix=0
 
-! -----
 
 ! Read out the data from the interpolated surface file.
 
@@ -305,7 +293,6 @@
 
       end if
 
-! -----
 
 !!! Reset the sea surface temperature, the sea ice distribution, the
 !!! land use categories, evapotranspiration efficiency, albedo,
@@ -344,7 +331,6 @@
 
       end if
 
-! -----
 
 ! Reset the user specified land use category in case of no land use
 ! data.
@@ -359,68 +345,15 @@
 
       end if
 
-! -----
 
 !! Reset the sea surface temperature, the land use categories,
 !! evapotranspiration efficiency, albedo, roughness length,
 !! thermal capacity and thermal diffusivity.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: inisfc.f90 :: subroutine s_inisfc
-! Summary : Initializes surface physical parameters (land use, albedo,
-!           roughness, thermal properties) based on input data flags.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region.
-!   - Reads module variables (sealbe, sebeta, etc.) but no writes to them.
-!   - No synchronization constructs.
-!   - Multiple conditional branches selecting different initialization paths.
-!   - All loop iterations are independent (embarrassingly parallel).
-!   - Uses intrinsic int() which is GPU-compatible.
-! Next:
-!   - Direct OpenACC kernels directive should work.
-!   - Module constants can be copied to device as scalars.
-! Runtime:
-!   - Calls: 1
-!   - AvgLoops: 806.4K
-!   - TotalTime: 0.000s (0.00%)
-!   - AvgTime: 0.115ms
-!@llm end meta_info ------------------------------------------------------
 
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('inisfc.f90', 's_inisfc', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_inisfc = dump_call_count_inisfc + 1
-if (dump_call_count_inisfc == DUMP_TARGET_inisfc .and. .not. dump_done_inisfc) then
-  call dump_init('inisfc')
-  call dump_scalar_c('sfcdat', sfcdat)
-  call dump_scalar_i('wbc', wbc)
-  call dump_scalar_i('ebc', ebc)
-  call dump_scalar_i('exbopt', exbopt)
-  call dump_scalar_i('lnduse', lnduse)
-  call dump_scalar_i('dstopt', dstopt)
-  call dump_scalar_r('zsfc', zsfc)
-  call dump_scalar_r('gralbe', gralbe)
-  call dump_scalar_r('grbeta', grbeta)
-  call dump_scalar_r('grz0m', grz0m)
-  call dump_scalar_r('grz0h', grz0h)
-  call dump_scalar_r('grcap', grcap)
-  call dump_scalar_r('grnuu', grnuu)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_array_3d('zph.bin', zph, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('rland_in.bin', rland, 0, ni+1, 0, nj+1)
-end if
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_177)
 !----------------------------------------------------------------------
@@ -538,7 +471,6 @@ end if
 
       end if
 
-! -----
 
 ! Reset the sea ice distribution by the all-or-nothing arrangement.
 
@@ -560,7 +492,6 @@ end if
 
       end if
 
-! -----
 
 ! Reset the evapotranspiration efficiency, albedo, roughness length,
 ! thermal capacity and thermal diffusivity.
@@ -802,7 +733,6 @@ end if
 
       end if
 
-! -----
 
 ! Reset the sea ice distribution by the all-or-nothing arrangement.
 
@@ -824,7 +754,6 @@ end if
 
       end if
 
-! -----
 
 ! Reset the evapotranspiration efficiency, albedo, roughness length,
 ! thermal capacity and thermal diffusivity.
@@ -953,23 +882,8 @@ end if
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_inisfc == DUMP_TARGET_inisfc .and. .not. dump_done_inisfc) then
-  call dump_array_2d_int('land_ref.bin', land, 0, ni+1, 0, nj+1)
-  call dump_array_2d('albe_ref.bin', albe, 0, ni+1, 0, nj+1)
-  call dump_array_2d('beta_ref.bin', beta, 0, ni+1, 0, nj+1)
-  call dump_array_2d('z0m_ref.bin', z0m, 0, ni+1, 0, nj+1)
-  call dump_array_2d('z0h_ref.bin', z0h, 0, ni+1, 0, nj+1)
-  call dump_array_2d('cap_ref.bin', cap, 0, ni+1, 0, nj+1)
-  call dump_array_2d('nuu_ref.bin', nuu, 0, ni+1, 0, nj+1)
-  call dump_array_2d('kai_ref.bin', kai, 0, ni+1, 0, nj+1)
-  call dump_array_2d('rland_ref.bin', rland, 0, ni+1, 0, nj+1)
-  call dump_finalize()
-  dump_done_inisfc = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 
@@ -983,7 +897,6 @@ call profile_stop(prof_id1, loop_len)
 
         call convland('real   ',ni,nj,land,rland)
 
-! -----
 
 ! Exchange the variables horizontally.
 
@@ -1100,13 +1013,11 @@ call profile_stop(prof_id1, loop_len)
         call bc2d(idwbc,idebc,idsbc,idnbc,ni,nj,nuu)
         call bc2d(idwbc,idebc,idsbc,idnbc,ni,nj,kai)
 
-! -----
 
 ! Convert the real land use categories to integer.
 
         call convland('integer',ni,nj,land,rland)
 
-! -----
 
       end if
 
@@ -1120,7 +1031,6 @@ call profile_stop(prof_id1, loop_len)
 
         call convland('real   ',ni,nj,land,rland)
 
-! -----
 
 ! Exchange the variables horizontally.
 
@@ -1173,13 +1083,11 @@ call profile_stop(prof_id1, loop_len)
         call s_bcyclex(idwbc,idebc,2,1,ni-2,ni-1,ni,nj,1,nuu)
         call s_bcyclex(idwbc,idebc,2,1,ni-2,ni-1,ni,nj,1,kai)
 
-! -----
 
 ! Convert the real land use categories to integer.
 
         call convland('integer',ni,nj,land,rland)
 
-! -----
 
       end if
 

@@ -26,8 +26,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
-      use m_dump_kernel
       use m_comphy
       use m_getiname
       use m_getrname
@@ -207,14 +205,7 @@
       real a           ! Temporary variable
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_eddyvis = 0
-      integer, parameter :: DUMP_TARGET_eddyvis = 360
-      logical, save :: dump_done_eddyvis = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -230,7 +221,6 @@
       call getrname(fpdy,dy)
       call getrname(fpdz,dz)
 
-! -----
 
 ! Set the common used variables.
 
@@ -252,78 +242,13 @@
       csnum2=csnum*csnum
       cslnh2=csnum*csnum*lnh*lnh
 
-! -----
 
 !!!! Calculate the eddy viscosity.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: eddyvis.f90 :: subroutine s_eddyvis
-! Summary : Calculates eddy viscosity and turbulent length scale using
-!           Smagorinsky or Deardorff (TKE-based) formulations with
-!           stability corrections.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region.
-!   - Reads module constants (oned3, csnum, ckm, ckmin, prnum, kappa, eps)
-!     from commath/comphy.
-!   - No synchronization constructs.
-!   - Uses intrinsic abs(), exp(), log(), max(), min(), sqrt() - all GPU ok.
-!   - Complex nested conditionals (tubopt, isoopt, sfcopt, mfcopt, mpopt).
-!   - Thread divergence likely due to many branching paths.
-!   - All grid points are independent within selected code path.
-! Next:
-!   - Consider restructuring conditionals for GPU - evaluate outside kernel.
-!   - Use template/variant approach for different physics configurations.
-!   - Intrinsic functions are well-supported on GPU.
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 127
-!   - TotalTime: 5.280s (0.18%)
-!   - AvgTime: 14.667ms
-!@llm end meta_info ------------------------------------------------------
 
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('eddyvis.f90', 's_eddyvis', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_eddyvis = dump_call_count_eddyvis + 1
-if (dump_call_count_eddyvis == DUMP_TARGET_eddyvis .and. .not. dump_done_eddyvis) then
-  call dump_init('eddyvis')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('mpopt', mpopt)
-  call dump_scalar_i('mfcopt', mfcopt)
-  call dump_scalar_i('sfcopt', sfcopt)
-  call dump_scalar_i('tubopt', tubopt)
-  call dump_scalar_i('isoopt', isoopt)
-  call dump_scalar_r('ds3', ds3)
-  call dump_scalar_r('cpriv', cpriv)
-  call dump_scalar_r('lnh', lnh)
-  call dump_scalar_r('ckmax', ckmax)
-  call dump_scalar_r('khmin', khmin)
-  call dump_scalar_r('khmax', khmax)
-  call dump_scalar_r('csnum2', csnum2)
-  call dump_scalar_r('cslnh2', cslnh2)
-  call dump_array_3d('zph.bin', zph, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('jcb.bin', jcb, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rmf.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
-  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
-  ! tke is allocated as dummy when tubopt < 2
-  if (tubopt >= 2) then
-    call dump_array_3d('tke.bin', tke, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  call dump_array_3d('ssq.bin', ssq, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('nsq8w.bin', nsq8w, 0, ni+1, 0, nj+1, 1, nk)
-end if
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_097)
 !----------------------------------------------------------------------
@@ -977,7 +902,6 @@ end if
 
           end if
 
-! -----
 
 ! Anisotropic case.
 
@@ -1078,7 +1002,6 @@ end if
 
         end if
 
-! -----
 
 !! -----
 
@@ -1235,7 +1158,6 @@ end if
 
             end if
 
-! -----
 
 ! Anisotropic case.
 
@@ -1402,7 +1324,6 @@ end if
 
           end if
 
-! -----
 
 !! -----
 
@@ -1570,7 +1491,6 @@ end if
 
             end if
 
-! -----
 
 ! Anisotropic case.
 
@@ -1752,7 +1672,6 @@ end if
 
           end if
 
-! -----
 
         end if
 
@@ -1765,17 +1684,8 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_eddyvis == DUMP_TARGET_eddyvis .and. .not. dump_done_eddyvis) then
-  call dump_array_3d('rkh_ref.bin', rkh, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rkv_ref.bin', rkv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('priv_ref.bin', priv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_eddyvis = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !!!! -----
 

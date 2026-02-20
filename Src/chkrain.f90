@@ -19,8 +19,6 @@
 ! Module reference
 
       use m_comphy
-      use m_comprofile
-      use m_dump_kernel
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -117,14 +115,7 @@
       integer j        ! Array index in y direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_chkrain = 0
-      integer, parameter :: DUMP_TARGET_chkrain = 361
-      logical, save :: dump_done_chkrain = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -134,55 +125,12 @@
       call getiname(fpcphopt,cphopt)
       call getiname(fphaiopt,haiopt)
 
-! -----
 
 !!!! Check the precipitation on the surface.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: chkrain.f90 :: s_chkrain
-! Summary : Set precipitation flag (fall) based on water/ice precipitation
-!           thresholds for various microphysics options (bulk/bin methods)
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function/subroutine calls inside parallel region
-!   - No reductions or synchronization constructs
-!   - Multiple conditional branches based on cphopt, haiopt, fmois flags
-!   - Simple 2D loops setting output array fall to 1.0 or -1.0
-!   - Reads from prwtr and price arrays
-! Next:
-!   - Direct OpenACC with collapse(2) for GPU
-!   - Branching within kernel may cause thread divergence; consider separate kernels
-! Runtime:
-!   - Calls: 361
-!   - AvgLoops: 806.4K
-!   - TotalTime: 0.025s (0.00%)
-!   - AvgTime: 0.069ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('chkrain.f90', 's_chkrain', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_chkrain = dump_call_count_chkrain + 1
-if (dump_call_count_chkrain == DUMP_TARGET_chkrain .and. .not. dump_done_chkrain) then
-  call dump_init('chkrain')
-  call dump_scalar_i('cphopt', cphopt)
-  call dump_scalar_i('haiopt', haiopt)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nqw', nqw)
-  call dump_scalar_i('nqi', nqi)
-  call dump_array_4d('prwtr.bin', prwtr, 0, ni+1, 0, nj+1, 1, 2, 1, nqw)
-  call dump_array_4d('price.bin', price, 0, ni+1, 0, nj+1, 1, 2, 1, nqi)
-  call dump_scalar_c('fmois', fmois)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_054)
 !----------------------------------------------------------------------
@@ -203,7 +151,6 @@ end if
         end do
         !$acc end kernels
 
-! -----
 
 !!! Check the precipitation in the case of moist run.
 
@@ -225,7 +172,6 @@ end if
 
         else
 
-! -----
 
 !! Check the precipitation in the case of processing cloud physics.
 
@@ -315,7 +261,6 @@ end if
 
             end if
 
-! -----
 
 ! For the bin method.
 
@@ -366,7 +311,6 @@ end if
 
           end if
 
-! -----
 
 !! -----
 
@@ -397,7 +341,6 @@ end if
 
 !$omp end do
 
-! -----
 
 !!! Check the precipitation in the case of moist run.
 
@@ -419,7 +362,6 @@ end if
 
         else
 
-! -----
 
 !! Check the precipitation in the case of processing cloud physics.
 
@@ -509,7 +451,6 @@ end if
 
             end if
 
-! -----
 
 ! For the bin method.
 
@@ -560,7 +501,6 @@ end if
 
           end if
 
-! -----
 
 !! -----
 
@@ -573,15 +513,8 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_chkrain == DUMP_TARGET_chkrain .and. .not. dump_done_chkrain) then
-  call dump_array_2d('fall_ref.bin', fall, 0, ni+1, 0, nj+1)
-  call dump_finalize()
-  dump_done_chkrain = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !!!! -----
 

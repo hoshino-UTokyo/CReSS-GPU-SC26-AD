@@ -19,7 +19,6 @@
 ! Module reference
 
       use m_bcycle
-      use m_comprofile
       use m_combuf
       use m_comindx
       use m_commath
@@ -229,12 +228,6 @@
       real b           ! Temporary variable
       real c           ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer, save :: prof_id2 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -278,32 +271,6 @@
 ! -----
 
 ! Get the buble shaped initial tracer to the array qt.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: getqt0.f90 :: s_getqt0
-! Summary : Initializes bubble-shaped tracer distribution using cosine function
-!           based on distance from center points (qt0opt=1 or 2)
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread usage
-!   - Uses intrinsic cos(), sqrt(), real() functions - GPU compatible
-!   - Multiple nested loops: iqt (bubbles), k, j, i
-!   - Conditional write to qt array based on distance check (str < 1.0)
-!   - Module variables xs, ys coordinates accessed
-!   - ctr array populated inside parallel region
-! Next:
-!   - Port inner k,j,i loops to GPU, keep iqt loop on host or unroll
-!   - Ensure xs, ys, ctr arrays are mapped to device
-!   - Conditional writes may cause thread divergence
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('getqt0.f90', 's_getqt0', &
-   & 'OMP section 1')
-end if
-loop_len = int((qt0num)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k_sub,iqt)
 
@@ -397,8 +364,6 @@ call profile_start(prof_id1)
 
 !$omp end parallel
 
-call profile_stop(prof_id1, loop_len)
-
 ! -----
 
 !! -----
@@ -440,23 +405,6 @@ call profile_stop(prof_id1, loop_len)
 
 ! Get the sine curved initial tracer to the array qt.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: getqt0.f90 :: s_getqt0
-! Summary : Initializes sine-curved tracer distribution with vertical cosine
-!           modulation (qt0opt=3 or 4)
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread usage
-!   - Uses intrinsic sin(), cos() functions - GPU compatible
-!   - Simple nested k,j,i loops
-!   - Conditional write based on vertical height range (qt0zl to qt0zh)
-!   - Module variables xs, ys coordinates accessed
-!   - No loop-carried dependencies
-! Next:
-!   - Direct port to OpenACC parallel loop
-!   - Collapse k,j,i loops for better GPU occupancy
-!   - Ensure xs, ys arrays and scalar parameters are mapped to device
-!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k_sub)
 
         if(qt0opt.eq.3) then

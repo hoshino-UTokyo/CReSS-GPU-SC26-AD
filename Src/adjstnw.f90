@@ -18,7 +18,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
       use m_comphy
 
 !-----7--------------------------------------------------------------7--
@@ -122,11 +121,6 @@
       real ndia        ! Diagnostic concentrations
                        ! of cloud water or rain water
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variables.
@@ -143,33 +137,6 @@
 ! -----
 
 !! Adjust the concentrations of the cloud water and rain water.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: adjstnw.f90 :: subroutine s_adjstnw
-! Summary : Adjusts concentrations of cloud water and rain water to be
-!           within physical bounds using diagnostic relationships.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region.
-!   - Uses module constants from comphy/commath.
-!   - Uses intrinsic sqrt, min, max - all GPU compatible.
-!   - All grid points independent (embarrassingly parallel).
-! Next:
-!   - Direct OpenACC kernels with collapse(3) for (k,j,i).
-!   - Module constants can be passed as scalars to device.
-!@llm end meta_info ------------------------------------------------------
-
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('adjstnw.f90', 's_adjstnw', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -209,8 +176,6 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

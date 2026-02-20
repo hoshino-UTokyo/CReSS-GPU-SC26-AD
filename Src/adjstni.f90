@@ -24,8 +24,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
-      use m_dump_kernel
       use m_comphy
       use m_getiname
 
@@ -156,14 +154,7 @@
                        ! snow, graupel or hail
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_adjstni = 0
-      integer, parameter :: DUMP_TARGET_adjstni = 1080
-      logical, save :: dump_done_adjstni = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -172,7 +163,6 @@
 
       call getiname(fphaiopt,haiopt)
 
-! -----
 
 ! Set the common used variables.
 
@@ -192,80 +182,13 @@
       cdiaqg=ng0*ng0*ng0/(cc*rhog)
       cdiaqh=nh0*nh0*nh0/(cc*rhoh)
 
-! -----
 
 !!! Adjust the concentrations of all categories of the ice hydrometeor.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: adjstni.f90 :: subroutine s_adjstni
-! Summary : Adjusts concentrations of ice hydrometeors (cloud ice, snow,
-!           graupel, hail) to be consistent with mixing ratios using
-!           diagnostic relationships.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region.
-!   - Reads module constants (mimax, mi0, ns0, rhog, etc.) from comphy/commath.
-!   - No synchronization constructs.
-!   - Uses intrinsic min(), max(), sqrt() - all GPU compatible.
-!   - Conditional on haiopt determines if hail is processed.
-!   - All grid points are independent (embarrassingly parallel).
-! Next:
-!   - Direct OpenACC kernels with collapse(3) for (k,j,i) loops.
-!   - Module constants can be passed as scalars to device.
-! Runtime:
-!   - Calls: 1080
-!   - AvgLoops: 102.4M
-!   - TotalTime: 13.236s (0.44%)
-!   - AvgTime: 12.255ms
-!@llm end meta_info ------------------------------------------------------
 
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('adjstni.f90', 's_adjstni', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_adjstni = dump_call_count_adjstni + 1
-if (dump_call_count_adjstni == DUMP_TARGET_adjstni .and. .not. dump_done_adjstni) then
-  call dump_init('adjstni')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('haiopt', haiopt)
-  call dump_scalar_r('mimiv5', mimiv5)
-  call dump_scalar_r('mi0iv2', mi0iv2)
-  call dump_scalar_r('msmiv2', msmiv2)
-  call dump_scalar_r('ms0iv2', ms0iv2)
-  call dump_scalar_r('mgmiv2', mgmiv2)
-  call dump_scalar_r('mg0iv2', mg0iv2)
-  call dump_scalar_r('mhmiv2', mhmiv2)
-  call dump_scalar_r('mh0iv2', mh0iv2)
-  call dump_scalar_r('cdiaqs', cdiaqs)
-  call dump_scalar_r('cdiaqg', cdiaqg)
-  call dump_scalar_r('cdiaqh', cdiaqh)
-  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rbv.bin', rbv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qi.bin', qi, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qs.bin', qs, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qg.bin', qg, 0, ni+1, 0, nj+1, 1, nk)
-  if (haiopt /= 0) then
-    call dump_array_3d('qh.bin', qh, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  call dump_array_3d('nci_in.bin', nci, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncs_in.bin', ncs, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncg_in.bin', ncg, 0, ni+1, 0, nj+1, 1, nk)
-  if (haiopt /= 0) then
-    call dump_array_3d('nch_in.bin', nch, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-end if
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_003)
 !----------------------------------------------------------------------
@@ -347,7 +270,6 @@ end if
             nci(i,j,k)                                                  &
      &        =min(max(nci(i,j,k),mimiv5*qi(i,j,k)),mi0iv2*qi(i,j,k))
 
-! -----
 
 ! Adjust the concentrations of the snow.
 
@@ -356,7 +278,6 @@ end if
             ncs(i,j,k)=max(ncs(i,j,k),msmiv2*qs(i,j,k),5.62341e-3*ndia)
             ncs(i,j,k)=min(ncs(i,j,k),ms0iv2*qs(i,j,k),1.77838e2*ndia)
 
-! -----
 
 ! Adjust the concentrations of the graupel.
 
@@ -365,7 +286,6 @@ end if
             ncg(i,j,k)=max(ncg(i,j,k),mgmiv2*qg(i,j,k),5.62341e-3*ndia)
             ncg(i,j,k)=min(ncg(i,j,k),mg0iv2*qg(i,j,k),1.77838e2*ndia)
 
-! -----
 
           end do
           end do
@@ -392,7 +312,6 @@ end if
             nci(i,j,k)                                                  &
      &        =min(max(nci(i,j,k),mimiv5*qi(i,j,k)),mi0iv2*qi(i,j,k))
 
-! -----
 
 ! Adjust the concentrations of the snow.
 
@@ -401,7 +320,6 @@ end if
             ncs(i,j,k)=max(ncs(i,j,k),msmiv2*qs(i,j,k),5.62341e-3*ndia)
             ncs(i,j,k)=min(ncs(i,j,k),ms0iv2*qs(i,j,k),1.77838e2*ndia)
 
-! -----
 
 ! Adjust the concentrations of the graupel.
 
@@ -410,7 +328,6 @@ end if
             ncg(i,j,k)=max(ncg(i,j,k),mgmiv2*qg(i,j,k),5.62341e-3*ndia)
             ncg(i,j,k)=min(ncg(i,j,k),mg0iv2*qg(i,j,k),1.77838e2*ndia)
 
-! -----
 
 ! Adjust the concentrations of the hail.
 
@@ -419,7 +336,6 @@ end if
             nch(i,j,k)=max(nch(i,j,k),mhmiv2*qh(i,j,k),5.62341e-3*ndia)
             nch(i,j,k)=min(nch(i,j,k),mh0iv2*qh(i,j,k),1.77838e2*ndia)
 
-! -----
 
           end do
           end do
@@ -435,20 +351,8 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_adjstni == DUMP_TARGET_adjstni .and. .not. dump_done_adjstni) then
-  call dump_array_3d('nci_ref.bin', nci, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncs_ref.bin', ncs, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncg_ref.bin', ncg, 0, ni+1, 0, nj+1, 1, nk)
-  if (haiopt /= 0) then
-    call dump_array_3d('nch_ref.bin', nch, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  call dump_finalize()
-  dump_done_adjstni = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

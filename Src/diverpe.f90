@@ -23,7 +23,6 @@
 ! Module reference
 
       use m_comindx
-      use m_comprofile
       use m_diver3d
 
 !-----7--------------------------------------------------------------7--
@@ -147,11 +146,6 @@
 
 !     pdiv: This variable is also temporary.
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Calculate the 3 dimensional divergence.
@@ -163,33 +157,6 @@
 ! -----
 
 ! Finally get the 3 dimensional divergence in the pressure equation.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: diverpe.f90 :: s_diverpe
-! Summary : Finalize 3D divergence for pressure equation (HEVE method),
-!           multiplying divergence by rcsq (density x sound speed squared).
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - External call to diver3d before this parallel region (already annotated)
-!   - No global/module variable writes
-!   - No synchronization constructs
-!   - Simple 3D loop with element-wise multiplication
-! Next:
-!   - Direct OpenACC with collapse(2) on j-i loops
-!   - diver3d call should also be GPU-ported for full offload
-!   - Very simple kernel, good candidate for early GPU porting
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('diverpe.f90', 's_diverpe', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-2)-(2)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -208,8 +175,6 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

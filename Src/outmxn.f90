@@ -26,8 +26,6 @@
 ! Module reference
 
       use m_chkstd
-      use m_comprofile
-      use m_dump_kernel
       use m_comkind
       use m_commath
       use m_commpi
@@ -171,16 +169,7 @@
       real cvl         ! Temporary variable
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer, save :: prof_id2 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_outmxn = 0
-      integer, parameter :: DUMP_TARGET_outmxn = 5415
-      logical, save :: dump_done_outmxn = .false.
-      logical, save :: dump_done_outmxn_sec2 = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -192,14 +181,12 @@
 
       outcnt=outcnt+1
 
-! -----
 
 ! Calculate the start indices in entire domain.
 
       ies=(ni-3)*(nisub*igrp+isub)
       jes=(nj-3)*(njsub*jgrp+jsub)
 
-! -----
 
 ! Initialize the processed variables.
 
@@ -217,71 +204,17 @@
       maxeps=lim36n
       mineps=lim36
 
-! -----
 
 ! Set the common used variable.
 
       chkeps=1.e-5
 
-! -----
 
 ! Get the maximum and minimum value of optional variable.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: outmxn.f90 :: s_outmxn
-! Summary : Find max/min values of 3D variable using reductions with
-!           eps offset for numerical stability in comparisons.
-! GPU diff: Medium
-! Findings:
-!   - Uses reduction(max/min) for maxvl, maxeps, minvl, mineps
-!   - Triple nested loop over full 3D domain (i,j,k)
-!   - Uses sign intrinsic for eps offset calculation
-!   - No function calls; simple arithmetic operations
-! Next:
-!   - Data managed automatically via Unified Memory atomic or parallel reduction
-!   - Consider using CUB or Thrust for reduction primitives
-!   - May need two-pass approach for value then indices
-! Runtime:
-!   - Calls: 5415
-!   - AvgLoops: 102.5M
-!   - TotalTime: 5.493s (0.18%)
-!   - AvgTime: 1.014ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('outmxn.f90', 's_outmxn', &
-   & 'OMP section 1')
-end if
-loop_len = int((kend)-(kstr)+1,8) &
-     & * int((jend)-(jstr)+1,8) &
-     & * int((iend)-(istr)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_outmxn = dump_call_count_outmxn + 1
-if (dump_call_count_outmxn == DUMP_TARGET_outmxn .and. .not. dump_done_outmxn) then
-  call dump_init('outmxn')
-  call dump_scalar_i('ncvn', ncvn)
-  call dump_scalar_i8('ctime', ctime)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('istr', istr)
-  call dump_scalar_i('iend', iend)
-  call dump_scalar_i('jstr', jstr)
-  call dump_scalar_i('jend', jend)
-  call dump_scalar_i('kstr', kstr)
-  call dump_scalar_i('kend', kend)
-  call dump_scalar_i('outcnt', outcnt)
-  call dump_array_3d('var.bin', var, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('chkeps', chkeps)
-  call dump_scalar_i('ies', ies)
-  call dump_scalar_i('jes', jes)
-  call dump_scalar_r('maxeps', maxeps)
-  call dump_scalar_r('mineps', mineps)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_218)
 !----------------------------------------------------------------------
@@ -342,67 +275,17 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_outmxn == DUMP_TARGET_outmxn .and. .not. dump_done_outmxn) then
-  call dump_finalize()
-  dump_done_outmxn = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
 ! Reset the maximum and minimum value of optional variable.
 
       maxeps=1.e0/maxeps
       mineps=1.e0/mineps
 
-! -----
 
 ! Get the indices of maximum and minimum value of optional variable.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: outmxn.f90 :: s_outmxn
-! Summary : Find grid indices (i,j,k) of max/min values using reductions
-!           after max/min values have been computed in previous region.
-! GPU diff: Medium
-! Findings:
-!   - Uses reduction(max/min) for index arrays maxi,maxj,maxk,mini,minj,mink
-!   - Comparison uses tolerance chkeps for floating point matching
-!   - Depends on maxeps, mineps computed in previous parallel region
-!   - Triple nested loop over full 3D domain
-! Next:
-!   - Can be fused with value-finding kernel using atomic argmax/argmin
-!   - Or use two-pass: first find values, then find indices
-!   - Consider storing linear index then decomposing to i,j,k
-!@llm end meta_info ------------------------------------------------------
-
-! Dump input data for sec2 at target call
-if (dump_call_count_outmxn == DUMP_TARGET_outmxn .and. .not. dump_done_outmxn_sec2) then
-  call dump_init('outmxn_sec2')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('istr', istr)
-  call dump_scalar_i('iend', iend)
-  call dump_scalar_i('jstr', jstr)
-  call dump_scalar_i('jend', jend)
-  call dump_scalar_i('kstr', kstr)
-  call dump_scalar_i('kend', kend)
-  call dump_scalar_i('ies', ies)
-  call dump_scalar_i('jes', jes)
-  call dump_scalar_r('chkeps', chkeps)
-  call dump_scalar_r('maxeps', maxeps)
-  call dump_scalar_r('mineps', mineps)
-  call dump_scalar_i('maxi', maxi)
-  call dump_scalar_i('maxj', maxj)
-  call dump_scalar_i('maxk', maxk)
-  call dump_scalar_i('mini', mini)
-  call dump_scalar_i('minj', minj)
-  call dump_scalar_i('mink', mink)
-  call dump_array_3d('var.bin', var, 0, ni+1, 0, nj+1, 1, nk)
-end if
 
 !$omp parallel default(shared)
 
@@ -442,19 +325,6 @@ end if
 
 !$omp end parallel
 
-! Dump output data for sec2 at target call
-if (dump_call_count_outmxn == DUMP_TARGET_outmxn .and. .not. dump_done_outmxn_sec2) then
-  call dump_scalar_i('maxi_ref', maxi)
-  call dump_scalar_i('maxj_ref', maxj)
-  call dump_scalar_i('maxk_ref', maxk)
-  call dump_scalar_i('mini_ref', mini)
-  call dump_scalar_i('minj_ref', minj)
-  call dump_scalar_i('mink_ref', mink)
-  call dump_finalize()
-  dump_done_outmxn_sec2 = .true.
-end if
-
-! -----
 
 ! Gather the maximum or minimum value and indices from the other
 ! processor elements to the root.
@@ -462,7 +332,6 @@ end if
       call getmxn('max',ni,nj,nk,maxi,maxj,maxk,maxvl)
       call getmxn('min',ni,nj,nk,mini,minj,mink,minvl)
 
-! -----
 
 ! Read in the message to the standard i/o.
 
@@ -475,7 +344,6 @@ end if
 
       call chkstd(root)
 
-! -----
 
 !! -----
 

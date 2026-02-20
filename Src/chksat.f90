@@ -17,8 +17,6 @@
 ! Module reference
 
       use m_comphy
-      use m_comprofile
-      use m_dump_kernel
       use m_getindx
 
 !-----7--------------------------------------------------------------7--
@@ -142,14 +140,7 @@
 
       real pres        ! Full pressure
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_chksat = 0
-      integer, parameter :: DUMP_TARGET_chksat = 3
-      logical, save :: dump_done_chksat = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -166,7 +157,6 @@
         kend=kmax-2
       end if
 
-! -----
 
 ! Set the common used variables.
 
@@ -174,72 +164,12 @@
 
       p0iv=1.e0/p0
 
-! -----
 
 ! Check and avoid the super saturation mixing ratio.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: chksat.f90 :: s_chksat
-! Summary : Limit water vapor mixing ratio (qv) to saturation value computed
-!           from pressure and temperature fields
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function/subroutine calls inside parallel region
-!   - No reductions or synchronization constructs
-!   - Uses intrinsic functions (exp, log, min)
-!   - Modifies output array qv in-place
-!   - Conditional branches based on fproc flag and temperature threshold (tlow)
-!   - Saturation vapor pressure computed using Clausius-Clapeyron approximation
-! Next:
-!   - Direct OpenACC with collapse(2) for inner loops
-!   - exp/log functions have GPU intrinsic support
-! Runtime:
-!   - Calls: 3
-!   - AvgLoops: 101.2M
-!   - TotalTime: 0.040s (0.00%)
-!   - AvgTime: 13.411ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('chksat.f90', 's_chksat', &
-   & 'OMP section 1')
-end if
-loop_len = int((kend)-(kstr)+1,8) &
-     & * int((jend)-(jstr)+1,8) &
-     & * int((iend)-(istr)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_chksat = dump_call_count_chksat + 1
-if (dump_call_count_chksat == DUMP_TARGET_chksat .and. .not. dump_done_chksat) then
-  call dump_init('chksat')
-  call dump_scalar_i('imin', imin)
-  call dump_scalar_i('imax', imax)
-  call dump_scalar_i('jmin', jmin)
-  call dump_scalar_i('jmax', jmax)
-  call dump_scalar_i('kmin', kmin)
-  call dump_scalar_i('kmax', kmax)
-  call dump_scalar_r('t0', t0)
-  call dump_scalar_r('epsva', epsva)
-  call dump_scalar_r('es0', es0)
-  call dump_array_3d('pbr.bin', pbr, imin, imax, jmin, jmax, kmin, kmax)
-  call dump_array_3d('ptbr.bin', ptbr, imin, imax, jmin, jmax, kmin, kmax)
-  call dump_array_3d('pp.bin', pp, imin, imax, jmin, jmax, kmin, kmax)
-  call dump_array_3d('ptp.bin', ptp, imin, imax, jmin, jmax, kmin, kmax)
-  call dump_array_3d('qv_in.bin', qv, imin, imax, jmin, jmax, kmin, kmax)
-  call dump_scalar_c('fproc', fproc)
-  call dump_scalar_i('iend', iend)
-  call dump_scalar_i('istr', istr)
-  call dump_scalar_i('jend', jend)
-  call dump_scalar_i('jstr', jstr)
-  call dump_scalar_i('kend', kend)
-  call dump_scalar_i('kstr', kstr)
-  call dump_scalar_r('p0iv', p0iv)
-  call dump_scalar_r('rddvcp', rddvcp)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_055)
 !----------------------------------------------------------------------
@@ -385,17 +315,9 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_chksat == DUMP_TARGET_chksat .and. .not. dump_done_chksat) then
-  call dump_array_3d('qv_ref.bin', qv, imin, imax, jmin, jmax, kmin, kmax)
-  call dump_finalize()
-  dump_done_chksat = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
       end subroutine s_chksat
 

@@ -22,8 +22,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
-      use m_dump_kernel
       use m_comphy
       use m_comtable
       use m_getiname
@@ -187,14 +185,7 @@
       real dk          ! Weighting distance for interpolating
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_cloudcov = 0
-      integer, parameter :: DUMP_TARGET_cloudcov = 361
-      logical, save :: dump_done_cloudcov = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -204,83 +195,17 @@
       call getiname(fpcphopt,cphopt)
       call getrname(fpdz,dz)
 
-! -----
 
 ! Set the common used variable.
 
       es0iv2=100.e0/es0
 
-! -----
 
 !!! Calculate the cloud cover.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: cloudcov.f90 :: s_cloudcov
-! Summary : Calculate low/mid/high cloud cover from relative humidity or
-!           hydrometeor mixing ratios with multiple interpolation levels
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function/subroutine calls inside parallel region
-!   - No reductions; only array element writes
-!   - Uses intrinsic functions (abs, aint, exp, int, max, min)
-!   - Complex conditional logic based on fmois, fproc, cphopt flags
-!   - Multiple sequential k-loops with dependencies on zph8s interpolation
-!   - Lookup table access (rcdl, rcdm, rcdh) from module m_comtable
-!   - Accumulation in qsuml, qsumm, qsumh across k-levels
-! Next:
-!   - Split into multiple GPU kernels for different fproc/fmois branches
-!   - k-loop accumulations may need careful handling (scan or atomic)
-!   - Consider data locality for lookup tables
-! Runtime:
-!   - Calls: 361
-!   - AvgLoops: 806.4K
-!   - TotalTime: 2.607s (0.09%)
-!   - AvgTime: 7.223ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('cloudcov.f90', 's_cloudcov', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_cloudcov = dump_call_count_cloudcov + 1
-if (dump_call_count_cloudcov == DUMP_TARGET_cloudcov .and. .not. dump_done_cloudcov) then
-  call dump_init('cloudcov')
-  call dump_scalar_i('cphopt', cphopt)
-  call dump_scalar_r('dz', dz)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('t0', t0)
-  call dump_scalar_r('epsva', epsva)
-  call dump_array_3d('zph.bin', zph, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rst.bin', rst, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('p.bin', p, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t.bin', t, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qv.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qall.bin', qall, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('zph8s_in.bin', zph8s, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('rh24_in.bin', rh24, 0, ni+1, 0, nj+1)
-  call dump_array_2d('rh32_in.bin', rh32, 0, ni+1, 0, nj+1)
-  call dump_array_2d('rh48_in.bin', rh48, 0, ni+1, 0, nj+1)
-  call dump_array_2d('rh72_in.bin', rh72, 0, ni+1, 0, nj+1)
-  call dump_array_3d('qsum_in.bin', qsum, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('qsuml_in.bin', qsuml, 0, ni+1, 0, nj+1)
-  call dump_array_2d('qsumm_in.bin', qsumm, 0, ni+1, 0, nj+1)
-  call dump_array_2d('qsumh_in.bin', qsumh, 0, ni+1, 0, nj+1)
-  call dump_scalar_r('es0iv2', es0iv2)
-  call dump_scalar_c('fmois', fmois)
-  call dump_scalar_c('fproc', fproc)
-  call dump_array_1d('rcdl.bin', rcdl, 0, 101)
-  call dump_array_1d('rcdm.bin', rcdm, 0, 101)
-  call dump_array_1d('rcdh.bin', rcdh, 0, 101)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_056)
 !----------------------------------------------------------------------
@@ -303,7 +228,6 @@ end if
         end do
       !$acc end kernels
 
-! -----
 
 !! Estimate the cloud cover in the case of moist air.
 
@@ -324,7 +248,6 @@ end if
         end do
       !$acc end kernels
 
-! -----
 
 ! Estimate the cloud cover from the relative humidity.
 
@@ -542,7 +465,6 @@ end if
           end do
       !$acc end kernels
 
-! -----
 
 ! Estimate the cloud cover from the hydrometeor mixing ratio.
 
@@ -616,7 +538,6 @@ end if
 
         end if
 
-! -----
 
       end if
 
@@ -644,7 +565,6 @@ end if
 
 !$omp end do
 
-! -----
 
 !! Estimate the cloud cover in the case of moist air.
 
@@ -666,7 +586,6 @@ end if
 
         end do
 
-! -----
 
 ! Estimate the cloud cover from the relative humidity.
 
@@ -884,7 +803,6 @@ end if
 
 !$omp end do
 
-! -----
 
 ! Estimate the cloud cover from the hydrometeor mixing ratio.
 
@@ -959,7 +877,6 @@ end if
 
         end if
 
-! -----
 
       end if
 
@@ -968,26 +885,8 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_cloudcov == DUMP_TARGET_cloudcov .and. .not. dump_done_cloudcov) then
-  call dump_array_2d('cdl_ref.bin', cdl, 0, ni+1, 0, nj+1)
-  call dump_array_2d('cdm_ref.bin', cdm, 0, ni+1, 0, nj+1)
-  call dump_array_2d('cdh_ref.bin', cdh, 0, ni+1, 0, nj+1)
-  call dump_array_3d('zph8s_ref.bin', zph8s, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('rh24_ref.bin', rh24, 0, ni+1, 0, nj+1)
-  call dump_array_2d('rh32_ref.bin', rh32, 0, ni+1, 0, nj+1)
-  call dump_array_2d('rh48_ref.bin', rh48, 0, ni+1, 0, nj+1)
-  call dump_array_2d('rh72_ref.bin', rh72, 0, ni+1, 0, nj+1)
-  call dump_array_3d('qsum_ref.bin', qsum, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('qsuml_ref.bin', qsuml, 0, ni+1, 0, nj+1)
-  call dump_array_2d('qsumm_ref.bin', qsumm, 0, ni+1, 0, nj+1)
-  call dump_array_2d('qsumh_ref.bin', qsumh, 0, ni+1, 0, nj+1)
-  call dump_finalize()
-  dump_done_cloudcov = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

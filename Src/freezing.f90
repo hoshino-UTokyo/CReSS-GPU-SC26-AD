@@ -25,8 +25,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
-      use m_dump_kernel
       use m_comphy
 
 !-----7--------------------------------------------------------------7--
@@ -141,14 +139,7 @@
       real a           ! Temporary variable
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_freezing = 0
-      integer, parameter :: DUMP_TARGET_freezing = 45720
-      logical, save :: dump_done_freezing = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -160,58 +151,12 @@
       cfrrg=20.e0*100.e0*cc*cc*rhow*dtb
       cfrrgn=100.e0*cc*dtb
 
-! -----
 
 !!! Calculate the freezing rate from the rain water to the graupel.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: freezing.f90 :: s_freezing
-! Summary : Calculate freezing rate from rain water to graupel based on
-!           temperature and rain water content with different cphopt modes.
-! GPU diff: Medium
-! Findings:
-!   - Complex conditional logic (nk==1 vs nk>1, cphopt==2 vs >=3)
-!   - Uses exp intrinsic function
-!   - Multiple threshold checks (thresq, t0cel, tclow)
-!   - Writes to frrg and frrgn arrays
-!   - No reductions or synchronization
-! Next:
-!   - Port with GPU kernels handling conditionals via masks or separate kernels
-!   - Consider separating cphopt==2 and cphopt>=3 cases for clarity
-! Runtime:
-!   - Calls: 45720
-!   - AvgLoops: 806.4K
-!   - TotalTime: 1.296s (0.04%)
-!   - AvgTime: 0.028ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('freezing.f90', 's_freezing', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_freezing = dump_call_count_freezing + 1
-if (dump_call_count_freezing == DUMP_TARGET_freezing .and. .not. dump_done_freezing) then
-  call dump_init('freezing')
-  call dump_scalar_i('cphopt', cphopt)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('dtb', dtb)
-  call dump_scalar_r('thresq', thresq)
-  call dump_array_3d('qr.bin', qr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncr.bin', ncr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tcel.bin', tcel, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('diaqr.bin', diaqr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('cfrrg', cfrrg)
-  call dump_scalar_r('cfrrgn', cfrrgn)
-  call dump_scalar_r('tclow', tclow)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_114)
 !----------------------------------------------------------------------
@@ -382,7 +327,6 @@ end if
 
 !$omp end do
 
-! -----
 
 ! Perform calculating in the case the option abs(cphopt) is greater
 ! than 2.
@@ -435,7 +379,6 @@ end if
 
         end if
 
-! -----
 
 !! -----
 
@@ -490,7 +433,6 @@ end if
 
           end do
 
-! -----
 
 ! Perform calculating in the case the option abs(cphopt) is greater
 ! than 2.
@@ -547,7 +489,6 @@ end if
 
         end if
 
-! -----
 
       end if
 
@@ -557,16 +498,8 @@ end if
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_freezing == DUMP_TARGET_freezing .and. .not. dump_done_freezing) then
-  call dump_array_3d('frrg_ref.bin', frrg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('frrgn_ref.bin', frrgn, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_freezing = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

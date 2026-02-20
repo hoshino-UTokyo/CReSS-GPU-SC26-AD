@@ -18,7 +18,6 @@
 ! Module reference
 
       use m_getrname
-      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -156,11 +155,6 @@
 
       real a           ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -181,34 +175,6 @@
 ! -----
 
 !! Calculate the non linear velocity numerical smoothing.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: nlsmuvw.f90 :: s_nlsmuvw
-! Summary : Non-linear smoothing for u, v, w velocity components using
-!           finite differences with a*abs(a) nonlinear diffusion.
-! GPU diff: Medium
-! Findings:
-!   - Multiple sequential do-k loops for u, v, w components
-!   - tmp4 reused for each velocity component (u, v, w)
-!   - tmp1, tmp2, tmp3 store intermediate differences per component
-!   - Separate forcing updates for ufrc, vfrc, wfrc
-!   - No function calls; uses intrinsic abs only
-!   - Complex stencil patterns with different index ranges per loop
-! Next:
-!   - Consider separate kernels for u, v, w smoothing
-!   - May need 3+ kernel launches per velocity component
-!   - Ensure tmp4 synchronization between velocity components
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('nlsmuvw.f90', 's_nlsmuvw', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -456,8 +422,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

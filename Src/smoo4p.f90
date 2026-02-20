@@ -23,7 +23,6 @@
 ! Module reference
 
       use m_comindx
-      use m_comprofile
       use m_getiname
       use m_getrname
 
@@ -151,11 +150,6 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -178,34 +172,6 @@
 ! -----
 
 ! Calculate the 4th order pressure numerical smoothing.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: smoo4p.f90 :: s_smoo4p
-! Summary : Applies 4th order numerical smoothing to pressure perturbation
-!           with horizontal/vertical coefficients and conditional branching
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls inside parallel region
-!   - Multiple !$omp do loops with schedule(runtime)
-!   - Conditional branch with mod(smtopt,10).eq.2 inside parallel region
-!   - Writes to pp2, tmp1, tmp2, tmp3, pfrc arrays
-!   - No synchronization constructs besides implicit barriers
-! Next:
-!   - Data managed automatically via Unified Memory
-!   - Consider separating branches into distinct kernels
-!   - Use collapse(2) for nested loops
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('smoo4p.f90', 's_smoo4p', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-jnorth)-(jsouth)+1,8) &
-     & * int((ni-ieast)-(iwest)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -323,8 +289,6 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

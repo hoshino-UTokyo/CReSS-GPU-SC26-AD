@@ -21,7 +21,6 @@
 ! Module reference
 
       use m_combuf
-      use m_comprofile
       use m_commath
       use m_commpi
       use m_defmpi
@@ -138,14 +137,6 @@
 
       real cvl         ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer, save :: prof_id2 = -1
-      integer, save :: prof_id3 = -1
-      integer, save :: prof_id4 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the processed variables.
@@ -197,32 +188,6 @@
 
 ! Get the maximum value.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: getmxn.f90 :: s_getmxn
-! Summary : Finds maximum value across MPI gathered buffer and identifies
-!           the corresponding index location
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread usage
-!   - Uses intrinsic abs(), max(), sign() functions - GPU compatible
-!   - Contains reduction operations (max: maxvl, maxeps)
-!   - Iterates over MPI processor elements (npe), typically small count
-!   - Accesses module buffers mxnbuf, idxbuf from m_combuf
-!   - Module constant eps used from m_commath
-! Next:
-!   - Small loop size (npe) may not benefit from GPU offloading
-!   - Consider keeping on CPU or using atomic operations
-!   - Reduction clause supported in OpenACC
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('getmxn.f90', 's_getmxn', &
-   & 'OMP section 1')
-end if
-loop_len = int((npe-1)-(0)+1,8)
-call profile_start(prof_id1)
-
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime)                                              &
@@ -242,8 +207,6 @@ call profile_start(prof_id1)
 
 !$omp end parallel
 
-call profile_stop(prof_id1, loop_len)
-
 ! -----
 
 ! Reset the maximum value.
@@ -254,22 +217,6 @@ call profile_stop(prof_id1, loop_len)
 
 ! Get the indices of maximum value.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: getmxn.f90 :: s_getmxn
-! Summary : Identifies grid indices (i,j,k) where the maximum value occurs
-!           by comparing against the found maximum with tolerance
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread usage
-!   - Uses intrinsic abs(), max(), sign() functions - GPU compatible
-!   - Contains reduction operations (max: maxi, maxj, maxk)
-!   - Conditional update inside loop based on value comparison
-!   - Small loop size (npe processors)
-! Next:
-!   - Small loop size may not benefit from GPU offloading
-!   - Integer reductions supported in OpenACC
-!   - Consider keeping on CPU due to small iteration count
-!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime)                                              &
@@ -303,21 +250,6 @@ call profile_stop(prof_id1, loop_len)
 
 ! Get the minimum value.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: getmxn.f90 :: s_getmxn
-! Summary : Finds minimum value across MPI gathered buffer
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread usage
-!   - Uses intrinsic min(), sign() functions - GPU compatible
-!   - Contains reduction operations (min: minvl, mineps)
-!   - Iterates over MPI processor elements (npe), typically small count
-!   - Accesses module buffers mxnbuf from m_combuf
-! Next:
-!   - Small loop size (npe) may not benefit from GPU offloading
-!   - Consider keeping on CPU or using atomic operations
-!   - Reduction clause supported in OpenACC
-!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime)                                              &
@@ -347,22 +279,6 @@ call profile_stop(prof_id1, loop_len)
 
 ! Get the indices of minimum value.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: getmxn.f90 :: s_getmxn
-! Summary : Identifies grid indices (i,j,k) where the minimum value occurs
-!           by comparing against the found minimum with tolerance
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread usage
-!   - Uses intrinsic abs(), min(), sign() functions - GPU compatible
-!   - Contains reduction operations (min: mini, minj, mink)
-!   - Conditional update inside loop based on value comparison
-!   - Small loop size (npe processors)
-! Next:
-!   - Small loop size may not benefit from GPU offloading
-!   - Integer reductions supported in OpenACC
-!   - Consider keeping on CPU due to small iteration count
-!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime)                                              &

@@ -19,7 +19,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
       use m_comphy
       use m_remapbw
 
@@ -238,11 +237,6 @@
 
       real a           ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Set the substituted variables.
@@ -284,34 +278,6 @@
 ! -----
 
 !! Perform deposition for water bin.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: depsitbw.f90 :: s_depsitbw
-! Summary : Perform bin-resolved deposition for water droplets, shifting
-!           bin boundaries and updating mass/concentration distributions.
-! GPU diff: Hard
-! Findings:
-!   - No omp_get_thread_num usage
-!   - Uses intrinsic exp, log, max, sqrt functions (GPU-compatible)
-!   - Private variable n for bin category loop
-!   - Writes to ptp, qv, mwbin, nwbin, bmws, mws, nws, ssw, lv, kp, dv, dm, etc.
-!   - Complex bin microphysics with conditional logic per grid point
-!   - Sequential dependencies: common vars -> bin shifts -> mass shifts -> remap
-!   - Calls external subroutine remapbw after parallel region
-! Next:
-!   - Split into multiple GPU kernels: initialization, bin shifting, mass update
-!   - Create persistent data region for bin arrays across kernels
-!   - Handle remapbw call separately (may need separate GPU port)
-!   - Profile to identify bottleneck loops
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('depsitbw.f90', 's_depsitbw', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(n)
 
@@ -472,8 +438,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

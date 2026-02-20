@@ -17,8 +17,6 @@
 ! Module reference
 
       use m_getiname
-      use m_comprofile
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -109,14 +107,7 @@
       real jcbiv       ! Inverse of Jacobian
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_eddyvisj = 0
-      integer, parameter :: DUMP_TARGET_eddyvisj = 360
-      logical, save :: dump_done_eddyvisj = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -125,57 +116,12 @@
 
       call getiname(fpmfcopt,mfcopt)
 
-! -----
 
 ! The eddy viscosity is devided by Jacobian.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: eddyvisj.f90 :: s_eddyvisj
-! Summary : Divide eddy viscosity by Jacobian, with optional map scale
-!           factor multiplication for horizontal component
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls inside parallel region
-!   - Simple element-wise division operations
-!   - Conditional branch based on mfcopt option (map scale factor)
-!   - Writes to rkh, rkv arrays (no race conditions)
-!   - No synchronization constructs besides implicit barrier
-! Next:
-!   - Straightforward conversion to OpenACC or OpenACC kernels
-!   - Collapse k,j,i loops for maximum parallelism
-!   - Consider using a single kernel with conditional inside for both paths
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 102.4M
-!   - TotalTime: 2.137s (0.07%)
-!   - AvgTime: 5.937ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('eddyvisj.f90', 's_eddyvisj', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_eddyvisj = dump_call_count_eddyvisj + 1
-if (dump_call_count_eddyvisj == DUMP_TARGET_eddyvisj .and. .not. dump_done_eddyvisj) then
-  call dump_init('eddyvisj')
-  call dump_scalar_i('mfcopt', mfcopt)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_array_3d('jcb.bin', jcb, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('mf.bin', mf, 0, ni+1, 0, nj+1)
-  call dump_array_3d('rkh_in.bin', rkh, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rkv_in.bin', rkv, 0, ni+1, 0, nj+1, 1, nk)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_098)
 !----------------------------------------------------------------------
@@ -264,18 +210,9 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_eddyvisj == DUMP_TARGET_eddyvisj .and. .not. dump_done_eddyvisj) then
-  call dump_array_3d('rkh_ref.bin', rkh, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rkv_ref.bin', rkv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_eddyvisj = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
       end subroutine s_eddyvisj
 

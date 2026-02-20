@@ -29,8 +29,6 @@
 ! Module reference
 
       use m_chkerr
-      use m_comprofile
-      use m_dump_kernel
       use m_chkopen
       use m_chkstd
       use m_comdmp
@@ -193,17 +191,6 @@
 
       integer k        ! Array index in z drection
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
-      ! Dump variables
-      integer, save :: dump_call_count_opendmp = 0
-      integer, parameter :: DUMP_TARGET_opendmp = 4
-      logical, save :: dump_done_opendmp = .false.
-
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -290,62 +277,6 @@
 
 ! Calculate the constant output level.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: opendmp.f90 :: s_opendmp
-! Summary : Calculate constant z-level coordinates for dump output
-!           based on dmplev option (uniform dz or stretched).
-! GPU diff: Easy
-! Findings:
-!   - Small loop over k from 2 to nk-2
-!   - Conditionals on fdmp and dmplev checked outside omp do
-!   - Simple arithmetic: z1d(k) = dz*(real(k)-1.5) or zsth interpolation
-!   - No inter-thread dependencies; each k independent
-!   - Typically small nk (tens to hundreds)
-! Next:
-!   - May not benefit from GPU due to small loop size
-!   - Could run on CPU or use GPU only if part of larger kernel
-!   - Direct port is straightforward if needed
-! Runtime:
-!   - Calls: 4
-!   - AvgLoops: 125
-!   - TotalTime: 0.000s (0.00%)
-!   - AvgTime: 0.004ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('opendmp.f90', 's_opendmp', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8)
-call profile_start(prof_id1)
-
-
-! Dump input data at target call
-dump_call_count_opendmp = dump_call_count_opendmp + 1
-if (dump_call_count_opendmp == DUMP_TARGET_opendmp .and. .not. dump_done_opendmp) then
-  call dump_init('opendmp')
-  call dump_scalar_c('exprim', exprim)
-  call dump_scalar_c('crsdir', crsdir)
-  call dump_scalar_i('ncexp', ncexp)
-  call dump_scalar_i('nccrs', nccrs)
-  call dump_scalar_i('wlngth', wlngth)
-  call dump_scalar_i('dmpfmt', dmpfmt)
-  call dump_scalar_i('dmplev', dmplev)
-  call dump_scalar_i('dmpmon', dmpmon)
-  call dump_scalar_r('etime', etime)
-  call dump_scalar_r('dmpitv', dmpitv)
-  call dump_scalar_r('monitv', monitv)
-  call dump_scalar_r('dz', dz)
-  call dump_scalar_i8('ctime', ctime)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_c('fdmp', fdmp)
-  call dump_array_1d('zsth.bin', zsth, 1, nk)
-  call dump_array_1d('z1d_in.bin', z1d, 1, nk)
-end if
-
 !$omp parallel default(shared)
 
         if(fdmp(1:3).eq.'act') then
@@ -375,16 +306,6 @@ end if
         end if
 
 !$omp end parallel
-
-! Dump output data at target call
-if (dump_call_count_opendmp == DUMP_TARGET_opendmp .and. .not. dump_done_opendmp) then
-  call dump_array_1d('z1d_ref.bin', z1d, 1, nk)
-  call dump_finalize()
-  dump_done_opendmp = .true.
-end if
-
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

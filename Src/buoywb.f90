@@ -24,8 +24,6 @@
 ! Module reference
 
       use m_comphy
-      use m_comprofile
-      use m_dump_kernel
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -141,14 +139,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_buoywb = 0
-      integer, parameter :: DUMP_TARGET_buoywb = 360
-      logical, save :: dump_done_buoywb = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -158,73 +149,17 @@
       call getiname(fpgwmopt,gwmopt)
       call getiname(fpcphopt,cphopt)
 
-! -----
 
 ! Set the common used variable.
 
       g05=.5e0*g
 
-! -----
 
 !! Calculate the buoyancy in the large time steps integration.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: buoywb.f90 :: s_buoywb
-! Summary : Calculates buoyancy forcing for vertical velocity in large
-!           time step integration for dry/moist air with/without microphysics.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls inside parallel region
-!   - Multiple conditional branches based on fmois, gwmopt, cphopt
-!   - Three phases: compute qvd, compute wb8s, vertically average to wfrc
-!   - Simple arithmetic but significant control flow divergence
-!   - Sequential dependencies between phases (qvd -> wb8s -> wfrc)
-!   - No synchronization constructs beyond implicit barriers
-! Next:
-!   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
-!   - Use collapse(2) for nested i,j loops
-!   - Consider separate target regions for each major conditional branch
-!   - Ensure proper data movement for qvd, wb8s work arrays
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 100.4M
-!   - TotalTime: 5.412s (0.18%)
-!   - AvgTime: 15.032ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('buoywb.f90', 's_buoywb', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-2)-(2)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_buoywb = dump_call_count_buoywb + 1
-if (dump_call_count_buoywb == DUMP_TARGET_buoywb .and. .not. dump_done_buoywb) then
-  call dump_init('buoywb')
-  call dump_scalar_i('gwmopt', gwmopt)
-  call dump_scalar_i('cphopt', cphopt)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_array_3d('qv.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptbr.bin', ptbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvbr.bin', qvbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rst.bin', rst, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptp.bin', ptp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qall.bin', qall, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wfrc_in.bin', wfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvd_in.bin', qvd, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wb8s_in.bin', wb8s, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_c('fmois', fmois)
-  call dump_scalar_r('g05', g05)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_044)
 !----------------------------------------------------------------------
@@ -367,7 +302,6 @@ end if
 
         end if
 
-! -----
 
 ! For moist air case.
 
@@ -472,7 +406,6 @@ end if
 
       end if
 
-! -----
 
 ! Finally be averaged vartically.
 
@@ -490,22 +423,12 @@ end if
 
       end do
 
-! -----
 
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_buoywb == DUMP_TARGET_buoywb .and. .not. dump_done_buoywb) then
-  call dump_array_3d('wfrc_ref.bin', wfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvd_ref.bin', qvd, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wb8s_ref.bin', wb8s, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_buoywb = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

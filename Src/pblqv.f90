@@ -20,7 +20,6 @@
 ! Module reference
 
       use m_comindx
-      use m_comprofile
       use m_gaussel
       use m_getiname
       use m_getrname
@@ -151,11 +150,6 @@
       real b           ! Temporary variable
       real c           ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -177,33 +171,6 @@
 !! Calculate the virtical diffusion for the water vapor mixing ratio.
 
 ! Set the coefficient matrix and the virtical diffusion at lowest level.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: pblqv.f90 :: s_pblqv
-! Summary : Set up tridiagonal coefficient matrix (rr,ss,tt) for implicit
-!           vertical diffusion of water vapor mixing ratio in PBL.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region (pure arithmetic)
-!   - No global/module variable writes (only intent(inout) arrays)
-!   - No sync constructs
-!   - Multiple conditional branches based on levpbl value
-!   - Sequential k-loop dependency in matrix setup (tmp1 used across k levels)
-!   - Followed by gaussel call (Gauss elimination) outside parallel region
-! Next:
-!   - Port coefficient matrix setup to GPU
-!   - Consider batched tridiagonal solver for gaussel on GPU
-!   - Watch for k-level dependencies in tmp1 array usage
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('pblqv.f90', 's_pblqv', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -305,8 +272,6 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

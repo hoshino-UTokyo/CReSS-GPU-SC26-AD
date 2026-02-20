@@ -23,8 +23,6 @@
 ! Module reference
 
       use m_getiname
-      use m_comprofile
-      use m_dump_kernel
       use m_getrname
 
 !-----7--------------------------------------------------------------7--
@@ -178,14 +176,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_turbtke = 0
-      integer, parameter :: DUMP_TARGET_turbtke = 360
-      logical, save :: dump_done_turbtke = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -199,7 +190,6 @@
       call getrname(fpdyiv,dyiv)
       call getrname(fpdziv,dziv)
 
-! -----
 
 ! Set the common used variables.
 
@@ -207,77 +197,12 @@
       dyiv2=2.e0*dyiv
       dziv2=2.e0*dziv
 
-! -----
 
 ! Calculate the turbulent kinetic energy mixing.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: turbtke.f90 :: s_turbtke
-! Summary : Calculate TKE mixing term by computing divergence of turbulent
-!           fluxes with terrain and map scale factor corrections
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls within loops
-!   - Writes to tkefrc (in/out), tmp1, tmp2, tmp3 arrays
-!   - Complex conditional structure (trnopt, mfcopt, mpopt)
-!   - Multiple temporary arrays used for intermediate calculations
-!   - No synchronization constructs within parallel region
-! Next:
-!   - GPU port requires handling multiple code paths
-!   - Consider separate kernels for terrain vs non-terrain cases
-!   - Temporary arrays can use shared memory or registers
-!   - Map scale factor combinations may benefit from kernel specialization
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 100.5M
-!   - TotalTime: 4.648s (0.16%)
-!   - AvgTime: 12.912ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('turbtke.f90', 's_turbtke', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-1)-(2)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_turbtke = dump_call_count_turbtke + 1
-if (dump_call_count_turbtke == DUMP_TARGET_turbtke .and. .not. dump_done_turbtke) then
-  call dump_init('turbtke')
-  call dump_scalar_i('trnopt', trnopt)
-  call dump_scalar_i('mpopt', mpopt)
-  call dump_scalar_i('mfcopt', mfcopt)
-  call dump_scalar_r('dxiv', dxiv)
-  call dump_scalar_r('dyiv', dyiv)
-  call dump_scalar_r('dziv', dziv)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_array_3d('j31.bin', j31, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('j32.bin', j32, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('jcb8u.bin', jcb8u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('jcb8v.bin', jcb8v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('mf.bin', mf, 0, ni+1, 0, nj+1)
-  call dump_array_3d('rmf.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
-  call dump_array_3d('rmf8u.bin', rmf8u, 0, ni+1, 0, nj+1, 1, 3)
-  call dump_array_3d('rmf8v.bin', rmf8v, 0, ni+1, 0, nj+1, 1, 3)
-  call dump_array_3d('h1.bin', h1, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('h2.bin', h2, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('h3.bin', h3, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tkefrc_in.bin', tkefrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp1_in.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp2_in.bin', tmp2, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp3_in.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('dxiv2', dxiv2)
-  call dump_scalar_r('dyiv2', dyiv2)
-  call dump_scalar_r('dziv2', dziv2)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_337)
 !----------------------------------------------------------------------
@@ -1059,20 +984,9 @@ end if
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_turbtke == DUMP_TARGET_turbtke .and. .not. dump_done_turbtke) then
-  call dump_array_3d('tkefrc_ref.bin', tkefrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp1_ref.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp2_ref.bin', tmp2, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp3_ref.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_turbtke = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
       end subroutine s_turbtke
 

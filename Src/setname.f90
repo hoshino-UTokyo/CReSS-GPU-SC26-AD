@@ -22,8 +22,6 @@
 ! Module reference
 
       use m_castname
-      use m_comprofile
-      use m_dump_kernel
       use m_comindx
       use m_commpi
       use m_comname
@@ -80,17 +78,6 @@
 ! Internal private variable
 
       integer iid      ! Index of do loops
-
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
-      ! Dump variables
-      integer, save :: dump_call_count_setname = 0
-      integer, parameter :: DUMP_TARGET_setname = 1
-      logical, save :: dump_done_setname = .false.
-
 
 !-----7--------------------------------------------------------------7--
 
@@ -550,63 +537,6 @@
 
 ! For the table.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: setname.f90 :: s_setname
-! Summary : Copies land use parameters from arrays to name table indexed by category,
-!           including albedo, beta, roughness, heat capacity, and diffusivity.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Simple 1D loops copying from land category arrays to name table
-!   - All loops are independent with private iid index
-!   - No synchronization constructs
-!   - Loop count is numctg_lnd (small, number of land categories)
-! Next:
-!   - Straightforward GPU port with simple 1D kernel
-!   - Consider keeping on CPU due to small loop count
-!   - If porting, use single kernel for all table copies
-! Runtime:
-!   - Calls: 1
-!   - AvgLoops: 10
-!   - TotalTime: 0.000s (0.00%)
-!   - AvgTime: 0.122ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('setname.f90', 's_setname', &
-   & 'OMP section 1')
-end if
-loop_len = int((numctg_lnd-1)-(0)+1,8)
-call profile_start(prof_id1)
-
-
-! Dump input data at target call
-dump_call_count_setname = dump_call_count_setname + 1
-if (dump_call_count_setname == DUMP_TARGET_setname .and. .not. dump_done_setname) then
-  call dump_init('setname')
-  call dump_scalar_i('numctg_lnd', numctg_lnd)
-  call dump_scalar_i('idlnduse_lnd', idlnduse_lnd)
-  call dump_scalar_i('idalbe_lnd', idalbe_lnd)
-  call dump_scalar_i('idbeta_lnd', idbeta_lnd)
-  call dump_scalar_i('idz0m_lnd', idz0m_lnd)
-  call dump_scalar_i('idz0h_lnd', idz0h_lnd)
-  call dump_scalar_i('idcap_lnd', idcap_lnd)
-  call dump_scalar_i('idnuu_lnd', idnuu_lnd)
-  call dump_scalar_i('nin', nin)
-  call dump_scalar_i('nrn', nrn)
-  call dump_array_1d_int('lnduse_lnd.bin', lnduse_lnd, 1, 100)
-  call dump_array_1d('albe_lnd.bin', albe_lnd, 1, 100)
-  call dump_array_1d('beta_lnd.bin', beta_lnd, 1, 100)
-  call dump_array_1d('z0m_lnd.bin', z0m_lnd, 1, 100)
-  call dump_array_1d('z0h_lnd.bin', z0h_lnd, 1, 100)
-  call dump_array_1d('cap_lnd.bin', cap_lnd, 1, 100)
-  call dump_array_1d('nuu_lnd.bin', nuu_lnd, 1, 100)
-  call dump_array_1d_int('iname_in.bin', iname, -1, nin)
-  call dump_array_1d('rname_in.bin', rname, 1, nrn)
-end if
-
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(iid)
@@ -666,17 +596,6 @@ end if
 !$omp end do
 
 !$omp end parallel
-
-! Dump output data at target call
-if (dump_call_count_setname == DUMP_TARGET_setname .and. .not. dump_done_setname) then
-  call dump_array_1d_int('iname_ref.bin', iname, -1, nin)
-  call dump_array_1d('rname_ref.bin', rname, 1, nrn)
-  call dump_finalize()
-  dump_done_setname = .true.
-end if
-
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

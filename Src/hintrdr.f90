@@ -19,7 +19,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
       use m_getiname
       use m_getindx
 
@@ -153,11 +152,6 @@
       real xint1       ! Temporary variable
       real xint2       ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -180,34 +174,6 @@
 ! -----
 
 !! Interpolate the data variables to the model grid horizontally.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: hintrdr.f90 :: s_hintrdr
-! Summary : Calculate grid distances and perform horizontal interpolation
-!           for radar data with missing value handling (lim34n, lim35n).
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region; uses intrinsics only
-!   - Distance calculation for fproc='cal', then interpolation
-!   - Complex branching for missing value checks (lim34n/lim35n)
-!   - Different code paths for mpopt < 10 vs >= 10
-!   - Outer k-loop with inner j,i loops parallelized
-!   - Writes to di, dj (distances) and var (interpolated values)
-!   - No sync constructs
-! Next:
-!   - Convert to OpenACC with collapse(2) or collapse(3)
-!   - Missing value conditionals may cause GPU thread divergence
-!   - Consider masking approach for missing values
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('hintrdr.f90', 's_hintrdr', &
-   & 'OMP section 1')
-end if
-loop_len = int((jend)-(jstr)+1,8) * int((iend)-(istr)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -389,8 +355,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

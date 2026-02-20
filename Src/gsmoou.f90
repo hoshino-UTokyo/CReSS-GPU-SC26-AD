@@ -19,7 +19,6 @@
 ! Module reference
 
       use m_bc4news
-      use m_comprofile
       use m_bcgsmu
       use m_bcycle
       use m_combuf
@@ -126,12 +125,6 @@
 
       real a           ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer, save :: prof_id2 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -156,32 +149,6 @@
 
 ! Calculate the diffusion term.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: gsmoou.f90 :: s_gsmoou
-! Summary : Compute 2nd-order diffusion term for x-velocity (ugpv) smoothing
-!           using 3D stencil in x, y, z directions.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - No global writes; only writes to dfu array (output buffer)
-!   - No sync constructs (barriers, critical sections)
-!   - Simple stencil computation with k-loop parallelized
-! Next:
-!   - Convert to OpenACC with collapse(2) on j,i loops
-!   - Data managed automatically via Unified Memory
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('gsmoou.f90', 's_gsmoou', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-3)-(3)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-1)-(2)+1,8)
-call profile_start(prof_id1)
-
 !$omp parallel default(shared) private(k)
 
       do k=3,nk-3
@@ -204,8 +171,6 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 
@@ -264,20 +229,6 @@ call profile_stop(prof_id1, loop_len)
 
 ! Update the GPV data.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: gsmoou.f90 :: s_gsmoou
-! Summary : Update x-velocity GPV data by adding diffusion term scaled by dtcoe.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - No global writes; updates ugpv array in-place
-!   - No sync constructs
-!   - Simple element-wise update operation
-! Next:
-!   - Convert to OpenACC with collapse(2) on j,i loops
-!   - Data managed automatically via Unified Memory
-!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-2

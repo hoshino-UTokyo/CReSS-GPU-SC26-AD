@@ -27,8 +27,6 @@
 ! Module reference
 
       use m_chkerr
-      use m_comprofile
-      use m_dump_kernel
       use m_commpi
       use m_comslv
       use m_cpondpe
@@ -234,17 +232,6 @@
 
       integer i        ! Array index in x direction
       integer j        ! Array index in y direction
-
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
-      ! Dump variables
-      integer, save :: dump_call_count_allocslv = 0
-      integer, parameter :: DUMP_TARGET_allocslv = 1
-      logical, save :: dump_done_allocslv = .false.
-
 
 !-----7--------------------------------------------------------------7--
 
@@ -1922,77 +1909,6 @@
 
       if(savmem.eq.0.or.sfcopt.ge.1) then
 
-!@llm start meta_info ----------------------------------------------------
-! Location: allocslv.f90 :: s_allocslv
-! Summary : Initialize the land use integer array to zero when surface
-!           physics option (sfcopt) is enabled
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Writes to module-level array land from m_comslv
-!   - Simple 2D initialization loop with no data dependencies
-!   - Conditional execution based on savmem and sfcopt options
-! Next:
-!   - Straightforward GPU port with OpenACC parallel loop
-!   - Collapse nested i,j loops for better occupancy
-!   - Consider combining with other initialization in setcst3d calls
-! Runtime:
-!   - Calls: 1
-!   - AvgLoops: 811.8K
-!   - TotalTime: 0.000s (0.00%)
-!   - AvgTime: 0.128ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('allocslv.f90', 's_allocslv', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj+1)-(0)+1,8) * int((ni+1)-(0)+1,8)
-call profile_start(prof_id1)
-
-
-! Dump input data at target call
-dump_call_count_allocslv = dump_call_count_allocslv + 1
-if (dump_call_count_allocslv == DUMP_TARGET_allocslv .and. .not. dump_done_allocslv) then
-  call dump_init('allocslv')
-  call dump_scalar_c('dmpvar', dmpvar)
-  call dump_scalar_i('savmem', savmem)
-  call dump_scalar_i('wbc', wbc)
-  call dump_scalar_i('ebc', ebc)
-  call dump_scalar_i('sbc', sbc)
-  call dump_scalar_i('nbc', nbc)
-  call dump_scalar_i('nggopt', nggopt)
-  call dump_scalar_i('exbopt', exbopt)
-  call dump_scalar_i('lspopt', lspopt)
-  call dump_scalar_i('vspopt', vspopt)
-  call dump_scalar_i('ngropt', ngropt)
-  call dump_scalar_i('iniopt', iniopt)
-  call dump_scalar_i('sfcopt', sfcopt)
-  call dump_scalar_i('advopt', advopt)
-  call dump_scalar_i('cphopt', cphopt)
-  call dump_scalar_i('qcgopt', qcgopt)
-  call dump_scalar_i('aslopt', aslopt)
-  call dump_scalar_i('trkopt', trkopt)
-  call dump_scalar_i('tubopt', tubopt)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('nqw', nqw)
-  call dump_scalar_i('nnw', nnw)
-  call dump_scalar_i('nqi', nqi)
-  call dump_scalar_i('nni', nni)
-  call dump_scalar_i('km', km)
-  call dump_scalar_i('nund', nund)
-  call dump_scalar_i('nlev', nlev)
-  call dump_scalar_i('nid_rdr', nid_rdr)
-  call dump_scalar_i('njd_rdr', njd_rdr)
-  call dump_scalar_i('nkd_rdr', nkd_rdr)
-  call dump_scalar_i('km_rdr', km_rdr)
-  ! FIXME: land is array
-end if
-
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j)
@@ -2006,15 +1922,6 @@ end if
 !$omp end do
 
 !$omp end parallel
-
-! Dump output data at target call
-if (dump_call_count_allocslv == DUMP_TARGET_allocslv .and. .not. dump_done_allocslv) then
-  call dump_finalize()
-  dump_done_allocslv = .true.
-end if
-
-
-call profile_stop(prof_id1, loop_len)
 
       end if
 

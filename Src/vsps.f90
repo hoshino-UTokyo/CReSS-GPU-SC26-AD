@@ -23,8 +23,6 @@
 ! Module reference
 
       use m_getcname
-      use m_comprofile
-      use m_dump_kernel
       use m_getiname
       use m_inichar
 
@@ -139,14 +137,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_vsps = 0
-      integer, parameter :: DUMP_TARGET_vsps = 2160
-      logical, save :: dump_done_vsps = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -155,72 +146,19 @@
 
       call inichar(gpvvar)
 
-! -----
 
 ! Get the required namelist variables.
 
       call getcname(fpgpvvar,gpvvar)
       call getiname(fpvspopt,vspopt)
 
-! -----
 
 !! Calculate the vertical sponge damping for optional scalar variable.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: vsps.f90 :: subroutine s_vsps
-! Summary : Applies vertical sponge damping near model top for scalar
-!           variables, relaxing toward GPV data or base state.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region.
-!   - No writes to module/global variables.
-!   - No synchronization constructs.
-!   - Simple arithmetic with rbct damping coefficients.
-!   - Only upper levels computed (k >= ksp0 - sparse in k).
-!   - Conditional on vspopt for GPV vs base state damping target.
-! Next:
-!   - Direct OpenACC kernels should work well.
-!   - Upper-level-only computation - consider k-range optimization.
-! Runtime:
-!   - Calls: 2160
-!   - AvgLoops: 101.2M
-!   - TotalTime: 12.669s (0.43%)
-!   - AvgTime: 5.865ms
-!@llm end meta_info ------------------------------------------------------
 
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('vsps.f90', 's_vsps', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(ksp0(1)-1)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-2)-(2)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_vsps = dump_call_count_vsps + 1
-if (dump_call_count_vsps == DUMP_TARGET_vsps .and. .not. dump_done_vsps) then
-  call dump_init('vsps')
-  call dump_scalar_c('gpvvar', gpvvar)
-  call dump_scalar_i('vspopt', vspopt)
-  call dump_scalar_i('apg', apg)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('gtinc', gtinc)
-  call dump_array_3d('rst.bin', rst, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('sp.bin', sp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_4d('rbct.bin', rbct, 1, ni, 1, nj, 1, nk, 1, 2)
-  call dump_array_3d('sgpv.bin', sgpv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('std.bin', std, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('sfrc_in.bin', sfrc, 0, ni+1, 0, nj+1, 1, nk)
-  ! FIXME: ksp0 is an array, not scalar
-  ! ! FIXME: ksp0 is array - call dump_scalar_i('ksp0', ksp0)
-end if
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_383)
 !----------------------------------------------------------------------
@@ -284,7 +222,6 @@ end if
 
         end do
 
-! -----
 
 ! Damp to the base state value.
 
@@ -307,21 +244,13 @@ end if
 
       end if
 
-! -----
 
 !$omp end parallel
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_vsps == DUMP_TARGET_vsps .and. .not. dump_done_vsps) then
-  call dump_array_3d('sfrc_ref.bin', sfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_vsps = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

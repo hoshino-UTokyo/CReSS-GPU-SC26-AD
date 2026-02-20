@@ -22,7 +22,6 @@
 ! Module reference
 
       use m_bc8w
-      use m_comprofile
       use m_comindx
       use m_getiname
       use m_getrname
@@ -170,12 +169,6 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer, save :: prof_id2 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the namelist variables.
@@ -200,32 +193,6 @@
 ! Set the common used array.
 
       if(trnopt.ge.1) then
-
-!@llm start meta_info ----------------------------------------------------
-! Location: turbflx.f90 :: s_turbflx (terrain preprocessing)
-! Summary : Calculate j31*s and j32*s products for terrain-following
-!           coordinate transformation of scalar turbulent fluxes
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls
-!   - Writes to j31s and j32s arrays
-!   - Simple stencil computations (4-point average)
-!   - No synchronization constructs within parallel region
-! Next:
-!   - Straightforward GPU port
-!   - Can be fused with main flux calculation if data dependencies allow
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('turbflx.f90', 's_turbflx', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(2)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(2)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -261,8 +228,6 @@ call profile_start(prof_id1)
 
 !$omp end parallel
 
-call profile_stop(prof_id1, loop_len)
-
         call bc8w(idbbc,idtbc,ni,nj,nk,j31s)
         call bc8w(idbbc,idtbc,ni,nj,nk,j32s)
 
@@ -272,23 +237,6 @@ call profile_stop(prof_id1, loop_len)
 
 !! Calculate the turbulent fluxes.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: turbflx.f90 :: s_turbflx (main flux calculation)
-! Summary : Calculate x, y, z components of turbulent fluxes for optional
-!           scalar variable with terrain and surface physics options
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls within loops
-!   - Writes to h1, h2, h3, jcbs arrays
-!   - Multiple conditional branches (trnopt, sfcopt)
-!   - Surface forcing applied at k=2 level when sfcopt>=1
-!   - No synchronization constructs within parallel region
-! Next:
-!   - GPU port with conditional handling for terrain/surface options
-!   - Surface boundary condition needs special handling
-!   - Consider kernel specialization for with/without terrain
-!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the common used array.

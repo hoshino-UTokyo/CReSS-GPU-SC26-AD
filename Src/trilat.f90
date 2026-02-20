@@ -21,8 +21,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
-      use m_dump_kernel
       use m_comphy
       use m_getiname
 
@@ -108,14 +106,7 @@
       real sinlat      ! sin(latitude)
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_trilat = 0
-      integer, parameter :: DUMP_TARGET_trilat = 1
-      logical, save :: dump_done_trilat = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -124,57 +115,17 @@
 
       call getiname(fpcoropt,coropt)
 
-! -----
 
 ! Calculate 0.5 omega.
 
       omega5=.5e0*omega
 
-! -----
 
 ! Calculate the Coriolis parameters x 0.25.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: trilat.f90 :: s_trilat
-! Summary : Calculate Coriolis parameters (fc) from latitude using
-!           sin/sqrt for vertical and horizontal components
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - Calls intrinsic functions only (sin, sqrt)
-!   - Writes to fc array (2 components)
-!   - Conditional branches based on coropt (1 or 2)
-!   - No synchronization constructs
-! Next:
-!   - Straightforward GPU port
-!   - Trigonometric functions available on GPU
-!   - Can be computed once and cached if lat doesn't change
-! Runtime:
-!   - Calls: 1
-!   - AvgLoops: 806.4K
-!   - TotalTime: 0.000s (0.00%)
-!   - AvgTime: 0.042ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('trilat.f90', 's_trilat', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_trilat = dump_call_count_trilat + 1
-if (dump_call_count_trilat == DUMP_TARGET_trilat .and. .not. dump_done_trilat) then
-  call dump_init('trilat')
-  ! FIXME: coropt is array - call dump_scalar_i('coropt', coropt)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_array_2d('lat.bin', lat, 0, ni+1, 0, nj+1)
-  call dump_scalar_r('omega5', omega5)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_333)
 !----------------------------------------------------------------------
@@ -248,17 +199,9 @@ end if
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_trilat == DUMP_TARGET_trilat .and. .not. dump_done_trilat) then
-  call dump_array_3d('fc_ref.bin', fc, 0, ni+1, 0, nj+1, 1, 2)
-  call dump_finalize()
-  dump_done_trilat = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
       end subroutine s_trilat
 

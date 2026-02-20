@@ -18,7 +18,6 @@
 ! Module reference
 
       use m_comerr
-      use m_comprofile
       use m_comname
       use m_inichar
 
@@ -80,11 +79,6 @@
 
       integer in_sub   ! Substitute for in
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 !!! Initialize the table to archive namelist variables.
@@ -121,29 +115,6 @@
 
 ! For the integer and real variables.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: ininame.f90 :: s_ininame
-! Summary : Initialize integer (iname, riname) and real (rname, rrname) namelist
-!           table arrays to zero
-! GPU diff: Easy
-! Findings:
-!   - Two simple loops initializing namelist arrays to zero
-!   - No function calls within the parallel region
-!   - No global writes beyond array initialization
-!   - No sync constructs or thread-dependent logic
-! Next:
-!   - Can be directly ported to GPU with OpenACC parallel loop
-!   - Consider using array syntax for simpler GPU offload
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('ininame.f90', 's_ininame', &
-   & 'OMP section 1')
-end if
-loop_len = int((nin)-(1)+1,8)
-call profile_start(prof_id1)
-
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(in_sub)
@@ -165,8 +136,6 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

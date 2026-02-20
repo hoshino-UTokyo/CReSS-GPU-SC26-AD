@@ -21,7 +21,6 @@
 !-----7--------------------------------------------------------------7--
 
 ! Implicit typing
-      use m_comprofile
 
       implicit none
 
@@ -93,11 +92,6 @@
       integer i        ! Array index in x direction
       integer j        ! Array index in y direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variables.
@@ -108,30 +102,6 @@
 ! -----
 
 !! Set the bottom and top boundary conditions.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: vbcqcg.f90 :: s_vbcqcg
-! Summary : Sets vertical boundary conditions for charging distribution at
-!           bottom (anti-symmetric/zero) and top (copy) boundaries.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - No global/module variable writes, only local array writes
-!   - No synchronization constructs (barrier, critical, atomic)
-!   - Two separate omp do regions for bottom and top boundaries
-! Next:
-!   - Direct conversion to OpenACC parallel loop or OpenACC
-!   - Consider merging bottom BC loop (k=1,2) into single kernel
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('vbcqcg.f90', 's_vbcqcg', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared)
 
@@ -165,8 +135,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

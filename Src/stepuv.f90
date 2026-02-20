@@ -31,7 +31,6 @@
 ! Module reference
 
       use m_bc4news
-      use m_comprofile
       use m_bcycle
       use m_combuf
       use m_comindx
@@ -58,7 +57,6 @@
       use m_shiftsy
       use m_vbcu
       use m_vbcv
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -219,14 +217,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_stepuv = 0
-      integer, parameter :: DUMP_TARGET_stepuv = 14400
-      logical, save :: dump_done_stepuv = .false.
 
 !-----7--------------------------------------------------------------7--
 
@@ -234,21 +225,18 @@
 
       call inichar(exbvar)
 
-! -----
 
 ! Get the required namelist variables.
 
       call getcname(fpexbvar,exbvar)
       call getiname(fpexbopt,exbopt)
 
-! -----
 
 ! Set the substituted variables.
 
       ni_sub=ni
       nj_sub=nj
 
-! -----
 
 ! Force the lateral boundary value to the external boundary value in the
 ! case the lateral sponge damping is performed.
@@ -271,7 +259,6 @@
 
       end if
 
-! -----
 
 ! Set the radiative lateral boundary conditions.
 
@@ -291,64 +278,13 @@
 
       end if
 
-! -----
 
 ! Solve the x and y components of velocity to the next time step.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: stepuv.f90 :: subroutine s_stepuv
-! Summary : Time integration of u and v velocity components using
-!           forcing terms and acoustic mode contributions.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region.
-!   - No writes to module/global variables.
-!   - No synchronization constructs.
-!   - Simple arithmetic: uf = uf + dts * (ufrc + usml) / rst8u.
-!   - All grid points are independent (embarrassingly parallel).
-!   - Note: Multiple subroutine calls before/after for boundary conditions
-!     and MPI communication - those need separate GPU handling.
-! Next:
-!   - Direct OpenACC kernels for the time stepping loops.
-!   - Consider fusing u and v updates into single kernel.
-!   - MPI communication calls outside parallel region need GPU-aware MPI.
-! Runtime:
-!   - Calls: 14400
-!   - AvgLoops: 100.5M
-!   - TotalTime: 155.820s (5.23%)
-!   - AvgTime: 10.821ms
-!@llm end meta_info ------------------------------------------------------
 
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('stepuv.f90', 's_stepuv', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-1)-(2)+1,8)
 
-! Dump input data at target call
-dump_call_count_stepuv = dump_call_count_stepuv + 1
-if (dump_call_count_stepuv == DUMP_TARGET_stepuv .and. .not. dump_done_stepuv) then
-  call dump_init('stepuv')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('dts', dts)
-  call dump_array_3d('rst8u.bin', rst8u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rst8v.bin', rst8v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ufrc.bin', ufrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vfrc.bin', vfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('usml.bin', usml, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vsml.bin', vsml, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('uf_in.bin', uf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vf_in.bin', vf, 0, ni+1, 0, nj+1, 1, nk)
-end if
 
-call profile_start(prof_id1)
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_313)
 ! GPU version (OpenACC)
@@ -413,17 +349,8 @@ call profile_start(prof_id1)
 !$omp end parallel
 #endif
 
-call profile_stop(prof_id1, loop_len)
 
-! Dump output data at target call
-if (dump_call_count_stepuv == DUMP_TARGET_stepuv .and. .not. dump_done_stepuv) then
-  call dump_array_3d('uf_ref.bin', uf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vf_ref.bin', vf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_stepuv = .true.
-end if
 
-! -----
 
 !!! Exchange the value horizontally.
 
@@ -439,7 +366,6 @@ end if
       call s_getbufsx(idwbc,idebc,'all',1,ni_sub,ni,nj,nk,uf,1,2,rbuf)
       call s_getbufsx(idwbc,idebc,'all',1,ni-1,ni,nj,nk,vf,2,2,rbuf)
 
-! -----
 
 ! In y direction.
 
@@ -451,7 +377,6 @@ end if
       call s_getbufsy(idsbc,idnbc,'all',1,nj-1,ni,nj,nk,uf,1,2,rbuf)
       call s_getbufsy(idsbc,idnbc,'all',1,nj_sub,ni,nj,nk,vf,2,2,rbuf)
 
-! -----
 
 !! -----
 
@@ -467,7 +392,6 @@ end if
       call s_getbufgx(idwbc,idebc,'all',1,ni_sub,ni,nj,nk,uf,1,2,rbuf)
       call s_getbufgx(idwbc,idebc,'all',1,ni-1,ni,nj,nk,vf,2,2,rbuf)
 
-! -----
 
 ! In y direction.
 
@@ -479,7 +403,6 @@ end if
       call s_getbufgy(idsbc,idnbc,'all',1,nj-1,ni,nj,nk,uf,1,2,rbuf)
       call s_getbufgy(idsbc,idnbc,'all',1,nj_sub,ni,nj,nk,vf,2,2,rbuf)
 
-! -----
 
 ! In x direction again.
 
@@ -491,7 +414,6 @@ end if
       call s_getbufgx(idwbc,idebc,'all',1,ni_sub,ni,nj,nk,uf,1,2,rbuf)
       call s_getbufgx(idwbc,idebc,'all',1,ni-1,ni,nj,nk,vf,2,2,rbuf)
 
-! -----
 
 !! -----
 
@@ -505,14 +427,12 @@ end if
       call bcycle(idwbc,idebc,idsbc,idnbc,                              &
      &            2,1,ni-2,ni-1,3,1,nj-2,nj_sub,ni,nj,nk,vf)
 
-! -----
 
 ! Set the boundary conditions at the four corners.
 
       call bc4news(idwbc,idebc,idsbc,idnbc,1,ni_sub,1,nj-1,ni,nj,nk,uf)
       call bc4news(idwbc,idebc,idsbc,idnbc,1,ni-1,1,nj_sub,ni,nj,nk,vf)
 
-! -----
 
 ! Set the lateral boundary conditions.
 
@@ -528,14 +448,12 @@ end if
 
       end if
 
-! -----
 
 ! Set the bottom and the top boundary conditions.
 
       call vbcu(ni,nj,nk,uf)
       call vbcv(ni,nj,nk,vf)
 
-! -----
 
       end subroutine s_stepuv
 

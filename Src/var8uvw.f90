@@ -24,8 +24,6 @@
 ! Module reference
 
       use m_bc8u
-      use m_comprofile
-      use m_dump_kernel
       use m_bc8v
       use m_bc8w
       use m_bcyclex
@@ -145,14 +143,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_var8uvw = 0
-      integer, parameter :: DUMP_TARGET_var8uvw = 2
-      logical, save :: dump_done_var8uvw = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -163,59 +154,18 @@
       call getiname(fpebc,ebc)
       call getiname(fpexbopt,exbopt)
 
-! -----
 
 ! Set the substituted variables.
 
       ni_sub=ni
       nj_sub=nj
 
-! -----
 
 ! Be averaged to u, v and w points.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: var8uvw.f90 :: s_var8uvw
-! Summary : Averages optional variable to u, v, and w staggered grid points
-!           using simple 2-point averaging in each direction.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - No global/module variable writes, only local array writes
-!   - No synchronization constructs (barrier, critical, atomic)
-!   - Simple loop structure with private loop indices
-! Next:
-!   - Direct conversion to OpenACC parallel loop or OpenACC
-!   - Consider collapsing nested loops for better GPU utilization
-! Runtime:
-!   - Calls: 2
-!   - AvgLoops: 102.8M
-!   - TotalTime: 0.016s (0.00%)
-!   - AvgTime: 8.103ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('var8uvw.f90', 's_var8uvw', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) * int((nj)-(0)+1,8) * int((ni)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_var8uvw = dump_call_count_var8uvw + 1
-if (dump_call_count_var8uvw == DUMP_TARGET_var8uvw .and. .not. dump_done_var8uvw) then
-  call dump_init('var8uvw')
-  call dump_scalar_i('wbc', wbc)
-  call dump_scalar_i('ebc', ebc)
-  call dump_scalar_i('exbopt', exbopt)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_array_3d('var.bin', var, 0, ni+1, 0, nj+1, 1, nk)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_353)
 ! GPU version (OpenACC)
@@ -308,19 +258,9 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_var8uvw == DUMP_TARGET_var8uvw .and. .not. dump_done_var8uvw) then
-  call dump_array_3d('var8u_ref.bin', var8u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('var8v_ref.bin', var8v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('var8w_ref.bin', var8w, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_var8uvw = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
 !! Set the lateral boundary conditions.
 
@@ -348,7 +288,6 @@ call profile_stop(prof_id1, loop_len)
 
         call bc8u(idwbc,idebc,ni,nj,nk,var8u)
 
-! -----
 
 ! Set the south and north boundary conditions.
 
@@ -372,7 +311,6 @@ call profile_stop(prof_id1, loop_len)
 
         call bc8v(idsbc,idnbc,ni,nj,nk,var8v)
 
-! -----
 
       end if
 
@@ -404,13 +342,11 @@ call profile_stop(prof_id1, loop_len)
 
       end if
 
-! -----
 
 ! Set the bottom and the top boundary conditions.
 
       call bc8w(idbbc,idtbc,ni,nj,nk,var8w)
 
-! -----
 
       end subroutine s_var8uvw
 

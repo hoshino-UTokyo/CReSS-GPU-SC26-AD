@@ -23,7 +23,6 @@
 ! Module reference
 
       use m_commpi
-      use m_comprofile
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -132,11 +131,6 @@
 
       integer igc      ! Current index in group domain in x direction
       integer jgc      ! Current index in group domain in y direction
-
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
 !-----7--------------------------------------------------------------7--
 
@@ -252,31 +246,6 @@
 ! -----
 
 !! Correspond and damp the model height to the external data height.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: cpondtrn.f90 :: s_cpondtrn
-! Summary : Calculate interpolating ratios at domain boundaries and corners,
-!           then blend model terrain height with external data height.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Writes to dfx, dfy, dfxy, ht arrays (output arrays)
-!   - Complex conditional logic based on boundary flags (ebw, ebe, ebs, ebn, etc.)
-!   - Multiple sequential do loops with dependencies between them
-! Next:
-!   - Convert to OpenACC or OpenACC with data region for dfx, dfy, dfxy, ht
-!   - Consider collapsing 2D loops for better GPU occupancy
-!   - Handle conditional branches carefully on GPU
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('cpondtrn.f90', 's_cpondtrn', &
-   & 'OMP section 1')
-end if
-loop_len = int((ni)-(0)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared)
 
@@ -600,8 +569,6 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

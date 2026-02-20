@@ -22,7 +22,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
       use m_comphy
       use m_getiname
       use m_getrname
@@ -155,11 +154,6 @@
 
 !     kms,khs: These variables are also temporary.
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -179,36 +173,6 @@
 
 !!! Calculate the eddy viscosity and diffusivity in planetaty boundary
 !!! layer.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: eddypbl.f90 :: s_eddypbl
-! Summary : Calculate eddy viscosity and diffusivity in planetary boundary
-!           layer using gradient Richardson number and turbulent length scale
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - Uses intrinsic functions: max, sqrt (GPU compatible)
-!   - Multiple k-loop sections with dependencies between first two loops
-!   - First loop computes velocity sums, second uses results for shear
-!   - Third loop calculates Richardson number, flux Richardson, length scale
-!   - Writes to kms, khs, vk arrays
-!   - No synchronization constructs besides implicit barriers
-! Next:
-!   - Split into separate kernels for each major k-loop section
-!   - First two loops can potentially be fused
-!   - Use collapse clause for i,j loops
-!   - Ensure vk intermediate results stay on device between kernels
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('eddypbl.f90', 's_eddypbl', &
-   & 'OMP section 1')
-end if
-loop_len = int((levpbl+1)-(2)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -323,8 +287,6 @@ call profile_start(prof_id1)
 !! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

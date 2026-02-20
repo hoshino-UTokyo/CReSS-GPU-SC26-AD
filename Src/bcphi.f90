@@ -23,7 +23,6 @@
 !-----7--------------------------------------------------------------7--
 
 ! Implicit typing
-      use m_comprofile
 
       implicit none
 
@@ -95,11 +94,6 @@
       integer i        ! Array index in x direction
       integer j        ! Array index in y direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variables.
@@ -110,30 +104,6 @@
 ! -----
 
 ! Set the bottom and top boundary conditions.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: bcphi.f90 :: s_bcphi
-! Summary : Sets bottom and top boundary conditions for parabolic PDE solver
-!           by copying from adjacent vertical levels.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread usage
-!   - No function calls inside parallel region
-!   - Simple 2D loop over i,j with fixed k indices
-!   - No external module dependencies inside parallel region
-!   - Straightforward array copy operations
-! Next:
-!   - Convert to OpenACC with collapsed i,j loops
-!   - Very simple kernel, good candidate for GPU porting
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('bcphi.f90', 's_bcphi', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared)
 
@@ -149,8 +119,6 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

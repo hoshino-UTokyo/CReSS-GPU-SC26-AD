@@ -20,7 +20,6 @@
 ! Module reference
 
       use m_chkerr
-      use m_comprofile
       use m_comionum
       use m_commpi
       use m_comuni
@@ -118,11 +117,6 @@
       integer i        ! Array index in x direction
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
-
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
 !-----7--------------------------------------------------------------7--
 
@@ -223,31 +217,6 @@
 
 ! Fill in all array for the program unite with 0.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: allocuni.f90 :: s_allocuni
-! Summary : Initialize arrays for the unite program (tmp1-4, iodmp, var)
-!           to zero for file merging operations
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Writes to module-level arrays tmp1-4, iodmp, var from m_comuni
-!   - Multiple simple initialization loops with no data dependencies
-!   - Four separate do loops for different array dimensions
-! Next:
-!   - Straightforward GPU port with OpenACC parallel loops
-!   - Collapse nested loops in var initialization
-!   - Small arrays (nk, nio_uni) may not benefit from GPU offload
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('allocuni.f90', 's_allocuni', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk)-(1)+1,8)
-call profile_start(prof_id1)
-
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(k)
@@ -287,8 +256,6 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

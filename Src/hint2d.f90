@@ -25,7 +25,6 @@
 ! Module reference
 
       use m_chkerr
-      use m_comprofile
       use m_commpi
       use m_cpondpe
       use m_destroy
@@ -186,12 +185,6 @@
       real a           ! Temporary variable
       real b           ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer, save :: prof_id2 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -223,31 +216,6 @@
 ! -----
 
 ! Get the distance between data grid points and model grid points.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: hint2d.f90 :: s_hint2d
-! Summary : Calculate distance between data and model grid points for 2D
-!           interpolation, with min/max reduction for bounds checking.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region; uses intrinsics only
-!   - Reduction operations (min/max) on idmin, idmax, jdmin, jdmax
-!   - Different code paths for mpopt < 10 vs >= 10
-!   - No sync constructs beyond implicit barrier at end
-! Next:
-!   - Convert to OpenACC with reduction support
-!   - GPU reduction may require atomic operations or tree reduction
-!   - Consider separating reduction into separate kernel
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('hint2d.f90', 's_hint2d', &
-   & 'OMP section 1')
-end if
-loop_len = int((jend)-(jstr)+1,8) * int((iend)-(istr)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared)
 
@@ -298,8 +266,6 @@ call profile_start(prof_id1)
         end if
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 
@@ -379,23 +345,6 @@ call profile_stop(prof_id1, loop_len)
 
 !! Interpolate the data variables to the model grid horizontally.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: hint2d.f90 :: s_hint2d
-! Summary : Perform 2D horizontal interpolation (linear or parabolic) from
-!           data grid to model grid using pre-computed distances.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region; uses intrinsics only
-!   - Branching based on intopt (linear vs parabolic) and mpopt
-!   - Parabolic interpolation has more complex stencil access
-!   - Writes to var array (output)
-!   - No sync constructs
-! Next:
-!   - Convert to OpenACC with collapse(2) on j,i loops
-!   - Consider separate kernels for linear vs parabolic interpolation
-!   - Parabolic case may benefit from shared memory for stencil
-!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Interpolate the data variable to the model grid horizontally with the

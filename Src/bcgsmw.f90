@@ -21,7 +21,6 @@
 ! Module reference
 
       use m_commpi
-      use m_comprofile
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -121,11 +120,6 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -149,31 +143,6 @@
 ! -----
 
 !! Set the boundary conditions.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: bcgsmw.f90 :: s_bcgsmw
-! Summary : Sets boundary conditions for z-velocity diffusion term in GPV smoothing
-!           at west, east, south, north, bottom, and top boundaries.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread usage
-!   - No function calls inside parallel region
-!   - Nested loops with outer k-loop serial, inner i or j loop parallelized
-!   - Uses module variables from m_commpi (ebw, ebe, ebs, ebn, isub, jsub, nisub, njsub)
-!   - Conditional execution based on subdomain position and BC type
-!   - Bottom/top BC uses 2D loop over i,j
-! Next:
-!   - Convert to OpenACC with collapsed loops
-!   - Restructure nested loops to expose more parallelism in k dimension
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('bcgsmw.f90', 's_bcgsmw', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(2)+1,8) * int((nj-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -273,8 +242,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

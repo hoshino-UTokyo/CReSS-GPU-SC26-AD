@@ -21,7 +21,6 @@
 ! Module reference
 
       use m_comphy
-      use m_comprofile
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -123,11 +122,6 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -143,35 +137,6 @@
 ! -----
 
 ! Calculate the buoyancy in the small time steps.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: buoywse.f90 :: subroutine s_buoywse
-! Summary : Calculates buoyancy forcing for small time step integration
-!           in horizontally/vertically explicit method.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region.
-!   - Reads module constant g from comphy.
-!   - No synchronization constructs.
-!   - Conditional on gwmopt for buoyancy formulation selection.
-!   - Two stages: (1) compute wb8s, (2) accumulate to wsml.
-!   - All grid points are independent within each stage.
-! Next:
-!   - Direct OpenACC kernels for each loop nest.
-!   - Consider fusing the two stages if wb8s is temporary.
-!@llm end meta_info ------------------------------------------------------
-
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('buoywse.f90', 's_buoywse', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-2)-(2)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -225,8 +190,6 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

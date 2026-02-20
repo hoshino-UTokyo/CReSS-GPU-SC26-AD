@@ -19,8 +19,6 @@
 ! Module reference
 
       use m_comphy
-      use m_comprofile
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -153,73 +151,16 @@
       real zcomp       ! Temporary variable
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_forcesfc = 0
-      integer, parameter :: DUMP_TARGET_forcesfc = 361
-      logical, save :: dump_done_forcesfc = .false.
 
 
 !-----7--------------------------------------------------------------7--
 
 !! Get the surface flux to bottom boundary.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: forcesfc.f90 :: s_forcesfc
-! Summary : Compute surface flux forcing terms for potential temperature,
-!           water vapor, and velocity components at bottom boundary.
-! GPU diff: Easy
-! Findings:
-!   - Multiple omp do regions for ptfrc, qvfrc, ufrc, vfrc calculations
-!   - Conditional branches based on fmois (dry/moist) flag
-!   - Uses sqrt intrinsic function for velocity calculations
-!   - All operations are on 2D surface layer (k=1 or k=2)
-!   - No reductions or synchronization
-! Next:
-!   - Port as 2D GPU kernels for surface layer
-!   - Handle dry/moist branching with separate kernels or compile-time flag
-! Runtime:
-!   - Calls: 361
-!   - AvgLoops: 806.4K
-!   - TotalTime: 0.050s (0.00%)
-!   - AvgTime: 0.139ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('forcesfc.f90', 's_forcesfc', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_forcesfc = dump_call_count_forcesfc + 1
-if (dump_call_count_forcesfc == DUMP_TARGET_forcesfc .and. .not. dump_done_forcesfc) then
-  call dump_init('forcesfc')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('epsav', epsav)
-  call dump_array_3d('j31.bin', j31, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('j32.bin', j32, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptbr.bin', ptbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('w.bin', w, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptp.bin', ptp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qv.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptv.bin', ptv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('qvsfc.bin', qvsfc, 0, ni+1, 0, nj+1)
-  call dump_array_2d('ce.bin', ce, 0, ni+1, 0, nj+1)
-  call dump_array_2d('ct.bin', ct, 0, ni+1, 0, nj+1)
-  call dump_array_2d('cq.bin', cq, 0, ni+1, 0, nj+1)
-  call dump_scalar_c('fmois', fmois)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_113)
 !----------------------------------------------------------------------
@@ -344,7 +285,6 @@ end if
 
       end if
 
-! -----
 
 ! Get the surface flux for water vapor mixing ratio.
 
@@ -374,7 +314,6 @@ end if
 
       end if
 
-! -----
 
 ! Get the surface flux for the x components of velocity.
 
@@ -395,7 +334,6 @@ end if
 
 !$omp end do
 
-! -----
 
 ! Get the surface flux for the x components of velocity.
 
@@ -416,24 +354,13 @@ end if
 
 !$omp end do
 
-! -----
 
 !$omp end parallel
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_forcesfc == DUMP_TARGET_forcesfc .and. .not. dump_done_forcesfc) then
-  call dump_array_3d('ufrc_ref.bin', ufrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vfrc_ref.bin', vfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptfrc_ref.bin', ptfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvfrc_ref.bin', qvfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_forcesfc = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

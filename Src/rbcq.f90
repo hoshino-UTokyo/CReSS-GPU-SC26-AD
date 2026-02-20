@@ -30,8 +30,6 @@
 ! Module reference
 
       use m_commpi
-      use m_comprofile
-      use m_dump_kernel
       use m_getcname
       use m_getiname
       use m_getrname
@@ -219,14 +217,7 @@
       real radsn       ! Temporary variable
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_rbcq = 0
-      integer, parameter :: DUMP_TARGET_rbcq = 1800
-      logical, save :: dump_done_rbcq = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -236,7 +227,6 @@
       call inichar(gpvvar)
       call inichar(lbcvar)
 
-! -----
 
 ! Get the required namelist variables.
 
@@ -252,7 +242,6 @@
       call getiname(fpadvopt,advopt)
       call getrname(fplbnews,lbnews)
 
-! -----
 
 ! Set the common used variables.
 
@@ -281,89 +270,12 @@
 
       tpdt=gtinc+real(ivstp-1)*dt
 
-! -----
 
 !! Set the radiative lateral boundary conditions.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: rbcq.f90 :: s_rbcq
-! Summary : Sets radiative lateral boundary conditions for optional mixing
-!           ratio at domain corners and edges with non-negative clamping.
-! GPU diff: Hard
-! Findings:
-!   - No omp_get_thread_num usage
-!   - Multiple conditional branches based on MPI subdomain position (ebs, ebn, ebw, ebe, isub, jsub)
-!   - Many omp do regions with k or (j,k)/(i,k) loop nests
-!   - Uses max() intrinsic to clamp values >= 0
-!   - Writes to qf (3D inout array) at boundary points only
-!   - No sync constructs; implicit barriers at omp end do
-!   - Uses module variables from m_commpi for domain decomposition
-!   - Complex conditional logic based on gpvvar, advopt, nggopt, lspopt, vspopt
-! Next:
-!   - Separate boundary kernels for GPU (one per edge/corner)
-!   - MPI conditionals should be evaluated on host before kernel launch
-!   - Consider using atomic operations if boundaries overlap in GPU version
-! Runtime:
-!   - Calls: 1800
-!   - AvgLoops: 125
-!   - TotalTime: 0.338s (0.01%)
-!   - AvgTime: 0.188ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('rbcq.f90', 's_rbcq', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_rbcq = dump_call_count_rbcq + 1
-if (dump_call_count_rbcq == DUMP_TARGET_rbcq .and. .not. dump_done_rbcq) then
-  call dump_init('rbcq')
-  call dump_scalar_c('gpvvar', gpvvar)
-  call dump_scalar_c('lbcvar', lbcvar)
-  call dump_scalar_i('wbc', wbc)
-  call dump_scalar_i('ebc', ebc)
-  call dump_scalar_i('sbc', sbc)
-  call dump_scalar_i('nbc', nbc)
-  call dump_scalar_i('nggopt', nggopt)
-  call dump_scalar_i('lspopt', lspopt)
-  call dump_scalar_i('vspopt', vspopt)
-  call dump_scalar_i('advopt', advopt)
-  call dump_scalar_r('lbnews', lbnews)
-  call dump_scalar_i('apg', apg)
-  call dump_scalar_i('apl', apl)
-  call dump_scalar_i('ivstp', ivstp)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('dt', dt)
-  call dump_scalar_r('gtinc', gtinc)
-  call dump_array_3d('q.bin', q, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qp.bin', qp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qcpx.bin', qcpx, 1, nj, 1, nk, 1, 2)
-  call dump_array_3d('qcpy.bin', qcpy, 1, ni, 1, nk, 1, 2)
-  call dump_array_3d('qgpv.bin', qgpv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qtd.bin', qtd, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qf_in.bin', qf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('dmpdt', dmpdt)
-  call dump_scalar_i('ebe', ebe)
-  call dump_scalar_i('ebn', ebn)
-  call dump_scalar_i('ebs', ebs)
-  call dump_scalar_i('ebw', ebw)
-  call dump_scalar_i('isub', isub)
-  call dump_scalar_i('jsub', jsub)
-  call dump_scalar_i('nim1', nim1)
-  call dump_scalar_i('nim2', nim2)
-  call dump_scalar_i('nisub', nisub)
-  call dump_scalar_i('njm1', njm1)
-  call dump_scalar_i('njm2', njm2)
-  call dump_scalar_i('njsub', njsub)
-  call dump_scalar_r('tpdt', tpdt)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_249)
 !----------------------------------------------------------------------
@@ -931,7 +843,6 @@ end if
 
       end if
 
-! -----
 
 ! Set the west boundary conditions.
 
@@ -1015,7 +926,6 @@ end if
 
       end if
 
-! -----
 
 ! Set the east boundary conditions.
 
@@ -1099,7 +1009,6 @@ end if
 
       end if
 
-! -----
 
 ! Set the south boundary conditions.
 
@@ -1183,7 +1092,6 @@ end if
 
       end if
 
-! -----
 
 ! Set the north boundary conditions.
 
@@ -1267,20 +1175,12 @@ end if
 
       end if
 
-! -----
 
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_rbcq == DUMP_TARGET_rbcq .and. .not. dump_done_rbcq) then
-  call dump_array_3d('qf_ref.bin', qf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_rbcq = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

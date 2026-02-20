@@ -21,10 +21,8 @@
 ! Module reference
 
       use m_comphy
-      use m_comprofile
       use m_getiname
       use m_getrname
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -142,14 +140,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_buoywsi = 0
-      integer, parameter :: DUMP_TARGET_buoywsi = 14400
-      logical, save :: dump_done_buoywsi = .false.
 
 !-----7--------------------------------------------------------------7--
 
@@ -158,7 +149,6 @@
       call getiname(fpgwmopt,gwmopt)
       call getrname(fpweicoe,weicoe)
 
-! -----
 
 ! Set the common used variables.
 
@@ -166,70 +156,12 @@
 
       g05n=-.5e0*g
 
-! -----
 
 ! Calculate the buoyancy in the small time steps.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: buoywsi.f90 :: s_buoywsi
-! Summary : Calculates buoyancy forcing for vertical velocity in small
-!           time step integration using implicit vertical method.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Simple arithmetic operations only
-!   - Single conditional branch based on gwmopt
-!   - Two phases: compute wb8s, then vertically average to fw
-!   - Sequential dependency between phases
-!   - No synchronization constructs beyond implicit barriers
-! Next:
-!   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
-!   - Use collapse(2) for nested i,j loops
-!   - Consider separate target regions for wb8s computation and fw update
-!   - Simple structure well-suited for GPU offload
-! Runtime:
-!   - Calls: 14400
-!   - AvgLoops: 100.4M
-!   - TotalTime: 143.418s (4.81%)
-!   - AvgTime: 9.960ms
-!@llm end meta_info ------------------------------------------------------
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('buoywsi.f90', 's_buoywsi', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-2)-(2)+1,8)
 
-! Dump input data at target call
-dump_call_count_buoywsi = dump_call_count_buoywsi + 1
-if (dump_call_count_buoywsi == DUMP_TARGET_buoywsi .and. .not. dump_done_buoywsi) then
-  call dump_init('buoywsi')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('gwmopt', gwmopt)
-  call dump_scalar_r('weicoe', weicoe)
-  call dump_scalar_r('dts', dts)
-  call dump_scalar_r('g', g)
-  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptbr.bin', ptbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rst.bin', rst, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rcsq.bin', rcsq, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('pp.bin', pp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptp.bin', ptp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('fp.bin', fp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('fw_in.bin', fw, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('dtw', dtw)
-  call dump_scalar_r('g05n', g05n)
-  ! FIXME: wb8s is an array, not scalar
-  ! ! FIXME: wb8s is array - call dump_scalar_i('wb8s', wb8s)
-end if
 
-call profile_start(prof_id1)
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_046)
 !----------------------------------------------------------------------
@@ -342,16 +274,8 @@ call profile_start(prof_id1)
 !$omp end parallel
 #endif
 
-call profile_stop(prof_id1, loop_len)
 
-! Dump output data at target call
-if (dump_call_count_buoywsi == DUMP_TARGET_buoywsi .and. .not. dump_done_buoywsi) then
-  call dump_array_3d('fw_ref.bin', fw, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_buoywsi = .true.
-end if
 
-! -----
 
       end subroutine s_buoywsi
 

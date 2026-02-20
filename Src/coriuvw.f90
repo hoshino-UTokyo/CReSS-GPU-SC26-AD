@@ -25,7 +25,6 @@
 !-----7--------------------------------------------------------------7--
 
 ! Implicit typing
-      use m_comprofile
 
       implicit none
 
@@ -123,44 +122,10 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 !!! Calculate the Coriolis force in the x, the y and the z components
 !!! of velocity equation.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: coriuvw.f90 :: s_coriuvw
-! Summary : Calculates Coriolis force contributions to u, v, w velocity
-!           forcing terms using staggered grid interpolations.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls
-!   - Multiple separate loop nests for different components (ufrc, vfrc, wfrc)
-!   - Uses temporary arrays tmp1, tmp2 for intermediate calculations
-!   - Data dependency: tmp1 computed first, then used for tmp2 and forces
-!   - Multiple implicit barriers between loop nests
-! Next:
-!   - Consider fusing loops where possible to reduce kernel launches
-!   - Temporary arrays tmp1, tmp2 need to be on GPU
-!   - May need explicit synchronization between kernel sections
-!   - Collapse k,j,i loops within each section for better occupancy
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('coriuvw.f90', 's_coriuvw', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -285,8 +250,6 @@ call profile_start(prof_id1)
 !! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

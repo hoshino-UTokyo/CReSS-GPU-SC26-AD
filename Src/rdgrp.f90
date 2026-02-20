@@ -20,8 +20,6 @@
 ! Module reference
 
       use m_castgrp
-      use m_comprofile
-      use m_dump_kernel
       use m_chkerr
       use m_chkstd
       use m_comgrp
@@ -133,17 +131,6 @@
 
       integer igc_sub  ! Substitute for igc
       integer jgc_sub  ! Substitute for jgc
-
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
-      ! Dump variables
-      integer, save :: dump_call_count_rdgrp = 0
-      integer, parameter :: DUMP_TARGET_rdgrp = 1
-      logical, save :: dump_done_rdgrp = .false.
-
 
 !-----7--------------------------------------------------------------7--
 
@@ -455,48 +442,6 @@
 
 ! Get the parameters of reductional entire domain.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: rdgrp.f90 :: s_rdgrp
-! Summary : Find min/max indices of active group domains to determine reductional domain bounds
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Uses min/max reductions on iwred, jsred, iered, jnred
-!   - No synchronization constructs
-!   - Simple 2D loop with conditional bounds checking
-! Next:
-!   - Convert to OpenACC with teams distribute parallel for and reduction clause
-!   - Alternatively use OpenACC with parallel loop reduction
-! Runtime:
-!   - Calls: 1
-!   - AvgLoops: 1
-!   - TotalTime: 0.000s (0.00%)
-!   - AvgTime: 0.014ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('rdgrp.f90', 's_rdgrp', &
-   & 'OMP section 1')
-end if
-loop_len = int((njgrp)-(1)+1,8) * int((nigrp)-(1)+1,8)
-call profile_start(prof_id1)
-
-
-! Dump input data at target call
-dump_call_count_rdgrp = dump_call_count_rdgrp + 1
-if (dump_call_count_rdgrp == DUMP_TARGET_rdgrp .and. .not. dump_done_rdgrp) then
-  call dump_init('rdgrp')
-  call dump_scalar_i('nigrp', nigrp)
-  call dump_scalar_i('njgrp', njgrp)
-  call dump_array_2d_int('grpxy.bin', grpxy, 1, nigrp, 1, njgrp)
-  call dump_scalar_i('iwred_in', iwred)
-  call dump_scalar_i('jsred_in', jsred)
-  call dump_scalar_i('iered_in', iered)
-  call dump_scalar_i('jnred_in', jnred)
-end if
-
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(igc_sub,jgc_sub)                     &
@@ -531,19 +476,6 @@ end if
 !$omp end do
 
 !$omp end parallel
-
-! Dump output data at target call
-if (dump_call_count_rdgrp == DUMP_TARGET_rdgrp .and. .not. dump_done_rdgrp) then
-  call dump_scalar_i('iwred_ref', iwred)
-  call dump_scalar_i('jsred_ref', jsred)
-  call dump_scalar_i('iered_ref', iered)
-  call dump_scalar_i('jnred_ref', jnred)
-  call dump_finalize()
-  dump_done_rdgrp = .true.
-end if
-
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

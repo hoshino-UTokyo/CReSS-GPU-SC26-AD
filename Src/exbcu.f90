@@ -28,8 +28,6 @@
 ! Module reference
 
       use m_commpi
-      use m_comprofile
-      use m_dump_kernel
       use m_getcname
       use m_getiname
       use m_getrname
@@ -174,14 +172,7 @@
       real ub2         ! Temporary variable
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_exbcu = 0
-      integer, parameter :: DUMP_TARGET_exbcu = 14400
-      logical, save :: dump_done_exbcu = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -190,7 +181,6 @@
 
       call inichar(exbvar)
 
-! -----
 
 ! Get the required namelist variables.
 
@@ -200,7 +190,6 @@
       call getrname(fpexnews,exnews)
       call getrname(fpexnorm,exnorm)
 
-! -----
 
 ! Set the common used variables.
 
@@ -213,79 +202,13 @@
 
       tpdt=gtinc+real(isstp-1)*dts
 
-! -----
 
 !! Force the lateral boundary value to the external boundary value.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: exbcu.f90 :: subroutine s_exbcu
-! Summary : Forces lateral boundary values of u velocity to external
-!           (GPV) boundary values with radiative/relaxation approach.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region.
-!   - Reads module variables (ebw, ebe, ebs, ebn, isub, jsub, nisub, njsub).
-!   - No synchronization constructs.
-!   - Uses intrinsic abs() - GPU compatible.
-!   - Boundary-position-dependent conditionals (W, E, S, N edges).
-!   - Only boundary cells are updated - sparse computation.
-! Next:
-!   - Consider separate kernels for each boundary region.
-!   - Boundary-only work has low arithmetic intensity on GPU.
-!   - Domain decomposition flags need proper handling on GPU.
-! Runtime:
-!   - Calls: 14400
-!   - AvgLoops: 112.2K
-!   - TotalTime: 3.626s (0.12%)
-!   - AvgTime: 0.252ms
-!@llm end meta_info ------------------------------------------------------
 
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('exbcu.f90', 's_exbcu', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) * int((nj-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_exbcu = dump_call_count_exbcu + 1
-if (dump_call_count_exbcu == DUMP_TARGET_exbcu .and. .not. dump_done_exbcu) then
-  call dump_init('exbcu')
-  call dump_scalar_c('exbvar', exbvar)
-  call dump_scalar_i('wbc', wbc)
-  call dump_scalar_i('ebc', ebc)
-  call dump_scalar_r('exnews', exnews)
-  call dump_scalar_r('exnorm', exnorm)
-  call dump_scalar_i('isstp', isstp)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('dts', dts)
-  call dump_scalar_r('gtinc', gtinc)
-  call dump_array_3d('u_in.bin', u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ucpx.bin', ucpx, 1, nj, 1, nk, 1, 2)
-  call dump_array_3d('ucpy.bin', ucpy, 1, ni, 1, nk, 1, 2)
-  call dump_array_3d('ugpv.bin', ugpv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('utd.bin', utd, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_i('ebe', ebe)
-  call dump_scalar_i('ebn', ebn)
-  call dump_scalar_i('ebs', ebs)
-  call dump_scalar_i('ebw', ebw)
-  call dump_scalar_i('isub', isub)
-  call dump_scalar_i('jsub', jsub)
-  call dump_scalar_r('ndmpdt', ndmpdt)
-  call dump_scalar_i('nim1', nim1)
-  call dump_scalar_i('nisub', nisub)
-  call dump_scalar_i('njm1', njm1)
-  call dump_scalar_i('njm2', njm2)
-  call dump_scalar_i('njsub', njsub)
-  call dump_scalar_r('tdmpdt', tdmpdt)
-  call dump_scalar_r('tpdt', tpdt)
-end if
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_105)
 !----------------------------------------------------------------------
@@ -460,7 +383,6 @@ end if
 
       end if
 
-! -----
 
 ! Force the east boundary value to the external boundary value.
 
@@ -504,7 +426,6 @@ end if
 
       end if
 
-! -----
 
 ! Force the south boundary value to the external boundary value.
 
@@ -544,7 +465,6 @@ end if
 
       end if
 
-! -----
 
 ! Force the north boundary value to the external boundary value.
 
@@ -584,21 +504,13 @@ end if
 
       end if
 
-! -----
 
 !$omp end parallel
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_exbcu == DUMP_TARGET_exbcu .and. .not. dump_done_exbcu) then
-  call dump_array_3d('u_ref.bin', u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_exbcu = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

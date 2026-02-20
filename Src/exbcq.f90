@@ -28,8 +28,6 @@
 ! Module reference
 
       use m_commpi
-      use m_comprofile
-      use m_dump_kernel
       use m_getcname
       use m_getiname
       use m_getrname
@@ -197,14 +195,7 @@
       real radsn       ! Temporary variable
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_exbcq = 0
-      integer, parameter :: DUMP_TARGET_exbcq = 360
-      logical, save :: dump_done_exbcq = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -213,7 +204,6 @@
 
       call inichar(exbvar)
 
-! -----
 
 ! Get the required namelist variables.
 
@@ -223,7 +213,6 @@
       call getiname(fpadvopt,advopt)
       call getrname(fpexnews,exnews)
 
-! -----
 
 ! Set the common used variables.
 
@@ -245,85 +234,12 @@
 
       tpdt=gtinc+real(ivstp-1)*dt
 
-! -----
 
 !! Force the lateral boundary value to the external boundary value.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: exbcq.f90 :: s_exbcq
-! Summary : Force lateral boundary values to external GPV boundary values
-!           for optional mixing ratio using radiation boundary conditions
-! GPU diff: Hard
-! Findings:
-!   - No omp_get_thread_num usage
-!   - Uses MPI domain decomposition variables (ebw, ebe, ebs, ebn, isub, jsub)
-!   - Uses intrinsic max function to ensure non-negative mixing ratios
-!   - Many conditional branches based on boundary location and options
-!   - Processes corners, west, east, south, north boundaries separately
-!   - Updates qf array at domain boundaries only
-!   - advopt controls time stepping scheme, exbvar controls active boundaries
-! Next:
-!   - Boundary-only operations may not benefit much from GPU
-!   - Consider keeping boundary conditions on CPU if main computation on GPU
-!   - If porting, need separate small kernels for each boundary section
-!   - MPI communication patterns need careful handling with GPU buffers
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 1
-!   - TotalTime: 0.124s (0.00%)
-!   - AvgTime: 0.345ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('exbcq.f90', 's_exbcq', &
-   & 'OMP section 1')
-end if
-loop_len = 1_8
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_exbcq = dump_call_count_exbcq + 1
-if (dump_call_count_exbcq == DUMP_TARGET_exbcq .and. .not. dump_done_exbcq) then
-  call dump_init('exbcq')
-  call dump_scalar_c('exbvar', exbvar)
-  call dump_scalar_i('wbc', wbc)
-  call dump_scalar_i('ebc', ebc)
-  call dump_scalar_i('advopt', advopt)
-  call dump_scalar_r('exnews', exnews)
-  call dump_scalar_i('ape', ape)
-  call dump_scalar_i('ivstp', ivstp)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('dt', dt)
-  call dump_scalar_r('gtinc', gtinc)
-  call dump_array_3d('q.bin', q, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qp.bin', qp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qcpx.bin', qcpx, 1, nj, 1, nk, 1, 2)
-  call dump_array_3d('qcpy.bin', qcpy, 1, ni, 1, nk, 1, 2)
-  call dump_array_3d('qgpv.bin', qgpv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qtd.bin', qtd, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qf_in.bin', qf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('dmpdt', dmpdt)
-  call dump_scalar_r('dt2', dt2)
-  call dump_scalar_i('ebe', ebe)
-  call dump_scalar_i('ebn', ebn)
-  call dump_scalar_i('ebs', ebs)
-  call dump_scalar_i('ebw', ebw)
-  call dump_scalar_r('gtinc1', gtinc1)
-  call dump_scalar_r('gtinc2', gtinc2)
-  call dump_scalar_i('isub', isub)
-  call dump_scalar_i('jsub', jsub)
-  call dump_scalar_i('nim1', nim1)
-  call dump_scalar_i('nim2', nim2)
-  call dump_scalar_i('nisub', nisub)
-  call dump_scalar_i('njm1', njm1)
-  call dump_scalar_i('njm2', njm2)
-  call dump_scalar_i('njsub', njsub)
-  call dump_scalar_r('tpdt', tpdt)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_103)
 !----------------------------------------------------------------------
@@ -942,7 +858,6 @@ end if
 
       end if
 
-! -----
 
 ! Force the west boundary value to the external boundary value.
 
@@ -1026,7 +941,6 @@ end if
 
       end if
 
-! -----
 
 ! Force the east boundary value to the external boundary value.
 
@@ -1110,7 +1024,6 @@ end if
 
       end if
 
-! -----
 
 ! Force the south boundary value to the external boundary value.
 
@@ -1190,7 +1103,6 @@ end if
 
       end if
 
-! -----
 
 ! Force the north boundary value to the external boundary value.
 
@@ -1270,21 +1182,13 @@ end if
 
       end if
 
-! -----
 
 !$omp end parallel
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_exbcq == DUMP_TARGET_exbcq .and. .not. dump_done_exbcq) then
-  call dump_array_3d('qf_ref.bin', qf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_exbcq = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

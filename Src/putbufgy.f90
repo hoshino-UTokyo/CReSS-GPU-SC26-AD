@@ -17,7 +17,6 @@
 ! Module reference
 
       use m_commpi
-      use m_comprofile
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -119,11 +118,6 @@
       integer i        ! Array index in x direction
       integer k        ! Array index in z direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -138,32 +132,6 @@
       if(njgrp.ge.2.and.(sbc.ne.-1.and.nbc.ne.-1)) then
 
         if(fproc(1:3).eq.'all'.or.(sbc.eq.1.and.nbc.eq.1)) then
-
-!@llm start meta_info ----------------------------------------------------
-! Location: putbufgy.f90 :: s_putbufgy
-! Summary : Fill sending buffer in y direction for group domain boundary
-!           exchange (south and north halo regions).
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Writes to output array sbufy from input var
-!   - Simple 2D copy operations (i,k loops)
-!   - Conditional execution based on subdomain position (jsub, jgrp)
-!   - No explicit barriers but implicit at !$omp end do
-! Next:
-!   - Use OpenACC parallel loop for buffer packing
-!   - Consider async data transfers for overlap with computation
-!   - May keep on host if buffer sizes are small relative to transfer cost
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('putbufgy.f90', 's_putbufgy', &
-   & 'OMP section 1')
-end if
-loop_len = int((kmax)-(1)+1,8) * int((ni+1)-(0)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -296,8 +264,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
         end if
 

@@ -19,8 +19,6 @@
 ! Module reference
 
       use m_comphy
-      use m_comprofile
-      use m_dump_kernel
       use m_getiname
       use m_getrname
 
@@ -138,14 +136,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_upwqp = 0
-      integer, parameter :: DUMP_TARGET_upwqp = 1800
-      logical, save :: dump_done_upwqp = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -155,7 +146,6 @@
       call getiname(fpadvopt,advopt)
       call getrname(fpdziv,dziv)
 
-! -----
 
 ! Set the common used variables.
 
@@ -168,67 +158,13 @@
 
       rwiv05=.5e0/rhow
 
-! -----
 
 ! Calculate the sedimentation and precipitation.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: upwqp.f90 :: subroutine s_upwqp
-! Summary : Calculates sedimentation flux and precipitation for optional
-!           precipitation mixing ratio using upwind scheme.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region (pure arithmetic only).
-!   - No writes to global/module variables.
-!   - No synchronization constructs.
-!   - Uses intrinsic max() which is GPU-compatible.
-!   - Vertical dependency: qpflx computed first, then used for qpf update.
-!   - precip accumulation has no race (each (i,j) independent).
-! Next:
-!   - Split into two kernels: (1) compute qpflx, (2) update qpf and precip.
-!   - Or use OpenACC with proper data clauses.
-! Runtime:
-!   - Calls: 1800
-!   - AvgLoops: 102.4M
-!   - TotalTime: 17.374s (0.58%)
-!   - AvgTime: 9.652ms
-!@llm end meta_info ------------------------------------------------------
 
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('upwqp.f90', 's_upwqp', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_upwqp = dump_call_count_upwqp + 1
-if (dump_call_count_upwqp == DUMP_TARGET_upwqp .and. .not. dump_done_upwqp) then
-  call dump_init('upwqp')
-  call dump_scalar_i('advopt', advopt)
-  call dump_scalar_r('dziv', dziv)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('dtp', dtp)
-  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rst.bin', rst, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('uq.bin', uq, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qpf_in.bin', qpf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('precip_in.bin', precip, 0, ni+1, 0, nj+1, 1, 2)
-  call dump_array_3d('qpflx_in.bin', qpflx, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('dtp05', dtp05)
-  call dump_scalar_r('dzvdt', dzvdt)
-  call dump_scalar_i('nkm1', nkm1)
-  call dump_scalar_i('nkm2', nkm2)
-  call dump_scalar_r('rwiv05', rwiv05)
-end if
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_349)
 !----------------------------------------------------------------------
@@ -356,19 +292,9 @@ end if
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_upwqp == DUMP_TARGET_upwqp .and. .not. dump_done_upwqp) then
-  call dump_array_3d('qpf_ref.bin', qpf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('precip_ref.bin', precip, 0, ni+1, 0, nj+1, 1, 2)
-  call dump_array_3d('qpflx_ref.bin', qpflx, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_upwqp = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
       end subroutine s_upwqp
 

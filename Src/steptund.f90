@@ -22,8 +22,6 @@
 ! Module reference
 
       use m_comindx
-      use m_comprofile
-      use m_dump_kernel
       use m_comphy
       use m_gaussel
       use m_getiname
@@ -198,15 +196,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer, save :: prof_id2 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_steptund = 0
-      integer, parameter :: DUMP_TARGET_steptund = 18
-      logical, save :: dump_done_steptund = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -217,7 +207,6 @@
       call getrname(fpdzgrd,dzgrd)
       call getrname(fpdzsea,dzsea)
 
-! -----
 
 ! Set the common used variables.
 
@@ -239,85 +228,14 @@
       rks=-1.e0/(dzsea*dzsea)*dtsoil
       tks=-1.e0/(dzsea*dzsea)*dtsoil
 
-! -----
 
 !!! Solve the soil and sea temperature to the next time step.
 
 !! Set the top and bottom boundary conditions and coefficient matrix.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: steptund.f90 :: s_steptund
-! Summary : Set boundary conditions and coefficient matrix for soil/sea
-!           temperature tridiagonal equation solver
-! GPU diff: Medium
-! Findings:
-!   - Multiple conditional branches based on land type and sfcopt
-!   - Nested k-loops with inner i,j loops parallelized
-!   - Array updates depend on land use classification
-!   - No function calls within parallel region
-! Next:
-!   - Consider collapsing k,j,i loops for better GPU occupancy
-!   - Use data directives for tundp, tundf, rr, ss, tt arrays
-! Runtime:
-!   - Calls: 18
-!   - AvgLoops: 806.4K
-!   - TotalTime: 0.093s (0.00%)
-!   - AvgTime: 5.154ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('steptund.f90', 's_steptund', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_steptund = dump_call_count_steptund + 1
-if (dump_call_count_steptund == DUMP_TARGET_steptund .and. .not. dump_done_steptund) then
-  call dump_init('steptund')
-  call dump_scalar_i('sfcopt', sfcopt)
-  call dump_scalar_r('dzgrd', dzgrd)
-  call dump_scalar_r('dzsea', dzsea)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('nund', nund)
-  call dump_scalar_r('dtsoil', dtsoil)
-  call dump_scalar_r('stinc', stinc)
-  call dump_array_3d('ss.bin', ss, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('t0', t0)
-  call dump_array_3d('t.bin', t, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d_int('land.bin', land, 0, ni+1, 0, nj+1)
-  call dump_array_2d('cap.bin', cap, 0, ni+1, 0, nj+1)
-  call dump_array_2d('nuu.bin', nuu, 0, ni+1, 0, nj+1)
-  call dump_array_2d('sst.bin', sst, 0, ni+1, 0, nj+1)
-  call dump_array_2d('sstd.bin', sstd, 0, ni+1, 0, nj+1)
-  call dump_array_2d('hs.bin', hs, 0, ni+1, 0, nj+1)
-  call dump_array_2d('le.bin', le, 0, ni+1, 0, nj+1)
-  call dump_array_2d('rsd.bin', rsd, 0, ni+1, 0, nj+1)
-  call dump_array_2d('rld.bin', rld, 0, ni+1, 0, nj+1)
-  call dump_array_2d('rlu.bin', rlu, 0, ni+1, 0, nj+1)
-  call dump_array_3d('tundp_in.bin', tundp, 0, ni+1, 0, nj+1, 1, nund)
-  call dump_array_3d('rr_in.bin', rr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tt_in.bin', tt, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp1_in.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('ctg1', ctg1)
-  call dump_scalar_r('ctgm1', ctgm1)
-  call dump_scalar_r('cts1', cts1)
-  call dump_scalar_r('ctsm1', ctsm1)
-  call dump_scalar_i('nundm1', nundm1)
-  call dump_scalar_r('rkg', rkg)
-  call dump_scalar_r('rks', rks)
-  call dump_scalar_r('s1g', s1g)
-  call dump_scalar_r('s1s', s1s)
-  call dump_scalar_r('skg', skg)
-  call dump_scalar_r('sks', sks)
-  call dump_scalar_r('tkg', tkg)
-  call dump_scalar_r('tks', tks)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_311)
 !----------------------------------------------------------------------
@@ -523,7 +441,6 @@ end if
 
       end do
 
-! -----
 
 ! Copy the past value to future and convert the unit from Kelvin to
 ! Celsius degrees.
@@ -542,7 +459,6 @@ end if
 
       end do
 
-! -----
 
 ! Set the top and bottom boundary conditions.
 
@@ -629,7 +545,6 @@ end if
 
       end if
 
-! -----
 
 ! Set the constant sea temperature.
 
@@ -657,7 +572,6 @@ end if
 
       end if
 
-! -----
 
 ! Set the coefficient matrix.
 
@@ -773,24 +687,12 @@ end if
 
       end if
 
-! -----
 
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_steptund == DUMP_TARGET_steptund .and. .not. dump_done_steptund) then
-  call dump_array_3d('tundf_ref.bin', tundf, 0, ni+1, 0, nj+1, 1, nund)
-  call dump_array_3d('tundp_ref.bin', tundp, 0, ni+1, 0, nj+1, 1, nund)
-  call dump_array_3d('rr_ref.bin', rr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tt_ref.bin', tt, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp1_ref.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_steptund = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! ------
 
@@ -799,24 +701,10 @@ call profile_stop(prof_id1, loop_len)
       call gaussel(idoneopt,1,ni-1,1,nj-1,1,nund-1,ni,nj,nund,rr,ss,tt, &
      &             tundf,tmp1)
 
-! -----
 
 !! Set the bottom boundary conditions and convert the unit from Celsius
 !! to Kelvin degrees.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: steptund.f90 :: s_steptund
-! Summary : Set bottom boundary condition and convert Celsius to Kelvin
-!           for soil/sea temperature output
-! GPU diff: Easy
-! Findings:
-!   - Simple conditional for sfcopt and land type
-!   - Straightforward array update with constant offset
-!   - No function calls within parallel region
-! Next:
-!   - Collapse loops for GPU parallelization
-!   - Keep tundf array resident on GPU from previous kernel
-!@llm end meta_info ------------------------------------------------------
 #if defined(USE_GPU) && !defined(DISABLE_GPU_312)
 !----------------------------------------------------------------------
 ! GPU version (OpenACC)
@@ -878,7 +766,6 @@ call profile_stop(prof_id1, loop_len)
 
       end if
 
-! -----
 
 ! Convert the unit from Celsius to Kelvin degrees.
 
@@ -896,7 +783,6 @@ call profile_stop(prof_id1, loop_len)
 
       end do
 
-! -----
 
 !$omp end parallel
 #endif

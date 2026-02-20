@@ -20,7 +20,6 @@
 ! Module reference
 
       use m_chkerr
-      use m_comprofile
       use m_commath
       use m_commpi
       use m_cpondpe
@@ -133,11 +132,6 @@
 
       integer ic       ! Index of user specified land use namelist table
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -166,35 +160,6 @@
 
 !! Correspond the surface data to the land use categories and check
 !! errors.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: cpondsfc.f90 :: s_cpondsfc
-! Summary : Maps surface variables to land use categories from lookup table,
-!           then performs error checking with reduction.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls inside parallel region
-!   - First loop: lookup table matching with conditional assignment
-!   - Second loop: reduction(min: rstat) for error checking
-!   - Uses lnduse_lnd and sfcvar_lnd lookup tables (size 100)
-!   - Potential race condition if multiple categories match same grid point
-! Next:
-!   - Lookup tables should be placed in constant memory on GPU
-!   - Reduction can use GPU reduction primitives
-!   - Consider restructuring first loop to avoid potential race condition
-!   - May need atomic operations or different algorithm for category matching
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('cpondsfc.f90', 's_cpondsfc', &
-   & 'OMP section 1')
-end if
-loop_len = int((numctg_lnd)-(1)+1,8) &
-     & * int((jend)-(jstr)+1,8) &
-     & * int((iend)-(istr)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared)
 
@@ -237,8 +202,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

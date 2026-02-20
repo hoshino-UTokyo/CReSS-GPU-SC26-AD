@@ -19,7 +19,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
       use m_comphy
 
 !-----7--------------------------------------------------------------7--
@@ -178,11 +177,6 @@
 
       real mwbr        ! Mean water mass
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variable.
@@ -194,35 +188,6 @@
 !!!! Remap the shifted water mass and concentrations for original
 !!!! distributed water bins and adjust the mean water mass to be
 !!!! between their boundaries.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: remapbw.f90 :: s_remapbw
-! Summary : Remap shifted water mass/concentrations to original bins and adjust mean mass within bounds
-! GPU diff: Hard
-! Findings:
-!   - No omp_get_thread_num usage
-!   - Multiple nested loops with outer serial ns loop (1 to nqws)
-!   - Complex conditional logic with triangular distribution calculations
-!   - Inner n loop (nstr to nqw-1) with !$omp do inside
-!   - Writes to mwbin and nwbin arrays at index k (race condition possible if k varies)
-!   - Uses work arrays bmwsl, bmwsr, nwtd, nw0 as temporaries
-!   - Many floating-point operations with intrinsic functions
-! Next:
-!   - Consider loop restructuring to expose more parallelism
-!   - May need to flatten nested loop structure for GPU
-!   - Careful data management needed for work arrays on GPU
-!   - Consider kernel fusion to reduce memory traffic
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('remapbw.f90', 's_remapbw', &
-   & 'OMP section 1')
-end if
-loop_len = int((nqws)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(n,ns)
 
@@ -573,8 +538,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !!!! -----
 

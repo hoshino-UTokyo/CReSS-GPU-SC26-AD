@@ -18,8 +18,6 @@
 ! Module reference
 
       use m_getiname
-      use m_comprofile
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -118,14 +116,7 @@
       integer n        ! Array index in bin categories
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_totalqwi = 0
-      integer, parameter :: DUMP_TARGET_totalqwi = 720
-      logical, save :: dump_done_totalqwi = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -135,58 +126,12 @@
       call getiname(fpcphopt,cphopt)
       call getiname(fphaiopt,haiopt)
 
-! -----
 
 !! Get the total water and ice mixing ratio.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: totalqwi.f90 :: s_totalqwi
-! Summary : Calculate total water and ice mixing ratio by summing
-!           water and ice hydrometeor categories based on cphopt/haiopt
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls
-!   - Single output array (qall)
-!   - Multiple conditional branches based on cphopt, haiopt
-!   - Loop over bin categories for cphopt >= 11
-!   - No synchronization constructs
-! Next:
-!   - Straightforward GPU port with conditional branches
-!   - Consider specialized kernels for bulk vs bin microphysics
-!   - Bin category loops can be unrolled or parallelized
-! Runtime:
-!   - Calls: 720
-!   - AvgLoops: 102.4M
-!   - TotalTime: 4.982s (0.17%)
-!   - AvgTime: 6.920ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('totalqwi.f90', 's_totalqwi', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_totalqwi = dump_call_count_totalqwi + 1
-if (dump_call_count_totalqwi == DUMP_TARGET_totalqwi .and. .not. dump_done_totalqwi) then
-  call dump_init('totalqwi')
-  call dump_scalar_i('cphopt', cphopt)
-  call dump_scalar_i('haiopt', haiopt)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('nqw', nqw)
-  call dump_scalar_i('nqi', nqi)
-  call dump_array_4d('qwtr.bin', qwtr, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  call dump_array_4d('qice.bin', qice, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_331)
 ! GPU version (OpenACC)
@@ -249,7 +194,6 @@ end if
 
           end if
 
-! -----
 
 ! For the bin categories.
 
@@ -334,7 +278,6 @@ end if
 
         end if
 
-! -----
 
       end if
 
@@ -404,7 +347,6 @@ end if
 
           end if
 
-! -----
 
 ! For the bin categories.
 
@@ -500,22 +442,14 @@ end if
 
         end if
 
-! -----
 
       end if
 
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_totalqwi == DUMP_TARGET_totalqwi .and. .not. dump_done_totalqwi) then
-  call dump_array_3d('qall_ref.bin', qall, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_totalqwi = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

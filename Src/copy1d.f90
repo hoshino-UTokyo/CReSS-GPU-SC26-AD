@@ -23,8 +23,6 @@
 !-----7--------------------------------------------------------------7--
 
 ! Implicit typing
-      use m_comprofile
-      use m_dump_kernel
 
       implicit none
 
@@ -91,57 +89,16 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_copy1d = 0
-      integer, parameter :: DUMP_TARGET_copy1d = 1
-      logical, save :: dump_done_copy1d = .false.
 
 
 !-----7--------------------------------------------------------------7--
 
 ! Copy the invar to the outvar.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: copy1d.f90 :: s_copy1d
-! Summary : Simple 1D array copy from invar to outvar.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls
-!   - Trivial memory copy operation
-!   - Independent element-wise operations
-! Next:
-!   - Straightforward GPU port; consider using cudaMemcpy or similar
-!   - For small arrays, overhead may exceed benefit of GPU execution
-!   - May be better to keep data resident on GPU and avoid copy
-! Runtime:
-!   - Calls: 1
-!   - AvgLoops: 128
-!   - TotalTime: 0.000s (0.00%)
-!   - AvgTime: 0.012ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('copy1d.f90', 's_copy1d', &
-   & 'OMP section 1')
-end if
-loop_len = int((kmax)-(kmin)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_copy1d = dump_call_count_copy1d + 1
-if (dump_call_count_copy1d == DUMP_TARGET_copy1d .and. .not. dump_done_copy1d) then
-  call dump_init('copy1d')
-  call dump_scalar_i('kmin', kmin)
-  call dump_scalar_i('kmax', kmax)
-  call dump_array_1d('invar.bin', invar, kmin, kmax)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_065)
 !----------------------------------------------------------------------
@@ -172,17 +129,9 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_copy1d == DUMP_TARGET_copy1d .and. .not. dump_done_copy1d) then
-  call dump_array_1d('outvar_ref.bin', outvar, kmin, kmax)
-  call dump_finalize()
-  dump_done_copy1d = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
       end subroutine s_copy1d
 

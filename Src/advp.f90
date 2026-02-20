@@ -24,8 +24,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
-      use m_dump_kernel
       use m_getiname
       use m_getrname
 
@@ -213,14 +211,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_advp = 0
-      integer, parameter :: DUMP_TARGET_advp = 360
-      logical, save :: dump_done_advp = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -239,7 +230,6 @@
       call getrname(fpdyiv,dyiv)
       call getrname(fpdziv,dziv)
 
-! -----
 
 ! Set the common used variables.
 
@@ -251,88 +241,13 @@
       dyv24=oned24*dyiv
       dzv24=oned24*dziv
 
-! -----
 
 !!! Calculate the pressure advection.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: advp.f90 :: subroutine s_advp
-! Summary : Calculates pressure advection using 2nd or 4th order finite
-!           difference methods with Jacobian weighting for terrain-following
-!           coordinates.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region (pure arithmetic only).
-!   - Reads module variable fourd3 (constant) from commath.
-!   - No synchronization constructs.
-!   - Multiple code paths based on advopt, mpopt, mfcopt, diaopt options.
-!   - Stencil computations with temporary arrays (tmp1, tmp2, tmp3).
-!   - Data dependency: 2nd order results feed into 4th order computation.
-!   - All loops are embarrassingly parallel within each k-level.
-! Next:
-!   - Can use OpenACC parallel loop with collapse for (i,j) loops.
-!   - Temporary arrays already allocated - good for GPU data management.
-!   - Consider fusing kernels where possible to reduce memory traffic.
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 102.5M
-!   - TotalTime: 18.870s (0.63%)
-!   - AvgTime: 52.416ms
-!@llm end meta_info ------------------------------------------------------
 
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('advp.f90', 's_advp', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_advp = dump_call_count_advp + 1
-if (dump_call_count_advp == DUMP_TARGET_advp .and. .not. dump_done_advp) then
-  call dump_init('advp')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('advopt', advopt)
-  call dump_scalar_i('mpopt', mpopt)
-  call dump_scalar_i('mfcopt', mfcopt)
-  call dump_scalar_i('diaopt', diaopt)
-  call dump_scalar_i('iwest', iwest)
-  call dump_scalar_i('ieast', ieast)
-  call dump_scalar_i('jsouth', jsouth)
-  call dump_scalar_i('jnorth', jnorth)
-  call dump_scalar_r('dxv05n', dxv05n)
-  call dump_scalar_r('dyv05n', dyv05n)
-  call dump_scalar_r('dzv05n', dzv05n)
-  call dump_scalar_r('dxv24', dxv24)
-  call dump_scalar_r('dyv24', dyv24)
-  call dump_scalar_r('dzv24', dzv24)
-  call dump_array_2d('mf8u.bin', mf8u, 0, ni+1, 0, nj+1)
-  call dump_array_2d('mf8v.bin', mf8v, 0, ni+1, 0, nj+1)
-  call dump_array_3d('jcb8u.bin', jcb8u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('jcb8v.bin', jcb8v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('jcb8w.bin', jcb8w, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wc.bin', wc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('pp.bin', pp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('pfrc_in.bin', pfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('jcbxu_in.bin', jcbxu, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('jcbxv_in.bin', jcbxv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('jcbxwc_in.bin', jcbxwc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('hadv_in.bin', hadv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vadv_in.bin', vadv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp1_in.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp2_in.bin', tmp2, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp3_in.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
-end if
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_014)
 !----------------------------------------------------------------------
@@ -895,7 +810,6 @@ end if
 
         end if
 
-! -----
 
 ! Calculate the 2nd order pressure advection.
 
@@ -1065,7 +979,6 @@ end if
 
         end if
 
-! -----
 
 ! Calculate the 4th order pressure advection.
 
@@ -1266,7 +1179,6 @@ end if
 
         end if
 
-! -----
 
 !! -----
 
@@ -1296,23 +1208,8 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_advp == DUMP_TARGET_advp .and. .not. dump_done_advp) then
-  call dump_array_3d('pfrc_ref.bin', pfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('jcbxu_ref.bin', jcbxu, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('jcbxv_ref.bin', jcbxv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('jcbxwc_ref.bin', jcbxwc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('hadv_ref.bin', hadv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vadv_ref.bin', vadv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp1_ref.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp2_ref.bin', tmp2, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp3_ref.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_advp = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

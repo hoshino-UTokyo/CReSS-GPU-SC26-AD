@@ -18,7 +18,6 @@
 ! Module reference
 
       use m_getcname
-      use m_comprofile
       use m_inichar
 
 !-----7--------------------------------------------------------------7--
@@ -116,11 +115,6 @@
       real v8s2        ! 2.0 x y components of velocity at scalar points
       real w8s2        ! 2.0 x z components of velocity at scalar points
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variable.
@@ -138,33 +132,6 @@
 ! Calculate the maximum instantaneous wind velocity.
 
       if(dmpvar(12:12).eq.'+'.or.dmpvar(12:12).eq.'-') then
-
-!@llm start meta_info ----------------------------------------------------
-! Location: instvel.f90 :: s_instvel
-! Summary : Calculate maximum instantaneous wind velocity from u, v, w velocity
-!           components and turbulent kinetic energy (tke)
-! GPU diff: Easy
-! Findings:
-!   - Simple 3D loop with straightforward calculations
-!   - Calls intrinsic max and sqrt functions (GPU-compatible)
-!   - Private variables: k, i, j, u8s2, v8s2, w8s2
-!   - Reads from u, v, w, tke arrays
-!   - Updates maxvl array using max function (reduction-like pattern)
-!   - No sync constructs or complex data dependencies
-! Next:
-!   - Can be directly ported to GPU with OpenACC parallel loop
-!   - The max operation is thread-safe for independent grid points
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('instvel.f90', 's_instvel', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -190,8 +157,6 @@ call profile_start(prof_id1)
         end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
       end if
 

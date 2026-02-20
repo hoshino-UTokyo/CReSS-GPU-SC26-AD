@@ -29,7 +29,6 @@
 ! Module reference
 
       use m_bcycle
-      use m_comprofile
       use m_combuf
       use m_comindx
       use m_commath
@@ -255,12 +254,6 @@
       real b           ! Temporary variable
       real c           ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer, save :: prof_id2 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -315,33 +308,6 @@
 
 ! Get the buble shaped initial potential temperature perturbation to the
 ! array ptp.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: getpt0.f90 :: subroutine s_getpt0 (bubble perturbation)
-! Summary : Sets bubble-shaped initial potential temperature perturbation
-!           using cosine-squared profile for thermal bubble experiments.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region.
-!   - Reads module constant cc from commath.
-!   - No synchronization constructs.
-!   - Uses intrinsic sqrt(), cos() - GPU compatible.
-!   - Outer loop over bubble number (pt0num, typically small).
-!   - Conditional update based on distance from bubble center.
-! Next:
-!   - Direct OpenACC kernels for inner (i,j,k) loops.
-!   - Outer bubble loop can remain sequential (small iteration count).
-!@llm end meta_info ------------------------------------------------------
-
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('getpt0.f90', 's_getpt0', &
-   & 'OMP section 1')
-end if
-loop_len = int((pt0num)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k_sub,ipt)
 
@@ -435,8 +401,6 @@ call profile_start(prof_id1)
 
 !$omp end parallel
 
-call profile_stop(prof_id1, loop_len)
-
 ! -----
 
 !! -----
@@ -479,23 +443,6 @@ call profile_stop(prof_id1, loop_len)
 
 ! Get the sine curved initial potential temperature perturbation to the
 ! array ptp.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: getpt0.f90 :: subroutine s_getpt0 (sine perturbation)
-! Summary : Sets sine-curved initial potential temperature perturbation
-!           for wave-like thermal initialization experiments.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region.
-!   - Reads module constant cc from commath.
-!   - No synchronization constructs.
-!   - Uses intrinsic sin(), cos() - GPU compatible.
-!   - Height-based conditional for perturbation region.
-!   - All grid points independent (embarrassingly parallel).
-! Next:
-!   - Direct OpenACC kernels with collapse(3) for (k,j,i) loops.
-!@llm end meta_info ------------------------------------------------------
 
 !$omp parallel default(shared) private(k_sub)
 

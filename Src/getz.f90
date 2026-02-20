@@ -19,8 +19,6 @@
 ! Module reference
 
       use m_getrname
-      use m_comprofile
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -97,14 +95,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_getz = 0
-      integer, parameter :: DUMP_TARGET_getz = 1
-      logical, save :: dump_done_getz = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -114,49 +105,12 @@
       call getrname(fpdz,dz)
       call getrname(fpzsfc,zsfc)
 
-! -----
 
 ! Calculate the zeta coordinates.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: getz.f90 :: s_getz
-! Summary : Calculate 1D zeta (terrain-following) vertical coordinates
-!           from sea surface height and grid spacing.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread usage
-!   - No function calls within parallel region
-!   - Uses intrinsic real function (GPU compatible)
-!   - Simple 1D loop with arithmetic: z = zsfc + (k-2)*dz
-!   - No global writes, only output array z is modified
-! Next:
-!   - 1D array with nk elements (typically small, <100)
-!   - May not benefit from GPU offload due to small size
-!   - If needed, use OpenACC with single team
-! Runtime:
-!   - Calls: 1
-!   - AvgLoops: 128
-!   - TotalTime: 0.000s (0.00%)
-!   - AvgTime: 0.016ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('getz.f90', 's_getz', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_getz = dump_call_count_getz + 1
-if (dump_call_count_getz == DUMP_TARGET_getz .and. .not. dump_done_getz) then
-  call dump_init('getz')
-  call dump_scalar_r('dz', dz)
-  call dump_scalar_r('zsfc', zsfc)
-  call dump_scalar_i('nk', nk)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_144)
 !----------------------------------------------------------------------
@@ -187,17 +141,9 @@ end if
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_getz == DUMP_TARGET_getz .and. .not. dump_done_getz) then
-  call dump_array_1d('z_ref.bin', z, 1, nk)
-  call dump_finalize()
-  dump_done_getz = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
       end subroutine s_getz
 

@@ -21,7 +21,6 @@
 !-----7--------------------------------------------------------------7--
 
 ! Implicit typing
-      use m_comprofile
 
       implicit none
 
@@ -100,40 +99,9 @@
 
       integer n        ! Array index in bin categories
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the total mixing ratio.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: sumbin.f90 :: s_sumbin
-! Summary : Sum bin mass across all categories to get total mixing ratio
-!           for hydrometeor species
-! GPU diff: Easy
-! Findings:
-!   - Reduction pattern over bin categories (n index)
-!   - Simple multiply-add operations
-!   - No function calls within parallel region
-!   - Outer n-loop not parallelized (serial accumulation)
-! Next:
-!   - Collapse k,j,i loops for GPU parallelization
-!   - Consider parallel reduction over n dimension
-!   - Keep mbin and qall arrays resident on GPU
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('sumbin.f90', 's_sumbin', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k,n)
 
@@ -170,8 +138,6 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

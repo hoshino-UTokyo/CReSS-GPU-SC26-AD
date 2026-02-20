@@ -17,7 +17,6 @@
 ! Module reference
 
       use m_comphy
-      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -348,11 +347,6 @@
       real dqv         ! Over estimated sink amount
                        ! of cloud water or cloud ice
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variables.
@@ -365,36 +359,6 @@
 
 !!!! Solve the new potential temperature perturbation, the mixing ratio
 !!!! and concentrations.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: newblk_noevap.f90 :: s_newblk_noevap
-! Summary : Solve new potential temperature perturbation, mixing ratios, and
-!           concentrations for bulk microphysics without temperature variation for evaporation
-! GPU diff: Hard
-! Findings:
-!   - No omp_get_thread_num usage
-!   - Uses intrinsic abs() and max() functions - GPU compatible
-!   - Uses module constants from m_comphy (cp, mr0, mi0, ms0)
-!   - Very complex conditional logic based on cphopt (2, 3, or 4)
-!   - Different calculations for nk==1 (2D) vs nk>1 (3D)
-!   - Many private variables with complex local computations
-!   - Writes to ptpf, qvf, qcf, qrf, qif, qsf, qgf, nccf, ncrf, ncif, ncsf, ncgf
-!   - Multiple nested conditionals checking thresq thresholds
-!   - No synchronization constructs besides implicit barriers at !$omp end do
-! Next:
-!   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
-!   - Consider restructuring to reduce branch divergence on GPU
-!   - May benefit from separating cphopt cases into different kernels
-!   - Collapse nested i,j loops for better GPU occupancy
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('newblk_noevap.f90', 's_newblk_noevap', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -1632,8 +1596,6 @@ call profile_start(prof_id1)
 !!! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !!!! -----
 

@@ -21,8 +21,6 @@
 ! Module reference
 
       use m_comphy
-      use m_comprofile
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -105,14 +103,7 @@
       real ust         ! Friction velocity
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_roughnxt = 0
-      integer, parameter :: DUMP_TARGET_roughnxt = 361
-      logical, save :: dump_done_roughnxt = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -120,49 +111,9 @@
 ! Calculate the roughness parameter on the sea surface to the next time
 ! step.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: roughnxt.f90 :: s_roughnxt
-! Summary : Update sea surface roughness length for next time step based on friction velocity
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Uses intrinsic max function
-!   - Simple 2D loop with conditional on land use (land < 3)
-!   - Conditional on ust threshold for different roughness formulas
-!   - Writes to z0m and z0h arrays
-!   - No synchronization constructs
-! Next:
-!   - Convert to OpenACC with teams distribute parallel for
-!   - Straightforward GPU port with collapse(2) clause
-! Runtime:
-!   - Calls: 361
-!   - AvgLoops: 806.4K
-!   - TotalTime: 0.012s (0.00%)
-!   - AvgTime: 0.033ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('roughnxt.f90', 's_roughnxt', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_roughnxt = dump_call_count_roughnxt + 1
-if (dump_call_count_roughnxt == DUMP_TARGET_roughnxt .and. .not. dump_done_roughnxt) then
-  call dump_init('roughnxt')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_array_2d_int('land.bin', land, 0, ni+1, 0, nj+1)
-  call dump_array_2d('va.bin', va, 0, ni+1, 0, nj+1)
-  call dump_array_2d('cm.bin', cm, 0, ni+1, 0, nj+1)
-  call dump_array_2d('z0m_in.bin', z0m, 0, ni+1, 0, nj+1)
-  call dump_array_2d('z0h_in.bin', z0h, 0, ni+1, 0, nj+1)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_265)
 ! GPU version (OpenACC)
@@ -221,18 +172,9 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_roughnxt == DUMP_TARGET_roughnxt .and. .not. dump_done_roughnxt) then
-  call dump_array_2d('z0m_ref.bin', z0m, 0, ni+1, 0, nj+1)
-  call dump_array_2d('z0h_ref.bin', z0h, 0, ni+1, 0, nj+1)
-  call dump_finalize()
-  dump_done_roughnxt = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
       end subroutine s_roughnxt
 

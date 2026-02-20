@@ -19,7 +19,6 @@
 ! Module reference
 
       use m_getrname
-      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -97,11 +96,6 @@
 
       integer k        ! Array index in z direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -119,31 +113,6 @@
 
 ! Calculate the zeta coordinates.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: getz11.f90 :: s_getz11
-! Summary : Calculate 1D zeta vertical coordinates with 11m offset
-!           from sea surface height for surface layer reference.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread usage
-!   - No function calls within parallel region
-!   - Uses intrinsic real function (GPU compatible)
-!   - Simple 1D loop with arithmetic: z = zsfc11 + (k-2)*dz
-!   - No global writes, only output array z is modified
-! Next:
-!   - 1D array with nk elements (typically small, <100)
-!   - May not benefit from GPU offload due to small size
-!   - If needed, use OpenACC with single team
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('getz11.f90', 's_getz11', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk)-(1)+1,8)
-call profile_start(prof_id1)
-
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(k)
@@ -155,8 +124,6 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

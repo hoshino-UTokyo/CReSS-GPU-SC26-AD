@@ -22,8 +22,6 @@
 ! Module reference
 
       use m_comphy
-      use m_comprofile
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -144,14 +142,7 @@
       real b           ! Temporary variable
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_distrpg = 0
-      integer, parameter :: DUMP_TARGET_distrpg = 45720
-      logical, save :: dump_done_distrpg = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -161,63 +152,13 @@
       rhos2=rhos*rhos
       rhow2=rhow*rhow
 
-! -----
 
 !!! Calculate the distribution ratio at which the collisions between
 !!! rain water and snow and reset the collection rate.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: distrpg.f90 :: s_distrpg
-! Summary : Distribute collision rates between rain and snow to graupel,
-!           based on diameter ratios and temperature thresholds.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls inside parallel region (only intrinsic: abs)
-!   - No global/module variable writes
-!   - No synchronization constructs
-!   - Multiple branches (nk, cphopt) but all loops are data-parallel
-!   - Conditional updates per grid point (temperature check, threshold)
-! Next:
-!   - Direct OpenACC with collapse(2) on j-i loops
-!   - Conditionals inside loop are fine for GPU (divergent but manageable)
-! Runtime:
-!   - Calls: 45720
-!   - AvgLoops: 806.4K
-!   - TotalTime: 1.393s (0.05%)
-!   - AvgTime: 0.030ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('distrpg.f90', 's_distrpg', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_distrpg = dump_call_count_distrpg + 1
-if (dump_call_count_distrpg == DUMP_TARGET_distrpg .and. .not. dump_done_distrpg) then
-  call dump_init('distrpg')
-  call dump_scalar_i('cphopt', cphopt)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('thresq', thresq)
-  call dump_array_3d('t.bin', t, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('t0', t0)
-  call dump_array_3d('qs.bin', qs, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('diaqr.bin', diaqr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('diaqs.bin', diaqs, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clrs_in.bin', clrs, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clsr_in.bin', clsr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clrsn_in.bin', clrsn, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clsrn_in.bin', clsrn, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('rhos2', rhos2)
-  call dump_scalar_r('rhow2', rhow2)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_088)
 !----------------------------------------------------------------------
@@ -408,7 +349,6 @@ end if
 
 !$omp end do
 
-! -----
 
 ! Perform calculating in the case the option abs(cphopt) is greater
 ! than 2.
@@ -463,7 +403,6 @@ end if
 
         end if
 
-! -----
 
 !! -----
 
@@ -522,7 +461,6 @@ end if
 
           end do
 
-! -----
 
 ! Perform calculating in the case the option abs(cphopt) is greater
 ! than 2.
@@ -581,7 +519,6 @@ end if
 
         end if
 
-! -----
 
       end if
 
@@ -590,19 +527,8 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_distrpg == DUMP_TARGET_distrpg .and. .not. dump_done_distrpg) then
-  call dump_array_3d('clrsg_ref.bin', clrsg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clrs_ref.bin', clrs, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clsr_ref.bin', clsr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clrsn_ref.bin', clrsn, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clsrn_ref.bin', clsrn, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_distrpg = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

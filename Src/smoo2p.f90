@@ -21,7 +21,6 @@
 ! Module reference
 
       use m_getrname
-      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -109,11 +108,6 @@
 
       real a           ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -124,34 +118,6 @@
 ! -----
 
 ! Calculate the 2nd order pressure numerical smoothing.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: smoo2p.f90 :: s_smoo2p
-! Summary : Applies 2nd order numerical smoothing to pressure field using
-!           horizontal and vertical smoothing coefficients in a 7-point stencil.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Simple stencil operation with neighbor access (i+/-1, j+/-1, k+/-1)
-!   - All loops independent with private i,j,k and local temporary a
-!   - No synchronization constructs
-!   - Read-only access to pp array, update to pfrc array
-! Next:
-!   - Straightforward GPU port with 3D kernel
-!   - Use OpenACC/OpenACC with collapse(3)
-!   - Good memory access pattern for GPU (regular stencil)
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('smoo2p.f90', 's_smoo2p', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-2)-(2)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -176,8 +142,6 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

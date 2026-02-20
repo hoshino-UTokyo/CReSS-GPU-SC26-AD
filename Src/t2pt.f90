@@ -20,7 +20,6 @@
 ! Module reference
 
       use m_comphy
-      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -100,11 +99,6 @@
       integer jd       ! Array index in y direction
       integer kd       ! Array index in z direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Calculate rd / cp.
@@ -114,29 +108,6 @@
 ! -----
 
 ! Convert the temperature to the potential temperature.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: t2pt.f90 :: s_t2pt
-! Summary : Convert temperature to potential temperature using pressure
-!           and Poisson equation (T * (p0/p)^(rd/cp))
-! GPU diff: Easy
-! Findings:
-!   - Simple element-wise calculation with exp/log
-!   - No conditionals within loops
-!   - No function calls within parallel region
-!   - Independent grid point calculations
-! Next:
-!   - Straightforward GPU offloading with collapse clause
-!   - Consider using fast math for exp/log if accuracy permits
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('t2pt.f90', 's_t2pt', &
-   & 'OMP section 1')
-end if
-loop_len = int((nkd)-(1)+1,8) * int((njd)-(1)+1,8) * int((nid)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(kd)
 
@@ -156,8 +127,6 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

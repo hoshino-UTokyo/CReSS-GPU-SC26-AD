@@ -24,8 +24,6 @@
 ! Module reference
 
       use m_comphy
-      use m_comprofile
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -358,14 +356,7 @@
                        ! of cloud water or cloud ice
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_newblk = 0
-      integer, parameter :: DUMP_TARGET_newblk = 45720
-      logical, save :: dump_done_newblk = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -376,133 +367,14 @@
       mi0iv=1.e0/mi0
       ms0iv=1.e0/ms0
 
-! -----
 
 !!!! Solve the new potential temperature perturbation, the mixing ratio
 !!!! and concentrations.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: newblk.f90 :: subroutine s_newblk
-! Summary : Solves microphysics budget equations for potential temperature,
-!           mixing ratios (qv, qc, qr, qi, qs, qg), and concentrations.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region.
-!   - Reads module constants (cp, mr0, mi0, ms0) from comphy.
-!   - No synchronization constructs.
-!   - Complex conditionals on cphopt (cloud physics option: 2, 3, or 4).
-!   - Separate code paths for nk=1 (2D) vs nk>1 (3D).
-!   - Many private variables for microphysics rate calculations.
-!   - Contains threshold checks (qxp > thresq) with conditional updates.
-!   - All grid points are independent (embarrassingly parallel).
-!   - Uses intrinsic max() and abs() - GPU compatible.
-! Next:
-!   - Select code path based on cphopt outside kernel.
-!   - OpenACC kernels with collapse(2) or collapse(3) for 3D case.
-!   - Large number of input arrays - ensure efficient data movement.
-!   - Consider kernel fusion for related calculations.
-! Runtime:
-!   - Calls: 45720
-!   - AvgLoops: 806.4K
-!   - TotalTime: 17.986s (0.60%)
-!   - AvgTime: 0.393ms
-!@llm end meta_info ------------------------------------------------------
 
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('newblk.f90', 's_newblk', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_newblk = dump_call_count_newblk + 1
-if (dump_call_count_newblk == DUMP_TARGET_newblk .and. .not. dump_done_newblk) then
-  call dump_init('newblk')
-  call dump_scalar_i('cphopt', cphopt)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('thresq', thresq)
-  ! FIXME: cp is array - call dump_scalar_r('cp', cp)
-  call dump_array_3d('pi.bin', pi, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qcp.bin', qcp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qrp.bin', qrp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qip.bin', qip, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qsp.bin', qsp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qgp.bin', qgp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('nccp.bin', nccp, 0, ni+1, 0, nj+1, 1, nk)
-  if (abs(cphopt) >= 3) then
-    call dump_array_3d('ncsp.bin', ncsp, 0, ni+1, 0, nj+1, 1, nk)
-    call dump_array_3d('ncgp.bin', ncgp, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  call dump_array_3d('lv.bin', lv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ls.bin', ls, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('lf.bin', lf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('mi.bin', mi, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('nuvi.bin', nuvi, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('nuci.bin', nuci, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clcr.bin', clcr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clcs.bin', clcs, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clcg.bin', clcg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clri.bin', clri, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clrs.bin', clrs, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clrg.bin', clrg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clir.bin', clir, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clis.bin', clis, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clig.bin', clig, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clsr.bin', clsr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clsg.bin', clsg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clrsg.bin', clrsg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clrin.bin', clrin, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clrsn.bin', clrsn, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clsrn.bin', clsrn, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clsgn.bin', clsgn, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('agcn.bin', agcn, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('agrn.bin', agrn, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('agin.bin', agin, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('agsn.bin', agsn, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vdvr.bin', vdvr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vdvi.bin', vdvi, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vdvs.bin', vdvs, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vdvg.bin', vdvg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('cncr.bin', cncr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('cnis.bin', cnis, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('cnsg.bin', cnsg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('cnsgn.bin', cnsgn, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('spsi.bin', spsi, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('spgi.bin', spgi, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('mlic.bin', mlic, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('mlsr.bin', mlsr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('mlgr.bin', mlgr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('frrg.bin', frrg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('frrgn.bin', frrgn, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('shsr.bin', shsr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('shgr.bin', shgr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptpf_in.bin', ptpf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvf_in.bin', qvf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qcf_in.bin', qcf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qrf_in.bin', qrf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qif_in.bin', qif, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qsf_in.bin', qsf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qgf_in.bin', qgf, 0, ni+1, 0, nj+1, 1, nk)
-  if (abs(cphopt) == 4) then
-    call dump_array_3d('nccf_in.bin', nccf, 0, ni+1, 0, nj+1, 1, nk)
-    call dump_array_3d('ncrf_in.bin', ncrf, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  call dump_array_3d('ncif_in.bin', ncif, 0, ni+1, 0, nj+1, 1, nk)
-  if (abs(cphopt) >= 3) then
-    call dump_array_3d('ncsf_in.bin', ncsf, 0, ni+1, 0, nj+1, 1, nk)
-    call dump_array_3d('ncgf_in.bin', ncgf, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  call dump_scalar_r('mi0iv', mi0iv)
-  call dump_scalar_r('mr0iv', mr0iv)
-  call dump_scalar_r('ms0iv', ms0iv)
-end if
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_206)
 !----------------------------------------------------------------------
@@ -667,14 +539,12 @@ end if
             cfmsxr=clri(i,j,1)+clrs(i,j,1)+clrg(i,j,1)+clrsg(i,j,1)     &
      &        +frrg(i,j,1)-mssr-msgr
 
-! -----
 
 ! Get the new potential temperature perturbation.
 
             ptpf(i,j,1)=ptpf(i,j,1)+(vdvr(i,j,1)*lv(i,j,1)              &
      &        +(clnmci+cfmsxr)*lf(i,j,1)+nuvdvx*ls(i,j,1))*cppiv
 
-! -----
 
 ! Get the new water vapor, the cloud water, the rain water and the cloud
 ! ice mixing ratio.
@@ -733,7 +603,6 @@ end if
 
             qvf(i,j,1)=max(qvf(i,j,1)-qvsink,0.e0)
 
-! -----
 
 ! Get the new snow and the graupel mixing ratio.
 
@@ -746,7 +615,6 @@ end if
      &        +clri(i,j,1)+clir(i,j,1)+clcg(i,j,1)                      &
      &        +clrg(i,j,1)+clig(i,j,1)+clrsg(i,j,1)+frrg(i,j,1)),0.e0)
 
-! -----
 
 ! Get the new cloud ice concentrations.
 
@@ -778,7 +646,6 @@ end if
 
             end if
 
-! -----
 
           end do
           end do
@@ -822,14 +689,12 @@ end if
             cfmsxr=clri(i,j,1)+clrs(i,j,1)+clrg(i,j,1)+clrsg(i,j,1)     &
      &        +frrg(i,j,1)-mssr-msgr
 
-! -----
 
 ! Get the new potential temperature perturbation.
 
             ptpf(i,j,1)=ptpf(i,j,1)+(vdvr(i,j,1)*lv(i,j,1)              &
      &        +(clnmci+cfmsxr)*lf(i,j,1)+nuvdvx*ls(i,j,1))*cppiv
 
-! -----
 
 ! Get the new water vapor, the cloud water, the rain water and the cloud
 ! ice mixing ratio.
@@ -888,7 +753,6 @@ end if
 
             qvf(i,j,1)=max(qvf(i,j,1)-qvsink,0.e0)
 
-! -----
 
 ! Get the new snow and the graupel mixing ratio.
 
@@ -901,7 +765,6 @@ end if
      &        +clri(i,j,1)+clir(i,j,1)+clcg(i,j,1)                      &
      &        +clrg(i,j,1)+clig(i,j,1)+clrsg(i,j,1)+frrg(i,j,1)),0.e0)
 
-! -----
 
 ! Get the new cloud ice concentrations.
 
@@ -933,7 +796,6 @@ end if
 
             end if
 
-! -----
 
 ! Get the new snow concentrations.
 
@@ -960,7 +822,6 @@ end if
 
             end if
 
-! -----
 
 ! Get the new graupel concentrations.
 
@@ -987,7 +848,6 @@ end if
 
             end if
 
-! -----
 
           end do
           end do
@@ -1032,14 +892,12 @@ end if
             cfmsxr=clri(i,j,1)+clrs(i,j,1)+clrg(i,j,1)+clrsg(i,j,1)     &
      &        +frrg(i,j,1)-mssr-msgr
 
-! -----
 
 ! Get the new potential temperature perturbation.
 
             ptpf(i,j,1)=ptpf(i,j,1)+(vdvr(i,j,1)*lv(i,j,1)              &
      &        +(clnmci+cfmsxr)*lf(i,j,1)+nuvdvx*ls(i,j,1))*cppiv
 
-! -----
 
 ! Get the new water vapor, the cloud water, the rain water and the cloud
 ! ice mixing ratio.
@@ -1098,7 +956,6 @@ end if
 
             qvf(i,j,1)=max(qvf(i,j,1)-qvsink,0.e0)
 
-! -----
 
 ! Get the new snow and the graupel mixing ratio.
 
@@ -1111,7 +968,6 @@ end if
      &        +clri(i,j,1)+clir(i,j,1)+clcg(i,j,1)                      &
      &        +clrg(i,j,1)+clig(i,j,1)+clrsg(i,j,1)+frrg(i,j,1)),0.e0)
 
-! -----
 
 ! Get the new cloud water and cloud ice concentrations.
 
@@ -1152,7 +1008,6 @@ end if
 
             end if
 
-! -----
 
 ! Get the new rain water, snow and graupel concentrations.
 
@@ -1220,7 +1075,6 @@ end if
 
             end if
 
-! -----
 
           end do
           end do
@@ -1274,14 +1128,12 @@ end if
               cfmsxr=clri(i,j,k)+clrs(i,j,k)+clrg(i,j,k)+clrsg(i,j,k)   &
      &          +frrg(i,j,k)-mssr-msgr
 
-! -----
 
 ! Get the new potential temperature perturbation.
 
               ptpf(i,j,k)=ptpf(i,j,k)+(vdvr(i,j,k)*lv(i,j,k)            &
      &          +(clnmci+cfmsxr)*lf(i,j,k)+nuvdvx*ls(i,j,k))*cppiv
 
-! -----
 
 ! Get the new water vapor, the cloud water, the rain water and the cloud
 ! ice mixing ratio.
@@ -1340,7 +1192,6 @@ end if
 
               qvf(i,j,k)=max(qvf(i,j,k)-qvsink,0.e0)
 
-! -----
 
 ! Get the new snow and the graupel mixing ratio.
 
@@ -1353,7 +1204,6 @@ end if
      &          +clri(i,j,k)+clir(i,j,k)+clcg(i,j,k)                    &
      &          +clrg(i,j,k)+clig(i,j,k)+clrsg(i,j,k)+frrg(i,j,k)),0.e0)
 
-! -----
 
 ! Get the new cloud ice concentrations.
 
@@ -1386,7 +1236,6 @@ end if
 
               end if
 
-! -----
 
             end do
             end do
@@ -1434,14 +1283,12 @@ end if
               cfmsxr=clri(i,j,k)+clrs(i,j,k)+clrg(i,j,k)+clrsg(i,j,k)   &
      &          +frrg(i,j,k)-mssr-msgr
 
-! -----
 
 ! Get the new potential temperature perturbation.
 
               ptpf(i,j,k)=ptpf(i,j,k)+(vdvr(i,j,k)*lv(i,j,k)            &
      &          +(clnmci+cfmsxr)*lf(i,j,k)+nuvdvx*ls(i,j,k))*cppiv
 
-! -----
 
 ! Get the new water vapor, the cloud water, the rain water and the cloud
 ! ice mixing ratio.
@@ -1500,7 +1347,6 @@ end if
 
               qvf(i,j,k)=max(qvf(i,j,k)-qvsink,0.e0)
 
-! -----
 
 ! Get the new snow and the graupel mixing ratio.
 
@@ -1513,7 +1359,6 @@ end if
      &          +clri(i,j,k)+clir(i,j,k)+clcg(i,j,k)                    &
      &          +clrg(i,j,k)+clig(i,j,k)+clrsg(i,j,k)+frrg(i,j,k)),0.e0)
 
-! -----
 
 ! Get the new cloud ice concentrations.
 
@@ -1546,7 +1391,6 @@ end if
 
               end if
 
-! -----
 
 ! Get the new snow concentrations.
 
@@ -1573,7 +1417,6 @@ end if
 
               end if
 
-! -----
 
 ! Get the new graupel concentrations.
 
@@ -1600,7 +1443,6 @@ end if
 
               end if
 
-! -----
 
             end do
             end do
@@ -1649,14 +1491,12 @@ end if
               cfmsxr=clri(i,j,k)+clrs(i,j,k)+clrg(i,j,k)+clrsg(i,j,k)   &
      &          +frrg(i,j,k)-mssr-msgr
 
-! -----
 
 ! Get the new potential temperature perturbation.
 
               ptpf(i,j,k)=ptpf(i,j,k)+(vdvr(i,j,k)*lv(i,j,k)            &
      &          +(clnmci+cfmsxr)*lf(i,j,k)+nuvdvx*ls(i,j,k))*cppiv
 
-! -----
 
 ! Get the new water vapor, the cloud water, the rain water and the cloud
 ! ice mixing ratio.
@@ -1715,7 +1555,6 @@ end if
 
               qvf(i,j,k)=max(qvf(i,j,k)-qvsink,0.e0)
 
-! -----
 
 ! Get the new snow and the graupel mixing ratio.
 
@@ -1728,7 +1567,6 @@ end if
      &          +clri(i,j,k)+clir(i,j,k)+clcg(i,j,k)                    &
      &          +clrg(i,j,k)+clig(i,j,k)+clrsg(i,j,k)+frrg(i,j,k)),0.e0)
 
-! -----
 
 ! Get the new cloud water and cloud ice concentrations.
 
@@ -1770,7 +1608,6 @@ end if
 
               end if
 
-! -----
 
 ! Get the new rain water, snow and graupel concentrations.
 
@@ -1838,7 +1675,6 @@ end if
 
               end if
 
-! -----
 
             end do
             end do
@@ -1858,30 +1694,8 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_newblk == DUMP_TARGET_newblk .and. .not. dump_done_newblk) then
-  call dump_array_3d('ptpf_ref.bin', ptpf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvf_ref.bin', qvf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qcf_ref.bin', qcf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qrf_ref.bin', qrf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qif_ref.bin', qif, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qsf_ref.bin', qsf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qgf_ref.bin', qgf, 0, ni+1, 0, nj+1, 1, nk)
-  if (abs(cphopt) == 4) then
-    call dump_array_3d('nccf_ref.bin', nccf, 0, ni+1, 0, nj+1, 1, nk)
-    call dump_array_3d('ncrf_ref.bin', ncrf, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  call dump_array_3d('ncif_ref.bin', ncif, 0, ni+1, 0, nj+1, 1, nk)
-  if (abs(cphopt) >= 3) then
-    call dump_array_3d('ncsf_ref.bin', ncsf, 0, ni+1, 0, nj+1, 1, nk)
-    call dump_array_3d('ncgf_ref.bin', ncgf, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  call dump_finalize()
-  dump_done_newblk = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !!!! -----
 

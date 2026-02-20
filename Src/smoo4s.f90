@@ -23,8 +23,6 @@
 ! Module reference
 
       use m_comindx
-      use m_comprofile
-      use m_dump_kernel
       use m_getiname
       use m_getrname
 
@@ -159,14 +157,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_smoo4s = 0
-      integer, parameter :: DUMP_TARGET_smoo4s = 3600
-      logical, save :: dump_done_smoo4s = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -181,84 +172,19 @@
       call getrname(fpsmhcoe,smhcoe)
       call getrname(fpsmvcoe,smvcoe)
 
-! -----
 
 ! Set the common used variables.
 
       nkm1=nk-1
       nkm2=nk-2
 
-! -----
 
 ! Calculate the 4th order scalar numerical smoothing.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: smoo4s.f90 :: subroutine s_smoo4s
-! Summary : Applies 4th order numerical smoothing to scalar variables
-!           using Laplacian-based diffusion with horizontal/vertical
-!           coefficients.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region.
-!   - No writes to module/global variables.
-!   - No synchronization constructs.
-!   - Multi-stage stencil computation with temporary arrays.
-!   - Boundary index adjustments (iwest, ieast, jsouth, jnorth).
-!   - Conditional on smtopt for 2D vs 3D smoothing.
-! Next:
-!   - Split into multiple kernels matching the loop structure.
-!   - Temporary arrays (tmp1, tmp2, tmp3) already allocated.
-!   - Good candidate for kernel fusion to reduce memory traffic.
-! Runtime:
-!   - Calls: 3600
-!   - AvgLoops: 102.4M
-!   - TotalTime: 91.291s (3.06%)
-!   - AvgTime: 25.359ms
-!@llm end meta_info ------------------------------------------------------
 
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('smoo4s.f90', 's_smoo4s', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-jnorth)-(jsouth)+1,8) &
-     & * int((ni-ieast)-(iwest)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_smoo4s = dump_call_count_smoo4s + 1
-if (dump_call_count_smoo4s == DUMP_TARGET_smoo4s .and. .not. dump_done_smoo4s) then
-  call dump_init('smoo4s')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('smtopt', smtopt)
-  call dump_scalar_i('iwest', iwest)
-  call dump_scalar_i('ieast', ieast)
-  call dump_scalar_i('jsouth', jsouth)
-  call dump_scalar_i('jnorth', jnorth)
-  call dump_scalar_r('smhcoe', smhcoe)
-  call dump_scalar_r('smvcoe', smvcoe)
-  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('s.bin', s, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('sfrc_in.bin', sfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_i('nkm1', nkm1)
-  call dump_scalar_i('nkm2', nkm2)
-  ! FIXME: rbrs is an array, not scalar
-  ! ! FIXME: rbrs is array - call dump_scalar_i('rbrs', rbrs)
-  ! FIXME: rbrs2 is an array, not scalar
-  ! ! FIXME: rbrs2 is array - call dump_scalar_r('rbrs2', rbrs2)
-  ! FIXME: tmp1 is an array, not scalar
-  ! ! FIXME: tmp1 is array - call dump_scalar_r('tmp1', tmp1)
-  ! FIXME: tmp2 is an array, not scalar
-  ! ! FIXME: tmp2 is array - call dump_scalar_r('tmp2', tmp2)
-  ! FIXME: tmp3 is an array, not scalar
-  ! ! FIXME: tmp3 is array - call dump_scalar_r('tmp3', tmp3)
-end if
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_303)
 ! GPU version (OpenACC) - same loop structure with acc kernels
@@ -485,17 +411,9 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_smoo4s == DUMP_TARGET_smoo4s .and. .not. dump_done_smoo4s) then
-  call dump_array_3d('sfrc_ref.bin', sfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_smoo4s = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
       end subroutine s_smoo4s
 

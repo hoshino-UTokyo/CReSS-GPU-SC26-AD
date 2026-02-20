@@ -19,8 +19,6 @@
 ! Module reference
 
       use m_getcname
-      use m_comprofile
-      use m_dump_kernel
       use m_getiname
       use m_getrname
       use m_inichar
@@ -189,14 +187,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_setgpv = 0
-      integer, parameter :: DUMP_TARGET_setgpv = 2
-      logical, save :: dump_done_setgpv = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -205,7 +196,6 @@
 
       call inichar(gpvvar)
 
-! -----
 
 ! Get the required namelist variables.
 
@@ -214,80 +204,17 @@
       call getiname(fphaiopt,haiopt)
       call getrname(fpgpvitv,gpvitv)
 
-! -----
 
 ! Set the common used variable.
 
       gpviv=1.e0/gpvitv
 
-! -----
 
 !! Set the interpolated GPV variables.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: setgpv.f90 :: s_setgpv
-! Summary : Sets interpolated GPV (Grid Point Value) variables including velocity, pressure,
-!           temperature, and hydrometeor time tendencies or values depending on read index.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Multiple conditional branches based on gpvvar flags and cphopt/haiopt options
-!   - All loops are independent with private i,j,k indices
-!   - Multiple separate do-omp do blocks for different variable categories
-!   - No synchronization constructs beyond implicit barriers at omp end do
-! Next:
-!   - Consider collapsing nested conditionals into unified kernels
-!   - Use OpenACC/OpenACC with data regions for array transfers
-!   - May benefit from kernel fusion for related variable updates
-! Runtime:
-!   - Calls: 2
-!   - AvgLoops: 103.4M
-!   - TotalTime: 0.035s (0.00%)
-!   - AvgTime: 17.427ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('setgpv.f90', 's_setgpv', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk)-(1)+1,8) * int((nj)-(1)+1,8) * int((ni)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_setgpv = dump_call_count_setgpv + 1
-if (dump_call_count_setgpv == DUMP_TARGET_setgpv .and. .not. dump_done_setgpv) then
-  call dump_init('setgpv')
-  call dump_scalar_c('gpvvar', gpvvar)
-  call dump_scalar_i('cphopt', cphopt)
-  call dump_scalar_i('haiopt', haiopt)
-  call dump_scalar_r('gpvitv', gpvitv)
-  call dump_scalar_i('ird', ird)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('nqw', nqw)
-  call dump_scalar_i('nqi', nqi)
-  call dump_array_3d('ugpv_in.bin', ugpv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('utd_in.bin', utd, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vgpv_in.bin', vgpv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vtd_in.bin', vtd, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wgpv_in.bin', wgpv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wtd_in.bin', wtd, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ppgpv_in.bin', ppgpv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('pptd_in.bin', pptd, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptpgpv_in.bin', ptpgpv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptptd_in.bin', ptptd, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvgpv_in.bin', qvgpv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvtd_in.bin', qvtd, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_4d('qwgpv_in.bin', qwgpv, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  call dump_array_4d('qwtd_in.bin', qwtd, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  call dump_array_4d('qigpv_in.bin', qigpv, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-  call dump_array_4d('qitd_in.bin', qitd, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-  call dump_scalar_r('gpviv', gpviv)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_288)
 ! GPU version (OpenACC)
@@ -772,7 +699,6 @@ end if
 
       end if
 
-! -----
 
 ! Set the variables at current marked time.
 
@@ -959,35 +885,12 @@ end if
 
       end if
 
-! -----
 
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_setgpv == DUMP_TARGET_setgpv .and. .not. dump_done_setgpv) then
-  call dump_array_3d('ugpv_ref.bin', ugpv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('utd_ref.bin', utd, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vgpv_ref.bin', vgpv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vtd_ref.bin', vtd, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wgpv_ref.bin', wgpv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wtd_ref.bin', wtd, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ppgpv_ref.bin', ppgpv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('pptd_ref.bin', pptd, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptpgpv_ref.bin', ptpgpv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptptd_ref.bin', ptptd, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvgpv_ref.bin', qvgpv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvtd_ref.bin', qvtd, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_4d('qwgpv_ref.bin', qwgpv, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  call dump_array_4d('qwtd_ref.bin', qwtd, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  call dump_array_4d('qigpv_ref.bin', qigpv, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-  call dump_array_4d('qitd_ref.bin', qitd, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-  call dump_finalize()
-  dump_done_setgpv = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

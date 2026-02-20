@@ -18,7 +18,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
       use m_getiname
       use m_getrname
 
@@ -133,11 +132,6 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -155,33 +149,6 @@
 ! -----
 
 !!! Set the interpolated radar variables.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: setrdrqp.f90 :: s_setrdrqp
-! Summary : Sets interpolated radar hydrometeor variables (rain, snow, graupel, hail)
-!           computing time tendencies or setting values based on read index.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Uses module constant lim34n, lim35n from m_commath for threshold checks
-!   - Multiple conditional branches based on cphopt and haiopt options
-!   - All loops are independent with private i,j,k indices
-!   - Contains if-else conditionals per grid point for validity checks
-!   - No synchronization constructs beyond implicit barriers
-! Next:
-!   - Port conditionals as-is to GPU kernels
-!   - Use OpenACC/OpenACC with data regions
-!   - Consider merging snow/graupel/hail loops into single kernel
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('setrdrqp.f90', 's_setrdrqp', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -465,8 +432,6 @@ call profile_start(prof_id1)
 !! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

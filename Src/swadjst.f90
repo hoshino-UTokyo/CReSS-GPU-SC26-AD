@@ -25,8 +25,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
-      use m_dump_kernel
       use m_comphy
       use m_getgamma
       use m_getiname
@@ -187,14 +185,7 @@
       real b           ! Temporary variable
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_swadjst = 0
-      integer, parameter :: DUMP_TARGET_swadjst = 720
-      logical, save :: dump_done_swadjst = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -204,7 +195,6 @@
       call getiname(fpcphopt,cphopt)
       call getrname(fpthresq,thresq)
 
-! -----
 
 ! Set the common used variables.
 
@@ -237,82 +227,12 @@
       coe8=2.e0*cc*rhow
       coe9=2.e0*cc*c1*k1*beta
 
-! -----
 
 !! Perform the saturation adjustment.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: swadjst.f90 :: s_swadjst
-! Summary : Perform saturation adjustment for water phase, updating
-!           temperature, vapor, and cloud water with condensation/evaporation
-! GPU diff: Hard
-! Findings:
-!   - Complex conditionals based on cphopt and saturation state
-!   - Multiple exp/log intrinsic function calls per grid point
-!   - Iterative two-pass adjustment for accuracy
-!   - Deep nesting with many local temporary variables
-!   - Conditional updates to ncc (cloud concentration) based on vertical velocity
-! Next:
-!   - Significant thread divergence expected from conditionals
-!   - Consider separating cphopt<=3 and cphopt==4 paths
-!   - Profile exp/log operations for GPU performance
-! Runtime:
-!   - Calls: 720
-!   - AvgLoops: 102.4M
-!   - TotalTime: 13.608s (0.46%)
-!   - AvgTime: 18.900ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('swadjst.f90', 's_swadjst', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_swadjst = dump_call_count_swadjst + 1
-if (dump_call_count_swadjst == DUMP_TARGET_swadjst .and. .not. dump_done_swadjst) then
-  call dump_init('swadjst')
-  call dump_scalar_i('cphopt', cphopt)
-  call dump_scalar_r('thresq', thresq)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_array_3d('p.bin', p, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('cp', cp)
-  call dump_scalar_r('t0', t0)
-  call dump_scalar_r('epsva', epsva)
-  call dump_scalar_r('es0', es0)
-  call dump_scalar_r('lv0', lv0)
-  call dump_scalar_r('rhow', rhow)
-  call dump_array_3d('ptbr.bin', ptbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('pi.bin', pi, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('w.bin', w, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptp_in.bin', ptp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qv_in.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qc_in.bin', qc, 0, ni+1, 0, nj+1, 1, nk)
-  if (abs(cphopt) > 3) then
-    call dump_array_3d('ncc_in.bin', ncc, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  call dump_scalar_r('c1', c1)
-  call dump_scalar_r('cdiaqc', cdiaqc)
-  call dump_scalar_r('coe1', coe1)
-  call dump_scalar_r('coe2', coe2)
-  call dump_scalar_r('coe3', coe3)
-  call dump_scalar_r('coe4', coe4)
-  call dump_scalar_r('coe5', coe5)
-  call dump_scalar_r('coe6', coe6)
-  call dump_scalar_r('coe7', coe7)
-  call dump_scalar_r('coe8', coe8)
-  call dump_scalar_r('coe9', coe9)
-  call dump_scalar_r('k1', k1)
-  call dump_scalar_r('k1p2iv', k1p2iv)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_320)
 !----------------------------------------------------------------------
@@ -481,7 +401,6 @@ end if
 
         end do
 
-! -----
 
 ! Perform calculating in the case the option abs(cphopt) is equal to 4.
 
@@ -700,26 +619,13 @@ end if
 
       end if
 
-! -----
 
 !$omp end parallel
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_swadjst == DUMP_TARGET_swadjst .and. .not. dump_done_swadjst) then
-  call dump_array_3d('ptp_ref.bin', ptp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qv_ref.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qc_ref.bin', qc, 0, ni+1, 0, nj+1, 1, nk)
-  if (abs(cphopt) > 3) then
-    call dump_array_3d('ncc_ref.bin', ncc, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  call dump_finalize()
-  dump_done_swadjst = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

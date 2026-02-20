@@ -29,7 +29,6 @@
 ! Module reference
 
       use m_commpi
-      use m_comprofile
       use m_getcname
       use m_getiname
       use m_getrname
@@ -205,11 +204,6 @@
       real radwe       ! Temporary variable
       real radsn       ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variable.
@@ -263,34 +257,6 @@
 ! -----
 
 !! Set the radiative lateral boundary conditions.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: rbcpt.f90 :: s_rbcpt
-! Summary : Sets radiative lateral boundary conditions for potential
-!           temperature perturbation at domain corners and edges (W/E/S/N).
-! GPU diff: Hard
-! Findings:
-!   - No omp_get_thread_num usage
-!   - Multiple conditional branches based on MPI subdomain position (ebs, ebn, ebw, ebe, isub, jsub)
-!   - Many small omp do regions (50+) with varying loop bounds
-!   - Writes to ptpf (3D inout array) at boundary points only
-!   - No sync constructs; implicit barriers at omp end do
-!   - Uses module variables from m_commpi (ebs, ebn, ebw, ebe, isub, jsub, nisub, njsub)
-!   - Complex conditional logic (advopt, nggopt, lspopt, vspopt options)
-!   - Serial k-loop with nested parallel j or i loops in some regions
-! Next:
-!   - Restructure boundary updates into separate GPU kernels per edge
-!   - Consider batching corner/edge updates to reduce kernel launch overhead
-!   - MPI-related conditionals may require host-side decision before GPU kernel
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('rbcpt.f90', 's_rbcpt', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -1036,8 +1002,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

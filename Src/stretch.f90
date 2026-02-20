@@ -24,7 +24,6 @@
 ! Module reference
 
       use m_chkerr
-      use m_comprofile
       use m_commath
       use m_commpi
       use m_cpondpe
@@ -158,12 +157,6 @@
 
       real tmp         ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer, save :: prof_id2 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -202,28 +195,6 @@
 
 ! Get the constant stretching function.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: stretch.f90 :: s_stretch
-! Summary : Calculate constant vertical stretching z-coordinates when
-!           no stretching is applied
-! GPU diff: Easy
-! Findings:
-!   - Simple 1D loop over k index
-!   - Straightforward arithmetic for uniform grid spacing
-!   - No function calls within parallel region
-! Next:
-!   - Simple parallel loop suitable for GPU offloading
-!   - Small array size (nk), may not benefit significantly from GPU
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('stretch.f90', 's_stretch', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk)-(1)+1,8)
-call profile_start(prof_id1)
-
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(k)
@@ -235,8 +206,6 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 
@@ -344,21 +313,6 @@ call profile_stop(prof_id1, loop_len)
 
 !! Apply the stretching function.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: stretch.f90 :: s_stretch
-! Summary : Apply cubic or tanh stretching function to calculate variable
-!           vertical grid spacing for stretched coordinates
-! GPU diff: Medium
-! Findings:
-!   - Multiple conditional branches based on sthopt (1=cubic, 2=tanh)
-!   - Uses !$omp single for sequential accumulation to zsth
-!   - Contains tanh and exp/log intrinsic functions
-!   - Serial dependency in final z-coordinate calculation
-! Next:
-!   - Parallelize dzsth calculations, keep zsth sequential
-!   - Small array size (nk), limited GPU benefit
-!   - Consider prefix sum for zsth calculation on GPU
-!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Calculate the dz of stretching for the low level.

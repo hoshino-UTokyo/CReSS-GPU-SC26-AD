@@ -25,8 +25,6 @@
 ! Module reference
 
       use m_comdays
-      use m_comprofile
-      use m_dump_kernel
       use m_commath
       use m_comphy
       use m_getiname
@@ -236,14 +234,7 @@
       real b           ! Temporary variable
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_radiat = 0
-      integer, parameter :: DUMP_TARGET_radiat = 361
-      logical, save :: dump_done_radiat = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -252,14 +243,12 @@
 
       call getiname(fpcphopt,cphopt)
 
-! -----
 
 ! Read out the integer variables from the input current forecast date
 ! with Gregorian calendar, yyyymmddhhmm.
 
       read(cdate(1:12),'(i4.4,4i2.2)') cyr,cmo,cdy,chr,cmn
 
-! -----
 
 ! Calculate the solar angle.
 
@@ -281,7 +270,6 @@
      &  -.006758e0*cos(2.e0*jday)+.000907e0*sin(2.e0*jday)              &
      &  -.002697e0*cos(3.e0*jday)+.001480e0*sin(3.e0*jday)
 
-! -----
 
 ! Set the common used variables.
 
@@ -298,85 +286,14 @@
       sinphs=sin(phs)
       cosphs=cos(phs)
 
-! -----
 
 !!!!! Calculte the zenith angle, the global solar radiation, the net
 !!!!! downward short wave radiation and the upward and downward long
 !!!!! wave radiation.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: radiat.f90 :: s_radiat
-! Summary : Calculates zenith angle, short/long wave radiation fluxes
-!           (rgd, rsd, rld, rlu) based on dry/moist air conditions.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - Intrinsic functions used: cos, sin, exp, log10, sqrt, max, min
-!   - Multiple omp do regions inside single parallel region
-!   - Writes to zph8s, zref, coseta (2D), rgd, rsd, rld, rlu (2D output arrays)
-!   - No sync constructs; implicit barriers at omp end do
-!   - Conditional branching based on fmois (dry/moist) and cphopt
-!   - Serial k-loop with nested parallel i,j loops
-!   - Uses module constants from m_comdays, m_commath, m_comphy
-! Next:
-!   - Collapse k-loop with i,j loops if possible
-!   - Consider separating dry/moist code paths for GPU kernels
-!   - Hoist conditional checks outside parallel region if feasible
-! Runtime:
-!   - Calls: 361
-!   - AvgLoops: 806.4K
-!   - TotalTime: 1.831s (0.06%)
-!   - AvgTime: 5.071ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('radiat.f90', 's_radiat', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_radiat = dump_call_count_radiat + 1
-if (dump_call_count_radiat == DUMP_TARGET_radiat .and. .not. dump_done_radiat) then
-  call dump_init('radiat')
-  call dump_scalar_i('cphopt', cphopt)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('nund', nund)
-  call dump_scalar_r('epsva', epsva)
-  call dump_array_3d('zph.bin', zph, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('lat.bin', lat, 0, ni+1, 0, nj+1)
-  call dump_array_2d('lon.bin', lon, 0, ni+1, 0, nj+1)
-  call dump_array_3d('p.bin', p, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t.bin', t, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qv.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d_int('land.bin', land, 0, ni+1, 0, nj+1)
-  call dump_array_2d('albe.bin', albe, 0, ni+1, 0, nj+1)
-  call dump_array_2d('kai.bin', kai, 0, ni+1, 0, nj+1)
-  call dump_array_3d('tund.bin', tund, 0, ni+1, 0, nj+1, 1, nund)
-  call dump_array_2d('tice.bin', tice, 0, ni+1, 0, nj+1)
-  call dump_array_2d('cdl.bin', cdl, 0, ni+1, 0, nj+1)
-  call dump_array_2d('cdm.bin', cdm, 0, ni+1, 0, nj+1)
-  call dump_array_2d('cdh.bin', cdh, 0, ni+1, 0, nj+1)
-  call dump_array_2d('fall.bin', fall, 0, ni+1, 0, nj+1)
-  call dump_array_3d('zph8s_in.bin', zph8s, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('zref_in.bin', zref, 0, ni+1, 0, nj+1)
-  call dump_array_2d('coseta_in.bin', coseta, 0, ni+1, 0, nj+1)
-  call dump_scalar_r('cosphs', cosphs)
-  call dump_scalar_r('eqt', eqt)
-  call dump_scalar_r('esgm', esgm)
-  call dump_scalar_r('esgm51', esgm51)
-  ! FIXME: fmois is array - call dump_scalar_r('fmois', fmois)
-  call dump_scalar_r('ln1013', ln1013)
-  call dump_scalar_i('nkm1', nkm1)
-  call dump_scalar_r('rchr', rchr)
-  call dump_scalar_r('rcmn', rcmn)
-  call dump_scalar_r('sinphs', sinphs)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_247)
 !----------------------------------------------------------------------
@@ -641,7 +558,6 @@ end if
 
 !$omp end do
 
-! -----
 
 ! Get the z physical coordinates at scalar points and the reference
 ! z physical coordinates for downward radiation.
@@ -670,7 +586,6 @@ end if
 
 !$omp end do
 
-! -----
 
 !!! In the case of dry air.
 
@@ -695,7 +610,6 @@ end if
               pa=(1.e0-dk)*p(i,j,k)+dk*p(i,j,k+1)
               ta=(1.e0-dk)*t(i,j,k)+dk*t(i,j,k+1)
 
-! -----
 
 ! Calculate the global solar radiation and the net downward short wave
 ! radiation.
@@ -731,7 +645,6 @@ end if
 
               end if
 
-! -----
 
 ! Calculate the upward and downward long wave radiation.
 
@@ -753,7 +666,6 @@ end if
 
               rlu(i,j)=esgm*a*a
 
-! -----
 
             end if
 
@@ -801,7 +713,6 @@ end if
 
                 cdall=cdl(i,j)+cdm(i,j)+cdh(i,j)
 
-! -----
 
 ! Calculate the global solar radiation and the net downward short wave
 ! radiation.
@@ -855,7 +766,6 @@ end if
 
                 end if
 
-! -----
 
 ! Calculate the upward and downward long wave radiation.
 
@@ -880,7 +790,6 @@ end if
 
                 rlu(i,j)=esgm*b*b
 
-! -----
 
               end if
 
@@ -924,7 +833,6 @@ end if
 
                 cdall=cdl(i,j)+cdm(i,j)+cdh(i,j)
 
-! -----
 
 ! Calculate the global solar radiation and the net downward short wave
 ! radiation.
@@ -978,7 +886,6 @@ end if
 
                 end if
 
-! -----
 
 ! Calculate the upward and downward long wave radiation.
 
@@ -1011,7 +918,6 @@ end if
 
                 rlu(i,j)=esgm*b*b
 
-! -----
 
               end if
 
@@ -1035,21 +941,8 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_radiat == DUMP_TARGET_radiat .and. .not. dump_done_radiat) then
-  call dump_array_2d('rgd_ref.bin', rgd, 0, ni+1, 0, nj+1)
-  call dump_array_2d('rsd_ref.bin', rsd, 0, ni+1, 0, nj+1)
-  call dump_array_2d('rld_ref.bin', rld, 0, ni+1, 0, nj+1)
-  call dump_array_2d('rlu_ref.bin', rlu, 0, ni+1, 0, nj+1)
-  call dump_array_3d('zph8s_ref.bin', zph8s, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('zref_ref.bin', zref, 0, ni+1, 0, nj+1)
-  call dump_array_2d('coseta_ref.bin', coseta, 0, ni+1, 0, nj+1)
-  call dump_finalize()
-  dump_done_radiat = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !!!!! -----
 

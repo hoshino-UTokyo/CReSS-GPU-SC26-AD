@@ -21,7 +21,6 @@
 !-----7--------------------------------------------------------------7--
 
 ! Implicit typing
-      use m_comprofile
 
       implicit none
 
@@ -98,40 +97,9 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Calculate the air temperature.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: getta3d.f90 :: s_getta3d
-! Summary : Compute air temperature from base state potential temperature,
-!           perturbation, and Exner function at all grid points.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread usage
-!   - No function calls within parallel region
-!   - Simple element-wise arithmetic: t = (ptbr + ptp) * pi
-!   - No global writes, only output array t is modified
-!   - No synchronization constructs other than implicit barrier at end do
-! Next:
-!   - Direct translation to OpenACC or OpenACC with collapsed loops
-!   - Consider loop collapse for k,j,i dimensions
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('getta3d.f90', 's_getta3d', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -150,8 +118,6 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

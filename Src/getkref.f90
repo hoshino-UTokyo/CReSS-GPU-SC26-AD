@@ -19,7 +19,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -145,11 +144,6 @@
 
       integer k        ! Array index in z direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -179,33 +173,6 @@
 ! -----
 
 !! Get the index of lowest and highest interpolated plane.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: getkref.f90 :: s_getkref
-! Summary : Determines reference index for base state pressure interpolation
-!           by finding lowest/highest data planes that intersect model grid
-! GPU diff: Hard
-! Findings:
-!   - No omp_get_thread usage
-!   - Uses intrinsic min() and max() functions
-!   - Contains reduction operations (min: zdmin, altmin) (max: zdmax)
-!   - Contains !$omp single regions with sequential do loops (do_kd, do_k_1, do_k_2)
-!   - Module variables lim36, lim36n used from m_commath
-!   - Complex control flow with early exit loops
-!   - Sequential dependencies in single regions finding kdbot, kbot, ktop
-! Next:
-!   - Reductions can be ported but single regions need restructuring
-!   - Consider splitting into separate kernels: one for reductions, one for sequential search
-!   - Single regions may need to remain on host or use atomic operations
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('getkref.f90', 's_getkref', &
-   & 'OMP section 1')
-end if
-loop_len = int((nkd-1)-(2)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(kd)
 
@@ -365,8 +332,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

@@ -18,7 +18,6 @@
 ! Module reference
 
       use m_commpi
-      use m_comprofile
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -115,11 +114,6 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -141,32 +135,6 @@
 ! -----
 
 !! Set the lateral boundary conditions.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: lbcwc.f90 :: s_lbcwc
-! Summary : Apply lateral boundary conditions for zeta contravariant velocity
-!           by copying values from interior to boundary points.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls within parallel region
-!   - Simple array copy operations (wc(boundary) = wc(interior))
-!   - Conditionals based on boundary type (wbc,ebc,sbc,nbc)
-!   - Uses module variables from m_commpi (ebw,ebe,ebs,ebn,isub,jsub,nisub,njsub)
-!   - No synchronization constructs besides implicit barrier at omp end do
-! Next:
-!   - Convert to OpenACC or OpenACC kernels
-!   - Consider collapsing k and j/i loops for better GPU utilization
-!   - Simpler structure than lbcw (no advopt branching)
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('lbcwc.f90', 's_lbcwc', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(2)+1,8) * int((nj-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -323,8 +291,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

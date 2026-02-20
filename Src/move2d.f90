@@ -19,7 +19,6 @@
 ! Module reference
 
       use m_getrname
-      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -97,11 +96,6 @@
 
       integer kl       ! Array index in z direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -112,32 +106,6 @@
 ! -----
 
 ! Add the relative velocity to the u1d and the v1d.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: move2d.f90 :: s_move2d
-! Summary : Subtract grid moving velocity (umove, vmove) from horizontally
-!           averaged velocity profiles u1d and v1d
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Simple subtraction operation on 1D arrays
-!   - Writes to u1d, v1d arrays (in-place modification)
-!   - Single worksharing construct with 1D loop
-!   - No synchronization constructs besides implicit barriers at !$omp end do
-! Next:
-!   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
-!   - Small array size (nlev) may not benefit significantly from GPU offloading
-!   - Consider keeping on CPU if nlev is small
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('move2d.f90', 's_move2d', &
-   & 'OMP section 1')
-end if
-loop_len = int((nlev)-(0)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared)
 
@@ -151,8 +119,6 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

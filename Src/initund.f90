@@ -25,8 +25,6 @@
 ! Module reference
 
       use m_comindx
-      use m_comprofile
-      use m_dump_kernel
       use m_comphy
       use m_getcname
       use m_getiname
@@ -176,14 +174,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_initund = 0
-      integer, parameter :: DUMP_TARGET_initund = 1
-      logical, save :: dump_done_initund = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -192,7 +183,6 @@
 
       call inichar(sfcdat)
 
-! -----
 
 ! Get the required namelist variables.
 
@@ -203,7 +193,6 @@
       call getrname(fptgdeep,tgdeep)
       call getrname(fpsstcst,sstcst)
 
-! -----
 
 ! Set the common used variables.
 
@@ -213,7 +202,6 @@
       enk=exp(real(1-nund)*dzgrd)
       enkm1v=1.e0/(exp(real(1-nund)*dzgrd)-1.e0)
 
-! -----
 
 ! Read the sea surface temperature from external data file.
 
@@ -224,7 +212,6 @@
 
       end if
 
-! -----
 
 ! Read the soil and sea temperature from restart file.
 
@@ -235,72 +222,12 @@
 
       end if
 
-! -----
 
 !!! Initialize the soil and sea temperature.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: initund.f90 :: s_initund
-! Summary : Initialize soil and sea temperature arrays (tund, tundp) based on
-!           surface type (land/sea), SST data, and atmospheric conditions
-! GPU diff: Medium
-! Findings:
-!   - Multiple conditional branches (sfcopt, sfcdat, advopt, land type)
-!   - Calls intrinsic exp, log, min, real functions (GPU-compatible)
-!   - Private variables: k, i, j
-!   - Reads from land, sst, pbr, ptbr, pp, ptp, ek arrays
-!   - Writes to tund and tundp arrays
-!   - Uses shared ek array computed within parallel region
-!   - Multiple omp do regions within single parallel block
-!   - No sync constructs between threads
-! Next:
-!   - Can be ported to GPU with OpenACC parallel loop
-!   - Ensure ek array is properly handled (computed then used)
-!   - Consider separating different sfcopt cases into different kernels
-! Runtime:
-!   - Calls: 1
-!   - AvgLoops: 806.4K
-!   - TotalTime: 0.003s (0.00%)
-!   - AvgTime: 3.217ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('initund.f90', 's_initund', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_initund = dump_call_count_initund + 1
-if (dump_call_count_initund == DUMP_TARGET_initund .and. .not. dump_done_initund) then
-  call dump_init('initund')
-  call dump_scalar_c('sfcdat', sfcdat)
-  call dump_scalar_i('sfcopt', sfcopt)
-  call dump_scalar_i('advopt', advopt)
-  call dump_scalar_r('dzgrd', dzgrd)
-  call dump_scalar_r('tgdeep', tgdeep)
-  call dump_scalar_r('sstcst', sstcst)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('nund', nund)
-  call dump_scalar_r('t0', t0)
-  call dump_array_3d('pbr.bin', pbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptbr.bin', ptbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('pp.bin', pp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptp.bin', ptp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d_int('land.bin', land, 0, ni+1, 0, nj+1)
-  call dump_array_2d('sst_in.bin', sst, 0, ni+1, 0, nj+1)
-  ! FIXME: ek is an array, not scalar
-  ! ! FIXME: ek is array - call dump_scalar_r('ek', ek)
-  call dump_scalar_r('enk', enk)
-  call dump_scalar_r('enkm1v', enkm1v)
-  call dump_scalar_r('p0iv', p0iv)
-  call dump_scalar_r('rddvcp', rddvcp)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_179)
 !----------------------------------------------------------------------
@@ -542,7 +469,6 @@ end if
 
         end if
 
-! -----
 
 ! Set the soil temperature.
 
@@ -579,7 +505,6 @@ end if
 
         end do
 
-! -----
 
 ! Copy the past value to the present.
 
@@ -601,7 +526,6 @@ end if
 
         end if
 
-! -----
 
 !! -----
 
@@ -711,23 +635,13 @@ end if
 
       end if
 
-! -----
 
 !$omp end parallel
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_initund == DUMP_TARGET_initund .and. .not. dump_done_initund) then
-  call dump_array_3d('tund_ref.bin', tund, 0, ni+1, 0, nj+1, 1, nund)
-  call dump_array_3d('tundp_ref.bin', tundp, 0, ni+1, 0, nj+1, 1, nund)
-  call dump_array_2d('sst_ref.bin', sst, 0, ni+1, 0, nj+1)
-  call dump_finalize()
-  dump_done_initund = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

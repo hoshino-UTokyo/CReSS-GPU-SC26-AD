@@ -23,8 +23,6 @@
 ! Module reference
 
       use m_comindx
-      use m_comprofile
-      use m_dump_kernel
       use m_getiname
       use m_getrname
 
@@ -163,14 +161,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_smoo4qv = 0
-      integer, parameter :: DUMP_TARGET_smoo4qv = 360
-      logical, save :: dump_done_smoo4qv = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -185,77 +176,18 @@
       call getrname(fpsmhcoe,smhcoe)
       call getrname(fpsmvcoe,smvcoe)
 
-! -----
 
 ! Set the common used variables.
 
       nkm1=nk-1
       nkm2=nk-2
 
-! -----
 
 ! Calculate the 4th order smoothing.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: smoo4qv.f90 :: s_smoo4qv
-! Summary : Applies 4th order numerical smoothing to water vapor mixing ratio
-!           with horizontal/vertical coefficients and conditional branching
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls inside parallel region
-!   - Multiple !$omp do loops with schedule(runtime)
-!   - Conditional branch with mod(smtopt,10).eq.2 inside parallel region
-!   - Writes to rbrqv, rbrqv2, tmp1, tmp2, tmp3, qvfrc arrays
-!   - No synchronization constructs besides implicit barriers
-! Next:
-!   - Data managed automatically via Unified Memory
-!   - Consider separating branches into distinct kernels
-!   - Use collapse(2) for nested loops
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 102.4M
-!   - TotalTime: 9.285s (0.31%)
-!   - AvgTime: 25.791ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('smoo4qv.f90', 's_smoo4qv', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-jnorth)-(jsouth)+1,8) &
-     & * int((ni-ieast)-(iwest)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_smoo4qv = dump_call_count_smoo4qv + 1
-if (dump_call_count_smoo4qv == DUMP_TARGET_smoo4qv .and. .not. dump_done_smoo4qv) then
-  call dump_init('smoo4qv')
-  call dump_scalar_i('smtopt', smtopt)
-  call dump_scalar_i('iwest', iwest)
-  call dump_scalar_i('ieast', ieast)
-  call dump_scalar_i('jsouth', jsouth)
-  call dump_scalar_i('jnorth', jnorth)
-  call dump_scalar_r('smhcoe', smhcoe)
-  call dump_scalar_r('smvcoe', smvcoe)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_array_3d('qv.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvbr.bin', qvbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvfrc_in.bin', qvfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rbrqv_in.bin', rbrqv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rbrqv2_in.bin', rbrqv2, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp1_in.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp2_in.bin', tmp2, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp3_in.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_i('nkm1', nkm1)
-  call dump_scalar_i('nkm2', nkm2)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_302)
 ! GPU version (OpenACC) - same loop structure with acc kernels
@@ -482,22 +414,9 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_smoo4qv == DUMP_TARGET_smoo4qv .and. .not. dump_done_smoo4qv) then
-  call dump_array_3d('qvfrc_ref.bin', qvfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rbrqv_ref.bin', rbrqv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rbrqv2_ref.bin', rbrqv2, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp1_ref.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp2_ref.bin', tmp2, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp3_ref.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_smoo4qv = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
       end subroutine s_smoo4qv
 

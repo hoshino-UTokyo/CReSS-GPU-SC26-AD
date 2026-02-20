@@ -17,7 +17,6 @@
 ! Module reference
 
       use m_comindx
-      use m_comprofile
       use m_commath
       use m_commpi
       use m_currpe
@@ -178,12 +177,6 @@
       integer j        ! Array index in y direction
 
       integer ic       ! Index of do loop
-
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer, save :: prof_id2 = -1
-      integer(8) :: loop_len
 
 !-----7--------------------------------------------------------------7--
 
@@ -480,30 +473,6 @@
 
 ! Calculate the minimum latitude and longitude.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: paractl.f90 :: s_paractl
-! Summary : Find minimum/maximum latitude and longitude from corner points
-!           using reduction operations.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region (pure arithmetic with min/max)
-!   - No global/module variable writes
-!   - Uses reduction(min:) and reduction(max:) for latmin, lonmin, latmax, lonmax
-!   - Small loop iteration count (4-5 iterations) - may not benefit from GPU
-! Next:
-!   - Consider keeping on CPU due to small iteration count
-!   - If porting, use GPU reduction primitives or atomic operations
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('paractl.f90', 's_paractl', &
-   & 'OMP section 1')
-end if
-loop_len = int((5)-(1)+1,8)
-call profile_start(prof_id1)
-
 !$omp parallel default(shared)
 
       if(mpopt.eq.1.or.mpopt.eq.2) then
@@ -543,8 +512,6 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 
@@ -731,21 +698,6 @@ call profile_stop(prof_id1, loop_len)
 
 ! Calculate the latitude with the Mercator projection method.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: paractl.f90 :: s_paractl
-! Summary : Compute latitude array for Mercator projection using exponential
-!           and trigonometric functions.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - Uses intrinsic functions: atan, exp, max, min (GPU-compatible)
-!   - No global/module variable writes (only mlat output array)
-!   - No sync constructs
-!   - Conditional based on uniopt_uni with different loop bounds
-! Next:
-!   - Convert to OpenACC with device math library
-!   - Ensure atan/exp are available on GPU device
-!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
       if(mpopt.eq.3.or.mpopt.eq.13) then

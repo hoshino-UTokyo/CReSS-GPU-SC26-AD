@@ -23,8 +23,6 @@
 !-----7--------------------------------------------------------------7--
 
 ! Implicit typing
-      use m_comprofile
-      use m_dump_kernel
 
       implicit none
 
@@ -115,71 +113,16 @@
       real s318s       ! s31 at scalar points
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_defomssq = 0
-      integer, parameter :: DUMP_TARGET_defomssq = 360
-      logical, save :: dump_done_defomssq = .false.
 
 
 !-----7--------------------------------------------------------------7--
 
 ! Calculate the magnitude of the deformation squared.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: defomssq.f90 :: s_defomssq
-! Summary : Calculate magnitude of deformation tensor squared from diagonal
-!           and off-diagonal strain rate components using stencil averaging.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Private variable k for outer loop
-!   - Writes to ssq output array
-!   - Stencil operations averaging s12, s31, s32 at neighboring points
-!   - Independent operations for each grid point
-! Next:
-!   - Direct conversion to OpenACC with collapsed loops
-!   - Data managed automatically via Unified Memory
-!   - Good candidate for GPU due to arithmetic intensity
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 102.4M
-!   - TotalTime: 3.000s (0.10%)
-!   - AvgTime: 8.333ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('defomssq.f90', 's_defomssq', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_defomssq = dump_call_count_defomssq + 1
-if (dump_call_count_defomssq == DUMP_TARGET_defomssq .and. .not. dump_done_defomssq) then
-  call dump_init('defomssq')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_array_3d('s11.bin', s11, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('s22.bin', s22, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('s33.bin', s33, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('s12.bin', s12, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('s31.bin', s31, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('s32.bin', s32, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('s128s', s128s)
-  call dump_scalar_r('s318s', s318s)
-  call dump_scalar_r('s328s', s328s)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_075)
 !----------------------------------------------------------------------
@@ -235,17 +178,9 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_defomssq == DUMP_TARGET_defomssq .and. .not. dump_done_defomssq) then
-  call dump_array_3d('ssq_ref.bin', ssq, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_defomssq = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
       end subroutine s_defomssq
 

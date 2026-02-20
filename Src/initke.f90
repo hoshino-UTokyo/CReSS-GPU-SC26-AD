@@ -22,7 +22,6 @@
 ! Module reference
 
       use m_bc4news
-      use m_comprofile
       use m_bcycle
       use m_combuf
       use m_comindx
@@ -197,11 +196,6 @@
 
       real sqrtke      ! Square root of turbulent kinetic energy
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 !!! Initialize the turbulent kinetic energy.
@@ -238,34 +232,6 @@
 ! -----
 
 !! Set the initial turbulent kinetic energy.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: initke.f90 :: s_initke
-! Summary : Initialize turbulent kinetic energy (tkep) from vertical eddy
-!           viscosity (rkv), with isotropic/anisotropic grid options
-! GPU diff: Medium
-! Findings:
-!   - Multiple conditional branches (isoopt, mfcopt, mpopt)
-!   - Calls intrinsic exp and log functions (GPU-compatible)
-!   - Private variables: k, i, j, sqrtke
-!   - Reads from jcb, rmf, rbr, rst, rkv arrays
-!   - Writes only to tkep array
-!   - No sync constructs or complex data dependencies
-! Next:
-!   - Can be ported to GPU with OpenACC parallel loop
-!   - Conditional branches can be handled with GPU kernels
-!   - Consider separating isotropic and anisotropic cases into different kernels
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('initke.f90', 's_initke', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -367,8 +333,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

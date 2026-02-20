@@ -22,7 +22,6 @@
 ! Module reference
 
       use m_getrname
-      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -119,11 +118,6 @@
       real clcr        ! Collection rate
                        ! between cloud water and rain water
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -140,32 +134,6 @@
 
 ! Calculate the collection rate between the cloud water and the rain
 ! water.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: collc2r.f90 :: s_collc2r
-! Summary : Calculates collection rate between cloud water and rain water
-!           using exponential/logarithmic formulas for microphysics.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls inside parallel region (only intrinsic exp, log)
-!   - Simple 3D loop with private loop variables and local temporaries
-!   - No synchronization constructs beyond implicit barrier at end do
-!   - Read/write to qcf and qrf arrays with independent grid points
-! Next:
-!   - Can be ported directly with OpenACC or OpenACC parallel loop
-!   - Consider collapsing the k,j,i loops for better GPU occupancy
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('collc2r.f90', 's_collc2r', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -202,8 +170,6 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

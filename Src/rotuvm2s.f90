@@ -23,7 +23,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
       use m_getiname
       use m_getrname
 
@@ -165,11 +164,6 @@
       real utmp        ! Temporary variable of x components of velocity
       real vtmp        ! Temporary variable of y components of velocity
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -190,34 +184,6 @@
 
 !! Rotate the x and the y components of velocity from the model grid to
 !! the data sphere.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: rotuvm2s.f90 :: s_rotuvm2s
-! Summary : Rotate velocity components from projected grid to lat/lon grid for different map projections
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - Uses intrinsic functions: cos, sin
-!   - Three conditional branches based on mpopt (1, 2, or 4)
-!   - Outer k loop is serial with inner !$omp do on i,j
-!   - In-place update of u and v arrays using temp variables utmp, vtmp
-!   - Conditional on u,v > lim34n before rotation
-!   - No synchronization constructs
-! Next:
-!   - Collapse k,j,i loops for better GPU parallelism
-!   - Consider separate kernels for each mpopt case
-!   - Use OpenACC teams distribute parallel for collapse(3)
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('rotuvm2s.f90', 's_rotuvm2s', &
-   & 'OMP section 1')
-end if
-loop_len = int((kend)-(kstr)+1,8) &
-     & * int((jend)-(jstr)+1,8) &
-     & * int((iend)-(istr)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -329,8 +295,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

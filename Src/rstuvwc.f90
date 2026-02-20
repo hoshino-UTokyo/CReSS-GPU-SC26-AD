@@ -19,8 +19,6 @@
 ! Module reference
 
       use m_getiname
-      use m_comprofile
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -155,14 +153,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_rstuvwc = 0
-      integer, parameter :: DUMP_TARGET_rstuvwc = 360
-      logical, save :: dump_done_rstuvwc = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -176,67 +167,12 @@
       call getiname(fpjsouth,jsouth)
       call getiname(fpjnorth,jnorth)
 
-! -----
 
 ! The base state density x the Jacobian is multiplyed by u, v and w.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: rstuvwc.f90 :: s_rstuvwc
-! Summary : Multiply base state density x Jacobian by velocity components u, v, and wc
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Multiple conditional branches based on mfcopt and mpopt
-!   - Outer k loop is serial with inner !$omp do on i,j
-!   - Three separate loop nests for rstxu, rstxv, rstxwc
-!   - Simple element-wise multiplication and assignment
-!   - No synchronization constructs
-! Next:
-!   - Collapse k,j,i loops for better GPU parallelism
-!   - Consider separate kernels for u, v, wc computations
-!   - Use OpenACC teams distribute parallel for collapse(3)
-!   - Fuse the three loop nests if possible for better memory access
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 102.5M
-!   - TotalTime: 4.050s (0.14%)
-!   - AvgTime: 11.251ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('rstuvwc.f90', 's_rstuvwc', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni+1-ieast)-(iwest)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_rstuvwc = dump_call_count_rstuvwc + 1
-if (dump_call_count_rstuvwc == DUMP_TARGET_rstuvwc .and. .not. dump_done_rstuvwc) then
-  call dump_init('rstuvwc')
-  call dump_scalar_i('mpopt', mpopt)
-  call dump_scalar_i('mfcopt', mfcopt)
-  call dump_scalar_i('iwest', iwest)
-  call dump_scalar_i('ieast', ieast)
-  call dump_scalar_i('jsouth', jsouth)
-  call dump_scalar_i('jnorth', jnorth)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_array_2d('mf8u.bin', mf8u, 0, ni+1, 0, nj+1)
-  call dump_array_2d('mf8v.bin', mf8v, 0, ni+1, 0, nj+1)
-  call dump_array_3d('rst8u.bin', rst8u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rst8v.bin', rst8v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rst8w.bin', rst8w, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wc.bin', wc, 0, ni+1, 0, nj+1, 1, nk)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_266)
 ! GPU version (OpenACC)
@@ -500,19 +436,9 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_rstuvwc == DUMP_TARGET_rstuvwc .and. .not. dump_done_rstuvwc) then
-  call dump_array_3d('rstxu_ref.bin', rstxu, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rstxv_ref.bin', rstxv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rstxwc_ref.bin', rstxwc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_rstuvwc = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
       end subroutine s_rstuvwc
 

@@ -20,7 +20,6 @@
 ! Module reference
 
       use m_getindx
-      use m_comprofile
       use m_getrname
 
 !-----7--------------------------------------------------------------7--
@@ -124,11 +123,6 @@
       integer i        ! Array index in x direction
       integer j        ! Array index in y direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -147,30 +141,6 @@
 ! Calculate the real indices from the 2 dimensional x and the y
 ! coordinates at the model grid points.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: xy2ij.f90 :: s_xy2ij
-! Summary : Convert 2D x,y coordinates to real grid indices (ri, rj) using
-!           inverse grid spacing multipliers.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread usage
-!   - No function calls inside parallel region
-!   - No global variable writes (only output arrays ri, rj)
-!   - No synchronization constructs beyond implicit barrier at end do
-!   - Simple element-wise computation with no data dependencies
-! Next:
-!   - Direct translation to OpenACC or OpenACC parallel loop
-!   - Map x2d, y2d as to, and ri, rj as from
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('xy2ij.f90', 's_xy2ij', &
-   & 'OMP section 1')
-end if
-loop_len = int((jend)-(jstr)+1,8) * int((iend)-(istr)+1,8)
-call profile_start(prof_id1)
-
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j)
@@ -185,8 +155,6 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

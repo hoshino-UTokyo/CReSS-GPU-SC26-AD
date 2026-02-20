@@ -18,7 +18,6 @@
 ! Module reference
 
       use m_remapbw
-      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -166,12 +165,6 @@
 
       real mwbr        ! Mean water mass
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer, save :: prof_id2 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 !!! Perform the coalescence processes.
@@ -179,34 +172,6 @@
       do ns=nqw,2,-1
 
 !! Get current new value.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: coalbw.f90 :: s_coalbw
-! Summary : Perform coalescence processes between water bins including
-!           continuous and stochastic coalescence with bin remapping
-! GPU diff: Hard
-! Findings:
-!   - No omp_get_thread_num usage
-!   - Calls s_remapbw subroutine OUTSIDE parallel region (between parallel blocks)
-!   - No reductions inside parallel region
-!   - Complex conditional logic with nested loops over bin categories (ns, n_sub)
-!   - In-place modifications to mwbin, nwbin arrays
-!   - Multiple intermediate arrays: mwbrs, bmwsc, bmwss, mwsc, nwsc, mwss, nwss, pct
-!   - Loop-carried dependencies through pct accumulation
-!   - Sequential outer loop (ns=nqw,2,-1) with parallel inner loops
-! Next:
-!   - Challenging due to loop-carried dependencies and complex conditionals
-!   - Consider restructuring for better GPU parallelization
-!   - May need to parallelize over (i,j) only, keeping bin loop sequential
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('coalbw.f90', 's_coalbw', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(n_sub)
 
@@ -427,8 +392,6 @@ call profile_start(prof_id1)
 
 !$omp end parallel
 
-call profile_stop(prof_id1, loop_len)
-
 !! -----
 
 !! Perform remapping for stochastic coalescense.
@@ -437,21 +400,6 @@ call profile_stop(prof_id1, loop_len)
 
 ! Get the shifted bin boundaries.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: coalbw.f90 :: s_coalbw
-! Summary : Compute shifted bin boundaries (bmwss) for stochastic coalescence
-!           remapping based on coalescence probability
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function/subroutine calls inside parallel region
-!   - No reductions or synchronization constructs
-!   - Simple conditional assignment based on mwss and pct values
-!   - Reads bmwsc, bmw; writes bmwss
-! Next:
-!   - Direct OpenACC with collapse(2) for GPU
-!   - Small kernel; consider fusing with adjacent parallel regions
-!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j)

@@ -25,8 +25,6 @@
 ! Module reference
 
       use m_getiname
-      use m_comprofile
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -157,14 +155,7 @@
 !     wf: This variable is also temporary.
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_vbcw = 0
-      integer, parameter :: DUMP_TARGET_vbcw = 14401
-      logical, save :: dump_done_vbcw = .false.
 
 !-----7--------------------------------------------------------------7--
 
@@ -175,7 +166,6 @@
       call getiname(fpmpopt,mpopt)
       call getiname(fpmfcopt,mfcopt)
 
-! -----
 
 ! Set the common used variables.
 
@@ -183,74 +173,12 @@
       nkm2=nk-2
       nkm3=nk-3
 
-! -----
 
 !! Set the bottom and top boundary conditions.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: vbcw.f90 :: s_vbcw
-! Summary : Sets vertical boundary conditions for z-velocity component using
-!           terrain-following coordinate transformations at bottom/top.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - No global/module variable writes, only local array writes
-!   - No synchronization constructs (barrier, critical, atomic)
-!   - Complex conditional branching on bbc, tbc, mfcopt, mpopt values
-!   - Many separate omp do regions (20+) within single parallel region
-!   - Uses temporary 2D arrays (mf25, j31u2, j32v2) for intermediate results
-!   - Data dependency: j31u2/j32v2 computed then used in subsequent loops
-! Next:
-!   - Consider restructuring to reduce number of kernel launches on GPU
-!   - Ensure proper data movement for intermediate 2D arrays
-!   - May benefit from fusing some loops where data dependencies allow
-!   - Conditionals can be handled with masked operations or separate kernels
-! Runtime:
-!   - Calls: 14401
-!   - AvgLoops: 806.4K
-!   - TotalTime: 5.081s (0.17%)
-!   - AvgTime: 0.353ms
-!@llm end meta_info ------------------------------------------------------
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('vbcw.f90', 's_vbcw', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
 
-! Dump input data at target call
-dump_call_count_vbcw = dump_call_count_vbcw + 1
-if (dump_call_count_vbcw == DUMP_TARGET_vbcw .and. .not. dump_done_vbcw) then
-  call dump_init('vbcw')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('bbc', bbc)
-  call dump_scalar_i('tbc', tbc)
-  call dump_scalar_i('mpopt', mpopt)
-  call dump_scalar_i('mfcopt', mfcopt)
-  call dump_array_3d('j31.bin', j31, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('j32.bin', j32, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('jcb8w.bin', jcb8w, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('mf.bin', mf, 0, ni+1, 0, nj+1)
-  call dump_array_3d('uf.bin', uf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vf.bin', vf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wc.bin', wc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wf_in.bin', wf, 0, ni+1, 0, nj+1, 1, nk)
-  ! FIXME: j31u2 is an array, not scalar
-  ! ! FIXME: j31u2 is array - call dump_scalar_r('j31u2', j31u2)
-  ! FIXME: j32v2 is an array, not scalar
-  ! ! FIXME: j32v2 is array - call dump_scalar_r('j32v2', j32v2)
-  ! FIXME: mf25 is an array, not scalar
-  ! ! FIXME: mf25 is array - call dump_scalar_i('mf25', mf25)
-  call dump_scalar_i('nkm1', nkm1)
-  call dump_scalar_i('nkm2', nkm2)
-  call dump_scalar_i('nkm3', nkm3)
-end if
 
-call profile_start(prof_id1)
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_363)
 !----------------------------------------------------------------------
@@ -592,7 +520,6 @@ call profile_start(prof_id1)
 
       end if
 
-! -----
 
 ! Set the bottom boundary conditions.
 
@@ -778,7 +705,6 @@ call profile_start(prof_id1)
 
       end if
 
-! -----
 
 ! Set the top boundary conditions.
 
@@ -896,20 +822,12 @@ call profile_start(prof_id1)
 
       end if
 
-! -----
 
 !$omp end parallel
 
 #endif
 
-call profile_stop(prof_id1, loop_len)
 
-! Dump output data at target call
-if (dump_call_count_vbcw == DUMP_TARGET_vbcw .and. .not. dump_done_vbcw) then
-  call dump_array_3d('wf_ref.bin', wf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_vbcw = .true.
-end if
 
 !! -----
 

@@ -21,8 +21,6 @@
 ! Module reference
 
       use m_getiname
-      use m_comprofile
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -108,14 +106,7 @@
       integer j        ! Array index in y direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_vbcwc = 0
-      integer, parameter :: DUMP_TARGET_vbcwc = 15121
-      logical, save :: dump_done_vbcwc = .false.
 
 !-----7--------------------------------------------------------------7--
 
@@ -124,59 +115,18 @@
       call getiname(fpbbc,bbc)
       call getiname(fptbc,tbc)
 
-! -----
 
 ! Set the common used variables.
 
       nkm1=nk-1
       nkm2=nk-2
 
-! -----
 
 !! Set the bottom and top boundary conditions.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: vbcwc.f90 :: s_vbcwc
-! Summary : Set vertical boundary conditions (bottom/top) for zeta contravariant velocity
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Simple array writes to wc (inout) with conditional branches
-!   - Multiple !$omp do regions with private(i,j) and schedule(runtime)
-!   - No synchronization constructs beyond implicit barriers at end do
-! Next:
-!   - Direct OpenACC with Unified Memory (no explicit data transfer needed)
-!   - Consider collapsing i,j loops and using teams distribute
-! Runtime:
-!   - Calls: 15121
-!   - AvgLoops: 806.4K
-!   - TotalTime: 0.833s (0.03%)
-!   - AvgTime: 0.055ms
-!@llm end meta_info ------------------------------------------------------
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('vbcwc.f90', 's_vbcwc', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
 
-! Dump input data at target call
-dump_call_count_vbcwc = dump_call_count_vbcwc + 1
-if (dump_call_count_vbcwc == DUMP_TARGET_vbcwc .and. .not. dump_done_vbcwc) then
-  call dump_init('vbcwc')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('bbc', bbc)
-  call dump_scalar_i('tbc', tbc)
-  call dump_array_3d('wc_in.bin', wc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_i('nkm1', nkm1)
-  call dump_scalar_i('nkm2', nkm2)
-end if
 
-call profile_start(prof_id1)
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_364)
 !----------------------------------------------------------------------
@@ -272,7 +222,6 @@ call profile_start(prof_id1)
 
       end if
 
-! -----
 
 ! Set the top boundary conditions.
 
@@ -303,20 +252,12 @@ call profile_start(prof_id1)
 
       end if
 
-! -----
 
 !$omp end parallel
 
 #endif
 
-call profile_stop(prof_id1, loop_len)
 
-! Dump output data at target call
-if (dump_call_count_vbcwc == DUMP_TARGET_vbcwc .and. .not. dump_done_vbcwc) then
-  call dump_array_3d('wc_ref.bin', wc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_vbcwc = .true.
-end if
 
 !! -----
 

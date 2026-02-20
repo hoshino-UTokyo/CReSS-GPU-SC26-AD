@@ -22,7 +22,6 @@
 ! Module reference
 
       use m_commpi
-      use m_comprofile
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -118,11 +117,6 @@
       integer i        ! Array index in x direction
       integer j        ! Array index in y direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -149,33 +143,6 @@
 !!! Set the lateral boundary conditions.
 
 !! Set the boundary conditions at the opened sections.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: bc2d.f90 :: s_bc2d
-! Summary : Set lateral boundary conditions for 2D variables at west,
-!           east, south, north boundaries based on wbc/ebc/sbc/nbc options
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Writes to intent(inout) array var2d at boundary points
-!   - Multiple conditional branches based on boundary options (wbc,ebc,sbc,nbc)
-!   - Uses MPI domain info (ebw,ebe,ebs,ebn,isub,jsub,nisub,njsub)
-!   - Eight separate loop regions for different boundary conditions
-! Next:
-!   - GPU port requires careful handling of conditional execution
-!   - Consider launching separate kernels per boundary
-!   - Small loop sizes (boundary points only) may favor CPU
-!   - Corner updates done sequentially outside parallel region
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('bc2d.f90', 's_bc2d', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj+1)-(0)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared)
 
@@ -312,8 +279,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

@@ -19,7 +19,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
       use m_comphy
       use m_comtable
       use m_getrname
@@ -207,11 +206,6 @@
 
       real a           ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -238,36 +232,6 @@
 !!! Set the initial bin distribution of total water, calculate the new
 !!! potential temperature and water vapor mixing ratio and set the
 !!! bottom boundary conditions.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: inidisbw.f90 :: s_inidisbw
-! Summary : Set initial bin distribution of total water with cloud condensation
-!           nuclei calculations, update potential temperature and water vapor
-! GPU diff: Hard
-! Findings:
-!   - Multiple nested do loops with complex conditionals (if-else chains)
-!   - Calls intrinsic exp and log functions (GPU-compatible)
-!   - Private variables: k, n, i, j, cexp, nd, lvcpi, a
-!   - Complex data dependencies between loops (c, d, d1-d4, cd1, ccd1, gi, fi)
-!   - Sequential loop structure with inner parallel do loops
-!   - Multiple omp do regions within single parallel block
-!   - Array accesses with conditional writes based on qwtmp thresholds
-! Next:
-!   - Refactor to eliminate data dependencies between loop nests
-!   - Consider kernel fusion for related computations
-!   - Ensure intermediate arrays (gi, fi, d, d1-d4) are properly managed on GPU
-!   - May need atomic operations or careful scheduling for c(i,j,k) updates
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('inidisbw.f90', 's_inidisbw', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(2)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k,n)
 
@@ -526,8 +490,6 @@ call profile_start(prof_id1)
 !! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

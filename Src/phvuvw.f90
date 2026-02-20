@@ -26,8 +26,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
-      use m_dump_kernel
       use m_commpi
       use m_getcname
       use m_getiname
@@ -276,14 +274,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_phvuvw = 0
-      integer, parameter :: DUMP_TARGET_phvuvw = 360
-      logical, save :: dump_done_phvuvw = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -292,7 +283,6 @@
 
       call inichar(exbvar)
 
-! -----
 
 ! Get the required namelist variables.
 
@@ -308,7 +298,6 @@
       call getrname(fpdyiv,dyiv)
       call getrname(fpgwave,gwave)
 
-! -----
 
 ! Set the common used variables.
 
@@ -361,111 +350,12 @@
       nkm2v=1.e0/real(nk-2)
       nkm3v=1.e0/real(nk-3)
 
-! -----
 
 !!! Calculate the velocity phase speed for the open boundary conditions.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: phvuvw.f90 :: s_phvuvw
-! Summary : Calculate velocity phase speed (u,v,w) for open boundary
-!           conditions on all four boundaries (west, east, south, north).
-! GPU diff: Hard
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region (only intrinsic abs, sign, min, max, mod)
-!   - Writes to output arrays ucpx, ucpy, vcpx, vcpy, wcpx, wcpy
-!   - Uses shared work arrays cpavex, cpavey, u8v, v8u for vertical averaging
-!   - Complex conditional branching based on boundary condition options
-!   - Multiple sequential k-loops with workshared inner j/i loops
-!   - No explicit barriers but implicit at !$omp end do
-! Next:
-!   - Collapse nested loops where possible for better GPU occupancy
-!   - Consider using OpenACC kernels directive with appropriate private clauses
-!   - Boundary-only computation may benefit from separate small kernels
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 112.2K
-!   - TotalTime: 5.198s (0.17%)
-!   - AvgTime: 14.440ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('phvuvw.f90', 's_phvuvw', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) * int((nj-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_phvuvw = dump_call_count_phvuvw + 1
-if (dump_call_count_phvuvw == DUMP_TARGET_phvuvw .and. .not. dump_done_phvuvw) then
-  call dump_init('phvuvw')
-  call dump_scalar_c('exbvar', exbvar)
-  call dump_scalar_i('exbopt', exbopt)
-  call dump_scalar_i('wbc', wbc)
-  call dump_scalar_i('ebc', ebc)
-  call dump_scalar_i('sbc', sbc)
-  call dump_scalar_i('nbc', nbc)
-  call dump_scalar_i('mpopt', mpopt)
-  call dump_scalar_i('mfcopt', mfcopt)
-  call dump_scalar_r('dxiv', dxiv)
-  call dump_scalar_r('dyiv', dyiv)
-  call dump_scalar_r('gwave', gwave)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('dtb', dtb)
-  call dump_scalar_r('dts', dts)
-  call dump_array_3d('rmf.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
-  call dump_array_3d('rmf8u.bin', rmf8u, 0, ni+1, 0, nj+1, 1, 3)
-  call dump_array_3d('rmf8v.bin', rmf8v, 0, ni+1, 0, nj+1, 1, 3)
-  call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('up.bin', up, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('uf.bin', uf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vp.bin', vp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vf.bin', vf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('w.bin', w, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wp.bin', wp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wf.bin', wf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('u8v_in.bin', u8v, 0, nj+1, 1, nk)
-  call dump_array_2d('v8u_in.bin', v8u, 0, ni+1, 1, nk)
-  ! FIXME: cpavex is an array, not scalar
-  ! ! FIXME: cpavex is array - call dump_scalar_r('cpavex', cpavex)
-  ! FIXME: cpavey is an array, not scalar
-  ! ! FIXME: cpavey is array - call dump_scalar_r('cpavey', cpavey)
-  call dump_scalar_r('dtsdb', dtsdb)
-  call dump_scalar_r('dxdt', dxdt)
-  call dump_scalar_r('dxdt5', dxdt5)
-  call dump_scalar_r('dydt', dydt)
-  call dump_scalar_r('dydt5', dydt5)
-  call dump_scalar_i('ebe', ebe)
-  call dump_scalar_i('ebn', ebn)
-  call dump_scalar_i('ebs', ebs)
-  call dump_scalar_i('ebw', ebw)
-  call dump_scalar_r('gdxdt', gdxdt)
-  call dump_scalar_r('gdxdtn', gdxdtn)
-  call dump_scalar_r('gdydt', gdydt)
-  call dump_scalar_r('gdydtn', gdydtn)
-  call dump_scalar_i('iend', iend)
-  call dump_scalar_i('istr', istr)
-  call dump_scalar_i('isub', isub)
-  call dump_scalar_i('jend', jend)
-  call dump_scalar_i('jstr', jstr)
-  call dump_scalar_i('jsub', jsub)
-  call dump_scalar_i('nim1', nim1)
-  call dump_scalar_i('nim2', nim2)
-  call dump_scalar_i('nim3', nim3)
-  call dump_scalar_i('nisub', nisub)
-  call dump_scalar_i('njm1', njm1)
-  call dump_scalar_i('njm2', njm2)
-  call dump_scalar_i('njm3', njm3)
-  call dump_scalar_i('njsub', njsub)
-  call dump_scalar_r('nkm2v', nkm2v)
-  call dump_scalar_r('nkm3v', nkm3v)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_235)
 !----------------------------------------------------------------------
@@ -767,7 +657,6 @@ end if
 
       end if
 
-! -----
 
 ! Calculate the u phase speed on the east boundary.
 
@@ -908,7 +797,6 @@ end if
 
       end if
 
-! -----
 
 ! Calculate the u phase speed on the south boundary.
 
@@ -1082,7 +970,6 @@ end if
 
       end if
 
-! -----
 
 ! Calculate the u phase speed on the north boundary.
 
@@ -1257,7 +1144,6 @@ end if
 
       end if
 
-! -----
 
 !! -----
 
@@ -1435,7 +1321,6 @@ end if
 
       end if
 
-! -----
 
 ! Calculate the v phase speed on the east boundary.
 
@@ -1610,7 +1495,6 @@ end if
 
       end if
 
-! -----
 
 ! Calculate the v phase speed on the south boundary.
 
@@ -1750,7 +1634,6 @@ end if
 
       end if
 
-! -----
 
 ! Calculate the v phase speed on the north boundary.
 
@@ -1891,7 +1774,6 @@ end if
 
       end if
 
-! -----
 
 !! -----
 
@@ -2035,7 +1917,6 @@ end if
 
       end if
 
-! -----
 
 ! Calculate the w phase speed on the east boundary.
 
@@ -2176,7 +2057,6 @@ end if
 
       end if
 
-! -----
 
 ! Calculate the w phase speed on the south boundary.
 
@@ -2316,7 +2196,6 @@ end if
 
       end if
 
-! -----
 
 ! Calculate the w phase speed on the north boundary.
 
@@ -2457,29 +2336,14 @@ end if
 
       end if
 
-! -----
 
 !! -----
 
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_phvuvw == DUMP_TARGET_phvuvw .and. .not. dump_done_phvuvw) then
-  call dump_array_3d('ucpx_ref.bin', ucpx, 1, nj, 1, nk, 1, 2)
-  call dump_array_3d('ucpy_ref.bin', ucpy, 1, ni, 1, nk, 1, 2)
-  call dump_array_3d('vcpx_ref.bin', vcpx, 1, nj, 1, nk, 1, 2)
-  call dump_array_3d('vcpy_ref.bin', vcpy, 1, ni, 1, nk, 1, 2)
-  call dump_array_3d('wcpx_ref.bin', wcpx, 1, nj, 1, nk, 1, 2)
-  call dump_array_3d('wcpy_ref.bin', wcpy, 1, ni, 1, nk, 1, 2)
-  call dump_array_2d('u8v_ref.bin', u8v, 0, nj+1, 1, nk)
-  call dump_array_2d('v8u_ref.bin', v8u, 0, ni+1, 1, nk)
-  call dump_finalize()
-  dump_done_phvuvw = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

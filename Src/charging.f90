@@ -17,7 +17,6 @@
 ! Module reference
 
       use m_comphy
-      use m_comprofile
       use m_comtable
 
 !-----7--------------------------------------------------------------7--
@@ -140,40 +139,11 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 !! Perfom useless calculations.
 
       if(qcgopt.eq.1.or.qcgopt.eq.2) then
-
-!@llm start meta_info ----------------------------------------------------
-! Location: charging.f90 :: s_charging
-! Summary : Compute charging distribution for cloud/rain/ice/snow/graupel/hail
-!           mixing ratios scaled by time step dtb
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function/subroutine calls inside parallel region
-!   - No global variable writes; only output arrays qccf,qrcf,qicf,qscf,qgcf,qhcf modified
-!   - No synchronization constructs (barrier, critical, atomic)
-!   - Simple element-wise operations with conditional branching on haiopt and nk
-! Next:
-!   - Direct OpenACC with collapse(2) or collapse(3) for GPU
-!   - Consider data management handled automatically via Unified Memory
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('charging.f90', 's_charging', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -294,8 +264,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
       end if
 

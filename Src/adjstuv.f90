@@ -20,8 +20,6 @@
 ! Module reference
 
       use m_commpi
-      use m_comprofile
-      use m_dump_kernel
       use m_comphy
       use m_getiname
       use m_getrname
@@ -220,15 +218,7 @@
       real a           ! Temporary variable
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer, save :: prof_id2 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_adjstuv = 0
-      integer, parameter :: DUMP_TARGET_adjstuv = 360
-      logical, save :: dump_done_adjstuv = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -244,7 +234,6 @@
       call getrname(fpdy,dy)
       call getrname(fpdz,dz)
 
-! -----
 
 ! Set the common used variables.
 
@@ -261,7 +250,6 @@
         tpdt=gtinc+dtb
       end if
 
-! -----
 
 ! Get the maximum and minimum do loops index.
 
@@ -289,7 +277,6 @@
         jend=nj-2
       end if
 
-! -----
 
 ! Initialize the sumed variables.
 
@@ -301,96 +288,16 @@
       dfls=0.e0
       dfln=0.e0
 
-! -----
 
 !! Adjust the x and y components of velocity.
 
 ! Calculate the 2.0 x total difference between bottom and top pressure
 ! and the flux on lateral boundary.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: adjstuv.f90 :: subroutine s_adjstuv (first parallel region)
-! Summary : Calculates total pressure difference and boundary fluxes
-!           for velocity adjustment using reduction operations.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - Uses MPI-related module variables (ebw, ebe, isub, nisub, etc.).
-!   - Multiple reduction(+:) operations for dpsp2, dpsf2, dflw, dfle, dfls, dfln.
-!   - Followed by MPI reduction calls (reducevb, reducelb) outside parallel.
-!   - Complex conditional branching based on mfcopt, mpopt, wbc, ebc.
-! Next:
-!   - OpenACC supports reductions; can use atomic or reduction clause.
-!   - Need to ensure MPI variables are available on device or passed in.
-!   - Consider fusing all reduction loops into single kernel with atomics.
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 806.4K
-!   - TotalTime: 0.115s (0.00%)
-!   - AvgTime: 0.318ms
-!@llm end meta_info ------------------------------------------------------
 
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('adjstuv.f90', 's_adjstuv', &
-   & 'OMP section 1')
-end if
-loop_len = int((jend)-(jstr)+1,8) * int((iend)-(istr)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_adjstuv = dump_call_count_adjstuv + 1
-if (dump_call_count_adjstuv == DUMP_TARGET_adjstuv .and. .not. dump_done_adjstuv) then
-  call dump_init('adjstuv')
-  call dump_scalar_i('wbc', wbc)
-  call dump_scalar_i('ebc', ebc)
-  call dump_scalar_i('advopt', advopt)
-  call dump_scalar_i('mpopt', mpopt)
-  call dump_scalar_i('mfcopt', mfcopt)
-  call dump_scalar_r('dx', dx)
-  call dump_scalar_r('dy', dy)
-  call dump_scalar_r('dz', dz)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('dtb', dtb)
-  call dump_scalar_r('gtinc', gtinc)
-  call dump_scalar_r('g', g)
-  call dump_array_3d('rmf.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
-  call dump_array_3d('rmf8u.bin', rmf8u, 0, ni+1, 0, nj+1, 1, 3)
-  call dump_array_3d('rmf8v.bin', rmf8v, 0, ni+1, 0, nj+1, 1, 3)
-  call dump_array_3d('rst8u.bin', rst8u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rst8v.bin', rst8v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ppp.bin', ppp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ppf.bin', ppf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ugpv.bin', ugpv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('utd.bin', utd, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vgpv.bin', vgpv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vtd.bin', vtd, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('uf_in.bin', uf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vf_in.bin', vf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('adj', adj)
-  call dump_scalar_r('dxdy', dxdy)
-  call dump_scalar_r('dxdz', dxdz)
-  call dump_scalar_r('dydz', dydz)
-  call dump_scalar_i('ebe', ebe)
-  call dump_scalar_i('ebn', ebn)
-  call dump_scalar_i('ebs', ebs)
-  call dump_scalar_i('ebw', ebw)
-  call dump_scalar_i('iend', iend)
-  call dump_scalar_i('istr', istr)
-  call dump_scalar_i('isub', isub)
-  call dump_scalar_i('jend', jend)
-  call dump_scalar_i('jstr', jstr)
-  call dump_scalar_i('jsub', jsub)
-  call dump_scalar_i('nisub', nisub)
-  call dump_scalar_i('njsub', njsub)
-  call dump_scalar_i('nkm1', nkm1)
-  call dump_scalar_i('nkm2', nkm2)
-  call dump_scalar_r('tpdt', tpdt)
-end if
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_009)
 !----------------------------------------------------------------------
@@ -760,18 +667,9 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_adjstuv == DUMP_TARGET_adjstuv .and. .not. dump_done_adjstuv) then
-  call dump_array_3d('uf_ref.bin', uf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vf_ref.bin', vf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_adjstuv = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
 ! Get the adjstment value.
 
@@ -792,25 +690,9 @@ call profile_stop(prof_id1, loop_len)
 
       end if
 
-! -----
 
 ! Finally adjust the x and y components of velocity.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: adjstuv.f90 :: subroutine s_adjstuv (second parallel region)
-! Summary : Applies adjustment value to u and v velocity components
-!           at boundary faces.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region.
-!   - Pure arithmetic operations, all GPU compatible.
-!   - Operates only on boundary faces (limited extent).
-!   - Uses MPI-related module variables for boundary conditions.
-! Next:
-!   - Direct OpenACC kernels for each boundary face.
-!   - May be more efficient to keep on CPU due to small extent.
-!@llm end meta_info ------------------------------------------------------
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_010)
 !----------------------------------------------------------------------
@@ -932,7 +814,6 @@ call profile_stop(prof_id1, loop_len)
 !$omp end parallel
 #endif
 
-! -----
 
 !! -----
 

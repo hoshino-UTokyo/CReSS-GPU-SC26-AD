@@ -26,8 +26,6 @@
 ! Module reference
 
       use m_comphy
-      use m_comprofile
-      use m_dump_kernel
       use m_getiname
       use m_getrname
 
@@ -172,14 +170,7 @@
       real lhcpt       ! Latent heat / (cp x t)
       real t_loc       ! Local temperature for GPU
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_bruntv = 0
-      integer, parameter :: DUMP_TARGET_bruntv = 360
-      logical, save :: dump_done_bruntv = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -190,7 +181,6 @@
       call getrname(fpdziv,dziv)
       call getrname(fpthresq,thresq)
 
-! -----
 
 ! Set the common used variables.
 
@@ -205,89 +195,12 @@
 
       p0iv=1.e0/p0
 
-! -----
 
 !!! Calculate the Brunt-Vaisala frequency squared.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: bruntv.f90 :: s_bruntv
-! Summary : Calculates Brunt-Vaisala frequency squared for atmospheric
-!           stability using potential temperature and moisture fields.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls inside parallel region
-!   - Intrinsic functions used: exp, log (transcendental, may need GPU libs)
-!   - Multiple conditional branches based on fmois and cphopt (divergence)
-!   - Multiple work arrays (pt, ptv, a, t) modified in sequence
-!   - Some data dependencies between loop nests (e.g., pt used to compute ptv)
-!   - 2D temporary array t(i,j) reused across k iterations
-! Next:
-!   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
-!   - Use collapse(2) for nested i,j loops
-!   - May need to restructure k-loop to avoid thread-local t array issues
-!   - Consider separating dry/moist cases into different GPU kernels
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 102.4M
-!   - TotalTime: 12.063s (0.40%)
-!   - AvgTime: 33.508ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('bruntv.f90', 's_bruntv', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_bruntv = dump_call_count_bruntv + 1
-if (dump_call_count_bruntv == DUMP_TARGET_bruntv .and. .not. dump_done_bruntv) then
-  call dump_init('bruntv')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('cphopt', cphopt)
-  call dump_scalar_r('dziv', dziv)
-  call dump_scalar_r('thresq', thresq)
-  call dump_scalar_c('fmois', fmois)
-  ! Comphy constants
-  call dump_scalar_r('g', g)
-  call dump_scalar_r('rd', rd)
-  call dump_scalar_r('cp', cp)
-  call dump_scalar_r('cw', cw)
-  call dump_scalar_r('ci', ci)
-  call dump_scalar_r('p0', p0)
-  call dump_scalar_r('lv0', lv0)
-  call dump_scalar_r('lf0', lf0)
-  call dump_scalar_r('t0', t0)
-  call dump_scalar_r('tlow', tlow)
-  call dump_scalar_r('epsav', epsav)
-  call dump_scalar_r('epsva', epsva)
-  ! Arrays
-  call dump_array_3d('jcb8w.bin', jcb8w, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('pbr.bin', pbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptbr.bin', ptbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('pp.bin', pp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptp.bin', ptp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qv.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qall.bin', qall, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('pt_in.bin', pt, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptv_in.bin', ptv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('a_in.bin', a, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('t_in.bin', t, 0, ni+1, 0, nj+1)
-  call dump_scalar_r('cwmci', cwmci)
-  call dump_scalar_r('gdzv', gdzv)
-  call dump_scalar_r('gdzv05', gdzv05)
-  call dump_scalar_i('nkm1', nkm1)
-  call dump_scalar_r('p0iv', p0iv)
-  call dump_scalar_r('rddvcp', rddvcp)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_041)
 !----------------------------------------------------------------------
@@ -446,7 +359,6 @@ end if
 
       end do
 
-! -----
 
 ! Calculate the air stability for the dry air.
 
@@ -467,7 +379,6 @@ end if
 
         end do
 
-! -----
 
 !! Calculate the air stability for the moist air.
 
@@ -489,7 +400,6 @@ end if
 
         end do
 
-! -----
 
 ! In the case of no cloud micro physics.
 
@@ -510,7 +420,6 @@ end if
 
           end do
 
-! -----
 
 ! In the case of performing cloud micro physics.
 
@@ -593,7 +502,6 @@ end if
 
         end if
 
-! -----
 
       end if
 
@@ -612,23 +520,12 @@ end if
 
 !$omp end do
 
-! -----
 
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_bruntv == DUMP_TARGET_bruntv .and. .not. dump_done_bruntv) then
-  call dump_array_3d('nsq8w_ref.bin', nsq8w, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptv_ref.bin', ptv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('a_ref.bin', a, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('t_ref.bin', t, 0, ni+1, 0, nj+1)
-  call dump_finalize()
-  dump_done_bruntv = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

@@ -22,9 +22,7 @@
 ! Module reference
 
       use m_comphy
-      use m_comprofile
       use m_getrname
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -130,14 +128,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_advbspi = 0
-      integer, parameter :: DUMP_TARGET_advbspi = 28800
-      logical, save :: dump_done_advbspi = .false.
 
 !-----7--------------------------------------------------------------7--
 
@@ -145,7 +136,6 @@
 
       call getrname(fpweicoe,weicoe)
 
-! -----
 
 ! Set the common used variables.
 
@@ -153,63 +143,13 @@
 
       g05=.5e0*g
 
-! -----
 
 ! Calculate the base state pressure advection.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: advbspi.f90 :: subroutine s_advbspi
-! Summary : Calculates base state pressure advection for horizontally
-!           explicit and vertically implicit method (forward/backward).
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - Calls getrname() before parallel region (not inside).
-!   - Uses module constant g from comphy.
-!   - Conditional on fproc determines backward vs forward calculation.
-!   - Pure arithmetic, all GPU compatible.
-!   - All grid points independent (embarrassingly parallel).
-! Next:
-!   - Direct OpenACC kernels with collapse(3) for (k,j,i).
-!   - May split into two kernels for back/fore branches.
-! Runtime:
-!   - Calls: 28800
-!   - AvgLoops: 100.4M
-!   - TotalTime: 172.825s (5.80%)
-!   - AvgTime: 6.001ms
-!@llm end meta_info ------------------------------------------------------
 
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('advbspi.f90', 's_advbspi', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-2)-(2)+1,8)
 
-! Dump input data at target call
-dump_call_count_advbspi = dump_call_count_advbspi + 1
-if (dump_call_count_advbspi == DUMP_TARGET_advbspi .and. .not. dump_done_advbspi) then
-  call dump_init('advbspi')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('weicoe', weicoe)
-  call dump_scalar_r('g', g)
-  call dump_scalar_c('fproc', fproc)
-  call dump_array_3d('rst.bin', rst, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('w.bin', w, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('pfrc.bin', pfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('phdiv.bin', phdiv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('pvdiv.bin', pvdiv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('fp_in.bin', fp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('g05', g05)
-  call dump_scalar_r('weic1m', weic1m)
-end if
 
-call profile_start(prof_id1)
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_012)
 !----------------------------------------------------------------------
@@ -289,16 +229,8 @@ call profile_start(prof_id1)
 !$omp end parallel
 #endif
 
-call profile_stop(prof_id1, loop_len)
 
-! Dump output data at target call
-if (dump_call_count_advbspi == DUMP_TARGET_advbspi .and. .not. dump_done_advbspi) then
-  call dump_array_3d('fp_ref.bin', fp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_advbspi = .true.
-end if
 
-! -----
 
       end subroutine s_advbspi
 

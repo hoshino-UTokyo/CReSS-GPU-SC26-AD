@@ -20,8 +20,6 @@
 ! Module reference
 
       use m_comkind
-      use m_comprofile
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -92,57 +90,16 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_setcst1d = 0
-      integer, parameter :: DUMP_TARGET_setcst1d = 1
-      logical, save :: dump_done_setcst1d = .false.
 
 
 !-----7--------------------------------------------------------------7--
 
 ! Fill in the array with the constant value.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: setcst1d.f90 :: s_setcst1d
-! Summary : Fill 1D array with a constant value (real type)
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread usage
-!   - No function calls
-!   - Simple 1D loop with direct assignment
-!   - No synchronization constructs
-!   - Trivially parallelizable
-! Next:
-!   - Convert to OpenACC with parallel loop
-!   - Consider using memset or array assignment for better performance
-! Runtime:
-!   - Calls: 1
-!   - AvgLoops: 128
-!   - TotalTime: 0.000s (0.00%)
-!   - AvgTime: 0.014ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('setcst1d.f90', 's_setcst1d', &
-   & 'OMP section 1')
-end if
-loop_len = int((kmax)-(kmin)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_setcst1d = dump_call_count_setcst1d + 1
-if (dump_call_count_setcst1d == DUMP_TARGET_setcst1d .and. .not. dump_done_setcst1d) then
-  call dump_init('setcst1d')
-  call dump_scalar_i('kmin', kmin)
-  call dump_scalar_i('kmax', kmax)
-  call dump_scalar_r('invar', invar)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_281)
 ! GPU version (OpenACC)
@@ -170,17 +127,9 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_setcst1d == DUMP_TARGET_setcst1d .and. .not. dump_done_setcst1d) then
-  call dump_array_1d('outvar_ref.bin', outvar, kmin, kmax)
-  call dump_finalize()
-  dump_done_setcst1d = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
       end subroutine s_setcst1d
 
@@ -209,51 +158,14 @@ call profile_stop(prof_id1, loop_len)
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_setcst1d_r8 = 0
-      integer, parameter :: DUMP_TARGET_setcst1d_r8 = 1
-      logical, save :: dump_done_setcst1d_r8 = .false.
 
 !-----7--------------------------------------------------------------7--
 
 ! Fill in the array with the constant value.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: setcst1d.f90 :: s_setcst1d_r8
-! Summary : Fill 1D array with a constant value (real*8 type)
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread usage
-!   - No function calls
-!   - Simple 1D loop with direct assignment
-!   - No synchronization constructs
-!   - Trivially parallelizable
-! Next:
-!   - Convert to OpenACC with parallel loop
-!   - Consider using memset or array assignment for better performance
-!@llm end meta_info ------------------------------------------------------
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('setcst1d.f90', 's_setcst1d_r8', &
-   & 'OMP section 1')
-end if
-loop_len = int((kmax)-(kmin)+1,8)
-call profile_start(prof_id1)
 
-! Dump input data at target call
-dump_call_count_setcst1d_r8 = dump_call_count_setcst1d_r8 + 1
-if (dump_call_count_setcst1d_r8 == DUMP_TARGET_setcst1d_r8 &
- &  .and. .not. dump_done_setcst1d_r8) then
-  call dump_init('setcst1d_r8')
-  call dump_scalar_i('kmin', kmin)
-  call dump_scalar_i('kmax', kmax)
-  call dump_scalar_r('invar', invar)
-end if
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_282)
 ! GPU version (OpenACC)
@@ -281,17 +193,8 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_setcst1d_r8 == DUMP_TARGET_setcst1d_r8 &
- &  .and. .not. dump_done_setcst1d_r8) then
-  call dump_array_1d_r8('outvar_ref.bin', outvar, kmin, kmax)
-  call dump_finalize()
-  dump_done_setcst1d_r8 = .true.
-end if
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
       end subroutine s_setcst1d_r8
 

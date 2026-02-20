@@ -21,8 +21,6 @@
 ! Module reference
 
       use m_comphy
-      use m_comprofile
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -120,69 +118,16 @@
       real a           ! Temporary variable
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_getrich = 0
-      integer, parameter :: DUMP_TARGET_getrich = 377
-      logical, save :: dump_done_getrich = .false.
 
 
 !-----7--------------------------------------------------------------7--
 
 ! Calculate the bulk Richardson number.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: getrich.f90 :: s_getrich
-! Summary : Calculates bulk Richardson number on surface for stability
-!           assessment, with special handling for sea ice regions
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread usage
-!   - Uses intrinsic max() function - GPU compatible
-!   - 2D loop over surface grid points (i,j)
-!   - Conditional update for sea ice (land=1) with weighted average
-!   - Module constants g, icz0m, icz0h, rchmin used from m_comphy
-!   - No loop-carried dependencies
-!   - No synchronization constructs beyond implicit barriers
-! Next:
-!   - Direct port to OpenACC parallel loop
-!   - Collapse j,i loops for better GPU occupancy
-!   - Ensure module constants are accessible on device
-! Runtime:
-!   - Calls: 377
-!   - AvgLoops: 806.4K
-!   - TotalTime: 0.028s (0.00%)
-!   - AvgTime: 0.073ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('getrich.f90', 's_getrich', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_getrich = dump_call_count_getrich + 1
-if (dump_call_count_getrich == DUMP_TARGET_getrich .and. .not. dump_done_getrich) then
-  call dump_init('getrich')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('g', g)
-  call dump_array_2d('za.bin', za, 0, ni+1, 0, nj+1)
-  call dump_array_2d_int('land.bin', land, 0, ni+1, 0, nj+1)
-  call dump_array_2d('kai.bin', kai, 0, ni+1, 0, nj+1)
-  call dump_array_2d('z0m.bin', z0m, 0, ni+1, 0, nj+1)
-  call dump_array_2d('z0h.bin', z0h, 0, ni+1, 0, nj+1)
-  call dump_array_3d('ptv.bin', ptv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('va.bin', va, 0, ni+1, 0, nj+1)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_136)
 !----------------------------------------------------------------------
@@ -241,17 +186,9 @@ end if
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_getrich == DUMP_TARGET_getrich .and. .not. dump_done_getrich) then
-  call dump_array_2d('rch_ref.bin', rch, 0, ni+1, 0, nj+1)
-  call dump_finalize()
-  dump_done_getrich = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
       end subroutine s_getrich
 

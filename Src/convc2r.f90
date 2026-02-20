@@ -25,7 +25,6 @@
 !-----7--------------------------------------------------------------7--
 
 ! Implicit typing
-      use m_comprofile
 
       implicit none
 
@@ -109,11 +108,6 @@
       real cncr        ! Auto conversion rate
                        ! from cloud water to rain water
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variable.
@@ -124,35 +118,6 @@
 
 ! Calculate the auto conversion rate from the cloud water to the rain
 ! water.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: convc2r.f90 :: subroutine s_convc2r
-! Summary : Calculates autoconversion rate from cloud water to rain water
-!           using threshold-based Kessler-type parameterization.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region.
-!   - No module variable access inside loops.
-!   - No synchronization constructs.
-!   - Conditional logic for conversion threshold.
-!   - Both qcf and qrf updated in place - no race conditions.
-!   - All grid points are independent (embarrassingly parallel).
-! Next:
-!   - Direct OpenACC kernels should work well.
-!   - Threshold-based conditionals may cause minor warp divergence.
-!@llm end meta_info ------------------------------------------------------
-
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('convc2r.f90', 's_convc2r', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -189,8 +154,6 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

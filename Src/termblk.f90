@@ -27,8 +27,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
-      use m_dump_kernel
       use m_comphy
       use m_getiname
       use m_getrname
@@ -255,14 +253,7 @@
       real lnr0r       ! ln(r0 x rbv)
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_termblk = 0
-      integer, parameter :: DUMP_TARGET_termblk = 360
-      logical, save :: dump_done_termblk = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -273,7 +264,6 @@
       call getiname(fphaiopt,haiopt)
       call getrname(fpthresq,thresq)
 
-! -----
 
 ! Set the common used variables.
 
@@ -305,95 +295,12 @@
       ccrw6=6.e0/(cc*rhow)
       ccri6=6.e0/(cc*rhoi)
 
-! -----
 
 !! Set and calculate the terminal velocity.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: termblk.f90 :: s_termblk
-! Summary : Calculate terminal velocities for cloud water, rain, ice, snow,
-!           graupel, and hail based on microphysics options
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - Calls intrinsic functions only (exp, log, sqrt)
-!   - Writes to multiple output arrays (ucq, urq, uiq, usq, ugq, uhq, ucn, urn, uin, usn, ugn, uhn)
-!   - Multiple conditional branches based on flqcqi_opt, cphopt, haiopt
-!   - No synchronization constructs within parallel region
-! Next:
-!   - Use OpenACC or OpenACC for GPU offloading
-!   - Consider kernel fusion for related velocity calculations
-!   - Map all input/output arrays to device
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 102.4M
-!   - TotalTime: 13.304s (0.45%)
-!   - AvgTime: 36.956ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('termblk.f90', 's_termblk', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_termblk = dump_call_count_termblk + 1
-if (dump_call_count_termblk == DUMP_TARGET_termblk .and. .not. dump_done_termblk) then
-  call dump_init('termblk')
-  call dump_scalar_i('cphopt', cphopt)
-  call dump_scalar_i('haiopt', haiopt)
-  call dump_scalar_r('thresq', thresq)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('r0', r0)
-  call dump_array_3d('rbv.bin', rbv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qc.bin', qc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qr.bin', qr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qi.bin', qi, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qs.bin', qs, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qg.bin', qg, 0, ni+1, 0, nj+1, 1, nk)
-  if (haiopt /= 0) then
-    call dump_array_3d('qh.bin', qh, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  call dump_array_3d('ncc.bin', ncc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncr.bin', ncr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('nci.bin', nci, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncs.bin', ncs, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncg.bin', ncg, 0, ni+1, 0, nj+1, 1, nk)
-  if (haiopt /= 0) then
-    call dump_array_3d('nch.bin', nch, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  call dump_scalar_r('buc3', buc3)
-  call dump_scalar_r('bug3', bug3)
-  call dump_scalar_r('buh3', buh3)
-  call dump_scalar_r('bui3', bui3)
-  call dump_scalar_r('bur3', bur3)
-  call dump_scalar_r('bus3', bus3)
-  call dump_scalar_r('ccri6', ccri6)
-  call dump_scalar_r('ccrw6', ccrw6)
-  call dump_scalar_r('cdiaqc', cdiaqc)
-  call dump_scalar_r('cdiaqg', cdiaqg)
-  call dump_scalar_r('cdiaqh', cdiaqh)
-  call dump_scalar_r('cdiaqr', cdiaqr)
-  call dump_scalar_r('cdiaqs', cdiaqs)
-  call dump_scalar_r('cucn', cucn)
-  call dump_scalar_r('cucq', cucq)
-  call dump_scalar_r('cugn', cugn)
-  call dump_scalar_r('cugq', cugq)
-  call dump_scalar_r('cuhn', cuhn)
-  call dump_scalar_r('cuhq', cuhq)
-  call dump_scalar_r('curn', curn)
-  call dump_scalar_r('curq', curq)
-  call dump_scalar_r('cusn', cusn)
-  call dump_scalar_r('cusq', cusq)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_323)
 !----------------------------------------------------------------------
@@ -721,7 +628,6 @@ end if
 
       end if
 
-! -----
 
 ! Calculate the terminal velocity of the rain water, the snow and the
 ! graupel.
@@ -786,7 +692,6 @@ end if
 
         end do
 
-! -----
 
 ! Calculate the terminal velocity of the rain water, the snow, the
 ! graupel and the hail.
@@ -867,36 +772,13 @@ end if
 
       end if
 
-! -----
 
 !$omp end parallel
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_termblk == DUMP_TARGET_termblk .and. .not. dump_done_termblk) then
-  call dump_array_3d('ucq_ref.bin', ucq, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('urq_ref.bin', urq, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('uiq_ref.bin', uiq, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('usq_ref.bin', usq, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ugq_ref.bin', ugq, 0, ni+1, 0, nj+1, 1, nk)
-  if (haiopt /= 0) then
-    call dump_array_3d('uhq_ref.bin', uhq, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  call dump_array_3d('ucn_ref.bin', ucn, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('urn_ref.bin', urn, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('uin_ref.bin', uin, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('usn_ref.bin', usn, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ugn_ref.bin', ugn, 0, ni+1, 0, nj+1, 1, nk)
-  if (haiopt /= 0) then
-    call dump_array_3d('uhn_ref.bin', uhn, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  call dump_finalize()
-  dump_done_termblk = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

@@ -21,8 +21,6 @@
 ! Module reference
 
       use m_comphy
-      use m_comprofile
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -132,73 +130,16 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_shedding = 0
-      integer, parameter :: DUMP_TARGET_shedding = 45720
-      logical, save :: dump_done_shedding = .false.
 
 
 !-----7--------------------------------------------------------------7--
 
 !!! Calculate the shedding rate.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: shedding.f90 :: s_shedding
-! Summary : Calculates shedding rates of liquid water from snow and graupel to rain,
-!           based on temperature and collection/production rates.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Uses module constant t0 from m_comphy for temperature threshold
-!   - Conditional branches based on mixing ratio thresholds and temperature
-!   - Handles nk=1 case separately (2D) vs nk>1 case (3D)
-!   - All loops independent with private i,j,k indices
-!   - No synchronization constructs
-! Next:
-!   - Straightforward GPU port with conditional logic preserved
-!   - Use OpenACC/OpenACC with collapse for nested loops
-!   - Consider single kernel handling both nk cases with runtime check
-! Runtime:
-!   - Calls: 45720
-!   - AvgLoops: 806.4K
-!   - TotalTime: 1.185s (0.04%)
-!   - AvgTime: 0.026ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('shedding.f90', 's_shedding', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_shedding = dump_call_count_shedding + 1
-if (dump_call_count_shedding == DUMP_TARGET_shedding .and. .not. dump_done_shedding) then
-  call dump_init('shedding')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('thresq', thresq)
-  call dump_array_3d('t.bin', t, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('t0', t0)
-  call dump_array_3d('qs.bin', qs, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qg.bin', qg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clcs.bin', clcs, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clcg.bin', clcg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clrs.bin', clrs, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clrg.bin', clrg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clig.bin', clig, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clsg.bin', clsg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('pgwet.bin', pgwet, 0, ni+1, 0, nj+1, 1, nk)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_295)
 ! GPU version (OpenACC)
@@ -307,7 +248,6 @@ end if
 
           end if
 
-! -----
 
 ! Calculate the shedding rate from the graupel to the rain water.
 
@@ -338,7 +278,6 @@ end if
 
           end if
 
-! -----
 
         end do
         end do
@@ -378,7 +317,6 @@ end if
 
             end if
 
-! -----
 
 ! Calculate the shedding rate from the graupel to the rain water.
 
@@ -409,7 +347,6 @@ end if
 
             end if
 
-! -----
 
           end do
           end do
@@ -425,16 +362,8 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_shedding == DUMP_TARGET_shedding .and. .not. dump_done_shedding) then
-  call dump_array_3d('shsr_ref.bin', shsr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('shgr_ref.bin', shgr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_shedding = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

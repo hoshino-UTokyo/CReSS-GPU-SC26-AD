@@ -24,8 +24,6 @@
 ! Module reference
 
       use m_getiname
-      use m_comprofile
-      use m_dump_kernel
       use m_getrname
 
 !-----7--------------------------------------------------------------7--
@@ -318,14 +316,7 @@
       integer n        ! Array index in 4th direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_timeflt = 0
-      integer, parameter :: DUMP_TARGET_timeflt = 359
-      logical, save :: dump_done_timeflt = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -341,7 +332,6 @@
       call getiname(fptubopt,tubopt)
       call getrname(fpfilcoe,filcoe)
 
-! -----
 
 ! Set the common used variables.
 
@@ -350,170 +340,12 @@
       m1fc2=1.e0-2.e0*filcoe
       m1fc4=1.e0-4.e0*filcoe
 
-! -----
 
 !!!! Perform the Asselin time filter.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: timeflt.f90 :: s_timeflt
-! Summary : Apply Asselin time filter to velocity, pressure, temperature,
-!           hydrometeors, aerosols, tracers, TKE, and soil temperature
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls within loops
-!   - Writes to many arrays (u, v, w, pp, ptp, qv, qwtr, nwtr, qice, nice, qcwtr, qcice, qasl, qt, tke, tund)
-!   - Many conditional branches based on cphopt, haiopt, qcgopt, aslopt, trkopt, tubopt, sfcopt
-!   - Land mask conditional for soil temperature
-!   - No synchronization constructs within parallel region
-! Next:
-!   - GPU port may require multiple kernels for different physics options
-!   - Consider data persistence on GPU for frequently updated arrays
-!   - Land mask can be handled with conditional execution on GPU
-! Runtime:
-!   - Calls: 359
-!   - AvgLoops: 102.5M
-!   - TotalTime: 25.321s (0.85%)
-!   - AvgTime: 70.532ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('timeflt.f90', 's_timeflt', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_timeflt = dump_call_count_timeflt + 1
-if (dump_call_count_timeflt == DUMP_TARGET_timeflt .and. .not. dump_done_timeflt) then
-  call dump_init('timeflt')
-  call dump_scalar_i('sfcopt', sfcopt)
-  call dump_scalar_i('cphopt', cphopt)
-  call dump_scalar_i('haiopt', haiopt)
-  call dump_scalar_i('qcgopt', qcgopt)
-  call dump_scalar_i('aslopt', aslopt)
-  call dump_scalar_i('trkopt', trkopt)
-  call dump_scalar_i('tubopt', tubopt)
-  call dump_scalar_r('filcoe', filcoe)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('nqw', nqw)
-  call dump_scalar_i('nnw', nnw)
-  call dump_scalar_i('nqi', nqi)
-  call dump_scalar_i('nni', nni)
-  call dump_scalar_i('nund', nund)
-  call dump_scalar_r('dtsoil', dtsoil)
-  call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('w.bin', w, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('pp.bin', pp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptp.bin', ptp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qv.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
-  ! qwtr, nwtr, qice, nice, qcwtr, qcice, qasl are 4D arrays
-  if (nqw >= 1) then
-    call dump_array_4d('qwtr.bin', qwtr, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  end if
-  ! nwtr is allocated as dummy when savmem=1 and abs(cphopt)<4
-  if (nnw >= 1 .and. abs(cphopt).ge.4 .and. abs(cphopt).lt.20) then
-    call dump_array_4d('nwtr.bin', nwtr, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
-  end if
-  if (nqi >= 1) then
-    call dump_array_4d('qice.bin', qice, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-  end if
-  if (nni >= 1) then
-    call dump_array_4d('nice.bin', nice, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
-  end if
-  ! qcwtr is only allocated when cphopt < 0 and qcgopt == 2
-  if (cphopt < 0 .and. qcgopt == 2) then
-    call dump_array_4d('qcwtr.bin', qcwtr, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  end if
-  ! qcice is only allocated when cphopt < 0
-  if (cphopt < 0) then
-    call dump_array_4d('qcice.bin', qcice, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-  end if
-  ! qasl is allocated as dummy when aslopt < 1
-  if (aslopt >= 1) then
-    call dump_array_4d('qasl.bin', qasl, 0, ni+1, 0, nj+1, 1, nk, 1, nqa(0))
-  end if
-  if (trkopt >= 1) then
-    call dump_array_3d('qt.bin', qt, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  if (tubopt >= 2) then
-    call dump_array_3d('tke.bin', tke, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  if (sfcopt >= 1) then
-    call dump_array_3d('tund.bin', tund, 0, ni+1, 0, nj+1, 1, nund)
-  end if
-  call dump_array_2d_int('land.bin', land, 0, ni+1, 0, nj+1)
-  call dump_array_3d('up.bin', up, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('uf.bin', uf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vp.bin', vp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vf.bin', vf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wp.bin', wp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wf.bin', wf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ppp.bin', ppp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ppf.bin', ppf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptpp.bin', ptpp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptpf.bin', ptpf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvp.bin', qvp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvf.bin', qvf, 0, ni+1, 0, nj+1, 1, nk)
-  if (nqw >= 1) then
-    call dump_array_4d('qwtrp.bin', qwtrp, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-    call dump_array_4d('qwtrf.bin', qwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  end if
-  ! nwtrp/nwtrf are allocated as dummy when savmem=1 and abs(cphopt)<4
-  if (nnw >= 1 .and. abs(cphopt).ge.4 .and. abs(cphopt).lt.20) then
-    call dump_array_4d('nwtrp.bin', nwtrp, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
-    call dump_array_4d('nwtrf.bin', nwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
-  end if
-  if (nqi >= 1) then
-    call dump_array_4d('qicep.bin', qicep, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-    call dump_array_4d('qicef.bin', qicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-  end if
-  if (nni >= 1) then
-    call dump_array_4d('nicep.bin', nicep, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
-    call dump_array_4d('nicef.bin', nicef, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
-  end if
-  ! qcwtrp/qcwtrf are only allocated when cphopt < 0 and qcgopt == 2
-  if (cphopt < 0 .and. qcgopt == 2) then
-    call dump_array_4d('qcwtrp.bin', qcwtrp, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-    call dump_array_4d('qcwtrf.bin', qcwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  end if
-  ! qcicep/qcicef are only allocated when cphopt < 0
-  if (cphopt < 0) then
-    call dump_array_4d('qcicep.bin', qcicep, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-    call dump_array_4d('qcicef.bin', qcicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-  end if
-  ! qaslp/qaslf are allocated as dummy when aslopt < 1
-  if (aslopt >= 1) then
-    call dump_array_4d('qaslp.bin', qaslp, 0, ni+1, 0, nj+1, 1, nk, 1, nqa(0))
-    call dump_array_4d('qaslf.bin', qaslf, 0, ni+1, 0, nj+1, 1, nk, 1, nqa(0))
-  end if
-  if (trkopt >= 1) then
-    call dump_array_3d('qtp.bin', qtp, 0, ni+1, 0, nj+1, 1, nk)
-    call dump_array_3d('qtf.bin', qtf, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  if (tubopt >= 2) then
-    call dump_array_3d('tkep.bin', tkep, 0, ni+1, 0, nj+1, 1, nk)
-    call dump_array_3d('tkef.bin', tkef, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  if (sfcopt >= 1) then
-    call dump_array_3d('tundp.bin', tundp, 0, ni+1, 0, nj+1, 1, nund)
-    call dump_array_3d('tundf.bin', tundf, 0, ni+1, 0, nj+1, 1, nund)
-  end if
-  call dump_scalar_r('fc2', fc2)
-  call dump_scalar_c('fmois', fmois)
-  call dump_scalar_r('m1fc2', m1fc2)
-  call dump_scalar_r('m1fc4', m1fc4)
-  ! FIXME: nqa is an array, not scalar
-  ! ! FIXME: nqa is array - call dump_scalar_i('nqa', nqa)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_327)
 !----------------------------------------------------------------------
@@ -708,7 +540,6 @@ end if
 
       end do
 
-! -----
 
 ! Perform the Asselin time filter for the pressure and potential
 ! temperature.
@@ -728,7 +559,6 @@ end if
 
       end do
 
-! -----
 
 !!! Perform the Asselin time filter for the hydrometeor.
 
@@ -750,7 +580,6 @@ end if
 
         end do
 
-! -----
 
 !! For the bulk categories.
 
@@ -781,7 +610,6 @@ end if
 
           end if
 
-! -----
 
 ! Perform the Asselin time filter for the water concentrations.
 
@@ -808,7 +636,6 @@ end if
 
           end if
 
-! -----
 
 ! Perform the Asselin time filter for the ice hydrometeor.
 
@@ -869,7 +696,6 @@ end if
 
           end if
 
-! -----
 
 ! Perform the Asselin time filter for the ice concentrations.
 
@@ -947,7 +773,6 @@ end if
 
           end if
 
-! -----
 
 ! Perform the Asselin time filter for the charging distribution.
 
@@ -1031,7 +856,6 @@ end if
 
           end if
 
-! -----
 
 !! -----
 
@@ -1083,7 +907,6 @@ end if
 
           end if
 
-! -----
 
 ! Perform the Asselin time filter for the ice hydrometeor.
 
@@ -1129,7 +952,6 @@ end if
 
           end if
 
-! -----
 
         end if
 
@@ -1164,7 +986,6 @@ end if
 
       end if
 
-! -----
 
 ! Perform the Asselin time filter for the tracer.
 
@@ -1186,7 +1007,6 @@ end if
 
       end if
 
-! -----
 
 ! Perform the Asselin time filter for the turbulent kinetic energy.
 
@@ -1208,7 +1028,6 @@ end if
 
       end if
 
-! -----
 
 ! Perform the Asselin time filter for the soil and sea temperature.
 
@@ -1268,20 +1087,13 @@ end if
 
       end if
 
-! -----
 
 !$omp end parallel
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_timeflt == DUMP_TARGET_timeflt .and. .not. dump_done_timeflt) then
-  call dump_finalize()
-  dump_done_timeflt = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !!!! -----
 

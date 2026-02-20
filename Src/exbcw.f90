@@ -28,7 +28,6 @@
 ! Module reference
 
       use m_commpi
-      use m_comprofile
       use m_getcname
       use m_getiname
       use m_getrname
@@ -171,11 +170,6 @@
       real radwe       ! Temporary variable
       real radsn       ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variable.
@@ -207,34 +201,6 @@
 ! -----
 
 !! Force the lateral boundary value to the external boundary value.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: exbcw.f90 :: subroutine s_exbcw
-! Summary : Forces lateral boundary values of w velocity to external
-!           (GPV) boundary values with radiative/relaxation approach.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region.
-!   - Reads module variables (ebw, ebe, ebs, ebn, isub, jsub, etc.).
-!   - No synchronization constructs.
-!   - Uses intrinsic abs() - GPU compatible.
-!   - Complex boundary-position-dependent conditionals (corners, edges).
-!   - Only boundary cells are updated - sparse computation.
-! Next:
-!   - Consider separate kernels for each boundary region.
-!   - Boundary-only work has low arithmetic intensity on GPU.
-!   - Masking approach may be more efficient than conditionals.
-!@llm end meta_info ------------------------------------------------------
-
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('exbcw.f90', 's_exbcw', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(2)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared)
 
@@ -521,8 +487,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

@@ -21,8 +21,6 @@
 ! Module reference
 
       use m_bcten
-      use m_comprofile
-      use m_dump_kernel
       use m_comindx
       use m_getiname
 
@@ -138,14 +136,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_strsten = 0
-      integer, parameter :: DUMP_TARGET_strsten = 360
-      logical, save :: dump_done_strsten = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -154,63 +145,12 @@
 
       call getiname(fpsfcopt,sfcopt)
 
-! -----
 
 !! Calculate the stress tensor.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: strsten.f90 :: s_strsten
-! Summary : Calculate stress tensor components (t11-t33, t12, t13, t23,
-!           t31, t32) using eddy viscosity coefficients
-! GPU diff: Easy
-! Findings:
-!   - Multiple independent do-loops over k with i,j parallelization
-!   - Simple arithmetic operations with averaging
-!   - Conditional for sfcopt affecting surface stress terms
-!   - No function calls within parallel region
-! Next:
-!   - Collapse loops for better GPU occupancy
-!   - Keep all tensor arrays resident on GPU
-!   - Fuse diagonal and off-diagonal tensor calculations
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 102.4M
-!   - TotalTime: 8.868s (0.30%)
-!   - AvgTime: 24.632ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('strsten.f90', 's_strsten', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_strsten = dump_call_count_strsten + 1
-if (dump_call_count_strsten == DUMP_TARGET_strsten .and. .not. dump_done_strsten) then
-  call dump_init('strsten')
-  call dump_scalar_i('sfcopt', sfcopt)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_array_3d('ufrc.bin', ufrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vfrc.bin', vfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rkh.bin', rkh, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rkv.bin', rkv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t11_in.bin', t11, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t22_in.bin', t22, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t33_in.bin', t33, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t12_in.bin', t12, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t13_in.bin', t13, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t23_in.bin', t23, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t31_in.bin', t31, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t32_in.bin', t32, 0, ni+1, 0, nj+1, 1, nk)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_318)
 !----------------------------------------------------------------------
@@ -363,7 +303,6 @@ end if
 
       end do
 
-! -----
 
 ! Calculate the x-z and the y-z components of the stress tensor.
 
@@ -417,7 +356,6 @@ end if
 
       end if
 
-! -----
 
 ! Calculate the z-x and the z-y components of the stress tensor.
 
@@ -447,28 +385,13 @@ end if
 
       end do
 
-! -----
 
 !$omp end parallel
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_strsten == DUMP_TARGET_strsten .and. .not. dump_done_strsten) then
-  call dump_array_3d('t11_ref.bin', t11, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t22_ref.bin', t22, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t33_ref.bin', t33, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t12_ref.bin', t12, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t13_ref.bin', t13, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t23_ref.bin', t23, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t31_ref.bin', t31, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t32_ref.bin', t32, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_strsten = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 
@@ -477,7 +400,6 @@ call profile_stop(prof_id1, loop_len)
       call bcten(idbbc,idtbc,ni,nj,nk,t31)
       call bcten(idbbc,idtbc,ni,nj,nk,t32)
 
-! -----
 
       end subroutine s_strsten
 

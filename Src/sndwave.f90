@@ -20,8 +20,6 @@
 ! Module reference
 
       use m_comphy
-      use m_comprofile
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -101,14 +99,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_sndwave = 0
-      integer, parameter :: DUMP_TARGET_sndwave = 1
-      logical, save :: dump_done_sndwave = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -121,49 +112,9 @@
 
 ! Calculate the base state density x sound wave speed squared.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: sndwave.f90 :: s_sndwave
-! Summary : Computes base state density times sound wave speed squared
-!           from base state pressure (rcsq = cp/cv * pbr)
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls inside parallel region
-!   - Single !$omp do loop with schedule(runtime)
-!   - Simple element-wise computation with scalar cpdvcv
-!   - Writes only to rcsq array
-!   - No synchronization constructs besides implicit barriers
-! Next:
-!   - Data managed automatically via Unified Memory
-!   - Convert to !$acc parallel loop collapse(3)
-! Runtime:
-!   - Calls: 1
-!   - AvgLoops: 102.4M
-!   - TotalTime: 0.003s (0.00%)
-!   - AvgTime: 3.417ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('sndwave.f90', 's_sndwave', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_sndwave = dump_call_count_sndwave + 1
-if (dump_call_count_sndwave == DUMP_TARGET_sndwave .and. .not. dump_done_sndwave) then
-  call dump_init('sndwave')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_array_3d('pbr.bin', pbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('cpdvcv', cpdvcv)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_305)
 ! GPU version (OpenACC)
@@ -202,17 +153,9 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_sndwave == DUMP_TARGET_sndwave .and. .not. dump_done_sndwave) then
-  call dump_array_3d('rcsq_ref.bin', rcsq, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_sndwave = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
       end subroutine s_sndwave
 

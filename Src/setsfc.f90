@@ -24,8 +24,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
-      use m_dump_kernel
       use m_comphy
       use m_getiname
 
@@ -212,14 +210,7 @@
       real w8s         ! z components of velocity at scalar points
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_setsfc = 0
-      integer, parameter :: DUMP_TARGET_setsfc = 361
-      logical, save :: dump_done_setsfc = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -230,7 +221,6 @@
       call getiname(fptubopt,tubopt)
       call getiname(fpcphopt,cphopt)
 
-! -----
 
 ! Set the common used variables.
 
@@ -238,85 +228,12 @@
 
       p0iv=1.e0/p0
 
-! -----
 
 !! Calculate the surface parameters.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: setsfc.f90 :: s_setsfc
-! Summary : Calculates surface parameters including pressure, temperature, virtual potential
-!           temperature, saturation mixing ratio, and velocity magnitude at lowest levels.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Uses intrinsic functions: exp, log, max, min, sqrt
-!   - Uses module constants from m_commath and m_comphy (es0, t0, epsva, etc.)
-!   - Multiple conditional branches based on fmois flag and land type
-!   - Complex saturation vapor pressure calculations with exponentials
-!   - All loops independent with private i,j,k and local scalar variables
-!   - No synchronization constructs beyond implicit barriers
-! Next:
-!   - Port exp/log intrinsics directly (GPU-compatible)
-!   - Consider separate kernels for dry vs moist branches
-!   - Use data regions to minimize transfers of large 3D arrays
-! Runtime:
-!   - Calls: 361
-!   - AvgLoops: 102.4M
-!   - TotalTime: 4.230s (0.14%)
-!   - AvgTime: 11.717ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('setsfc.f90', 's_setsfc', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_setsfc = dump_call_count_setsfc + 1
-if (dump_call_count_setsfc == DUMP_TARGET_setsfc .and. .not. dump_done_setsfc) then
-  call dump_init('setsfc')
-  call dump_scalar_i('levpbl', levpbl)
-  call dump_scalar_i('tubopt', tubopt)
-  call dump_scalar_i('cphopt', cphopt)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('nund', nund)
-  call dump_array_3d('p.bin', p, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t.bin', t, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('pt.bin', pt, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('p0', p0)
-  call dump_scalar_r('t0', t0)
-  call dump_scalar_r('epsav', epsav)
-  call dump_scalar_r('epsva', epsva)
-  call dump_scalar_r('es0', es0)
-  call dump_array_3d('pbr.bin', pbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptbr.bin', ptbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('w.bin', w, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('pp.bin', pp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptp.bin', ptp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qv.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d_int('land.bin', land, 0, ni+1, 0, nj+1)
-  call dump_array_2d('beta.bin', beta, 0, ni+1, 0, nj+1)
-  call dump_array_2d('kai.bin', kai, 0, ni+1, 0, nj+1)
-  call dump_array_3d('tund.bin', tund, 0, ni+1, 0, nj+1, 1, nund)
-  call dump_array_2d('fall.bin', fall, 0, ni+1, 0, nj+1)
-  call dump_array_2d('ps_in.bin', ps, 0, ni+1, 0, nj+1)
-  call dump_array_2d('qvsts_in.bin', qvsts, 0, ni+1, 0, nj+1)
-  call dump_array_2d('qvsice_in.bin', qvsice, 0, ni+1, 0, nj+1)
-  call dump_scalar_c('fmois', fmois)
-  call dump_scalar_r('p0iv', p0iv)
-  call dump_scalar_r('rddvcp', rddvcp)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_291)
 !----------------------------------------------------------------------
@@ -340,7 +257,6 @@ end if
     end do
     !$acc end kernels
 
-! -----
 
 ! Get the surface pressure and ice surface temperature.
 
@@ -359,7 +275,6 @@ end if
     end do
     !$acc end kernels
 
-! -----
 
 ! Calculate the water vapor mixing ratio on the surface.
 
@@ -456,7 +371,6 @@ end if
 
       end if
 
-! -----
 
 ! Calculate the virtual potential temperature.
 
@@ -524,7 +438,6 @@ end if
 
       end if
 
-! -----
 
 ! Calculate the magnitude of velocity.
 
@@ -585,7 +498,6 @@ end if
 
       end do
 
-! -----
 
 ! Get the surface pressure and ice surface temperature.
 
@@ -611,7 +523,6 @@ end if
 
 !$omp end do
 
-! -----
 
 ! Calculate the water vapor mixing ratio on the surface.
 
@@ -764,7 +675,6 @@ end if
 
       end if
 
-! -----
 
 ! Calculate the virtual potential temperature.
 
@@ -846,7 +756,6 @@ end if
 
       end if
 
-! -----
 
 ! Calculate the magnitude of velocity.
 
@@ -885,26 +794,12 @@ end if
 
       end if
 
-! -----
 
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_setsfc == DUMP_TARGET_setsfc .and. .not. dump_done_setsfc) then
-  call dump_array_3d('ptv_ref.bin', ptv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('qvsfc_ref.bin', qvsfc, 0, ni+1, 0, nj+1)
-  call dump_array_2d('tice_ref.bin', tice, 0, ni+1, 0, nj+1)
-  call dump_array_2d('va_ref.bin', va, 0, ni+1, 0, nj+1)
-  call dump_array_2d('ps_ref.bin', ps, 0, ni+1, 0, nj+1)
-  call dump_array_2d('qvsts_ref.bin', qvsts, 0, ni+1, 0, nj+1)
-  call dump_array_2d('qvsice_ref.bin', qvsice, 0, ni+1, 0, nj+1)
-  call dump_finalize()
-  dump_done_setsfc = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

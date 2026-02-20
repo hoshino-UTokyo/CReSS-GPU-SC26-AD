@@ -32,7 +32,6 @@
 ! Module reference
 
       use m_bbcw
-      use m_comprofile
       use m_bc4news
       use m_bcycle
       use m_combuf
@@ -61,7 +60,6 @@
       use m_shiftsx
       use m_shiftsy
       use m_vbcw
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -263,14 +261,7 @@
 !     wc: This variable is also temporary.
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_stepwi = 0
-      integer, parameter :: DUMP_TARGET_stepwi = 14400
-      logical, save :: dump_done_stepwi = .false.
 
 !-----7--------------------------------------------------------------7--
 
@@ -278,7 +269,6 @@
 
       call inichar(exbvar)
 
-! -----
 
 ! Get the required namelist variables.
 
@@ -289,7 +279,6 @@
       call getrname(fpdziv,dziv)
       call getrname(fpweicoe,weicoe)
 
-! -----
 
 ! Force the lateral boundary value to the external boundary value in the
 ! case the lateral sponge damping is performed.
@@ -299,7 +288,6 @@
         call exbcw(idexbvar,idwbc,idebc,idexnews,isstp,dts,gtinc,       &
      &             ni,nj,nk,wcpx,wcpy,wgpv,wtd,wf)
 
-! -----
 
 ! Set the radiative lateral boundary conditions.
 
@@ -311,7 +299,6 @@
 
       end if
 
-! -----
 
 !! Solve the z components of velocity to the next time step.
 
@@ -322,72 +309,13 @@
       sbsqzi=dts*dts*weicoe*weicoe*dziv
       sbsqg5=.5e0*g*dts*dts*weicoe*weicoe
 
-! -----
 
 ! Calculate the solved vector.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: stepwi.f90 :: subroutine s_stepwi
-! Summary : Prepares coefficient matrices for vertical implicit solver
-!           of w-equation, computing tridiagonal matrix elements.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region (pure arithmetic only).
-!   - Reads module constant g from comphy.
-!   - No synchronization constructs.
-!   - Conditional on buyopt selects different physics formulation.
-!   - Sets up tridiagonal system (tmp1=lower, tmp2=diag, tmp3=upper).
-!   - Note: gaussel/gseidel solvers called outside parallel region.
-! Next:
-!   - Coefficient setup is embarrassingly parallel - easy to port.
-!   - Tridiagonal solver (gaussel) needs separate GPU implementation
-!     (batched tridiagonal solver or cyclic reduction).
-!   - Consider cuSPARSE gtsv2 or custom kernel for vertical solve.
-! Runtime:
-!   - Calls: 14400
-!   - AvgLoops: 99.5M
-!   - TotalTime: 417.326s (14.01%)
-!   - AvgTime: 28.981ms
-!@llm end meta_info ------------------------------------------------------
 
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('stepwi.f90', 's_stepwi', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(3)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-2)-(2)+1,8)
 
-! Dump input data at target call
-dump_call_count_stepwi = dump_call_count_stepwi + 1
-if (dump_call_count_stepwi == DUMP_TARGET_stepwi .and. .not. dump_done_stepwi) then
-  call dump_init('stepwi')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('buyopt', buyopt)
-  call dump_scalar_r('dts', dts)
-  call dump_scalar_r('dziv', dziv)
-  call dump_scalar_r('weicoe', weicoe)
-  call dump_scalar_r('g', g)
-  call dump_array_3d('jcb.bin', jcb, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rst.bin', rst, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rst8w.bin', rst8w, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rcsq.bin', rcsq, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('fw_in.bin', fw, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wf_in.bin', wf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('g05', g05)
-  call dump_scalar_r('sbsqg5', sbsqg5)
-  call dump_scalar_r('sbsqzi', sbsqzi)
-  ! FIXME: wc is an array, not scalar
-  ! ! FIXME: wc is array - call dump_scalar_r('wc', wc)
-end if
 
-call profile_start(prof_id1)
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_315)
 !----------------------------------------------------------------------
@@ -592,26 +520,14 @@ call profile_start(prof_id1)
 
 #endif
 
-call profile_stop(prof_id1, loop_len)
 
-! Dump output data at target call
-if (dump_call_count_stepwi == DUMP_TARGET_stepwi .and. .not. dump_done_stepwi) then
-  call dump_array_3d('wf_ref.bin', wf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp1_ref.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp2_ref.bin', tmp2, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp3_ref.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_stepwi = .true.
-end if
 
-! -----
 
 ! Set the bottom boundary conditions.
 
       call s_bbcw(idmpopt,idmfcopt,ni,nj,nk,j31,j32,mf,tmp1,            &
      &            uf,vf,wf,fw,wc)
 
-! -----
 
 ! Solve the trifiagonal equation with the Gauss elimination.
 
@@ -620,7 +536,6 @@ end if
         call gaussel(idimpopt,2,ni-2,2,nj-2,3,nk-2,ni,nj,nk,            &
      &               tmp1,tmp2,tmp3,wf,fw)
 
-! -----
 
 ! Solve the trifiagonal equation with the Gauss-Seidel method.
 
@@ -631,7 +546,6 @@ end if
 
       end if
 
-! -----
 
 !! -----
 
@@ -647,7 +561,6 @@ end if
 
       call s_getbufsx(idwbc,idebc,'all',1,ni-1,ni,nj,nk,wf,1,1,rbuf)
 
-! -----
 
 ! In y direction.
 
@@ -657,7 +570,6 @@ end if
 
       call s_getbufsy(idsbc,idnbc,'all',1,nj-1,ni,nj,nk,wf,1,1,rbuf)
 
-! -----
 
 !! -----
 
@@ -671,7 +583,6 @@ end if
 
       call s_getbufgx(idwbc,idebc,'all',1,ni-1,ni,nj,nk,wf,1,1,rbuf)
 
-! -----
 
 ! In y direction.
 
@@ -681,7 +592,6 @@ end if
 
       call s_getbufgy(idsbc,idnbc,'all',1,nj-1,ni,nj,nk,wf,1,1,rbuf)
 
-! -----
 
 ! In x direction again.
 
@@ -691,7 +601,6 @@ end if
 
       call s_getbufgx(idwbc,idebc,'all',1,ni-1,ni,nj,nk,wf,1,1,rbuf)
 
-! -----
 
 !! -----
 
@@ -702,13 +611,11 @@ end if
       call bcycle(idwbc,idebc,idsbc,idnbc,                              &
      &            2,1,ni-2,ni-1,2,1,nj-2,nj-1,ni,nj,nk,wf)
 
-! -----
 
 ! Set the boundary conditions at the four corners.
 
       call bc4news(idwbc,idebc,idsbc,idnbc,1,ni-1,1,nj-1,ni,nj,nk,wf)
 
-! -----
 
 ! Set the lateral boundary conditions.
 
@@ -718,7 +625,6 @@ end if
 
       end if
 
-! -----
 
 ! Calculate the zeta components of contravariant velocity.
 
@@ -726,14 +632,12 @@ end if
      &               ni,nj,nk,j31,j32,jcb8w,mf,uf,vf,wf,wc,             &
      &               tmp1,tmp2,tmp3)
 
-! -----
 
 ! Set the bottom and the top boundary conditions.
 
       call s_vbcw(idbbc,idtbc,idmpopt,idmfcopt,ni,nj,nk,j31,j32,jcb8w,  &
      &            mf,uf,vf,wc,wf,tmp1,tmp2,tmp3)
 
-! -----
 
       end subroutine s_stepwi
 

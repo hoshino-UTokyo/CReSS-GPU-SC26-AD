@@ -19,7 +19,6 @@
 ! Module reference
 
       use m_comphy
-      use m_comprofile
       use m_getiname
       use m_getrname
 
@@ -143,11 +142,6 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -171,32 +165,6 @@
 ! -----
 
 ! Calculate the sedimentation and precipitation.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: upwmbin.f90 :: s_upwmbin
-! Summary : Calculate sedimentation flux and precipitation for optional
-!           bin mass using upwind scheme with multiple conditional branches
-! GPU diff: Medium
-! Findings:
-!   - Serial k-loop wrapping parallel i,j loops (private(k))
-!   - Multiple conditional branches based on advopt and ncp values
-!   - Contains max() intrinsic for non-negative mass constraint
-!   - Multiple !$omp do regions for different k-ranges and conditions
-! Next:
-!   - Collapse loops or use OpenACC kernels with loop directive
-!   - Handle branch divergence on GPU (advopt, ncp conditions)
-!   - Consider separating kernels for different branches
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('upwmbin.f90', 's_upwmbin', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -338,8 +306,6 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

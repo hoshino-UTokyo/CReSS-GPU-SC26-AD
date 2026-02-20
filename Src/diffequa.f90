@@ -24,7 +24,6 @@
 ! Module reference
 
       use m_bc4news
-      use m_comprofile
       use m_bcphi
       use m_bcycle
       use m_chkitr
@@ -160,11 +159,6 @@
 
       real phi2        ! 2.0 x phi
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -204,34 +198,6 @@
 ! Calculate the Laplacian terms and add the known quantity terms in the
 ! right hand and get new phi.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: diffequa.f90 :: s_diffequa
-! Summary : Compute Laplacian terms for parabolic PDE iteration solving,
-!           updating phi with finite difference stencil in x, y, z.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls inside parallel region
-!   - No global/module variable writes
-!   - No synchronization constructs inside parallel region
-!   - Simple 3D stencil computation with neighbor accesses
-!   - Part of iterative solver (iterate loop outside) with MPI communication after parallel region
-! Next:
-!   - GPU offload possible but requires data management for iterative loop
-!   - Consider keeping data on GPU across iterations to reduce transfer overhead
-!   - MPI communication after parallel region needs attention for GPU-aware MPI
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('diffequa.f90', 's_diffequa', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-2)-(2)+1,8)
-call profile_start(prof_id1)
-
 !$omp parallel default(shared) private(k)
 
         do k=2,nk-2
@@ -257,8 +223,6 @@ call profile_start(prof_id1)
         end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

@@ -24,8 +24,6 @@
 ! Module reference
 
       use m_comindx
-      use m_comprofile
-      use m_dump_kernel
       use m_getiname
       use m_getrname
       use m_rdtrn
@@ -159,15 +157,7 @@
       real b           ! Temporary variable
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer, save :: prof_id2 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_gettrn = 0
-      integer, parameter :: DUMP_TARGET_gettrn = 1
-      logical, save :: dump_done_gettrn = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -176,7 +166,6 @@
 
       call getiname(fptrnopt,trnopt)
 
-! -----
 
 !! Fill in the array ht with the surface height in the case the flat
 !! terrain is applied.
@@ -189,63 +178,12 @@
         call getrname(fpmnthgh,mnthgh(1))
         call getrname(fpmnthgh+1,mnthgh(2))
 
-! -----
 
 ! Set the flat terrain.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: gettrn.f90 :: s_gettrn (trnopt=0 branch)
-! Summary : Initialize terrain height array with constant flat value
-!           using max of mountain height+base or sea surface height.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread usage
-!   - No function calls within parallel region
-!   - Uses intrinsic max function (GPU compatible)
-!   - Simple constant assignment to all grid points
-!   - No global writes, only output array ht is modified
-! Next:
-!   - Direct translation to OpenACC with teams distribute
-!   - Consider using GPU memset-like operation for constant fill
-! Runtime:
-!   - Calls: 1
-!   - AvgLoops: 810.0K
-!   - TotalTime: 0.000s (0.00%)
-!   - AvgTime: 0.015ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('gettrn.f90', 's_gettrn', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj)-(0)+1,8) * int((ni)-(0)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_gettrn = dump_call_count_gettrn + 1
-if (dump_call_count_gettrn == DUMP_TARGET_gettrn .and. .not. dump_done_gettrn) then
-  call dump_init('gettrn')
-  call dump_scalar_i('trnopt', trnopt)
-  call dump_scalar_r('zsfc', zsfc)
-  call dump_scalar_r('mnthgh1', mnthgh(1))
-  call dump_scalar_r('mnthgh2', mnthgh(2))
-  call dump_scalar_r('mntwx', mntwx)
-  call dump_scalar_r('mntwy', mntwy)
-  call dump_scalar_r('mntcx', mntcx)
-  call dump_scalar_r('mntcy', mntcy)
-  call dump_scalar_i('ncdvn', ncdvn)
-  call dump_scalar_i('fmsg', fmsg)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_r('wxiv', wxiv)
-  call dump_scalar_r('wyiv', wyiv)
-  ! FIXME: xs is an array, not scalar
-  ! ! FIXME: xs is array - call dump_scalar_r('xs', xs)
-  ! FIXME: ys is an array, not scalar
-  ! ! FIXME: ys is array - call dump_scalar_r('ys', ys)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_140)
 !----------------------------------------------------------------------
@@ -282,17 +220,9 @@ end if
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_gettrn == DUMP_TARGET_gettrn .and. .not. dump_done_gettrn) then
-  call dump_array_2d('ht_ref.bin', ht, 0, ni+1, 0, nj+1)
-  call dump_finalize()
-  dump_done_gettrn = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
 !! -----
 
@@ -310,33 +240,15 @@ call profile_stop(prof_id1, loop_len)
         call getrname(fpmntcx,mntcx)
         call getrname(fpmntcy,mntcy)
 
-! -----
 
 ! Set the common used variables.
 
         wxiv=1.e0/mntwx
         wyiv=1.e0/mntwy
 
-! -----
 
 ! Set the bell shaped mountain.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: gettrn.f90 :: s_gettrn (trnopt=1 branch)
-! Summary : Generate bell-shaped mountain terrain using Gaussian-like
-!           formula with configurable height, width, and center position.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread usage
-!   - No function calls within parallel region
-!   - Uses intrinsic max function (GPU compatible)
-!   - Reads from 1D arrays xs(i), ys(j) - need to ensure GPU accessible
-!   - Simple arithmetic with division and max
-!   - No global writes, only output array ht is modified
-! Next:
-!   - Direct translation to OpenACC with teams distribute
-!   - Ensure xs and ys arrays are mapped to device
-!@llm end meta_info ------------------------------------------------------
 #if defined(USE_GPU) && !defined(DISABLE_GPU_141)
 !----------------------------------------------------------------------
 ! GPU version (OpenACC)
@@ -381,7 +293,6 @@ call profile_stop(prof_id1, loop_len)
 
 #endif
 
-! -----
 
 !! -----
 
@@ -394,7 +305,6 @@ call profile_stop(prof_id1, loop_len)
 
       end if
 
-! -----
 
       end subroutine s_gettrn
 

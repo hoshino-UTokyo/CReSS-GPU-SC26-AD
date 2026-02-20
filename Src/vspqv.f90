@@ -23,8 +23,6 @@
 ! Module reference
 
       use m_getcname
-      use m_comprofile
-      use m_dump_kernel
       use m_getiname
       use m_inichar
 
@@ -140,14 +138,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_vspqv = 0
-      integer, parameter :: DUMP_TARGET_vspqv = 360
-      logical, save :: dump_done_vspqv = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -156,71 +147,18 @@
 
       call inichar(gpvvar)
 
-! -----
 
 ! Get the required namelist variables.
 
       call getcname(fpgpvvar,gpvvar)
       call getiname(fpvspopt,vspopt)
 
-! -----
 
 !! Calculate the vertical sponge damping.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: vspqv.f90 :: s_vspqv
-! Summary : Applies vertical sponge damping to water vapor mixing ratio
-!           forcing term, relaxing to GPV data or base state value.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Conditional branch (vspopt, gpvvar) selects damping target
-!   - k loop starts from ksp0-1 (variable start index)
-!   - Simple arithmetic update to qvfrc array
-!   - No synchronization constructs other than implicit barriers
-! Next:
-!   - Straightforward GPU port with collapse on j,i loops
-!   - Handle variable k-range start with appropriate kernel bounds
-!   - Map qvfrc, qvp, qvgpv, qvtd, qvbr, rbct, rst arrays to device
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 101.2M
-!   - TotalTime: 2.742s (0.09%)
-!   - AvgTime: 7.616ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('vspqv.f90', 's_vspqv', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(ksp0(1)-1)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-2)-(2)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_vspqv = dump_call_count_vspqv + 1
-if (dump_call_count_vspqv == DUMP_TARGET_vspqv .and. .not. dump_done_vspqv) then
-  call dump_init('vspqv')
-  call dump_scalar_c('gpvvar', gpvvar)
-  call dump_scalar_i('vspopt', vspopt)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('gtinc', gtinc)
-  call dump_array_3d('rst.bin', rst, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvbr.bin', qvbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvp.bin', qvp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_4d('rbct.bin', rbct, 1, ni, 1, nj, 1, nk, 1, 2)
-  call dump_array_3d('qvgpv.bin', qvgpv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvtd.bin', qvtd, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvfrc_in.bin', qvfrc, 0, ni+1, 0, nj+1, 1, nk)
-  ! FIXME: ksp0 is an array, not scalar
-  ! ! FIXME: ksp0 is array - call dump_scalar_i('ksp0', ksp0)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_382)
 !----------------------------------------------------------------------
@@ -287,7 +225,6 @@ end if
 
         end do
 
-! -----
 
 ! Damp to the 0.
 
@@ -311,21 +248,13 @@ end if
 
       end if
 
-! -----
 
 !$omp end parallel
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_vspqv == DUMP_TARGET_vspqv .and. .not. dump_done_vspqv) then
-  call dump_array_3d('qvfrc_ref.bin', qvfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_vspqv = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

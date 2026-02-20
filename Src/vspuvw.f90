@@ -23,8 +23,6 @@
 ! Module reference
 
       use m_getcname
-      use m_comprofile
-      use m_dump_kernel
       use m_getiname
       use m_inichar
 
@@ -189,14 +187,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_vspuvw = 0
-      integer, parameter :: DUMP_TARGET_vspuvw = 360
-      logical, save :: dump_done_vspuvw = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -206,7 +197,6 @@
       call inichar(gpvvar)
       call inichar(vspvar)
 
-! -----
 
 ! Get the required namelist variables.
 
@@ -214,80 +204,13 @@
       call getcname(fpvspvar,vspvar)
       call getiname(fpvspopt,vspopt)
 
-! -----
 
 !!! Calculate the vertical sponge damping for the velocity.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: vspuvw.f90 :: subroutine s_vspuvw
-! Summary : Calculates vertical sponge damping for u, v, w velocity
-!           components near model top to absorb outgoing waves.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region.
-!   - No writes to module/global variables.
-!   - No synchronization constructs.
-!   - Multiple code paths based on vspvar and vspopt flags.
-!   - Loops start from ksp0 (sponge layer index) to top.
-!   - All grid points are independent within each loop.
-!   - Damping to GPV data or base state based on vspopt.
-! Next:
-!   - Direct OpenACC kernels for each component.
-!   - Evaluate conditions outside kernel to select code path.
-!   - Consider fusing loops for same component if beneficial.
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 101.6M
-!   - TotalTime: 8.704s (0.29%)
-!   - AvgTime: 24.177ms
-!@llm end meta_info ------------------------------------------------------
 
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('vspuvw.f90', 's_vspuvw', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(ksp0(1)-1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_vspuvw = dump_call_count_vspuvw + 1
-if (dump_call_count_vspuvw == DUMP_TARGET_vspuvw .and. .not. dump_done_vspuvw) then
-  call dump_init('vspuvw')
-  call dump_scalar_c('gpvvar', gpvvar)
-  call dump_scalar_c('vspvar', vspvar)
-  call dump_scalar_i('vspopt', vspopt)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('gtinc', gtinc)
-  call dump_array_3d('ubr.bin', ubr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vbr.bin', vbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rst8u.bin', rst8u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rst8v.bin', rst8v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rst8w.bin', rst8w, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('up.bin', up, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vp.bin', vp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wp.bin', wp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_4d('rbct.bin', rbct, 1, ni, 1, nj, 1, nk, 1, 2)
-  call dump_array_3d('ugpv.bin', ugpv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('utd.bin', utd, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vgpv.bin', vgpv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vtd.bin', vtd, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wgpv.bin', wgpv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wtd.bin', wtd, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ufrc_in.bin', ufrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vfrc_in.bin', vfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wfrc_in.bin', wfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rbct8s_in.bin', rbct8s, 1, ni, 1, nj, 1, nk)
-  ! FIXME: ksp0 is an array, not scalar
-  ! ! FIXME: ksp0 is array - call dump_scalar_i('ksp0', ksp0)
-end if
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_385)
 !----------------------------------------------------------------------
@@ -461,7 +384,6 @@ end if
 
       end if
 
-! -----
 
 !! For the x components of velocity.
 
@@ -487,7 +409,6 @@ end if
 
           end do
 
-! -----
 
 ! Damp to the base state value.
 
@@ -510,7 +431,6 @@ end if
 
         end if
 
-! -----
 
       end if
 
@@ -540,7 +460,6 @@ end if
 
           end do
 
-! -----
 
 ! Damp to the base state value.
 
@@ -563,7 +482,6 @@ end if
 
         end if
 
-! -----
 
       end if
 
@@ -592,7 +510,6 @@ end if
 
           end do
 
-! -----
 
 ! Damp to the 0.
 
@@ -615,7 +532,6 @@ end if
 
         end if
 
-! -----
 
 !! -----
 
@@ -625,18 +541,8 @@ end if
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_vspuvw == DUMP_TARGET_vspuvw .and. .not. dump_done_vspuvw) then
-  call dump_array_3d('ufrc_ref.bin', ufrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vfrc_ref.bin', vfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wfrc_ref.bin', wfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rbct8s_ref.bin', rbct8s, 1, ni, 1, nj, 1, nk)
-  call dump_finalize()
-  dump_done_vspuvw = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

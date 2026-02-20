@@ -18,7 +18,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
       use m_comphy
 
 !-----7--------------------------------------------------------------7--
@@ -148,11 +147,6 @@
       real c           ! Temporary variable
       real d           ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variable.
@@ -173,30 +167,6 @@
 ! -----
 
 !! Calculate the terminal velocity for water bin.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: termbw2d.f90 :: s_termbw2d
-! Summary : Calculate terminal velocity for water bins using empirical
-!           formulas based on droplet size regimes (2D version)
-! GPU diff: Medium
-! Findings:
-!   - Three size regimes with different formulas (r<1e-3, r<5.35e-2, r<0.35)
-!   - Multiple exp/log intrinsic calls per grid point
-!   - Precomputed coefficients c1-c5 reused across bins
-!   - Conditional branches based on droplet radius
-! Next:
-!   - Compute c1-c5 coefficients once, then loop over bins
-!   - Consider separating size regimes to reduce divergence
-!   - Keep coefficient arrays on GPU for reuse
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('termbw2d.f90', 's_termbw2d', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(n)
 
@@ -288,8 +258,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

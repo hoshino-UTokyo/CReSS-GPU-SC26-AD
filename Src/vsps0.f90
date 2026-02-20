@@ -25,8 +25,6 @@
 !-----7--------------------------------------------------------------7--
 
 ! Implicit typing
-      use m_comprofile
-      use m_dump_kernel
 
       implicit none
 
@@ -107,14 +105,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_vsps0 = 0
-      integer, parameter :: DUMP_TARGET_vsps0 = 1440
-      logical, save :: dump_done_vsps0 = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -122,54 +113,9 @@
 ! Calculate the vertical sponge damping for optional scalar variable to
 ! initial.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: vsps0.f90 :: s_vsps0
-! Summary : Applies vertical sponge damping to optional scalar forcing
-!           term, relaxing variable toward zero (initial state).
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - No conditional branches inside parallel region
-!   - k loop starts from ksp0(2)-1 (variable start index)
-!   - Simple arithmetic update to sfrc array
-!   - No synchronization constructs other than implicit barriers
-! Next:
-!   - Straightforward GPU port with collapse on j,i loops
-!   - Handle variable k-range start with appropriate kernel bounds
-!   - Map sfrc, sp, rbct, rst arrays to device
-! Runtime:
-!   - Calls: 1440
-!   - AvgLoops: 101.2M
-!   - TotalTime: 7.870s (0.26%)
-!   - AvgTime: 5.466ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('vsps0.f90', 's_vsps0', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(ksp0(2)-1)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-2)-(2)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_vsps0 = dump_call_count_vsps0 + 1
-if (dump_call_count_vsps0 == DUMP_TARGET_vsps0 .and. .not. dump_done_vsps0) then
-  call dump_init('vsps0')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_array_3d('rst.bin', rst, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('sp.bin', sp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_4d('rbct.bin', rbct, 1, ni, 1, nj, 1, nk, 1, 2)
-  call dump_array_3d('sfrc_in.bin', sfrc, 0, ni+1, 0, nj+1, 1, nk)
-  ! FIXME: ksp0 is an array, not scalar
-  ! ! FIXME: ksp0 is array - call dump_scalar_i('ksp0', ksp0)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_384)
 !----------------------------------------------------------------------
@@ -214,17 +160,9 @@ end if
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_vsps0 == DUMP_TARGET_vsps0 .and. .not. dump_done_vsps0) then
-  call dump_array_3d('sfrc_ref.bin', sfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_vsps0 = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
       end subroutine s_vsps0
 

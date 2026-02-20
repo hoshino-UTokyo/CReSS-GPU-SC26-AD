@@ -24,10 +24,8 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
       use m_getiname
       use m_getrname
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -172,14 +170,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_advs = 0
-      integer, parameter :: DUMP_TARGET_advs = 3960
-      logical, save :: dump_done_advs = .false.
 
 !-----7--------------------------------------------------------------7--
 
@@ -194,7 +185,6 @@
       call getrname(fpdyiv,dyiv)
       call getrname(fpdziv,dziv)
 
-! -----
 
 ! Set the common used variables.
 
@@ -206,78 +196,13 @@
       dyv24=oned24*dyiv
       dzv24=oned24*dziv
 
-! -----
 
 !!! Calculate the scalar advection.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: advs.f90 :: subroutine s_advs
-! Summary : Calculates scalar variable advection using 2nd or 4th order
-!           centered finite difference schemes with mass-weighted fluxes.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region.
-!   - Reads module constants (oned24, fourd3) from commath.
-!   - No synchronization constructs.
-!   - Multiple code paths based on advopt (1=2nd order full, 2=2nd+4th,
-!     3=2nd+4th+vadv separated).
-!   - Multi-stage stencil with temporary arrays (tmp1, tmp2, tmp3, vadv).
-!   - All loops are embarrassingly parallel within each stage.
-! Next:
-!   - Split into kernels matching the loop structure.
-!   - Temporary arrays already allocated - good for GPU data management.
-!   - Consider fusing stages for reduced memory traffic.
-! Runtime:
-!   - Calls: 3960
-!   - AvgLoops: 100.5M
-!   - TotalTime: 155.185s (5.21%)
-!   - AvgTime: 39.188ms
-!@llm end meta_info ------------------------------------------------------
 
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('advs.f90', 's_advs', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-1)-(2)+1,8)
 
-! Dump input data at target call
-dump_call_count_advs = dump_call_count_advs + 1
-if (dump_call_count_advs == DUMP_TARGET_advs .and. .not. dump_done_advs) then
-  call dump_init('advs')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('advopt', advopt)
-  call dump_scalar_i('iwest', iwest)
-  call dump_scalar_i('ieast', ieast)
-  call dump_scalar_i('jsouth', jsouth)
-  call dump_scalar_i('jnorth', jnorth)
-  call dump_scalar_r('dxiv', dxiv)
-  call dump_scalar_r('dyiv', dyiv)
-  call dump_scalar_r('dziv', dziv)
-  call dump_array_3d('rstxu.bin', rstxu, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rstxv.bin', rstxv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rstxwc.bin', rstxwc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('s.bin', s, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('sfrc_in.bin', sfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('dxv05n', dxv05n)
-  call dump_scalar_r('dxv24', dxv24)
-  call dump_scalar_r('dyv05n', dyv05n)
-  call dump_scalar_r('dyv24', dyv24)
-  call dump_scalar_r('dzv05n', dzv05n)
-  call dump_scalar_r('dzv24', dzv24)
-  call dump_array_3d('tmp1_in.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp2_in.bin', tmp2, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp3_in.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vadv_in.bin', vadv, 0, ni+1, 0, nj+1, 1, nk)
-end if
 
-call profile_start(prof_id1)
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_015)
 !----------------------------------------------------------------------
@@ -572,7 +497,6 @@ call profile_start(prof_id1)
 
         end if
 
-! -----
 
 ! Calculate the 4th order scalar advection.
 
@@ -686,7 +610,6 @@ call profile_start(prof_id1)
 
         end if
 
-! -----
 
 !! -----
 
@@ -716,14 +639,7 @@ call profile_start(prof_id1)
 !$omp end parallel
 #endif
 
-call profile_stop(prof_id1, loop_len)
 
-! Dump output data at target call
-if (dump_call_count_advs == DUMP_TARGET_advs .and. .not. dump_done_advs) then
-  call dump_array_3d('sfrc_ref.bin', sfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_advs = .true.
-end if
 
 !!! -----
 

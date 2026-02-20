@@ -17,9 +17,7 @@
 ! Module reference
 
       use m_commpi
-      use m_comprofile
       use m_getiname
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -128,14 +126,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_bc4news = 0
-      integer, parameter :: DUMP_TARGET_bc4news = 72374
-      logical, save :: dump_done_bc4news = .false.
 
 !-----7--------------------------------------------------------------7--
 
@@ -146,7 +137,6 @@
       call getiname(fpsbc,sbc)
       call getiname(fpnbc,nbc)
 
-! -----
 
 ! Set the common used variables.
 
@@ -156,69 +146,12 @@
       jssp1=jss+1
       jsnm1=jsn-1
 
-! -----
 
 ! Set the boundary conditions at the four corners.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: bc4news.f90 :: s_bc4news
-! Summary : Sets boundary conditions at the four corners (SW, SE, NW, NE) by
-!           averaging adjacent boundary values for optional 3D variable.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread usage
-!   - No function calls inside parallel region
-!   - Simple 1D loops over k dimension with direct array assignments
-!   - Uses module variables from m_commpi (ebsw, ebse, ebnw, ebne, isub, jsub, nisub, njsub)
-!   - Multiple conditionally executed small loops based on domain decomposition position
-! Next:
-!   - Convert to OpenACC with collapsed loops
-!   - Consider merging the four conditional loops into a single kernel with conditional logic
-! Runtime:
-!   - Calls: 72374
-!   - AvgLoops: 128
-!   - TotalTime: 0.281s (0.01%)
-!   - AvgTime: 0.004ms
-!@llm end meta_info ------------------------------------------------------
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('bc4news.f90', 's_bc4news', &
-   & 'OMP section 1')
-end if
-loop_len = int((kmax)-(1)+1,8)
 
-! Dump input data at target call
-dump_call_count_bc4news = dump_call_count_bc4news + 1
-if (dump_call_count_bc4news == DUMP_TARGET_bc4news .and. .not. dump_done_bc4news) then
-  call dump_init('bc4news')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('kmax', kmax)
-  call dump_scalar_i('wbc', wbc)
-  call dump_scalar_i('ebc', ebc)
-  call dump_scalar_i('sbc', sbc)
-  call dump_scalar_i('nbc', nbc)
-  call dump_scalar_i('isw', isw)
-  call dump_scalar_i('ise', ise)
-  call dump_scalar_i('jss', jss)
-  call dump_scalar_i('jsn', jsn)
-  call dump_array_3d('var_in.bin', var, 0, ni+1, 0, nj+1, 1, kmax)
-  call dump_scalar_i('ebne', ebne)
-  call dump_scalar_i('ebnw', ebnw)
-  call dump_scalar_i('ebse', ebse)
-  call dump_scalar_i('ebsw', ebsw)
-  call dump_scalar_i('isem1', isem1)
-  call dump_scalar_i('isub', isub)
-  call dump_scalar_i('iswp1', iswp1)
-  call dump_scalar_i('jsnm1', jsnm1)
-  call dump_scalar_i('jssp1', jssp1)
-  call dump_scalar_i('jsub', jsub)
-  call dump_scalar_i('nisub', nisub)
-  call dump_scalar_i('njsub', njsub)
-end if
 
-call profile_start(prof_id1)
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_027)
 !----------------------------------------------------------------------
@@ -327,16 +260,8 @@ call profile_start(prof_id1)
 !$omp end parallel
 #endif
 
-call profile_stop(prof_id1, loop_len)
 
-! Dump output data at target call
-if (dump_call_count_bc4news == DUMP_TARGET_bc4news .and. .not. dump_done_bc4news) then
-  call dump_array_3d('var_ref.bin', var, 0, ni+1, 0, nj+1, 1, kmax)
-  call dump_finalize()
-  dump_done_bc4news = .true.
-end if
 
-! -----
 
       end subroutine s_bc4news
 

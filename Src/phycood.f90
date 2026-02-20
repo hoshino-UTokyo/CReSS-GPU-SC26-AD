@@ -25,8 +25,6 @@
 ! Module reference
 
       use m_chkerr
-      use m_comprofile
-      use m_dump_kernel
       use m_comindx
       use m_commath
       use m_commpi
@@ -155,17 +153,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer, save :: prof_id2 = -1
-      integer, save :: prof_id3 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_phycood = 0
-      integer, parameter :: DUMP_TARGET_phycood = 1
-      logical, save :: dump_done_phycood = .false.
-      logical, save :: dump_done_phycood_sec3 = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -176,7 +164,6 @@
       call getrname(fpzsfc,zsfc)
       call getrname(fpzflat,zflat)
 
-! -----
 
 ! Copy the z coordinates to the array zsth in the case the vertical
 ! stretching is not applied.
@@ -185,7 +172,6 @@
 
         call copy1d(1,nk,z,zsth)
 
-! -----
 
 ! Calculate the 1 dimensional physical coordinates.
 
@@ -196,7 +182,6 @@
 
       end if
 
-! -----
 
 !! Check the highest mountain height.
 
@@ -204,53 +189,12 @@
 
       htmax=lim36n
 
-! -----
 
 ! Get the highest mountain height.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: phycood.f90 :: s_phycood
-! Summary : Find the highest terrain height using max reduction over 2D domain.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Uses reduction(max: htmax) clause
-!   - Reads from ht array, no writes to shared arrays
-!   - Simple 2D loop with reduction operation
-! Next:
-!   - Use OpenACC parallel loop with reduction(max:htmax)
-!   - GPU reductions are well supported in OpenACC
-!   - May need atomic or tree-based reduction for performance
-! Runtime:
-!   - Calls: 1
-!   - AvgLoops: 810.0K
-!   - TotalTime: 0.000s (0.00%)
-!   - AvgTime: 0.016ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('phycood.f90', 's_phycood', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj)-(0)+1,8) * int((ni)-(0)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_phycood = dump_call_count_phycood + 1
-if (dump_call_count_phycood == DUMP_TARGET_phycood .and. .not. dump_done_phycood) then
-  call dump_init('phycood')
-  call dump_scalar_i('sthopt', sthopt)
-  call dump_scalar_r('zsfc', zsfc)
-  call dump_scalar_r('zflat', zflat)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_array_2d('ht.bin', ht, 0, ni+1, 0, nj+1)
-  call dump_array_1d('zsth_in.bin', zsth, 1, nk)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_237)
 !----------------------------------------------------------------------
@@ -288,18 +232,9 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_phycood == DUMP_TARGET_phycood .and. .not. dump_done_phycood) then
-  call dump_array_3d('zph_ref.bin', zph, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_1d('zsth_ref.bin', zsth, 1, nk)
-  call dump_finalize()
-  dump_done_phycood = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
 ! If error occured, call the procedure destroy.
 
@@ -327,7 +262,6 @@ call profile_stop(prof_id1, loop_len)
 
       end if
 
-! -----
 
 !! -----
 
@@ -337,25 +271,9 @@ call profile_stop(prof_id1, loop_len)
 
       kflat=nk
 
-! -----
 
 ! Get the index of lowest flat level.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: phycood.f90 :: s_phycood
-! Summary : Find the lowest flat level index using min reduction over k levels.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Uses reduction(min: kflat) clause
-!   - Reads from zsth array, no writes to shared arrays
-!   - Simple 1D loop with conditional and reduction
-! Next:
-!   - Use OpenACC parallel loop with reduction(min:kflat)
-!   - Small loop range (nk typically ~50-100), may be better on CPU
-!   - Consider keeping this on host if nk is small
-!@llm end meta_info ------------------------------------------------------
 #if defined(USE_GPU) && !defined(DISABLE_GPU_238)
 !----------------------------------------------------------------------
 ! GPU version (OpenACC)
@@ -392,7 +310,6 @@ call profile_stop(prof_id1, loop_len)
 !$omp end parallel
 #endif
 
-! -----
 
 ! Finally get the lowest flat level.
 
@@ -402,7 +319,6 @@ call profile_stop(prof_id1, loop_len)
         zflat0=z(nk-1)
       end if
 
-! -----
 
 !! -----
 
@@ -418,43 +334,9 @@ call profile_stop(prof_id1, loop_len)
       htuiv=1.e0/(zflat0-zsfc)
       htuivz=1.e0/(zflat0-zsfc)*zflat0
 
-! -----
 
 ! Get the z physical coordinates and reset the stretched z coordinates.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: phycood.f90 :: s_phycood
-! Summary : Calculate 3D z physical coordinates and reset 1D stretched z
-!           coordinates with terrain-following transformation.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Writes to output arrays zph and zsth
-!   - Simple 3D stencil with conditional for flat level check
-!   - Mix of 3D (zph) and 1D (zsth) array operations
-!   - No explicit barriers but implicit at !$omp end do
-! Next:
-!   - Use OpenACC parallel loop with collapse(3) for 3D zph loops
-!   - Keep 1D zsth loop separate or use OpenACC loop
-!   - Straightforward GPU port with data region
-!@llm end meta_info ------------------------------------------------------
-
-! Dump input data for sec3 at target call
-if (dump_call_count_phycood == DUMP_TARGET_phycood .and. .not. dump_done_phycood_sec3) then
-  call dump_init('phycood_sec3')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('nkm1', nkm1)
-  call dump_scalar_i('nkm2', nkm2)
-  call dump_scalar_r('htuiv', htuiv)
-  call dump_scalar_r('htuivz', htuivz)
-  call dump_scalar_r('zflat0', zflat0)
-  call dump_scalar_r('zsfc', zsfc)
-  call dump_array_1d('zsth_in.bin', zsth, 1, nk)
-  call dump_array_2d('ht.bin', ht, 0, ni+1, 0, nj+1)
-end if
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_239)
 !----------------------------------------------------------------------
@@ -556,15 +438,6 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data for sec3 at target call
-if (dump_call_count_phycood == DUMP_TARGET_phycood .and. .not. dump_done_phycood_sec3) then
-  call dump_array_3d('zph_ref.bin', zph, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_1d('zsth_ref.bin', zsth, 1, nk)
-  call dump_finalize()
-  dump_done_phycood_sec3 = .true.
-end if
-
-! -----
 
 ! Set the bottom and top boundary conditions.
 
@@ -572,7 +445,6 @@ end if
       zsth(1)=-zsth(3)
       zsth(nk)=2.e0*zsth(nk-1)-zsth(nk-2)
 
-! -----
 
 !! -----
 

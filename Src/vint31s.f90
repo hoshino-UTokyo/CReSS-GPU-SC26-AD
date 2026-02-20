@@ -19,7 +19,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -109,11 +108,6 @@
       real dk          ! Distance in z direction
                        ! between model and data points
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variable.
@@ -124,34 +118,6 @@
 
 !! Interpolate the 3 dimensional input variable to the 1 dimensional
 !! flat plane.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: vint31s.f90 :: s_vint31s
-! Summary : Interpolates 3D input variable to 1D flat plane at scalar
-!           points with undefined value handling outside range.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Uses module constant lim35n from m_commath
-!   - Nested k/ki loops with !$omp do on inner j,i loops
-!   - No synchronization constructs other than implicit barriers
-!   - Linear interpolation with simple conditionals
-! Next:
-!   - Straightforward GPU port with collapse clause
-!   - Map outvar, zph8s, invar, z1d arrays to device
-!   - Consider loop fusion for fill and interpolate phases
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('vint31s.f90', 's_vint31s', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-2)-(2)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k,ki)
 
@@ -211,8 +177,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

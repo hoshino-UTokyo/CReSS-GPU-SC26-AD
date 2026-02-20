@@ -23,8 +23,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
-      use m_dump_kernel
       use m_comphy
 
 !-----7--------------------------------------------------------------7--
@@ -170,14 +168,7 @@
       real cmlxr2      ! Coefficient of melting rate
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_melting = 0
-      integer, parameter :: DUMP_TARGET_melting = 45720
-      logical, save :: dump_done_melting = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -186,71 +177,13 @@
 
       cc2dt=2.e0*cc*dtb
 
-! -----
 
 !!! Calculate the melting rate from the cloud ice to the cloud water and
 !!! from the snow and graupel to the rain water.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: melting.f90 :: s_melting
-! Summary : Calculate melting rates for cloud ice to cloud water, snow to rain,
-!           and graupel to rain based on temperature and microphysical parameters
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - Uses intrinsic max() function - GPU compatible
-!   - Writes to mlic, mlsr, mlgr output arrays
-!   - Branching on nk==1 for 2D vs 3D handling
-!   - Conditional logic based on thresq threshold and t0cel temperature
-!   - No synchronization constructs besides implicit barriers at !$omp end do
-! Next:
-!   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
-!   - Collapse nested i,j loops for better GPU occupancy
-! Runtime:
-!   - Calls: 45720
-!   - AvgLoops: 806.4K
-!   - TotalTime: 5.161s (0.17%)
-!   - AvgTime: 0.113ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('melting.f90', 's_melting', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_melting = dump_call_count_melting + 1
-if (dump_call_count_melting == DUMP_TARGET_melting .and. .not. dump_done_melting) then
-  call dump_init('melting')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('dtb', dtb)
-  call dump_scalar_r('thresq', thresq)
-  call dump_scalar_r('cw', cw)
-  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rbv.bin', rbv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qi.bin', qi, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qs.bin', qs, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qg.bin', qg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tcel.bin', tcel, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvsst0.bin', qvsst0, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('lv.bin', lv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('lf.bin', lf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('kp.bin', kp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('dv.bin', dv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vnts.bin', vnts, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vntg.bin', vntg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clcs.bin', clcs, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clcg.bin', clcg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clrs.bin', clrs, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clrg.bin', clrg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('cc2dt', cc2dt)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_202)
 !----------------------------------------------------------------------
@@ -387,7 +320,6 @@ end if
 
           cmlxr2=cw*tcel(i,j,1)
 
-! -----
 
 ! Calculate the melting rate from the cloud ice to the cloud water.
 
@@ -409,7 +341,6 @@ end if
 
           end if
 
-! -----
 
 ! Calculate the melting rate from the snow to the rain water.
 
@@ -432,7 +363,6 @@ end if
 
           end if
 
-! -----
 
 ! Calculate the melting rate from the graupel to the rain water.
 
@@ -455,7 +385,6 @@ end if
 
           end if
 
-! -----
 
         end do
         end do
@@ -482,7 +411,6 @@ end if
 
             cmlxr2=cw*tcel(i,j,k)
 
-! -----
 
 ! Calculate the melting rate from the cloud ice to the cloud water.
 
@@ -504,7 +432,6 @@ end if
 
             end if
 
-! -----
 
 ! Calculate the melting rate from the snow to the rain water.
 
@@ -527,7 +454,6 @@ end if
 
             end if
 
-! -----
 
 ! Calculate the melting rate from the graupel to the rain water.
 
@@ -550,7 +476,6 @@ end if
 
             end if
 
-! -----
 
           end do
           end do
@@ -566,17 +491,8 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_melting == DUMP_TARGET_melting .and. .not. dump_done_melting) then
-  call dump_array_3d('mlic_ref.bin', mlic, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('mlsr_ref.bin', mlsr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('mlgr_ref.bin', mlgr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_melting = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

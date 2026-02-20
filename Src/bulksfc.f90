@@ -23,8 +23,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
-      use m_dump_kernel
       use m_comphy
 
 !-----7--------------------------------------------------------------7--
@@ -171,14 +169,7 @@
       real f           ! Temporary variable
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_bulksfc = 0
-      integer, parameter :: DUMP_TARGET_bulksfc = 385
-      logical, save :: dump_done_bulksfc = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -217,91 +208,12 @@
       cps1=-oned27/(rms*rms*rms)
       cps2=(3.e0-rhs/rms)/(6.e0*rms)
 
-! -----
 
 !! Calculate the bulk coefficients of surface flux.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: bulksfc.f90 :: s_bulksfc
-! Summary : Calculates bulk coefficients for surface momentum and heat
-!           fluxes using Monin-Obukhov similarity theory with stability.
-! GPU diff: Hard
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls inside parallel region
-!   - Heavy use of intrinsics: sqrt, log, exp, acos, atan, cos, tan, abs, min, max
-!   - Complex nested conditionals (land type, stability, ice coverage)
-!   - Significant control flow divergence based on rch sign and land values
-!   - Many local temporary variables (a through f, cmice, chice, dz0m, dz0h)
-!   - Single 2D loop over surface grid points
-! Next:
-!   - Convert to OpenACC with collapse(2) for i,j loops
-!   - Map all 2D input/output arrays to device
-!   - GPU divergence may reduce efficiency; consider separating cases
-!   - Transcendental functions may benefit from fast-math approximations
-! Runtime:
-!   - Calls: 385
-!   - AvgLoops: 806.4K
-!   - TotalTime: 0.289s (0.01%)
-!   - AvgTime: 0.750ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('bulksfc.f90', 's_bulksfc', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_bulksfc = dump_call_count_bulksfc + 1
-if (dump_call_count_bulksfc == DUMP_TARGET_bulksfc .and. .not. dump_done_bulksfc) then
-  call dump_init('bulksfc')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_r('kappa', kappa)
-  call dump_scalar_r('wkappa', wkappa)
-  call dump_scalar_r('prnumg', prnumg)
-  call dump_scalar_r('prnumw', prnumw)
-  call dump_scalar_r('icz0m', icz0m)
-  call dump_scalar_r('icz0h', icz0h)
-  call dump_scalar_r('rmg', rmg)
-  call dump_scalar_r('rms', rms)
-  call dump_scalar_r('rhg', rhg)
-  call dump_scalar_r('rhs', rhs)
-  call dump_scalar_r('oned3', oned3)
-  call dump_scalar_r('cc', cc)
-  call dump_scalar_r('tend3', tend3)
-  call dump_array_2d('za.bin', za, 0, ni+1, 0, nj+1)
-  call dump_array_2d_int('land.bin', land, 0, ni+1, 0, nj+1)
-  call dump_array_2d('kai.bin', kai, 0, ni+1, 0, nj+1)
-  call dump_array_2d('z0m.bin', z0m, 0, ni+1, 0, nj+1)
-  call dump_array_2d('z0h.bin', z0h, 0, ni+1, 0, nj+1)
-  call dump_array_2d('rch.bin', rch, 0, ni+1, 0, nj+1)
-  call dump_scalar_r('cc05', cc05)
-  call dump_scalar_r('cpg1', cpg1)
-  call dump_scalar_r('cpg2', cpg2)
-  call dump_scalar_r('cps1', cps1)
-  call dump_scalar_r('cps2', cps2)
-  call dump_scalar_r('cqg1', cqg1)
-  call dump_scalar_r('cqg2', cqg2)
-  call dump_scalar_r('cqs1', cqs1)
-  call dump_scalar_r('cqs2', cqs2)
-  call dump_scalar_r('icz0hv', icz0hv)
-  call dump_scalar_r('icz0mv', icz0mv)
-  call dump_scalar_r('kp2', kp2)
-  call dump_scalar_r('kprg', kprg)
-  call dump_scalar_r('kprg3', kprg3)
-  call dump_scalar_r('prgiv', prgiv)
-  call dump_scalar_r('prwiv', prwiv)
-  call dump_scalar_r('rmg3v', rmg3v)
-  call dump_scalar_r('rms3v', rms3v)
-  call dump_scalar_r('wkp2', wkp2)
-  call dump_scalar_r('wkprw', wkprw)
-  call dump_scalar_r('wkprw3', wkprw3)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_042)
 !----------------------------------------------------------------------
@@ -523,7 +435,6 @@ end if
         a=max(za(i,j)/z0m(i,j),1.01e0)
         b=max(za(i,j)/z0h(i,j),1.01e0)
 
-! -----
 
 ! For the unstable case.
 
@@ -640,7 +551,6 @@ end if
 
           end if
 
-! -----
 
 ! For the stable case.
 
@@ -672,7 +582,6 @@ end if
 
         end if
 
-! -----
 
 ! Mix the bulk coefficients for the weighted average arrangement ice
 ! surface.
@@ -762,7 +671,6 @@ end if
 
         end if
 
-! -----
 
       end do
       end do
@@ -772,16 +680,8 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_bulksfc == DUMP_TARGET_bulksfc .and. .not. dump_done_bulksfc) then
-  call dump_array_2d('cm_ref.bin', cm, 0, ni+1, 0, nj+1)
-  call dump_array_2d('ch_ref.bin', ch, 0, ni+1, 0, nj+1)
-  call dump_finalize()
-  dump_done_bulksfc = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

@@ -21,7 +21,6 @@
 ! Module reference
 
       use m_getrname
-      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -143,11 +142,6 @@
 
       real a           ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -165,32 +159,6 @@
 ! -----
 
 !! Calculate the 2nd order velocity numerical smoothing.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: smoo2uvw.f90 :: s_smoo2uvw
-! Summary : Applies 2nd order numerical smoothing to u, v, w velocity components
-!           using horizontal and vertical smoothing coefficients
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls inside parallel region
-!   - Multiple nested !$omp do loops with schedule(runtime)
-!   - Writes to tmp1, ufrc, vfrc, wfrc arrays
-!   - No synchronization constructs besides implicit barriers
-! Next:
-!   - Data managed automatically via Unified Memory with OpenACC data
-!   - Convert !$omp do to !$acc parallel loop collapse(2)
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('smoo2uvw.f90', 's_smoo2uvw', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -309,8 +277,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

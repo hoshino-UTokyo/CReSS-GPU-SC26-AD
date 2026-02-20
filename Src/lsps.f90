@@ -26,7 +26,6 @@
 ! Module reference
 
       use m_getcname
-      use m_comprofile
       use m_getiname
       use m_getrname
       use m_inichar
@@ -158,11 +157,6 @@
 
       real a           ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Initialize the character variable.
@@ -182,36 +176,6 @@
 ! -----
 
 !! Calculate the lateral sponge damping for optional scalar variable.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: lsps.f90 :: subroutine s_lsps
-! Summary : Applies lateral sponge damping for scalar variables near
-!           domain boundaries, relaxing toward GPV or base state values.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region.
-!   - No writes to module/global variables.
-!   - No synchronization constructs.
-!   - Uses intrinsic mod() for option check (outside parallel).
-!   - Two stages: (1) compute tmp1 (deviation), (2) apply damping.
-!   - Optional smoothing stencil when lspopt >= 10.
-!   - All grid points are independent within each stage.
-! Next:
-!   - Direct OpenACC kernels for each loop nest.
-!   - rbcxy is 2D, can be efficiently accessed on GPU.
-!@llm end meta_info ------------------------------------------------------
-
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('lsps.f90', 's_lsps', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -306,8 +270,6 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

@@ -20,7 +20,6 @@
 !-----7--------------------------------------------------------------7--
 
 ! Implicit typing
-      use m_comprofile
 
       implicit none
 
@@ -116,11 +115,6 @@
       real dk          ! Distance in z direction
                        ! between model and averaged points
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variables.
@@ -133,31 +127,6 @@
 ! -----
 
 !! Interpolate the variable to the model grid vertically.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: vint133a.f90 :: s_vint133a
-! Summary : Interpolate horizontally-varying variable to model grid vertically
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Reads from zph, invar (3D), z1d (1D); writes to outvar (3D)
-!   - First section: extrapolation with k loop serial, i,j parallelized
-!   - Second section: kl,k loops serial, i,j parallelized for interpolation
-!   - Conditional branches for vertical level selection
-! Next:
-!   - Collapse k,j,i loops for GPU parallelism
-!   - Use OpenACC teams distribute parallel do collapse(3)
-!   - Consider restructuring to compute kl index per (i,j,k) point directly
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('vint133a.f90', 's_vint133a', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) * int((nj)-(0)+1,8) * int((ni)-(0)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k,kl)
 
@@ -224,8 +193,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

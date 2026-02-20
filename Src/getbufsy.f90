@@ -22,7 +22,6 @@
 ! Module reference
 
       use m_commpi
-      use m_comprofile
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -124,11 +123,6 @@
       integer i        ! Array index in x direction
       integer k        ! Array index in z direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -143,30 +137,6 @@
       if(njsub.ge.2) then
 
         if(fproc(1:3).eq.'all'.or.(sbc.eq.-1.and.nbc.eq.-1)) then
-
-!@llm start meta_info ----------------------------------------------------
-! Location: getbufsy.f90 :: s_getbufsy
-! Summary : Fills south/north halo regions from MPI receive buffer in y direction
-!           for subdomain boundary exchange
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread usage
-!   - No function calls inside parallel region
-!   - Simple array copy from rbufy to var at boundary indices
-!   - Multiple conditional branches based on boundary conditions (sbc, nbc)
-!   - No synchronization constructs beyond implicit barriers
-! Next:
-!   - Convert to OpenACC or OpenACC data region
-!   - Ensure rbufy and var are mapped appropriately
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('getbufsy.f90', 's_getbufsy', &
-   & 'OMP section 1')
-end if
-loop_len = int((kmax)-(1)+1,8) * int((ni+1)-(0)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -291,8 +261,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
         end if
 

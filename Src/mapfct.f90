@@ -25,8 +25,6 @@
 ! Module reference
 
       use m_bcyclex
-      use m_comprofile
-      use m_dump_kernel
       use m_bcycley
       use m_combuf
       use m_comindx
@@ -191,14 +189,7 @@
       integer j        ! Array index in y direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_mapfct = 0
-      integer, parameter :: DUMP_TARGET_mapfct = 1
-      logical, save :: dump_done_mapfct = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -213,7 +204,6 @@
       call getrname(fpdxiv,dxiv)
       call getrname(fpdyiv,dyiv)
 
-! -----
 
 ! Set the common used variables.
 
@@ -223,63 +213,12 @@
       dxv625=.0625e0*dxiv
       dyv625=.0625e0*dyiv
 
-! -----
 
 !!! Calculate the map scale factors.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: mapfct.f90 :: s_mapfct
-! Summary : Calculate map scale factors for various projection methods (spherical,
-!           polar stereographic, Lambert conformal, Mercator, etc.) at scalar/u/v points
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - Intrinsic math functions (cos, sin, tan, exp, log, sqrt) used inside loops
-!   - Multiple worksharing constructs with branching logic based on mpopt
-!   - Writes to mf, mf8u, mf8v, rmf, rmf8u, rmf8v, tmp1 arrays
-!   - No synchronization constructs besides implicit barriers at !$omp end do
-! Next:
-!   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
-!   - Collapse nested i,j loops for better GPU occupancy
-!   - Math intrinsics are GPU-compatible
-! Runtime:
-!   - Calls: 1
-!   - AvgLoops: 810.0K
-!   - TotalTime: 0.001s (0.00%)
-!   - AvgTime: 0.646ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('mapfct.f90', 's_mapfct', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj)-(0)+1,8) * int((ni)-(0)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_mapfct = dump_call_count_mapfct + 1
-if (dump_call_count_mapfct == DUMP_TARGET_mapfct .and. .not. dump_done_mapfct) then
-  call dump_init('mapfct')
-  call dump_scalar_i('mpopt', mpopt)
-  call dump_scalar_i('nspol', nspol)
-  call dump_scalar_i('advopt', advopt)
-  call dump_scalar_i('tubopt', tubopt)
-  call dump_scalar_r('disr', disr)
-  call dump_scalar_r('dxiv', dxiv)
-  call dump_scalar_r('dyiv', dyiv)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_array_2d('lat.bin', lat, 0, ni+1, 0, nj+1)
-  call dump_array_2d('tmp1_in.bin', tmp1, 0, ni+1, 0, nj+1)
-  call dump_array_1d('cpj.bin', cpj, 1, 7)
-  call dump_scalar_r('dxv625', dxv625)
-  call dump_scalar_r('dyv625', dyv625)
-  call dump_scalar_r('pol05', pol05)
-  call dump_scalar_r('pold2r', pold2r)
-  call dump_array_1d('x.bin', x, 0, ni+1)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_200)
 !----------------------------------------------------------------------
@@ -444,7 +383,6 @@ end if
 
 !$omp end do
 
-! -----
 
 ! Calculate the map scale factor with the Polar Stereographic
 ! projection method.
@@ -461,7 +399,6 @@ end if
 
 !$omp end do
 
-! -----
 
 ! Calculate the map scale factor with the Lambert Conformal Conic
 ! projection method.
@@ -479,7 +416,6 @@ end if
 
 !$omp end do
 
-! -----
 
 ! Calculate the map scale factor with the Mercator projection method.
 
@@ -495,7 +431,6 @@ end if
 
 !$omp end do
 
-! -----
 
 ! Calculate the map scale factor without any projection method.
 
@@ -511,7 +446,6 @@ end if
 
 !$omp end do
 
-! -----
 
 ! Calculate the map scale factor with the circular cylinder coordinates
 ! system.
@@ -530,7 +464,6 @@ end if
 
       end if
 
-! -----
 
 !! -----
 
@@ -556,7 +489,6 @@ end if
 
 !$omp end do
 
-! -----
 
 ! Calculate the map scale factor squared and the inverse of map scale
 ! factor.
@@ -596,7 +528,6 @@ end if
 
 !$omp end do
 
-! -----
 
 ! Calculate the differential of map scale factor x 0.0625.
 
@@ -640,26 +571,12 @@ end if
 
 !$omp end do
 
-! -----
 
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_mapfct == DUMP_TARGET_mapfct .and. .not. dump_done_mapfct) then
-  call dump_array_2d('mf_ref.bin', mf, 0, ni+1, 0, nj+1)
-  call dump_array_2d('mf8u_ref.bin', mf8u, 0, ni+1, 0, nj+1)
-  call dump_array_2d('mf8v_ref.bin', mf8v, 0, ni+1, 0, nj+1)
-  call dump_array_3d('rmf_ref.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
-  call dump_array_3d('rmf8u_ref.bin', rmf8u, 0, ni+1, 0, nj+1, 1, 3)
-  call dump_array_3d('rmf8v_ref.bin', rmf8v, 0, ni+1, 0, nj+1, 1, 3)
-  call dump_array_2d('tmp1_ref.bin', tmp1, 0, ni+1, 0, nj+1)
-  call dump_finalize()
-  dump_done_mapfct = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !!! -----
 
@@ -684,7 +601,6 @@ call profile_stop(prof_id1, loop_len)
 
         call s_bcyclex(idwbc,idebc,4,0,ni-3,ni+1,ni,nj,1,mf8u)
 
-! -----
 
 ! Exchange the value in y direction.
 
@@ -702,7 +618,6 @@ call profile_stop(prof_id1, loop_len)
 
         call s_bcycley(idsbc,idnbc,4,0,nj-3,nj+1,ni,nj,1,mf8v)
 
-! -----
 
       end if
 

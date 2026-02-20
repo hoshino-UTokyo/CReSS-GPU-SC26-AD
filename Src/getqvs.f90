@@ -17,7 +17,6 @@
 ! Module reference
 
       use m_comphy
-      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -113,11 +112,6 @@
 
       real esw         ! Saturation vapor pressure for water
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variables.
@@ -129,34 +123,6 @@
 ! -----
 
 ! Calculate the saturation mixing ratio.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: getqvs.f90 :: s_getqvs
-! Summary : Calculates saturation mixing ratio (qvs) from pressure and
-!           potential temperature using Tetens formula for saturation vapor pressure
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread usage
-!   - Uses intrinsic exp(), log() functions - GPU compatible
-!   - Simple element-wise computation at each grid point
-!   - Module constants rd, cp, p0, es0, epsva, t0 used from m_comphy
-!   - No loop-carried dependencies
-!   - No synchronization constructs beyond implicit barriers
-! Next:
-!   - Direct port to OpenACC parallel loop
-!   - Collapse k,j,i loops for better GPU occupancy
-!   - Ensure module constants are accessible on device
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('getqvs.f90', 's_getqvs', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -182,8 +148,6 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

@@ -23,8 +23,6 @@
 ! Module reference
 
       use m_comphy
-      use m_comprofile
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -121,66 +119,16 @@
       real a           ! Temporary variable
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_nuc1stv = 0
-      integer, parameter :: DUMP_TARGET_nuc1stv = 45720
-      logical, save :: dump_done_nuc1stv = .false.
 
 
 !-----7--------------------------------------------------------------7--
 
 !! Calculate the nucleation rate of the deposition or sorption.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: nuc1stv.f90 :: s_nuc1stv
-! Summary : Calculate nucleation rate of deposition/sorption for ice
-!           based on supersaturation and temperature conditions.
-! GPU diff: Easy
-! Findings:
-!   - Conditional branch for nk.eq.1 vs nk.gt.1 cases
-!   - Simple conditionals on qv, qvsi, t values
-!   - Uses exp, max, min intrinsics - GPU compatible
-!   - Output array nuvi written independently per grid point
-!   - No inter-thread dependencies; fully parallel
-! Next:
-!   - Direct port to GPU kernel with minimal changes
-!   - Branch divergence from conditionals is manageable
-!   - Consider using predication for conditional assignments
-! Runtime:
-!   - Calls: 45720
-!   - AvgLoops: 806.4K
-!   - TotalTime: 1.910s (0.06%)
-!   - AvgTime: 0.042ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('nuc1stv.f90', 's_nuc1stv', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_nuc1stv = dump_call_count_nuc1stv + 1
-if (dump_call_count_nuc1stv == DUMP_TARGET_nuc1stv .and. .not. dump_done_nuc1stv) then
-  call dump_init('nuc1stv')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('thresq', thresq)
-  call dump_array_3d('t.bin', t, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('t0', t0)
-  call dump_array_3d('rbv.bin', rbv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qv.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qi.bin', qi, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvsi.bin', qvsi, 0, ni+1, 0, nj+1, 1, nk)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_213)
 !----------------------------------------------------------------------
@@ -292,7 +240,6 @@ end if
 
 !$omp end do
 
-! -----
 
 ! In the case nk > 1.
 
@@ -346,20 +293,12 @@ end if
 
       end if
 
-! -----
 
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_nuc1stv == DUMP_TARGET_nuc1stv .and. .not. dump_done_nuc1stv) then
-  call dump_array_3d('nuvi_ref.bin', nuvi, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_nuc1stv = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

@@ -25,8 +25,6 @@
 !-----7--------------------------------------------------------------7--
 
 ! Implicit typing
-      use m_comprofile
-      use m_dump_kernel
 
       implicit none
 
@@ -115,14 +113,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_coriuv = 0
-      integer, parameter :: DUMP_TARGET_coriuv = 360
-      logical, save :: dump_done_coriuv = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -130,57 +121,10 @@
 !! Calculate the Coriolis force in the x and the y components of
 !! velocity equation.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: coriuv.f90 :: subroutine s_coriuv
-! Summary : Calculates Coriolis force terms for u and v velocity equations
-!           using f-plane or beta-plane approximation.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region.
-!   - No writes to module/global variables.
-!   - No synchronization constructs.
-!   - Two-stage calculation: (1) compute tmp1, (2) add to forcing.
-!   - Stencil averaging of velocity for Coriolis term.
-!   - All grid points are independent within each loop nest.
-! Next:
-!   - Direct OpenACC kernels with collapse(2) on i,j loops.
-!   - Consider fusing the two stages into single kernel per component.
-!   - Temporary array tmp1 needed for staggered grid averaging.
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 100.6M
-!   - TotalTime: 5.402s (0.18%)
-!   - AvgTime: 15.006ms
-!@llm end meta_info ------------------------------------------------------
 
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('coriuv.f90', 's_coriuv', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_coriuv = dump_call_count_coriuv + 1
-if (dump_call_count_coriuv == DUMP_TARGET_coriuv .and. .not. dump_done_coriuv) then
-  call dump_init('coriuv')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_array_3d('fc.bin', fc, 0, ni+1, 0, nj+1, 1, 2)
-  call dump_array_3d('rst.bin', rst, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ufrc_in.bin', ufrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vfrc_in.bin', vfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp1_in.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
-end if
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_069)
 !----------------------------------------------------------------------
@@ -275,7 +219,6 @@ end if
 
       end do
 
-! -----
 
 ! Calculate the Coriolis force in the y components of velocity equation.
 
@@ -307,22 +250,12 @@ end if
 
       end do
 
-! -----
 
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_coriuv == DUMP_TARGET_coriuv .and. .not. dump_done_coriuv) then
-  call dump_array_3d('ufrc_ref.bin', ufrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vfrc_ref.bin', vfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp1_ref.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_coriuv = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

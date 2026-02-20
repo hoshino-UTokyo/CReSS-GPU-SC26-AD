@@ -19,7 +19,6 @@
 ! Module reference
 
       use m_bc4news
-      use m_comprofile
       use m_bcgsms
       use m_bcycle
       use m_combuf
@@ -123,12 +122,6 @@
 
       real a           ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer, save :: prof_id2 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -146,33 +139,6 @@
 !! Perform the 2nd order smoothing.
 
 ! Calculate the diffusion term.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: gsmoos.f90 :: s_gsmoos (diffusion calculation)
-! Summary : Calculate 3D Laplacian diffusion term for GPV smoothing
-!           using 6-point stencil in x, y, z directions.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread usage
-!   - No function calls within parallel region
-!   - Standard stencil operation with neighbor access
-!   - No global writes, only output array dfs is modified
-!   - No synchronization constructs other than implicit barriers
-! Next:
-!   - Direct translation to OpenACC with collapsed loops
-!   - Standard stencil pattern, well-suited for GPU
-!   - Consider shared memory tiling for better cache utilization
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('gsmoos.f90', 's_gsmoos', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-3)-(3)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-2)-(2)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -196,8 +162,6 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 
@@ -256,22 +220,6 @@ call profile_stop(prof_id1, loop_len)
 
 ! Update the GPV data.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: gsmoos.f90 :: s_gsmoos (GPV update)
-! Summary : Apply diffusion correction to scalar GPV data using
-!           pre-computed diffusion term with time coefficient.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread usage
-!   - No function calls within parallel region
-!   - Simple element-wise update: sgpv = sgpv + dtcoe*dfs
-!   - No global writes other than sgpv array
-!   - No synchronization constructs
-! Next:
-!   - Direct translation to OpenACC with collapsed loops
-!   - Can be fused with diffusion calculation if boundary exchange
-!     can be performed on GPU or overlapped with computation
-!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-2

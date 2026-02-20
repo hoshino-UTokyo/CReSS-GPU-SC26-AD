@@ -24,8 +24,6 @@
 ! Module reference
 
       use m_getiname
-      use m_comprofile
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -328,14 +326,7 @@
       integer n        ! Array index in 4th direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_swp2nxt = 0
-      integer, parameter :: DUMP_TARGET_swp2nxt = 360
-      logical, save :: dump_done_swp2nxt = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -355,153 +346,12 @@
       call getiname(fpjsouth,jsouth)
       call getiname(fpjnorth,jnorth)
 
-! -----
 
 !!!!! Swap the prognostic variables to the next time step.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: swp2nxt.f90 :: s_swp2nxt
-! Summary : Swap prognostic variables (velocity, pressure, temperature,
-!           hydrometeors, aerosols, tracers, TKE) between time levels
-! GPU diff: Medium
-! Findings:
-!   - Many conditional branches based on advopt, cphopt, haiopt, etc.
-!   - Simple array copy operations within loops
-!   - Large number of arrays to swap (u,v,w,pp,ptp,qv,qwtr,qice,etc.)
-!   - No function calls within parallel region
-!   - Different swap patterns for centered vs Lagrange advection
-! Next:
-!   - Consider batching array swaps for GPU memory efficiency
-!   - Use async data transfers if arrays already on GPU
-!   - Collapse loops where possible for better occupancy
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 102.5M
-!   - TotalTime: 30.923s (1.04%)
-!   - AvgTime: 85.898ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('swp2nxt.f90', 's_swp2nxt', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-jnorth)-(jsouth)+1,8) &
-     & * int((ni+1-ieast)-(iwest)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_swp2nxt = dump_call_count_swp2nxt + 1
-if (dump_call_count_swp2nxt == DUMP_TARGET_swp2nxt .and. .not. dump_done_swp2nxt) then
-  call dump_init('swp2nxt')
-  call dump_scalar_i('sfcopt', sfcopt)
-  call dump_scalar_i('advopt', advopt)
-  call dump_scalar_i('cphopt', cphopt)
-  call dump_scalar_i('haiopt', haiopt)
-  call dump_scalar_i('qcgopt', qcgopt)
-  call dump_scalar_i('aslopt', aslopt)
-  call dump_scalar_i('trkopt', trkopt)
-  call dump_scalar_i('tubopt', tubopt)
-  call dump_scalar_i('iwest', iwest)
-  call dump_scalar_i('ieast', ieast)
-  call dump_scalar_i('jsouth', jsouth)
-  call dump_scalar_i('jnorth', jnorth)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('nqw', nqw)
-  call dump_scalar_i('nnw', nnw)
-  call dump_scalar_i('nqi', nqi)
-  call dump_scalar_i('nni', nni)
-  call dump_scalar_i('nund', nund)
-  call dump_scalar_r('dtsoil', dtsoil)
-  call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('w.bin', w, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('pp.bin', pp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptp.bin', ptp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qv.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
-  ! These are 4D arrays - dump with proper conditions
-  if (nqw >= 1) then
-    call dump_array_4d('qwtr.bin', qwtr, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  end if
-  ! nwtr is allocated as dummy when savmem=1 and abs(cphopt)<4
-  if (nnw >= 1 .and. abs(cphopt).ge.4 .and. abs(cphopt).lt.20) then
-    call dump_array_4d('nwtr.bin', nwtr, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
-  end if
-  if (nqi >= 1) then
-    call dump_array_4d('qice.bin', qice, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-  end if
-  if (nni >= 1) then
-    call dump_array_4d('nice.bin', nice, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
-  end if
-  ! qcwtr is only allocated when cphopt < 0 and qcgopt == 2
-  if (cphopt < 0 .and. qcgopt == 2) then
-    call dump_array_4d('qcwtr.bin', qcwtr, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  end if
-  ! qcice is only allocated when cphopt < 0
-  if (cphopt < 0) then
-    call dump_array_4d('qcice.bin', qcice, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-  end if
-  ! qasl is allocated as dummy when aslopt < 1
-  if (aslopt >= 1) then
-    call dump_array_4d('qasl.bin', qasl, 0, ni+1, 0, nj+1, 1, nk, 1, nqa(0))
-  end if
-  ! qt is allocated as dummy when trkopt < 1
-  if (trkopt >= 1) then
-    call dump_array_3d('qt.bin', qt, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  ! tke is allocated as dummy when tubopt < 2
-  if (tubopt >= 2) then
-    call dump_array_3d('tke.bin', tke, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  call dump_array_3d('tund.bin', tund, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('uf.bin', uf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vf.bin', vf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wf.bin', wf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ppf.bin', ppf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptpf.bin', ptpf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvf.bin', qvf, 0, ni+1, 0, nj+1, 1, nk)
-  if (nqw >= 1) then
-    call dump_array_4d('qwtrf.bin', qwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  end if
-  ! nwtrf is allocated as dummy when savmem=1 and abs(cphopt)<4
-  if (nnw >= 1 .and. abs(cphopt).ge.4 .and. abs(cphopt).lt.20) then
-    call dump_array_4d('nwtrf.bin', nwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
-  end if
-  if (nqi >= 1) then
-    call dump_array_4d('qicef.bin', qicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-  end if
-  if (nni >= 1) then
-    call dump_array_4d('nicef.bin', nicef, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
-  end if
-  ! qcwtrf is only allocated when cphopt < 0 and qcgopt == 2
-  if (cphopt < 0 .and. qcgopt == 2) then
-    call dump_array_4d('qcwtrf.bin', qcwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  end if
-  ! qcicef is only allocated when cphopt < 0
-  if (cphopt < 0) then
-    call dump_array_4d('qcicef.bin', qcicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-  end if
-  ! qaslf is allocated as dummy when aslopt < 1
-  if (aslopt >= 1) then
-    call dump_array_4d('qaslf.bin', qaslf, 0, ni+1, 0, nj+1, 1, nk, 1, nqa(0))
-  end if
-  if (trkopt >= 1) then
-    call dump_array_3d('qtf.bin', qtf, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  if (tubopt >= 2) then
-    call dump_array_3d('tkef.bin', tkef, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  if (sfcopt >= 1) then
-    call dump_array_3d('tundf.bin', tundf, 0, ni+1, 0, nj+1, 1, nund)
-  end if
-  call dump_scalar_c('fmois', fmois)
-  ! FIXME: nqa is an array, not scalar
-  ! ! FIXME: nqa is array - call dump_scalar_i('nqa', nqa)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_321)
 ! GPU version (OpenACC)
@@ -555,7 +405,6 @@ end if
         end do
 !$acc end kernels
 
-! -----
 
 ! Swap the pressure and potential temperature perturbation to the next
 ! time step.
@@ -578,7 +427,6 @@ end if
         end do
 !$acc end kernels
 
-! -----
 
 !!! Swap the hydrometeor to the next time step.
 
@@ -600,7 +448,6 @@ end if
           end do
 !$acc end kernels
 
-! -----
 
 !! For the bulk categories.
 
@@ -630,7 +477,6 @@ end if
 
             end if
 
-! -----
 
 ! Swap the water concentrations to the next time step.
 
@@ -656,7 +502,6 @@ end if
 
             end if
 
-! -----
 
 ! Swap the ice hydrometeor to the next time step.
 
@@ -712,7 +557,6 @@ end if
 
             end if
 
-! -----
 
 ! Swap the ice concentrations to the next time step.
 
@@ -784,7 +628,6 @@ end if
 
             end if
 
-! -----
 
 ! Swap the charging distributions to the next time step.
 
@@ -862,7 +705,6 @@ end if
 
             end if
 
-! -----
 
 !! -----
 
@@ -908,7 +750,6 @@ end if
 
             end if
 
-! -----
 
 ! Swap the ice hydrometeor to the next time step.
 
@@ -948,7 +789,6 @@ end if
 
             end if
 
-! -----
 
           end if
 
@@ -980,7 +820,6 @@ end if
 
         end if
 
-! -----
 
 ! Swap the tracer to the next time step.
 
@@ -1002,7 +841,6 @@ end if
 
         end if
 
-! -----
 
 ! Swap the turbulent kinetic energy to the next time step.
 
@@ -1024,7 +862,6 @@ end if
 
         end if
 
-! -----
 
 ! Swap the soil and sea temperature to the next time step.
 
@@ -1050,7 +887,6 @@ end if
 
         end if
 
-! -----
 
 !!!! ----
 
@@ -1100,7 +936,6 @@ end if
         end do
 !$acc end kernels
 
-! -----
 
 ! Swap the pressure and potential temperature perturbation to the next
 ! time step.
@@ -1119,7 +954,6 @@ end if
         end do
 !$acc end kernels
 
-! -----
 
 !!! Swap the hydrometeor to the next time step.
 
@@ -1140,7 +974,6 @@ end if
           end do
 !$acc end kernels
 
-! -----
 
 !! For the bulk categories.
 
@@ -1166,7 +999,6 @@ end if
 
             end if
 
-! -----
 
 ! Swap the water concentrations to the next time step.
 
@@ -1188,7 +1020,6 @@ end if
 
             end if
 
-! -----
 
 ! Swap the ice hydrometeor to the next time step.
 
@@ -1233,7 +1064,6 @@ end if
 
             end if
 
-! -----
 
 ! Swap the ice concentrations to the next time step.
 
@@ -1293,7 +1123,6 @@ end if
 
             end if
 
-! -----
 
 ! Swap the charging distributions to the next time step.
 
@@ -1356,7 +1185,6 @@ end if
 
             end if
 
-! -----
 
 !! -----
 
@@ -1400,7 +1228,6 @@ end if
 
             end if
 
-! -----
 
 ! Swap the ice hydrometeor to the next time step.
 
@@ -1438,7 +1265,6 @@ end if
 
             end if
 
-! -----
 
           end if
 
@@ -1469,7 +1295,6 @@ end if
 
         end if
 
-! -----
 
 ! Swap the tracer to the next time step.
 
@@ -1490,7 +1315,6 @@ end if
 
         end if
 
-! -----
 
 ! Swap the turbulent kinetic energy to the next time step.
 
@@ -1511,7 +1335,6 @@ end if
 
         end if
 
-! -----
 
 ! Swap the soil and sea temperature to the next time step.
 
@@ -1536,7 +1359,6 @@ end if
 
         end if
 
-! -----
 
       end if
 
@@ -1594,7 +1416,6 @@ end if
 
         end do
 
-! -----
 
 ! Swap the pressure and potential temperature perturbation to the next
 ! time step.
@@ -1618,7 +1439,6 @@ end if
 
         end do
 
-! -----
 
 !!! Swap the hydrometeor to the next time step.
 
@@ -1641,7 +1461,6 @@ end if
 
           end do
 
-! -----
 
 !! For the bulk categories.
 
@@ -1672,7 +1491,6 @@ end if
 
             end if
 
-! -----
 
 ! Swap the water concentrations to the next time step.
 
@@ -1699,7 +1517,6 @@ end if
 
             end if
 
-! -----
 
 ! Swap the ice hydrometeor to the next time step.
 
@@ -1757,7 +1574,6 @@ end if
 
             end if
 
-! -----
 
 ! Swap the ice concentrations to the next time step.
 
@@ -1832,7 +1648,6 @@ end if
 
             end if
 
-! -----
 
 ! Swap the charging distributions to the next time step.
 
@@ -1913,7 +1728,6 @@ end if
 
             end if
 
-! -----
 
 !! -----
 
@@ -1965,7 +1779,6 @@ end if
 
             end if
 
-! -----
 
 ! Swap the ice hydrometeor to the next time step.
 
@@ -2011,7 +1824,6 @@ end if
 
             end if
 
-! -----
 
           end if
 
@@ -2045,7 +1857,6 @@ end if
 
         end if
 
-! -----
 
 ! Swap the tracer to the next time step.
 
@@ -2067,7 +1878,6 @@ end if
 
         end if
 
-! -----
 
 ! Swap the turbulent kinetic energy to the next time step.
 
@@ -2089,7 +1899,6 @@ end if
 
         end if
 
-! -----
 
 ! Swap the soil and sea temperature to the next time step.
 
@@ -2115,7 +1924,6 @@ end if
 
         end if
 
-! -----
 
       end if
 
@@ -2124,54 +1932,8 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_swp2nxt == DUMP_TARGET_swp2nxt .and. .not. dump_done_swp2nxt) then
-  call dump_array_3d('up_ref.bin', up, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vp_ref.bin', vp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wp_ref.bin', wp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ppp_ref.bin', ppp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptpp_ref.bin', ptpp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvp_ref.bin', qvp, 0, ni+1, 0, nj+1, 1, nk)
-  if (nqw >= 1) then
-    call dump_array_4d('qwtrp_ref.bin', qwtrp, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  end if
-  ! nwtrp is allocated as dummy when savmem=1 and abs(cphopt)<4
-  if (nnw >= 1 .and. abs(cphopt).ge.4 .and. abs(cphopt).lt.20) then
-    call dump_array_4d('nwtrp_ref.bin', nwtrp, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
-  end if
-  if (nqi >= 1) then
-    call dump_array_4d('qicep_ref.bin', qicep, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-  end if
-  if (nni >= 1) then
-    call dump_array_4d('nicep_ref.bin', nicep, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
-  end if
-  ! qcwtrp is only allocated when cphopt < 0 and qcgopt == 2
-  if (cphopt < 0 .and. qcgopt == 2) then
-    call dump_array_4d('qcwtrp_ref.bin', qcwtrp, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  end if
-  ! qcicep is only allocated when cphopt < 0
-  if (cphopt < 0) then
-    call dump_array_4d('qcicep_ref.bin', qcicep, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-  end if
-  ! qaslp is allocated as dummy when aslopt < 1
-  if (aslopt >= 1) then
-    call dump_array_4d('qaslp_ref.bin', qaslp, 0, ni+1, 0, nj+1, 1, nk, 1, nqa(0))
-  end if
-  if (trkopt >= 1) then
-    call dump_array_3d('qtp_ref.bin', qtp, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  if (tubopt >= 2) then
-    call dump_array_3d('tkep_ref.bin', tkep, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  if (sfcopt >= 1) then
-    call dump_array_3d('tundp_ref.bin', tundp, 0, ni+1, 0, nj+1, 1, nund)
-  end if
-  call dump_finalize()
-  dump_done_swp2nxt = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !!!!! -----
 

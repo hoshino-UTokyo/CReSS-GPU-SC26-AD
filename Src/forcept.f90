@@ -34,8 +34,6 @@
 ! Module reference
 
       use m_advbspt
-      use m_comprofile
-      use m_dump_kernel
       use m_advs
       use m_comindx
       use m_getcname
@@ -292,14 +290,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_forcept = 0
-      integer, parameter :: DUMP_TARGET_forcept = 360
-      logical, save :: dump_done_forcept = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -310,7 +301,6 @@
       call inichar(lspvar)
       call inichar(vspvar)
 
-! -----
 
 ! Get the required namelist variables.
 
@@ -324,96 +314,14 @@
       call getiname(fpadvopt,advopt)
       call getiname(fptubopt,tubopt)
 
-! -----
 
 ! Get the potential temperature.
 
       if(tubopt.ge.1) then
 
-!@llm start meta_info ----------------------------------------------------
-! Location: forcept.f90 :: s_forcept
-! Summary : Compute potential temperature pt by adding base state ptbr
-!           and perturbation ptpp for turbulent mixing calculation.
-! GPU diff: Easy
-! Findings:
-!   - Simple element-wise addition of two arrays
-!   - No function calls inside parallel region
-!   - No reductions or synchronization
-!   - Only writes to pt array
-! Next:
-!   - Direct GPU kernel port with straightforward 3D mapping
-!   - Consider fusing with subsequent turbulent mixing kernels
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 102.4M
-!   - TotalTime: 1.361s (0.05%)
-!   - AvgTime: 3.780ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('forcept.f90', 's_forcept', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_forcept = dump_call_count_forcept + 1
-if (dump_call_count_forcept == DUMP_TARGET_forcept .and. .not. dump_done_forcept) then
-  call dump_init('forcept')
-  call dump_scalar_c('nggvar', nggvar)
-  call dump_scalar_c('lspvar', lspvar)
-  call dump_scalar_c('vspvar', vspvar)
-  call dump_scalar_i('lspopt', lspopt)
-  call dump_scalar_i('vspopt', vspopt)
-  call dump_scalar_i('gwmopt', gwmopt)
-  call dump_scalar_i('smtopt', smtopt)
-  call dump_scalar_i('advopt', advopt)
-  call dump_scalar_i('tubopt', tubopt)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('nggdmp', nggdmp)
-  call dump_scalar_r('gtinc', gtinc)
-  call dump_array_3d('pt_in.bin', pt, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('j31.bin', j31, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('j32.bin', j32, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('jcb.bin', jcb, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('jcb8u.bin', jcb8u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('jcb8v.bin', jcb8v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('mf.bin', mf, 0, ni+1, 0, nj+1)
-  call dump_array_3d('rmf.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
-  call dump_array_3d('rmf8u.bin', rmf8u, 0, ni+1, 0, nj+1, 1, 3)
-  call dump_array_3d('rmf8v.bin', rmf8v, 0, ni+1, 0, nj+1, 1, 3)
-  call dump_array_3d('ptbr.bin', ptbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rst.bin', rst, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rstxu.bin', rstxu, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rstxv.bin', rstxv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rstxwc.bin', rstxwc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('w.bin', w, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wp.bin', wp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptp.bin', ptp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptpp.bin', ptpp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rkh8u.bin', rkh8u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rkh8v.bin', rkh8v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rkv8w.bin', rkv8w, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('rbcxy.bin', rbcxy, 1, ni, 1, nj)
-  call dump_array_4d('rbct.bin', rbct, 1, ni, 1, nj, 1, nk, 1, 2)
-  call dump_array_3d('ptpgpv.bin', ptpgpv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptptd.bin', ptptd, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptfrc_in.bin', ptfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('h3_in.bin', h3, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp1_in.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp2_in.bin', tmp2, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp3_in.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp4_in.bin', tmp4, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp5_in.bin', tmp5, 0, ni+1, 0, nj+1, 1, nk)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_112)
 !----------------------------------------------------------------------
@@ -454,26 +362,11 @@ end if
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_forcept == DUMP_TARGET_forcept .and. .not. dump_done_forcept) then
-  call dump_array_3d('pt_ref.bin', pt, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptfrc_ref.bin', ptfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('h3_ref.bin', h3, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp1_ref.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp2_ref.bin', tmp2, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp3_ref.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp4_ref.bin', tmp4, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp5_ref.bin', tmp5, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_forcept = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
       end if
 
-! -----
 
 ! Calculate the advection.
 
@@ -481,7 +374,6 @@ call profile_stop(prof_id1, loop_len)
      &          iddxiv,iddyiv,iddziv,ni,nj,nk,rstxu,rstxv,rstxwc,       &
      &          ptp,ptfrc,tmp1,tmp2,tmp3,tmp4)
 
-! -----
 
 ! Calculate the 2nd order smoothing.
 
@@ -491,7 +383,6 @@ call profile_stop(prof_id1, loop_len)
 
       end if
 
-! -----
 
 ! Calculate the 4th order smoothing.
 
@@ -503,7 +394,6 @@ call profile_stop(prof_id1, loop_len)
 
       end if
 
-! -----
 
 ! Calculate the non linear smoothing.
 
@@ -514,7 +404,6 @@ call profile_stop(prof_id1, loop_len)
 
       end if
 
-! -----
 
 ! Calculate the turbulent mixing.
 
@@ -530,7 +419,6 @@ call profile_stop(prof_id1, loop_len)
 
       end if
 
-! -----
 
 ! Perform the analysis nudging to GPV.
 
@@ -541,7 +429,6 @@ call profile_stop(prof_id1, loop_len)
 
       end if
 
-! -----
 
 ! Calculate the lateral sponge damping.
 
@@ -552,7 +439,6 @@ call profile_stop(prof_id1, loop_len)
 
       end if
 
-! -----
 
 ! Calculate the vertical sponge damping.
 
@@ -563,7 +449,6 @@ call profile_stop(prof_id1, loop_len)
 
       end if
 
-! -----
 
 ! Calculate the base state advection.
 
@@ -581,7 +466,6 @@ call profile_stop(prof_id1, loop_len)
 
       end if
 
-! -----
 
       end subroutine s_forcept
 

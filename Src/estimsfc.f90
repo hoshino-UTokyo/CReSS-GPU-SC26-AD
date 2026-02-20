@@ -18,7 +18,6 @@
 ! Module reference
 
       use m_getiname
-      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -106,11 +105,6 @@
 
       integer ic       ! Index of user specified land use namelist table
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -120,36 +114,6 @@
 ! -----
 
 ! Reestimate the surface value on the water, ice and snow surface.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: estimsfc.f90 :: s_estimsfc
-! Summary : Re-estimate surface values on water, ice and snow surfaces
-!           by matching land use categories from namelist table
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls inside parallel region
-!   - Triple nested loop over ic, j, i with conditional assignments
-!   - Outer loop over land use categories (ic=1 to numctg_lnd)
-!   - Conditional writes to sfcvar based on land use matching
-!   - Potential write conflicts if same (i,j) matches multiple categories
-!   - Small input arrays lnduse_lnd, sfcvar_lnd (size 100)
-! Next:
-!   - Restructure loop order: parallelize over i,j, loop over ic inside
-!   - This avoids potential write conflicts from outer ic loop
-!   - Small lookup tables can be in constant memory on GPU
-!   - Collapse i,j loops after restructuring
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('estimsfc.f90', 's_estimsfc', &
-   & 'OMP section 1')
-end if
-loop_len = int((numctg_lnd)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared)
 
@@ -178,8 +142,6 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

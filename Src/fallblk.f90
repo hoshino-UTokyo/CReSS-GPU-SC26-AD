@@ -27,8 +27,6 @@
 ! Module reference
 
       use m_chkfall
-      use m_comprofile
-      use m_dump_kernel
       use m_comindx
       use m_commath
       use m_getiname
@@ -283,14 +281,7 @@
       real dzjcb       ! dz x jcb
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_fallblk = 0
-      integer, parameter :: DUMP_TARGET_fallblk = 360
-      logical, save :: dump_done_fallblk = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -302,7 +293,6 @@
       call getiname(fpqcgopt,qcgopt)
       call getrname(fpdz,dz)
 
-! -----
 
 !! Perform the fall out.
 
@@ -315,68 +305,13 @@
       dtpg=dtb
       dtph=dtb
 
-! -----
 
 ! Get the minimum time interval.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: fallblk.f90 :: subroutine s_fallblk
-! Summary : Calculates minimum time step for precipitation fallout based on
-!           CFL condition with terminal velocities of hydrometeors.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region.
-!   - Reads module constant eps from commath via temparam.
-!   - Uses OpenMP reduction(min:) for dtpc, dtpr, dtpi, dtps, dtpg, dtph.
-!   - Uses intrinsic min() - GPU compatible.
-!   - Multiple code paths based on flqcqi_opt, haiopt.
-!   - Note: After parallel region, calls upwqp, upwnp, upwqcg in a loop.
-! Next:
-!   - Reduction requires GPU-compatible reduction pattern.
-!   - Use atomicMin or warp-level reduction for CFL check.
-!   - Consider computing reductions in separate kernel before main loop.
-!   - The upwqp/upwnp/upwqcg calls need separate GPU porting.
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 102.4M
-!   - TotalTime: 2.581s (0.09%)
-!   - AvgTime: 7.169ms
-!@llm end meta_info ------------------------------------------------------
 
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('fallblk.f90', 's_fallblk', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_fallblk = dump_call_count_fallblk + 1
-if (dump_call_count_fallblk == DUMP_TARGET_fallblk .and. .not. dump_done_fallblk) then
-  call dump_init('fallblk')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('haiopt', haiopt)
-  call dump_scalar_r('dz', dz)
-  call dump_array_3d('jcb.bin', jcb, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ucq.bin', ucq, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ugq.bin', ugq, 0, ni+1, 0, nj+1, 1, nk)
-  if (haiopt /= 0) then
-    call dump_array_3d('uhq.bin', uhq, 0, ni+1, 0, nj+1, 1, nk)
-  end if
-  call dump_array_3d('uiq.bin', uiq, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('urq.bin', urq, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('usq.bin', usq, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_fallblk = .true.
-end if
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_108)
 !----------------------------------------------------------------------
@@ -520,9 +455,7 @@ end if
 
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
 ! Get the time interval and number of steps.
 
@@ -556,7 +489,6 @@ call profile_stop(prof_id1, loop_len)
 
       end if
 
-! -----
 
 ! Calculate the sedimentation and precipitation.
 
@@ -652,7 +584,6 @@ call profile_stop(prof_id1, loop_len)
 
       end do
 
-! -----
 
 !! -----
 

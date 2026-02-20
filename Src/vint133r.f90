@@ -18,7 +18,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
       use m_getindx
 
 !-----7--------------------------------------------------------------7--
@@ -120,11 +119,6 @@
       real dk          ! Distance in z direction
                        ! between model and averaged points
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the maximum and minimim indices of do loops.
@@ -140,34 +134,6 @@
 ! -----
 
 !! Interpolate the variable to the model grid vertically.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: vint133r.f90 :: s_vint133r
-! Summary : Interpolate variable to model grid with undefined value handling (radar data)
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - getindx() called before parallel region (safe)
-!   - Uses lim35n, lim34n from m_commath for undefined value markers
-!   - Reads from zph, invar (3D), z1d (1D); writes to outvar (3D)
-!   - First section: fill undefined values outside flat plane range
-!   - Second section: interpolate with validity check on input values
-!   - Conditional branches for level selection and validity checking
-! Next:
-!   - Collapse k,j,i loops for GPU parallelism
-!   - Use OpenACC teams distribute parallel do collapse(3)
-!   - Ensure lim35n, lim34n constants are accessible on device
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('vint133r.f90', 's_vint133r', &
-   & 'OMP section 1')
-end if
-loop_len = int((kend)-(2)+1,8) &
-     & * int((jend)-(jstr)+1,8) &
-     & * int((iend)-(istr)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k,kl)
 
@@ -235,8 +201,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

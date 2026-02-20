@@ -22,8 +22,6 @@
 ! Module reference
 
       use m_getiname
-      use m_comprofile
-      use m_dump_kernel
       use m_getrname
 
 !-----7--------------------------------------------------------------7--
@@ -172,14 +170,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_turbs = 0
-      integer, parameter :: DUMP_TARGET_turbs = 3600
-      logical, save :: dump_done_turbs = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -193,76 +184,13 @@
       call getrname(fpdyiv,dyiv)
       call getrname(fpdziv,dziv)
 
-! -----
 
 ! Calculate the scalar turbulent mixing.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: turbs.f90 :: subroutine s_turbs
-! Summary : Calculates scalar turbulent mixing (diffusion) with Jacobian
-!           and map scale factor corrections for terrain-following coords.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region.
-!   - No writes to module/global variables.
-!   - No synchronization constructs.
-!   - Multiple code paths based on trnopt, mpopt, mfcopt options.
-!   - Multi-stage: (1) compute tmp1,tmp2 flux components,
-!     (2) optional tmp3 terrain correction, (3) divergence to sfrc.
-!   - Uses 2D map scale factor arrays (mf, rmf, rmf8u, rmf8v).
-! Next:
-!   - Can use OpenACC kernels for each loop nest.
-!   - Many conditional paths - consider unifying with flag-based selection.
-!   - Temporary arrays already allocated.
-! Runtime:
-!   - Calls: 3600
-!   - AvgLoops: 100.5M
-!   - TotalTime: 48.054s (1.61%)
-!   - AvgTime: 13.348ms
-!@llm end meta_info ------------------------------------------------------
 
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('turbs.f90', 's_turbs', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-1)-(2)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_turbs = dump_call_count_turbs + 1
-if (dump_call_count_turbs == DUMP_TARGET_turbs .and. .not. dump_done_turbs) then
-  call dump_init('turbs')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('trnopt', trnopt)
-  call dump_scalar_i('mpopt', mpopt)
-  call dump_scalar_i('mfcopt', mfcopt)
-  call dump_scalar_r('dxiv', dxiv)
-  call dump_scalar_r('dyiv', dyiv)
-  call dump_scalar_r('dziv', dziv)
-  call dump_array_3d('j31.bin', j31, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('j32.bin', j32, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('jcb8u.bin', jcb8u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('jcb8v.bin', jcb8v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('mf.bin', mf, 0, ni+1, 0, nj+1)
-  call dump_array_3d('rmf.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
-  call dump_array_3d('rmf8u.bin', rmf8u, 0, ni+1, 0, nj+1, 1, 3)
-  call dump_array_3d('rmf8v.bin', rmf8v, 0, ni+1, 0, nj+1, 1, 3)
-  call dump_array_3d('h1.bin', h1, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('h2.bin', h2, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('h3.bin', h3, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('sfrc_in.bin', sfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp1_in.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp2_in.bin', tmp2, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp3_in.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
-end if
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_336)
 !----------------------------------------------------------------------
@@ -1029,20 +957,9 @@ end if
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_turbs == DUMP_TARGET_turbs .and. .not. dump_done_turbs) then
-  call dump_array_3d('sfrc_ref.bin', sfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp1_ref.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp2_ref.bin', tmp2, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp3_ref.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_turbs = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
       end subroutine s_turbs
 

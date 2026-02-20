@@ -23,8 +23,6 @@
 ! Module reference
 
       use m_comindx
-      use m_comprofile
-      use m_dump_kernel
       use m_getiname
       use m_getrname
 
@@ -193,14 +191,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_smoo4uvw = 0
-      integer, parameter :: DUMP_TARGET_smoo4uvw = 360
-      logical, save :: dump_done_smoo4uvw = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -215,92 +206,18 @@
       call getrname(fpsmhcoe,smhcoe)
       call getrname(fpsmvcoe,smvcoe)
 
-! -----
 
 ! Set the common used variables.
 
       nkm1=nk-1
       nkm2=nk-2
 
-! -----
 
 !! Calculate the 4th order velocity numerical smoothing.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: smoo4uvw.f90 :: s_smoo4uvw
-! Summary : Applies 4th order numerical smoothing to u, v, w velocity components
-!           with horizontal/vertical coefficients and conditional branching
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls inside parallel region
-!   - Many !$omp do loops with schedule(runtime) for u, v, w separately
-!   - Conditional branches with mod(smtopt,10).eq.2 for each velocity component
-!   - Writes to tmp1-5, ufrc, vfrc, wfrc arrays
-!   - No synchronization constructs besides implicit barriers
-! Next:
-!   - Data managed automatically via Unified Memory
-!   - Consider separating u/v/w processing into distinct kernels
-!   - Use collapse(2) for nested loops
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 102.5M
-!   - TotalTime: 28.590s (0.96%)
-!   - AvgTime: 79.416ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('smoo4uvw.f90', 's_smoo4uvw', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-jnorth)-(jsouth)+1,8) &
-     & * int((ni+1-ieast)-(iwest)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_smoo4uvw = dump_call_count_smoo4uvw + 1
-if (dump_call_count_smoo4uvw == DUMP_TARGET_smoo4uvw .and. .not. dump_done_smoo4uvw) then
-  call dump_init('smoo4uvw')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('smtopt', smtopt)
-  call dump_scalar_i('iwest', iwest)
-  call dump_scalar_i('ieast', ieast)
-  call dump_scalar_i('jsouth', jsouth)
-  call dump_scalar_i('jnorth', jnorth)
-  call dump_scalar_r('smhcoe', smhcoe)
-  call dump_scalar_r('smvcoe', smvcoe)
-  call dump_array_3d('jcb8u.bin', jcb8u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('jcb8v.bin', jcb8v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('jcb8w.bin', jcb8w, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ubr.bin', ubr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vbr.bin', vbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rst8u.bin', rst8u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rst8v.bin', rst8v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rst8w.bin', rst8w, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('w.bin', w, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ufrc_in.bin', ufrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vfrc_in.bin', vfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wfrc_in.bin', wfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_i('nkm1', nkm1)
-  call dump_scalar_i('nkm2', nkm2)
-  ! FIXME: tmp1 is an array, not scalar
-  ! ! FIXME: tmp1 is array - call dump_scalar_i('tmp1', tmp1)
-  ! FIXME: tmp2 is an array, not scalar
-  ! ! FIXME: tmp2 is array - call dump_scalar_r('tmp2', tmp2)
-  ! FIXME: tmp3 is an array, not scalar
-  ! ! FIXME: tmp3 is array - call dump_scalar_r('tmp3', tmp3)
-  ! FIXME: tmp4 is an array, not scalar
-  ! ! FIXME: tmp4 is array - call dump_scalar_r('tmp4', tmp4)
-  ! FIXME: tmp5 is an array, not scalar
-  ! ! FIXME: tmp5 is array - call dump_scalar_r('tmp5', tmp5)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_304)
 ! GPU version (OpenACC) - u smoothing
@@ -715,7 +632,6 @@ end if
 
       end if
 
-! -----
 
 ! Calculate the 4th order v smoothing.
 
@@ -833,7 +749,6 @@ end if
 
       end if
 
-! -----
 
 ! Calculate the 4th order w smoothing.
 
@@ -951,22 +866,12 @@ end if
 
       end if
 
-! -----
 
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_smoo4uvw == DUMP_TARGET_smoo4uvw .and. .not. dump_done_smoo4uvw) then
-  call dump_array_3d('ufrc_ref.bin', ufrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vfrc_ref.bin', vfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wfrc_ref.bin', wfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_smoo4uvw = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

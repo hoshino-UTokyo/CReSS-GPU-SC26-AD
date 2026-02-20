@@ -22,7 +22,6 @@
 ! Module reference
 
       use m_bc4news
-      use m_comprofile
       use m_bcycle
       use m_combuf
       use m_comindx
@@ -181,11 +180,6 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -276,32 +270,6 @@
 !! Fit the x and the y components of velocity and the zeta components of
 !! contravariant velocity to the mass consistent equation by the lamb.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: fituvwc.f90 :: s_fituvwc
-! Summary : Adjust u, v, and wc velocity components using Lagrange multiplier
-!           (lamb) to satisfy mass consistency equation.
-! GPU diff: Easy
-! Findings:
-!   - Three separate do-k loops with omp do inside
-!   - Simple element-wise updates to u, v, wc arrays
-!   - No function calls inside parallel region
-!   - No reductions or synchronization constructs
-!   - Read from lamb, jcb8u/v/w; write to u, v, wc
-! Next:
-!   - Direct GPU kernel port with 3D thread mapping
-!   - Consider fusing the three k-loops into single kernel
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('fituvwc.f90', 's_fituvwc', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-jnorth)-(jsouth)+1,8) &
-     & * int((ni-ieast)-(1+iwest)+1,8)
-call profile_start(prof_id1)
-
 !$omp parallel default(shared) private(k)
 
 ! Fit the x and y components of velocity.
@@ -354,8 +322,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

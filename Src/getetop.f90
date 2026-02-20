@@ -20,7 +20,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
       use m_getiname
       use m_temparam
 
@@ -145,11 +144,6 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -161,32 +155,6 @@
 
 !! Get the z physical coordinates at scalar points and radar echo top
 !! and total precipitation mixing ratio of radar data.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: getetop.f90 :: s_getetop
-! Summary : Computes z-coordinates at scalar points, radar echo top height,
-!           and total precipitation mixing ratio from radar hydrometeor data
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread usage
-!   - Uses intrinsic max() function - GPU compatible
-!   - Multiple conditional branches based on ngropt and haiopt
-!   - Potential race condition on etop(i,j) with max() update across k-loop
-!   - Module variables lim34n, lim35n, lim36n, qpmin used from m_commath
-!   - No synchronization constructs beyond implicit barriers
-! Next:
-!   - Handle etop update carefully - may need atomic or reduction approach
-!   - Consider collapsing i,j loops for better GPU parallelism
-!   - Ensure module constants are accessible on device
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('getetop.f90', 's_getetop', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -382,8 +350,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

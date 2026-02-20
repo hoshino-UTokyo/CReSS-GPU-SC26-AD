@@ -18,8 +18,6 @@
 ! Module reference
 
       use m_getiname
-      use m_comprofile
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -127,14 +125,7 @@
       integer j        ! Array index in y direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_bbcw = 0
-      integer, parameter :: DUMP_TARGET_bbcw = 14400
-      logical, save :: dump_done_bbcw = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -144,61 +135,12 @@
       call getiname(fpmpopt,mpopt)
       call getiname(fpmfcopt,mfcopt)
 
-! -----
 
 ! Set the bottom boundary conditions.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: bbcw.f90 :: s_bbcw
-! Summary : Set bottom boundary conditions for vertical velocity (wf)
-!           using terrain-following coordinate transformations
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Writes to intent(inout) arrays wf, j31u2, j32v2
-!   - Multiple conditional branches based on mfcopt and mpopt options
-!   - Uses work arrays j31u2, j32v2 for intermediate calculations
-! Next:
-!   - GPU port requires handling conditional branches
-!   - Consider separating compute kernels by mfcopt/mpopt case
-!   - Work arrays j31u2, j32v2 should be device-resident
-!   - Branch divergence from mfcopt/mpopt may impact performance
-! Runtime:
-!   - Calls: 14400
-!   - AvgLoops: 807.3K
-!   - TotalTime: 1.749s (0.06%)
-!   - AvgTime: 0.121ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('bbcw.f90', 's_bbcw', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_bbcw = dump_call_count_bbcw + 1
-if (dump_call_count_bbcw == DUMP_TARGET_bbcw .and. .not. dump_done_bbcw) then
-  call dump_init('bbcw')
-  call dump_scalar_i('mpopt', mpopt)
-  call dump_scalar_i('mfcopt', mfcopt)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_array_3d('j31.bin', j31, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('j32.bin', j32, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('mf.bin', mf, 0, ni+1, 0, nj+1)
-  call dump_array_3d('aa.bin', aa, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('uf.bin', uf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vf.bin', vf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wf_in.bin', wf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('j31u2_in.bin', j31u2, 0, ni+1, 0, nj+1)
-  call dump_array_2d('j32v2_in.bin', j32v2, 0, ni+1, 0, nj+1)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_025)
 !----------------------------------------------------------------------
@@ -365,19 +307,9 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_bbcw == DUMP_TARGET_bbcw .and. .not. dump_done_bbcw) then
-  call dump_array_3d('wf_ref.bin', wf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('j31u2_ref.bin', j31u2, 0, ni+1, 0, nj+1)
-  call dump_array_2d('j32v2_ref.bin', j32v2, 0, ni+1, 0, nj+1)
-  call dump_finalize()
-  dump_done_bbcw = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
       end subroutine s_bbcw
 

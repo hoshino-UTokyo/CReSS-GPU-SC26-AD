@@ -16,7 +16,6 @@
 ! Module reference
 
       use m_comphy
-      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -122,11 +121,6 @@
       real a           ! Temporary variable
       real b           ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Set the common used variables.
@@ -138,32 +132,6 @@
 ! -----
 
 ! Calculate the air temperature at Lifting Condensation Level.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: gettlcl.f90 :: s_gettlcl
-! Summary : Calculate temperature at Lifting Condensation Level using
-!           Bolton's formula based on mixing ratio or relative humidity.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread usage
-!   - No function calls within parallel region
-!   - Uses intrinsic exp and log functions (GPU compatible)
-!   - Conditional branch (if/else if) selects calculation method
-!   - No global writes, only output array tlcl is modified
-!   - No synchronization constructs other than implicit barriers
-! Next:
-!   - Direct translation to OpenACC with teams distribute
-!   - Both branches are simple arithmetic, suitable for GPU
-!   - Consider unifying branches or using separate kernels per datype
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('gettlcl.f90', 's_gettlcl', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared)
 
@@ -213,8 +181,6 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

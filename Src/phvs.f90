@@ -25,8 +25,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
-      use m_dump_kernel
       use m_commpi
       use m_getcname
       use m_getiname
@@ -235,14 +233,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_phvs = 0
-      integer, parameter :: DUMP_TARGET_phvs = 4320
-      logical, save :: dump_done_phvs = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -251,7 +242,6 @@
 
       call inichar(exbvar)
 
-! -----
 
 ! Get the required namelist variables.
 
@@ -268,7 +258,6 @@
       call getrname(fpdyiv,dyiv)
       call getrname(fpgwave,gwave)
 
-! -----
 
 ! Set the common used variables.
 
@@ -301,100 +290,12 @@
 
       nkm3v=1.e0/real(nk-3)
 
-! -----
 
 !! Calculate the scalar phase speed for the open boundary conditions.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: phvs.f90 :: s_phvs
-! Summary : Calculate scalar phase speed for open boundary conditions on
-!           all four boundaries (west, east, south, north).
-! GPU diff: Hard
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region (only intrinsic abs, sign, min, max)
-!   - Writes to output arrays scpx, scpy
-!   - Uses shared work arrays cpavex, cpavey for vertical averaging
-!   - Complex conditional branching based on boundary condition options
-!   - Multiple sequential k-loops with workshared inner j/i loops
-!   - No explicit barriers but implicit at !$omp end do
-! Next:
-!   - Collapse nested loops where possible for better GPU occupancy
-!   - Consider using OpenACC kernels directive
-!   - Boundary-only computation may benefit from separate small kernels
-! Runtime:
-!   - Calls: 4320
-!   - AvgLoops: 112.2K
-!   - TotalTime: 29.856s (1.00%)
-!   - AvgTime: 6.911ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('phvs.f90', 's_phvs', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) * int((nj-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_phvs = dump_call_count_phvs + 1
-if (dump_call_count_phvs == DUMP_TARGET_phvs .and. .not. dump_done_phvs) then
-  call dump_init('phvs')
-  call dump_scalar_c('exbvar', exbvar)
-  call dump_scalar_i('exbopt', exbopt)
-  call dump_scalar_i('wbc', wbc)
-  call dump_scalar_i('ebc', ebc)
-  call dump_scalar_i('sbc', sbc)
-  call dump_scalar_i('nbc', nbc)
-  call dump_scalar_i('advopt', advopt)
-  call dump_scalar_i('mpopt', mpopt)
-  call dump_scalar_i('mfcopt', mfcopt)
-  call dump_scalar_r('dxiv', dxiv)
-  call dump_scalar_r('dyiv', dyiv)
-  call dump_scalar_r('gwave', gwave)
-  call dump_scalar_i('ape', ape)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('dtb', dtb)
-  call dump_scalar_r('dts', dts)
-  call dump_scalar_r('dtsep', dtsep)
-  call dump_array_3d('rmf.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
-  call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('s.bin', s, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('sp.bin', sp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('sf.bin', sf, 0, ni+1, 0, nj+1, 1, nk)
-  ! FIXME: cpavex is an array, not scalar
-  ! ! FIXME: cpavex is array - call dump_scalar_i('cpavex', cpavex)
-  ! FIXME: cpavey is an array, not scalar
-  ! ! FIXME: cpavey is array - call dump_scalar_r('cpavey', cpavey)
-  call dump_scalar_r('dtdvb', dtdvb)
-  call dump_scalar_r('dxdt', dxdt)
-  call dump_scalar_r('dydt', dydt)
-  call dump_scalar_i('ebe', ebe)
-  call dump_scalar_i('ebn', ebn)
-  call dump_scalar_i('ebs', ebs)
-  call dump_scalar_i('ebw', ebw)
-  ! FIXME: fproc is array - call dump_scalar_r('fproc', fproc)
-  call dump_scalar_r('gdxdt', gdxdt)
-  call dump_scalar_r('gdxdtn', gdxdtn)
-  call dump_scalar_r('gdydt', gdydt)
-  call dump_scalar_r('gdydtn', gdydtn)
-  call dump_scalar_i('isub', isub)
-  call dump_scalar_i('jsub', jsub)
-  call dump_scalar_i('nim1', nim1)
-  call dump_scalar_i('nim2', nim2)
-  call dump_scalar_i('nim3', nim3)
-  call dump_scalar_i('nisub', nisub)
-  call dump_scalar_i('njm1', njm1)
-  call dump_scalar_i('njm2', njm2)
-  call dump_scalar_i('njm3', njm3)
-  call dump_scalar_i('njsub', njsub)
-  call dump_scalar_r('nkm3v', nkm3v)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_234)
 !----------------------------------------------------------------------
@@ -931,7 +832,6 @@ end if
 
       end if
 
-! -----
 
 ! Calculate the scalar phase speed on the east boundary.
 
@@ -1094,7 +994,6 @@ end if
 
       end if
 
-! -----
 
 ! Calculate the scalar phase speed on the south boundary.
 
@@ -1256,7 +1155,6 @@ end if
 
       end if
 
-! -----
 
 ! Calculate the scalar phase speed on the north boundary.
 
@@ -1419,21 +1317,12 @@ end if
 
       end if
 
-! -----
 
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_phvs == DUMP_TARGET_phvs .and. .not. dump_done_phvs) then
-  call dump_array_3d('scpx_ref.bin', scpx, 1, nj, 1, nk, 1, 2)
-  call dump_array_3d('scpy_ref.bin', scpy, 1, ni, 1, nk, 1, 2)
-  call dump_finalize()
-  dump_done_phvs = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

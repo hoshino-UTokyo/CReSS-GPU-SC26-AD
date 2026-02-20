@@ -28,7 +28,6 @@
 ! Module reference
 
       use m_bc4news
-      use m_comprofile
       use m_bcycle
       use m_combuf
       use m_comindx
@@ -51,7 +50,6 @@
       use m_shiftsx
       use m_shiftsy
       use m_vbcp
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -170,14 +168,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_steppi = 0
-      integer, parameter :: DUMP_TARGET_steppi = 14400
-      logical, save :: dump_done_steppi = .false.
 
 !-----7--------------------------------------------------------------7--
 
@@ -185,14 +176,12 @@
 
       call inichar(exbvar)
 
-! -----
 
 ! Get the required namelist variables.
 
       call getcname(fpexbvar,exbvar)
       call getiname(fpexbopt,exbopt)
 
-! -----
 
 ! Force the lateral boundary value to the external boundary value in the
 ! case the lateral sponge damping is performed.
@@ -202,7 +191,6 @@
         call exbcss(idexbvar,idwbc,idebc,idexnews,4,isstp,dts,gtinc,    &
      &              ni,nj,nk,pcpx,pcpy,ppgpv,pptd,ppf)
 
-! -----
 
 ! Set the radiative lateral boundary conditions.
 
@@ -214,55 +202,12 @@
 
       end if
 
-! -----
 
 ! Solve the pressure to the next time step.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: steppi.f90 :: s_steppi
-! Summary : Advances pressure perturbation in time using forcing term
-!           with horizontally explicit/vertically implicit method
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls inside parallel region
-!   - Single !$omp do loop with schedule(runtime)
-!   - Simple element-wise update: ppf += dts*fp/jcb
-!   - Writes only to ppf array
-!   - No synchronization constructs besides implicit barriers
-! Next:
-!   - Data managed automatically via Unified Memory
-!   - Convert to !$acc parallel loop collapse(2)
-! Runtime:
-!   - Calls: 14400
-!   - AvgLoops: 100.4M
-!   - TotalTime: 62.933s (2.11%)
-!   - AvgTime: 4.370ms
-!@llm end meta_info ------------------------------------------------------
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('steppi.f90', 's_steppi', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-2)-(2)+1,8)
 
-! Dump input data at target call
-dump_call_count_steppi = dump_call_count_steppi + 1
-if (dump_call_count_steppi == DUMP_TARGET_steppi .and. .not. dump_done_steppi) then
-  call dump_init('steppi')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('dts', dts)
-  call dump_array_3d('jcb.bin', jcb, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('fp.bin', fp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ppf_in.bin', ppf, 0, ni+1, 0, nj+1, 1, nk)
-end if
 
-call profile_start(prof_id1)
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_308)
 ! GPU version (OpenACC)
@@ -300,16 +245,8 @@ call profile_start(prof_id1)
 !$omp end parallel
 #endif
 
-call profile_stop(prof_id1, loop_len)
 
-! Dump output data at target call
-if (dump_call_count_steppi == DUMP_TARGET_steppi .and. .not. dump_done_steppi) then
-  call dump_array_3d('ppf_ref.bin', ppf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_steppi = .true.
-end if
 
-! -----
 
 !!! Exchange the value horizontally.
 
@@ -323,7 +260,6 @@ end if
 
       call s_getbufsx(idwbc,idebc,'all',1,ni-1,ni,nj,nk,ppf,1,1,rbuf)
 
-! -----
 
 ! In y direction.
 
@@ -333,7 +269,6 @@ end if
 
       call s_getbufsy(idsbc,idnbc,'all',1,nj-1,ni,nj,nk,ppf,1,1,rbuf)
 
-! -----
 
 !! -----
 
@@ -347,7 +282,6 @@ end if
 
       call s_getbufgx(idwbc,idebc,'all',1,ni-1,ni,nj,nk,ppf,1,1,rbuf)
 
-! -----
 
 ! In y direction.
 
@@ -357,7 +291,6 @@ end if
 
       call s_getbufgy(idsbc,idnbc,'all',1,nj-1,ni,nj,nk,ppf,1,1,rbuf)
 
-! -----
 
 ! In x direction again.
 
@@ -367,7 +300,6 @@ end if
 
       call s_getbufgx(idwbc,idebc,'all',1,ni-1,ni,nj,nk,ppf,1,1,rbuf)
 
-! -----
 
 !! -----
 
@@ -378,13 +310,11 @@ end if
       call bcycle(idwbc,idebc,idsbc,idnbc,                              &
      &            2,1,ni-2,ni-1,2,1,nj-2,nj-1,ni,nj,nk,ppf)
 
-! -----
 
 ! Set the boundary conditions at the four corners.
 
       call bc4news(idwbc,idebc,idsbc,idnbc,1,ni-1,1,nj-1,ni,nj,nk,ppf)
 
-! -----
 
 ! Set the lateral boundary conditions.
 
@@ -394,13 +324,11 @@ end if
 
       end if
 
-! -----
 
 ! Set the bottom and the top boundary conditions.
 
       call vbcp(idbbc,ni,nj,nk,ppf)
 
-! -----
 
       end subroutine s_steppi
 

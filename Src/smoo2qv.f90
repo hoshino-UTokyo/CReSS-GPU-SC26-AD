@@ -21,7 +21,6 @@
 ! Module reference
 
       use m_getrname
-      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -120,11 +119,6 @@
 
       real a           ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -135,35 +129,6 @@
 ! -----
 
 ! Calculate the 2nd order smoothing.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: smoo2qv.f90 :: s_smoo2qv
-! Summary : Applies 2nd order numerical smoothing to water vapor mixing ratio
-!           using density-weighted perturbation and 7-point stencil.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Two-phase computation: first computes rbrqv, then applies stencil
-!   - Simple stencil operation with neighbor access (i+/-1, j+/-1, k+/-1)
-!   - All loops independent with private i,j,k and local temporary a
-!   - No synchronization constructs (implicit barrier between phases)
-!   - Intermediate array rbrqv used between computation phases
-! Next:
-!   - GPU port needs to respect phase ordering (compute rbrqv first)
-!   - Use OpenACC/OpenACC with collapse(3) for each phase
-!   - Consider explicit barrier or separate kernels for two phases
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('smoo2qv.f90', 's_smoo2qv', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -202,8 +167,6 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

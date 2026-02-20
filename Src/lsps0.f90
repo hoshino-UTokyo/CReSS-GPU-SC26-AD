@@ -18,7 +18,6 @@
 ! Module reference
 
       use m_getiname
-      use m_comprofile
       use m_getrname
 
 !-----7--------------------------------------------------------------7--
@@ -127,11 +126,6 @@
 
       real a           ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -147,32 +141,6 @@
 ! initial.
 
       if(wdnews.ge.1) then
-
-!@llm start meta_info ----------------------------------------------------
-! Location: lsps0.f90 :: s_lsps0
-! Summary : Apply lateral sponge damping to optional scalar variable forcing term
-!           with optional smoothing, damping to initial state
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Writes to sfrc (output forcing term) and tmp1 (temporary array)
-!   - Multiple worksharing constructs with branching logic for lspopt
-!   - No synchronization constructs besides implicit barriers at !$omp end do
-! Next:
-!   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
-!   - Collapse nested i,j loops for better GPU occupancy
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('lsps0.f90', 's_lsps0', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -230,8 +198,6 @@ call profile_start(prof_id1)
         end if
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
       end if
 

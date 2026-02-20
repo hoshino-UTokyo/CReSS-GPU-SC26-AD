@@ -18,7 +18,6 @@
 ! Module reference
 
       use m_commpi
-      use m_comprofile
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -131,11 +130,6 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -188,32 +182,6 @@
 ! -----
 
 !! Set the lateral boundary conditions.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: lbculw.f90 :: subroutine s_lbculw
-! Summary : Sets lateral boundary conditions for w velocity component
-!           using cubic extrapolation at domain edges.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region (pure arithmetic only).
-!   - No writes to global/module variables (only local array w modified).
-!   - No synchronization constructs (atomic, critical, etc.).
-!   - Simple stencil-like access pattern on w array.
-!   - Multiple conditional blocks but each is independent.
-! Next:
-!   - Direct OpenACC parallelization should work with minimal changes.
-!   - Consider collapsing k and j/i loops for better GPU occupancy.
-!@llm end meta_info ------------------------------------------------------
-
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('lbculw.f90', 's_lbculw', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk)-(1)+1,8) * int((nj)-(0)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -298,8 +266,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

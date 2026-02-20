@@ -21,8 +21,6 @@
 ! Module reference
 
       use m_getiname
-      use m_comprofile
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -148,14 +146,7 @@
 !     ss: This variable is also temporary, because it is not used again.
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_gaussel = 0
-      integer, parameter :: DUMP_TARGET_gaussel = 14418
-      logical, save :: dump_done_gaussel = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -164,76 +155,19 @@
 
       call getiname(fpimpopt,impopt)
 
-! -----
 
 ! Set the common used variables.
 
       kem1=kend-1
       kem2=kend-2
 
-! -----
 
 !!! Solve the tridiagonal equation.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: gaussel.f90 :: subroutine s_gaussel
-! Summary : Solves tridiagonal linear systems using Gauss elimination
-!           (Thomas algorithm) or partial pivoting Gauss elimination.
-! GPU diff: Hard
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region.
-!   - No writes to module/global variables.
-!   - No synchronization constructs.
-!   - Uses intrinsic abs(), int() - GPU compatible.
-!   - CRITICAL: Vertical data dependency in forward elimination (k-loop).
-!   - Each (i,j) column is independent, but k iterations are sequential.
-!   - Backward substitution also has vertical dependency.
-!   - Partial pivoting version (impopt=2) has additional index indirection.
-! Next:
-!   - Use batched tridiagonal solver (cuSPARSE gtsv2StridedBatch).
-!   - Or implement custom Thomas algorithm kernel per (i,j) column.
-!   - Each column can be solved independently - batch across (i,j).
-!   - Consider cyclic reduction for better parallelism if needed.
-! Runtime:
-!   - Calls: 14418
-!   - AvgLoops: 802.8K
-!   - TotalTime: 136.847s (4.59%)
-!   - AvgTime: 9.491ms
-!@llm end meta_info ------------------------------------------------------
 
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('gaussel.f90', 's_gaussel', &
-   & 'OMP section 1')
-end if
-loop_len = int((jend)-(jstr)+1,8) * int((iend)-(istr)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_gaussel = dump_call_count_gaussel + 1
-if (dump_call_count_gaussel == DUMP_TARGET_gaussel .and. .not. dump_done_gaussel) then
-  call dump_init('gaussel')
-  call dump_scalar_i('impopt', impopt)
-  call dump_scalar_i('istr', istr)
-  call dump_scalar_i('iend', iend)
-  call dump_scalar_i('jstr', jstr)
-  call dump_scalar_i('jend', jend)
-  call dump_scalar_i('kstr', kstr)
-  call dump_scalar_i('kend', kend)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('kmax', kmax)
-  call dump_array_3d('rr_in.bin', rr, 0, ni+1, 0, nj+1, 1, kmax)
-  call dump_array_3d('ss_in.bin', ss, 0, ni+1, 0, nj+1, 1, kmax)
-  call dump_array_3d('tt_in.bin', tt, 0, ni+1, 0, nj+1, 1, kmax)
-  call dump_array_3d('ff_in.bin', ff, 0, ni+1, 0, nj+1, 1, kmax)
-  call dump_array_3d('pv_in.bin', pv, 0, ni+1, 0, nj+1, 1, kmax)
-  call dump_scalar_i('kem1', kem1)
-  call dump_scalar_i('kem2', kem2)
-end if
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_115)
 !----------------------------------------------------------------------
@@ -501,7 +435,6 @@ end if
 
         end if
 
-! -----
 
 ! Perform the back substitutions.
 
@@ -523,7 +456,6 @@ end if
 
         end if
 
-! -----
 
 !! -----
 
@@ -622,7 +554,6 @@ end if
 
 !$omp end do
 
-! -----
 
 ! Perform the back substitutions.
 
@@ -644,7 +575,6 @@ end if
 
         end do
 
-! -----
 
       end if
 
@@ -654,19 +584,8 @@ end if
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_gaussel == DUMP_TARGET_gaussel .and. .not. dump_done_gaussel) then
-  call dump_array_3d('rr_ref.bin', rr, 0, ni+1, 0, nj+1, 1, kmax)
-  call dump_array_3d('ss_ref.bin', ss, 0, ni+1, 0, nj+1, 1, kmax)
-  call dump_array_3d('tt_ref.bin', tt, 0, ni+1, 0, nj+1, 1, kmax)
-  call dump_array_3d('ff_ref.bin', ff, 0, ni+1, 0, nj+1, 1, kmax)
-  call dump_array_3d('pv_ref.bin', pv, 0, ni+1, 0, nj+1, 1, kmax)
-  call dump_finalize()
-  dump_done_gaussel = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

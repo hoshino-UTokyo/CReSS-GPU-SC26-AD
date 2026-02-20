@@ -21,7 +21,6 @@
 ! Module reference
 
       use m_comphy
-      use m_comprofile
       use m_getiname
       use m_temparam
 
@@ -163,11 +162,6 @@
       real, intent(inout) :: tsfc(0:ni+1,0:nj+1)
                        ! Air temperature at lowest plane
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -202,32 +196,6 @@
 
 ! Perform the analysis nudging to radar data of water vapor mixing
 ! ratio.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: qv2rdr.f90 :: s_qv2rdr
-! Summary : Nudges water vapor mixing ratio toward radar data by computing
-!           surface temperature and adjusting qvfrc based on LCL conditions.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls inside parallel region (intrinsics only: exp, log, min)
-!   - Writes to tsfc (2D array) and qvfrc (3D array inout)
-!   - No sync constructs (barrier, critical, atomic)
-!   - Outer k-loop is serial; inner i,j loops are parallel via omp do
-!   - Module variables accessed: adjqv, rhqp, rd, cp, p0, qvtop from m_comphy/m_temparam
-! Next:
-!   - Collapse j,k loops or restructure to expose more parallelism
-!   - Use OpenACC or OpenACC for GPU offload
-!   - Ensure tsfc dependency between first omp do and k-loop is handled
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('qv2rdr.f90', 's_qv2rdr', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-2)-(2)+1,8) * int((ni-2)-(2)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -283,8 +251,6 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

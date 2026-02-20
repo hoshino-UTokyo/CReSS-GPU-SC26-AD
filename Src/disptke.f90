@@ -23,10 +23,8 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
       use m_getiname
       use m_getrname
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -152,14 +150,7 @@
       real ln          ! Turbulent length scale
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_disptke = 0
-      integer, parameter :: DUMP_TARGET_disptke = 360
-      logical, save :: dump_done_disptke = .false.
 
 !-----7--------------------------------------------------------------7--
 
@@ -172,7 +163,6 @@
       call getrname(fpdy,dy)
       call getrname(fpdz,dz)
 
-! -----
 
 ! Set the common used variables.
 
@@ -180,65 +170,12 @@
 
       ds308=.125e0*dx*dy*dz
 
-! -----
 
 !! Calculate the dissipation in the turbulent kinetic energy equation.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: disptke.f90 :: s_disptke
-! Summary : Calculate TKE dissipation term using turbulent length scale,
-!           with different formulations for isotropic/anisotropic cases.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls inside parallel region (only intrinsics: exp, log, sqrt)
-!   - No global/module variable writes
-!   - No synchronization constructs
-!   - Multiple branches (isoopt, mfcopt, mpopt) but all are data-parallel loops
-!   - Accumulation into tkefrc (inout), but each (i,j,k) is independent
-! Next:
-!   - Direct OpenACC with collapse(2) on j-i loops
-!   - Branch conditions can be hoisted outside target region for cleaner GPU code
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 100.4M
-!   - TotalTime: 2.484s (0.08%)
-!   - AvgTime: 6.899ms
-!@llm end meta_info ------------------------------------------------------
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('disptke.f90', 's_disptke', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-2)-(2)+1,8)
 
-! Dump input data at target call
-dump_call_count_disptke = dump_call_count_disptke + 1
-if (dump_call_count_disptke == DUMP_TARGET_disptke .and. .not. dump_done_disptke) then
-  call dump_init('disptke')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('mpopt', mpopt)
-  call dump_scalar_i('mfcopt', mfcopt)
-  call dump_scalar_i('isoopt', isoopt)
-  call dump_scalar_r('dx', dx)
-  call dump_scalar_r('dy', dy)
-  call dump_scalar_r('dz', dz)
-  call dump_array_3d('jcb.bin', jcb, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rmf.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
-  call dump_array_3d('rst.bin', rst, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('priv.bin', priv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tke.bin', tke, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tkefrc_in.bin', tkefrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('ds308', ds308)
-  call dump_scalar_r('dz05', dz05)
-end if
 
-call profile_start(prof_id1)
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_087)
 !----------------------------------------------------------------------
@@ -394,7 +331,6 @@ call profile_start(prof_id1)
 
         end if
 
-! -----
 
 ! Anisotropic case.
 
@@ -420,19 +356,11 @@ call profile_start(prof_id1)
 
       end if
 
-! -----
 
 !$omp end parallel
 #endif
 
-call profile_stop(prof_id1, loop_len)
 
-! Dump output data at target call
-if (dump_call_count_disptke == DUMP_TARGET_disptke .and. .not. dump_done_disptke) then
-  call dump_array_3d('tkefrc_ref.bin', tkefrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_disptke = .true.
-end if
 
 !! -----
 

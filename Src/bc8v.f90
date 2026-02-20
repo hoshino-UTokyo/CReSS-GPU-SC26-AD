@@ -22,8 +22,6 @@
 ! Module reference
 
       use m_commpi
-      use m_comprofile
-      use m_dump_kernel
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -110,14 +108,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_bc8v = 0
-      integer, parameter :: DUMP_TARGET_bc8v = 720
-      logical, save :: dump_done_bc8v = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -127,64 +118,18 @@
       call getiname(fpsbc,sbc)
       call getiname(fpnbc,nbc)
 
-! -----
 
 ! Set the common used variables.
 
       njm1=nj-1
       njm2=nj-2
 
-! -----
 
 !! Set the south and north boundary conditions.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: bc8v.f90 :: s_bc8v
-! Summary : Sets south and north boundary conditions for optional variable at v points
-!           by copying from adjacent interior points based on BC type.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread usage
-!   - No function calls inside parallel region
-!   - Nested loops with outer k-loop serial, inner i-loop parallelized
-!   - Uses module variables from m_commpi (ebs, ebn, jsub, njsub)
-!   - Conditional execution based on BC type (sbc, nbc) and subdomain position
-! Next:
-!   - Convert to OpenACC with collapsed i,k loops
-!   - Restructure loops to have k as inner loop for better GPU coalescing
-! Runtime:
-!   - Calls: 720
-!   - AvgLoops: 115.3K
-!   - TotalTime: 1.731s (0.06%)
-!   - AvgTime: 2.404ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('bc8v.f90', 's_bc8v', &
-   & 'OMP section 1')
-end if
-loop_len = int((kmax)-(1)+1,8) * int((ni+1)-(0)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_bc8v = dump_call_count_bc8v + 1
-if (dump_call_count_bc8v == DUMP_TARGET_bc8v .and. .not. dump_done_bc8v) then
-  call dump_init('bc8v')
-  call dump_scalar_i('sbc', sbc)
-  call dump_scalar_i('nbc', nbc)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('kmax', kmax)
-  call dump_array_3d('var8v_in.bin', var8v, 0, ni+1, 0, nj+1, 1, kmax)
-  call dump_scalar_i('ebn', ebn)
-  call dump_scalar_i('ebs', ebs)
-  call dump_scalar_i('jsub', jsub)
-  call dump_scalar_i('njm1', njm1)
-  call dump_scalar_i('njm2', njm2)
-  call dump_scalar_i('njsub', njsub)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_029)
 !----------------------------------------------------------------------
@@ -289,7 +234,6 @@ end if
 
       end if
 
-! -----
 
 ! Set the north boundary conditions.
 
@@ -327,20 +271,12 @@ end if
 
       end if
 
-! -----
 
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_bc8v == DUMP_TARGET_bc8v .and. .not. dump_done_bc8v) then
-  call dump_array_3d('var8v_ref.bin', var8v, 0, ni+1, 0, nj+1, 1, kmax)
-  call dump_finalize()
-  dump_done_bc8v = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

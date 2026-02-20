@@ -16,7 +16,6 @@
 ! Module reference
 
       use m_getrname
-      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -108,11 +107,6 @@
 
       integer n        ! Array index in 4th direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -128,34 +122,6 @@
 ! -----
 
 !! Set the interpolated aerosol variables.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: setasl.f90 :: s_setasl
-! Summary : Set interpolated aerosol variables by computing time tendency
-!           or copying values based on read index (ird)
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread usage
-!   - No function calls inside parallel region
-!   - Simple 4D loops with direct array operations
-!   - Conditional execution based on ird (if ird==1 or ird==2)
-!   - Writes to qatd and qagpv arrays
-!   - No synchronization constructs
-! Next:
-!   - Convert to OpenACC with parallel loop collapse(4)
-!   - Single parallel region can be offloaded with appropriate data clauses
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('setasl.f90', 's_setasl', &
-   & 'OMP section 1')
-end if
-loop_len = int((nqa(0))-(1)+1,8) &
-     & * int((nk)-(1)+1,8) &
-     & * int((nj)-(1)+1,8) &
-     & * int((ni)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k,n)
 
@@ -212,8 +178,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

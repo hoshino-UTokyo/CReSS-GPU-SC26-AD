@@ -23,7 +23,6 @@
 !-----7--------------------------------------------------------------7--
 
 ! Implicit typing
-      use m_comprofile
 
       implicit none
 
@@ -96,37 +95,9 @@
       integer i        ! Array index in x direction
       integer j        ! Array index in y direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Copy the invar to the outvar.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: copy2d.f90 :: s_copy2d
-! Summary : Simple 2D array copy from invar to outvar.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls
-!   - Trivial memory copy operation
-!   - Independent element-wise operations
-! Next:
-!   - Straightforward GPU port with loop collapse
-!   - Consider using device-to-device memcpy for efficiency
-!   - May be better to keep data resident on GPU and avoid copy calls
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('copy2d.f90', 's_copy2d', &
-   & 'OMP section 1')
-end if
-loop_len = int((jmax)-(jmin)+1,8) * int((imax)-(imin)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared)
 
@@ -141,8 +112,6 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

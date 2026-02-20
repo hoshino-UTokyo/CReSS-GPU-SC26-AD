@@ -17,7 +17,6 @@
 ! Module reference
 
       use m_chkerr
-      use m_comprofile
       use m_chkfile
       use m_chkstd
       use m_comkind
@@ -164,11 +163,6 @@
 
       integer i_sub    ! Substitute for i
       integer j_sub    ! Substitute for j
-
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
 !-----7--------------------------------------------------------------7--
 
@@ -567,29 +561,6 @@
 
       else if(sfcdat(1:1).eq.'x') then
 
-!@llm start meta_info ----------------------------------------------------
-! Location: rdsfcdmp.f90 :: s_rdsfcdmp
-! Summary : Set constant land use categories based on terrain height and sfcopt setting
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Two separate do loops based on sfcopt condition (conditional inside parallel region)
-!   - Simple element-wise assignment to land array
-!   - No synchronization constructs or reductions
-! Next:
-!   - Convert to OpenACC with teams distribute parallel for
-!   - Move sfcopt conditional outside kernel for simpler GPU code
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('rdsfcdmp.f90', 's_rdsfcdmp', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj)-(0)+1,8) * int((ni)-(0)+1,8)
-call profile_start(prof_id1)
-
 !$omp parallel default(shared)
 
         if(sfcopt.ge.1) then
@@ -625,8 +596,6 @@ call profile_start(prof_id1)
         end if
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
       end if
 

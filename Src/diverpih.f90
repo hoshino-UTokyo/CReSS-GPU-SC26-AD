@@ -23,8 +23,6 @@
 ! Module reference
 
       use m_comindx
-      use m_comprofile
-      use m_dump_kernel
       use m_diver2d
       use m_getiname
       use m_getrname
@@ -169,14 +167,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_diverpih = 0
-      integer, parameter :: DUMP_TARGET_diverpih = 14400
-      logical, save :: dump_done_diverpih = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -188,82 +179,24 @@
       call getiname(fpmfcopt,mfcopt)
       call getrname(fpdziv,dziv)
 
-! -----
 
 ! Set the common used variable.
 
       nkm1=nk-1
 
-! -----
 
 ! Calculate the divergence horizontally.
 
       call diver2d(idmpopt,idmfcopt,iddxiv,iddyiv,ni,nj,nk,             &
      &             mf,rmf,rmf8u,rmf8v,jcb8u,jcb8v,u,v,pdiv,tmp1,tmp2)
 
-! -----
 
 !! Calculate the divergence horizontally in the pressure equation with
 !! the horizontally explicit and vertically explicit method.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: diverpih.f90 :: s_diverpih
-! Summary : Calculate horizontal divergence for pressure equation (HEVI method),
-!           including terrain-following coordinate contributions when trnopt>0.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - External call to diver2d before this parallel region (already annotated)
-!   - No global/module variable writes
-!   - No synchronization constructs
-!   - Multiple branches (trnopt, mfcopt, mpopt) with different loop structures
-!   - Flat terrain case is simple; curved grid has multi-stage computation
-!   - Uses pdiv(i,j,nk) as temporary storage in one branch
-! Next:
-!   - Direct OpenACC with collapse(2) on j-i loops
-!   - tmp1, tmp2, tmp3 temporaries need GPU allocation
-!   - diver2d call should also be GPU-ported for full offload
-! Runtime:
-!   - Calls: 14400
-!   - AvgLoops: 100.4M
-!   - TotalTime: 48.758s (1.64%)
-!   - AvgTime: 3.386ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('diverpih.f90', 's_diverpih', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-2)-(2)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_diverpih = dump_call_count_diverpih + 1
-if (dump_call_count_diverpih == DUMP_TARGET_diverpih .and. .not. dump_done_diverpih) then
-  call dump_init('diverpih')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('nkm1', nkm1)
-  call dump_scalar_i('trnopt', trnopt)
-  call dump_scalar_i('mpopt', mpopt)
-  call dump_scalar_i('mfcopt', mfcopt)
-  call dump_scalar_r('dziv', dziv)
-  call dump_array_3d('j31.bin', j31, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('j32.bin', j32, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('mf.bin', mf, 0, ni+1, 0, nj+1)
-  call dump_array_3d('rcsq.bin', rcsq, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('pdiv_in.bin', pdiv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp1_in.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp2_in.bin', tmp2, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp3_in.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_093)
 !----------------------------------------------------------------------
@@ -417,7 +350,6 @@ end if
 
         end do
 
-! -----
 
 ! For the curved grid case.
 
@@ -558,23 +490,12 @@ end if
 
       end if
 
-! -----
 
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_diverpih == DUMP_TARGET_diverpih .and. .not. dump_done_diverpih) then
-  call dump_array_3d('pdiv_ref.bin', pdiv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp1_ref.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp2_ref.bin', tmp2, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp3_ref.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_diverpih = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

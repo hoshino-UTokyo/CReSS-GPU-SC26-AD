@@ -21,8 +21,6 @@
 ! Module reference
 
       use m_getiname
-      use m_comprofile
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -108,14 +106,7 @@
       integer j        ! Array index in y direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_bc8w = 0
-      integer, parameter :: DUMP_TARGET_bc8w = 2
-      logical, save :: dump_done_bc8w = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -125,60 +116,18 @@
       call getiname(fpbbc,bbc)
       call getiname(fptbc,tbc)
 
-! -----
 
 ! Set the common used variables.
 
       nkm1=nk-1
       nkm2=nk-2
 
-! -----
 
 !! Set the bottom and top boundary conditions.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: bc8w.f90 :: s_bc8w
-! Summary : Sets bottom and top boundary conditions for optional variable at w points
-!           by copying from adjacent vertical levels based on BC type.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread usage
-!   - No function calls inside parallel region
-!   - 2D loops over i,j with fixed k indices (boundaries)
-!   - Multiple conditional branches based on BC type (bbc, tbc)
-!   - Simple array copy operations
-! Next:
-!   - Convert to OpenACC with collapsed i,j loops
-!   - Merge bottom and top BC loops into single kernel if both are same type
-! Runtime:
-!   - Calls: 2
-!   - AvgLoops: 811.8K
-!   - TotalTime: 0.000s (0.00%)
-!   - AvgTime: 0.042ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('bc8w.f90', 's_bc8w', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj+1)-(0)+1,8) * int((ni+1)-(0)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_bc8w = dump_call_count_bc8w + 1
-if (dump_call_count_bc8w == DUMP_TARGET_bc8w .and. .not. dump_done_bc8w) then
-  call dump_init('bc8w')
-  call dump_scalar_i('bbc', bbc)
-  call dump_scalar_i('tbc', tbc)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_array_3d('var8w_in.bin', var8w, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_i('nkm1', nkm1)
-  call dump_scalar_i('nkm2', nkm2)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_030)
 !----------------------------------------------------------------------
@@ -267,7 +216,6 @@ end if
 
       end if
 
-! -----
 
 ! Set the top boundary conditions.
 
@@ -297,20 +245,12 @@ end if
 
       end if
 
-! -----
 
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_bc8w == DUMP_TARGET_bc8w .and. .not. dump_done_bc8w) then
-  call dump_array_3d('var8w_ref.bin', var8w, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_bc8w = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

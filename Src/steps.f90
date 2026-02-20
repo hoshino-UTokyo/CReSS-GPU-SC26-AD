@@ -35,7 +35,6 @@
 ! Module reference
 
       use m_bc4news
-      use m_comprofile
       use m_bcycle
       use m_combuf
       use m_comindx
@@ -64,7 +63,6 @@
       use m_shiftsy
       use m_vbcqcg
       use m_vbcs
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -479,14 +477,7 @@
       integer n_sub    ! Substitute for n
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_steps = 0
-      integer, parameter :: DUMP_TARGET_steps = 360
-      logical, save :: dump_done_steps = .false.
 
 !-----7--------------------------------------------------------------7--
 
@@ -495,7 +486,6 @@
       call inichar(gpvvar)
       call inichar(exbvar)
 
-! -----
 
 ! Get the required namelist variables.
 
@@ -511,98 +501,17 @@
       call getiname(fptrkopt,trkopt)
       call getiname(fptubopt,tubopt)
 
-! -----
 
 ! Set common used variable.
 
       dtb2=2.e0*dtb
 
-! -----
 
 !! Solve the scalar variables to the next time step.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: steps.f90 :: s_steps
-! Summary : Advances all scalar variables (ptp, qv, hydrometeors, aerosols,
-!           tracers, TKE) to next time step using forcing terms
-! GPU diff: Hard
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls inside parallel region
-!   - Many !$omp do loops with schedule(runtime)
-!   - Complex conditional branching (fmois, cphopt, haiopt, qcgopt, aslopt, etc.)
-!   - Writes to dtdrst, ptpf, qvf, qwtrf, nwtrf, qicef, nicef, qcwtrf, qcicef, qaslf, qtf, tkef
-!   - Uses max/min intrinsics for clipping values
-!   - n_sub loop variable for array dimension iteration
-!   - No synchronization constructs besides implicit barriers
-! Next:
-!   - Data managed automatically via Unified Memory
-!   - Consider separating each variable update into distinct kernels
-!   - Branching may require conditional kernel launches or unified kernels
-!   - Use collapse(2) for nested loops
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 100.4M
-!   - TotalTime: 16.586s (0.56%)
-!   - AvgTime: 46.072ms
-!@llm end meta_info ------------------------------------------------------
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('steps.f90', 's_steps', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-2)-(2)+1,8)
 
-! Dump input data at target call
-dump_call_count_steps = dump_call_count_steps + 1
-if (dump_call_count_steps == DUMP_TARGET_steps .and. .not. dump_done_steps) then
-  call dump_init('steps')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('nqw', nqw)
-  call dump_scalar_i('nnw', nnw)
-  call dump_scalar_i('nqi', nqi)
-  call dump_scalar_i('nni', nni)
-  call dump_scalar_i('advopt', advopt)
-  call dump_scalar_i('haiopt', haiopt)
-  call dump_scalar_i('qcgopt', qcgopt)
-  call dump_scalar_r('dtb', dtb)
-  call dump_scalar_c('fmois', fmois)
-  call dump_array_3d('rst.bin', rst, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('dtdrst_in.bin', dtdrst, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptpp.bin', ptpp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptfrc.bin', ptfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptpf_in.bin', ptpf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvf_in.bin', qvf, 0, ni+1, 0, nj+1, 1, nk)
-  if (nqw >= 1) then
-    call dump_array_4d('qwtrf_in.bin', qwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  end if
-  ! nwtrf is only used when abs(cphopt)==4 or abs(cphopt)>=11
-  if (nnw >= 1 .and. (abs(cphopt) == 4 .or. (abs(cphopt) >= 11 .and. abs(cphopt) < 20))) then
-    call dump_array_4d('nwtrf_in.bin', nwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
-  end if
-  if (nqi >= 1) then
-    call dump_array_4d('qicef_in.bin', qicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-  end if
-  ! nicef is only used when abs(cphopt)==4 or abs(cphopt)>=11
-  if (nni >= 1 .and. (abs(cphopt) == 4 .or. (abs(cphopt) >= 11 .and. abs(cphopt) < 20))) then
-    call dump_array_4d('nicef_in.bin', nicef, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
-  end if
-  ! qcwtrf is only allocated when cphopt < 0 and qcgopt == 2
-  if (cphopt < 0 .and. qcgopt == 2) then
-    call dump_array_4d('qcwtrf_in.bin', qcwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  end if
-  ! qcicef is only allocated when cphopt < 0
-  if (cphopt < 0) then
-    call dump_array_4d('qcicef_in.bin', qcicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-  end if
-end if
 
-call profile_start(prof_id1)
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_310)
 !----------------------------------------------------------------------
@@ -649,7 +558,6 @@ call profile_start(prof_id1)
 
       end if
 
-! -----
 
 ! Solve the potential temperature perturbation to the next time step.
 
@@ -670,7 +578,6 @@ call profile_start(prof_id1)
 
       end if
 
-! -----
 
 ! Solve the hydrometeor to the next time step.
 
@@ -1024,7 +931,6 @@ call profile_start(prof_id1)
 
       end if
 
-! -----
 
 ! Solve the aerosol to the next time step.
 
@@ -1050,7 +956,6 @@ call profile_start(prof_id1)
 
       end if
 
-! -----
 
 ! Solve the tracer to the next time step.
 
@@ -1071,7 +976,6 @@ call profile_start(prof_id1)
 
       end if
 
-! -----
 
 ! Solve the turbulent kinetic energy to the next time step.
 
@@ -1092,7 +996,6 @@ call profile_start(prof_id1)
 
       end if
 
-! -----
 
 #else
 !----------------------------------------------------------------------
@@ -1142,7 +1045,6 @@ call profile_start(prof_id1)
 
       end if
 
-! -----
 
 ! Solve the potential temperature perturbation to the next time step.
 
@@ -1164,7 +1066,6 @@ call profile_start(prof_id1)
 
       end if
 
-! -----
 
 ! Solve the hydrometeor to the next time step.
 
@@ -1533,7 +1434,6 @@ call profile_start(prof_id1)
 
       end if
 
-! -----
 
 ! Solve the aerosol to the next time step.
 
@@ -1560,7 +1460,6 @@ call profile_start(prof_id1)
 
       end if
 
-! -----
 
 ! Solve the tracer to the next time step.
 
@@ -1582,7 +1481,6 @@ call profile_start(prof_id1)
 
       end if
 
-! -----
 
 ! Solve the turbulent kinetic energy to the next time step.
 
@@ -1604,43 +1502,11 @@ call profile_start(prof_id1)
 
       end if
 
-! -----
 
 !$omp end parallel
 #endif
 
-call profile_stop(prof_id1, loop_len)
 
-! Dump output data at target call
-if (dump_call_count_steps == DUMP_TARGET_steps .and. .not. dump_done_steps) then
-  call dump_array_3d('dtdrst_ref.bin', dtdrst, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptpf_ref.bin', ptpf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvf_ref.bin', qvf, 0, ni+1, 0, nj+1, 1, nk)
-  if (nqw >= 1) then
-    call dump_array_4d('qwtrf_ref.bin', qwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  end if
-  ! nwtrf is only used when abs(cphopt)==4 or abs(cphopt)>=11
-  if (nnw >= 1 .and. (abs(cphopt) == 4 .or. (abs(cphopt) >= 11 .and. abs(cphopt) < 20))) then
-    call dump_array_4d('nwtrf_ref.bin', nwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nnw)
-  end if
-  if (nqi >= 1) then
-    call dump_array_4d('qicef_ref.bin', qicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-  end if
-  ! nicef is only used when abs(cphopt)==4 or abs(cphopt)>=11
-  if (nni >= 1 .and. (abs(cphopt) == 4 .or. (abs(cphopt) >= 11 .and. abs(cphopt) < 20))) then
-    call dump_array_4d('nicef_ref.bin', nicef, 0, ni+1, 0, nj+1, 1, nk, 1, nni)
-  end if
-  ! qcwtrf is only allocated when cphopt < 0 and qcgopt == 2
-  if (cphopt < 0 .and. qcgopt == 2) then
-    call dump_array_4d('qcwtrf_ref.bin', qcwtrf, 0, ni+1, 0, nj+1, 1, nk, 1, nqw)
-  end if
-  ! qcicef is only allocated when cphopt < 0
-  if (cphopt < 0) then
-    call dump_array_4d('qcicef_ref.bin', qcicef, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
-  end if
-  call dump_finalize()
-  dump_done_steps = .true.
-end if
 
 !! -----
 
@@ -2061,7 +1927,6 @@ end if
 
       end if
 
-! -----
 
 !!!! Exchange the value horizontally.
 
@@ -2133,7 +1998,6 @@ end if
         nb=nb+1
       end if
 
-! -----
 
 !!! Exchange the value horizontally between sub domain.
 
@@ -2375,7 +2239,6 @@ end if
 
       end if
 
-! -----
 
 ! Call the exchanger.
 
@@ -2385,7 +2248,6 @@ end if
 
       end if
 
-! -----
 
 ! Get the exchanging buffer.
 
@@ -2623,7 +2485,6 @@ end if
 
       end if
 
-! -----
 
 !! -----
 
@@ -2865,7 +2726,6 @@ end if
 
       end if
 
-! -----
 
 ! Call the exchanger.
 
@@ -2875,7 +2735,6 @@ end if
 
       end if
 
-! -----
 
 ! Get the exchanging buffer.
 
@@ -3113,7 +2972,6 @@ end if
 
       end if
 
-! -----
 
 !! -----
 
@@ -3359,7 +3217,6 @@ end if
 
       end if
 
-! -----
 
 ! Call the exchanger.
 
@@ -3369,7 +3226,6 @@ end if
 
       end if
 
-! -----
 
 ! Get the exchanging buffer.
 
@@ -3607,7 +3463,6 @@ end if
 
       end if
 
-! -----
 
 !! -----
 
@@ -3849,7 +3704,6 @@ end if
 
       end if
 
-! -----
 
 ! Call the exchanger.
 
@@ -3859,7 +3713,6 @@ end if
 
       end if
 
-! -----
 
 ! Get the exchanging buffer.
 
@@ -4097,7 +3950,6 @@ end if
 
       end if
 
-! -----
 
 !! -----
 
@@ -4339,7 +4191,6 @@ end if
 
       end if
 
-! -----
 
 ! Call the exchanger.
 
@@ -4349,7 +4200,6 @@ end if
 
       end if
 
-! -----
 
 ! Get the exchanging buffer.
 
@@ -4587,7 +4437,6 @@ end if
 
       end if
 
-! -----
 
 !! -----
 
@@ -4796,7 +4645,6 @@ end if
 
       end if
 
-! -----
 
 ! Set the boundary conditions at the four corners.
 
@@ -4976,7 +4824,6 @@ end if
 
       end if
 
-! -----
 
 ! Set the bottom and the top boundary conditions.
 
@@ -5119,7 +4966,6 @@ end if
 
       end if
 
-! -----
 
       end subroutine s_steps
 

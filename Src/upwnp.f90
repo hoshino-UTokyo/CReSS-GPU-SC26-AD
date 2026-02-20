@@ -19,8 +19,6 @@
 ! Module reference
 
       use m_getrname
-      use m_comprofile
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -122,14 +120,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_upwnp = 0
-      integer, parameter :: DUMP_TARGET_upwnp = 1080
-      logical, save :: dump_done_upwnp = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -138,7 +129,6 @@
 
       call getrname(fpdziv,dziv)
 
-! -----
 
 ! Set the common used variables.
 
@@ -147,59 +137,12 @@
 
       dzvdt=dziv*dtp
 
-! -----
 
 ! Calculate the sedimentation.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: upwnp.f90 :: s_upwnp
-! Summary : Calculate sedimentation for optional precipitation
-!           concentrations using upwind flux divergence scheme
-! GPU diff: Easy
-! Findings:
-!   - Serial k-loop wrapping parallel i,j loops (private(k))
-!   - Three sequential loop nests: flux calc, update, boundary copy
-!   - Contains max() intrinsic for non-negative concentration
-!   - Simple arithmetic operations, no function calls
-! Next:
-!   - Collapse loops or use OpenACC kernels with loop directive
-!   - Can potentially fuse kernels for better performance
-! Runtime:
-!   - Calls: 1080
-!   - AvgLoops: 102.4M
-!   - TotalTime: 10.226s (0.34%)
-!   - AvgTime: 9.468ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('upwnp.f90', 's_upwnp', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_upwnp = dump_call_count_upwnp + 1
-if (dump_call_count_upwnp == DUMP_TARGET_upwnp .and. .not. dump_done_upwnp) then
-  call dump_init('upwnp')
-  call dump_scalar_r('dziv', dziv)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('dtp', dtp)
-  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rst.bin', rst, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('un.bin', un, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncf_in.bin', ncf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncflx_in.bin', ncflx, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('dzvdt', dzvdt)
-  call dump_scalar_i('nkm1', nkm1)
-  call dump_scalar_i('nkm2', nkm2)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_347)
 !----------------------------------------------------------------------
@@ -300,18 +243,9 @@ end if
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_upwnp == DUMP_TARGET_upwnp .and. .not. dump_done_upwnp) then
-  call dump_array_3d('ncf_ref.bin', ncf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncflx_ref.bin', ncflx, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_upwnp = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
       end subroutine s_upwnp
 

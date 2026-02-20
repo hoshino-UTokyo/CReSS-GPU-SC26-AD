@@ -19,7 +19,6 @@
 ! Module reference
 
       use m_chkerr
-      use m_comprofile
       use m_commpi
       use m_cpondpe
       use m_destroy
@@ -133,12 +132,6 @@
       integer id       ! Data array index in x direction
       integer jd       ! Data array index in y direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer, save :: prof_id2 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -158,31 +151,6 @@
 ! -----
 
 ! Get the required indices at the four corners in data grid.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: hintlnd.f90 :: s_hintlnd
-! Summary : Calculate grid indices and min/max bounds for land use
-!           interpolation with reduction operations.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region; uses intrinsics only
-!   - Reduction operations (min/max) on idmin, idmax, jdmin, jdmax
-!   - Different code paths for mpopt < 10 vs >= 10
-!   - No sync constructs beyond implicit barrier at end
-! Next:
-!   - Convert to OpenACC with reduction support
-!   - GPU reduction may require atomic operations or tree reduction
-!   - Consider separating reduction into separate kernel
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('hintlnd.f90', 's_hintlnd', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj)-(0)+1,8) * int((ni)-(0)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared)
 
@@ -227,8 +195,6 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 
@@ -277,22 +243,6 @@ call profile_stop(prof_id1, loop_len)
 
 ! Interpolate the land use data to the model grid.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: hintlnd.f90 :: s_hintlnd
-! Summary : Interpolate land use data from data grid to model grid using
-!           nearest-neighbor (nint) interpolation.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region; uses intrinsics only
-!   - Simple index calculation with nint (nearest integer)
-!   - Branching for mpopt >= 10 with periodic boundary handling
-!   - Writes to land integer array (output)
-!   - No sync constructs
-! Next:
-!   - Convert to OpenACC with collapse(2) on j,i loops
-!   - Simple operation suitable for GPU execution
-!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared)
 
       if(mpopt.lt.10) then

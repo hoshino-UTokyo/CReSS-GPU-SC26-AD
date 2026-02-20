@@ -24,7 +24,6 @@
 ! Module reference
 
       use m_chkfall
-      use m_comprofile
       use m_comindx
       use m_commath
       use m_getrname
@@ -137,11 +136,6 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -160,31 +154,6 @@
 
 ! Get the minimum time interval.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: fallqr.f90 :: s_fallqr
-! Summary : Find minimum time interval for rain water fall-out integration
-!           by computing min reduction over grid using terminal velocity.
-! GPU diff: Medium
-! Findings:
-!   - Uses min reduction on dtp variable
-!   - Simple nested loop with read-only array access
-!   - No function calls inside parallel region
-!   - No global writes other than reduction variable
-! Next:
-!   - Use GPU reduction kernel for min operation
-!   - Can be ported with standard GPU min reduction pattern
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('fallqr.f90', 's_fallqr', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
-
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1
@@ -202,8 +171,6 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

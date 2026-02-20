@@ -19,7 +19,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
       use m_copy3d
       use m_getrname
 
@@ -148,11 +147,6 @@
       real b           ! Temporary variable
       real c           ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -188,34 +182,6 @@
 ! -----
 
 !! Calculate the velocity advection vertically.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: vculuvw.f90 :: s_vculuvw
-! Summary : Compute vertical velocity (u,v,w) advection using Cubic Lagrange scheme
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Reads from up,vp,wp,wc,wc8s; writes to uf,vf,wf (all 3D arrays)
-!   - Three separate sections for u, v, w advection
-!   - Outer k loops are serial with nested !$omp do for i,j
-!   - wc8u/wc8v computed as local averages (private temporaries)
-!   - Conditional branches for upwind/downwind stencil selection
-! Next:
-!   - Collapse k,j,i loops for each velocity component
-!   - Use OpenACC teams distribute parallel do collapse(3)
-!   - Map all velocity arrays to device with proper in/out semantics
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('vculuvw.f90', 's_vculuvw', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-3)-(3)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-1)-(2)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -509,8 +475,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

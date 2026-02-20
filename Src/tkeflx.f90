@@ -23,7 +23,6 @@
 ! Module reference
 
       use m_bc8w
-      use m_comprofile
       use m_comindx
       use m_getiname
       use m_getrname
@@ -175,12 +174,6 @@
 
 !     h3: This variable is also temporary.
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer, save :: prof_id2 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the namelist variables.
@@ -207,32 +200,6 @@
 ! Set the common used array.
 
       if(trnopt.ge.1) then
-
-!@llm start meta_info ----------------------------------------------------
-! Location: tkeflx.f90 :: s_tkeflx (terrain preprocessing)
-! Summary : Calculate j31*tke and j32*tke products for terrain-following
-!           coordinate transformation
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls
-!   - Writes to j31tke and j32tke arrays
-!   - Simple stencil computations
-!   - No synchronization constructs within parallel region
-! Next:
-!   - Straightforward GPU port
-!   - Can be fused with main flux calculation if data dependencies allow
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('tkeflx.f90', 's_tkeflx', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(2)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(2)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -268,8 +235,6 @@ call profile_start(prof_id1)
 
 !$omp end parallel
 
-call profile_stop(prof_id1, loop_len)
-
         call bc8w(idbbc,idtbc,ni,nj,nk,j31tke)
         call bc8w(idbbc,idtbc,ni,nj,nk,j32tke)
 
@@ -279,23 +244,6 @@ call profile_stop(prof_id1, loop_len)
 
 !! Calculate the turbulent fluxes.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: tkeflx.f90 :: s_tkeflx (main flux calculation)
-! Summary : Calculate x, y, z components of turbulent fluxes for TKE
-!           with optional terrain and map scale factor corrections
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls within loops
-!   - Writes to h1, h2, h3, jcbtke arrays
-!   - Multiple conditional branches (mfcopt, mpopt, trnopt)
-!   - h3 used as temporary array for rmf*rkh in some branches
-!   - No synchronization constructs within parallel region
-! Next:
-!   - Multiple kernel approach based on options or unified kernel with conditionals
-!   - Map scale factor arrays need to be on device
-!   - Consider kernel specialization for common option combinations
-!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the common used array.

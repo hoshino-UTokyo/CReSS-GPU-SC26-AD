@@ -20,8 +20,6 @@
 ! Module reference
 
       use m_getiname
-      use m_comprofile
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -106,14 +104,7 @@
       integer j        ! Array index in y direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_bcten = 0
-      integer, parameter :: DUMP_TARGET_bcten = 1440
-      logical, save :: dump_done_bcten = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -123,58 +114,17 @@
       call getiname(fpbbc,bbc)
       call getiname(fptbc,tbc)
 
-! -----
 
 ! Set the common used variable.
 
       nkm2=nk-2
 
-! -----
 
 !! Set the bottom and top boundary conditions.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: bcten.f90 :: s_bcten
-! Summary : Sets bottom and top boundary conditions for optional tensor array
-!           by copying or negating values at boundary layers.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Simple array assignments to boundary planes (k=1, k=nk)
-!   - No synchronization constructs beyond implicit barriers at omp end do
-!   - Conditional branches based on bbc/tbc values (control flow divergence)
-! Next:
-!   - Convert to OpenACC with Unified Memory (no explicit data transfer needed)
-!   - Use collapse(2) for nested i,j loops to increase parallelism
-! Runtime:
-!   - Calls: 1440
-!   - AvgLoops: 811.8K
-!   - TotalTime: 0.068s (0.00%)
-!   - AvgTime: 0.047ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('bcten.f90', 's_bcten', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj+1)-(0)+1,8) * int((ni+1)-(0)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_bcten = dump_call_count_bcten + 1
-if (dump_call_count_bcten == DUMP_TARGET_bcten .and. .not. dump_done_bcten) then
-  call dump_init('bcten')
-  call dump_scalar_i('bbc', bbc)
-  call dump_scalar_i('tbc', tbc)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_array_3d('ten_in.bin', ten, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_i('nkm2', nkm2)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_037)
 !----------------------------------------------------------------------
@@ -263,7 +213,6 @@ end if
 
       end if
 
-! -----
 
 ! Set the top boundary conditions.
 
@@ -293,20 +242,12 @@ end if
 
       end if
 
-! -----
 
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_bcten == DUMP_TARGET_bcten .and. .not. dump_done_bcten) then
-  call dump_array_3d('ten_ref.bin', ten, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_bcten = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

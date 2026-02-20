@@ -19,7 +19,6 @@
 ! Module reference
 
       use m_comindx
-      use m_comprofile
       use m_commath
       use m_getiname
       use m_getrname
@@ -192,12 +191,6 @@
       real b           ! Temporary variable
       real c           ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer, save :: prof_id2 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -225,28 +218,6 @@
 !!!!! Calculate the scalar advection horizontally.
 
 ! Set the common used variables.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: hculs.f90 :: s_hculs
-! Summary : Initialize coefficient arrays for Cubic Lagrange advection scheme.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Simple 1D array initialization loops
-!   - No sync constructs
-! Next:
-!   - Convert to OpenACC
-!   - Consider combining with main advection loop for data locality
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('hculs.f90', 's_hculs', &
-   & 'OMP section 1')
-end if
-loop_len = int((ni)-(0)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared)
 
@@ -278,8 +249,6 @@ call profile_start(prof_id1)
 
 !$omp end parallel
 
-call profile_stop(prof_id1, loop_len)
-
 ! -----
 
 ! Set the lateral boundary conditions.
@@ -291,23 +260,6 @@ call profile_stop(prof_id1, loop_len)
 
 !!!! Perform Cubic Lagrange scheme.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: hculs.f90 :: s_hculs
-! Summary : Compute horizontal scalar advection using Cubic Lagrange scheme
-!           with 4-point stencil and branch logic for wind direction.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Complex branching based on velocity sign (u8s, v8s directions)
-!   - Reads from sp, writes to advx and sf arrays
-!   - Multiple code paths for mfcopt (map scale factor) options
-!   - No sync constructs
-! Next:
-!   - Convert to OpenACC with collapse(2) on j,i loops
-!   - Consider predicated execution or warp divergence mitigation
-!   - Branch logic may cause GPU thread divergence
-!@llm end meta_info ------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !!! Perform horizontal-vertical seperated Cubic Lagrange scheme.

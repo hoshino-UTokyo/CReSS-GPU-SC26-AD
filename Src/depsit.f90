@@ -28,8 +28,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
-      use m_dump_kernel
       use m_comphy
       use m_comtable
 
@@ -227,14 +225,7 @@
       real c           ! Temporary variable
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_depsit = 0
-      integer, parameter :: DUMP_TARGET_depsit = 45720
-      logical, save :: dump_done_depsit = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -245,86 +236,12 @@
 
       t27311=t0-.01e0
 
-! -----
 
 !!!! Calculate the evaporation and deposition rate.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: depsit.f90 :: s_depsit
-! Summary : Calculate evaporation rate from rain to vapor and deposition
-!           rates from vapor to ice hydrometeors (cloud ice, snow, graupel).
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - Uses intrinsic exp, int, log, max functions (GPU-compatible)
-!   - Accesses lookup tables ckoe, pkoe indexed by temperature
-!   - Private variable k for outer loop; many private local scalars
-!   - Writes to vdvr, vdvi, vdvs, vdvg output arrays
-!   - Complex conditional logic based on temperature and mixing ratios
-!   - Special case handling for nk=1 vs nk>1
-! Next:
-!   - Convert to OpenACC with data region for all input/output arrays
-!   - Copy lookup tables ckoe, pkoe to device
-!   - May need to restructure conditionals for GPU efficiency
-!   - Consider separating nk=1 case into distinct kernel
-! Runtime:
-!   - Calls: 45720
-!   - AvgLoops: 806.4K
-!   - TotalTime: 7.399s (0.25%)
-!   - AvgTime: 0.162ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('depsit.f90', 's_depsit', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_depsit = dump_call_count_depsit + 1
-if (dump_call_count_depsit == DUMP_TARGET_depsit .and. .not. dump_done_depsit) then
-  call dump_init('depsit')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('dtb', dtb)
-  call dump_scalar_r('thresq', thresq)
-  call dump_array_3d('t.bin', t, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('t0', t0)
-  call dump_scalar_r('rv', rv)
-  call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rbv.bin', rbv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qv.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qr.bin', qr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qi.bin', qi, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qs.bin', qs, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qg.bin', qg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('nci.bin', nci, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tcel.bin', tcel, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvsst0.bin', qvsst0, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvsw.bin', qvsw, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qvsi.bin', qvsi, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('lv.bin', lv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ls.bin', ls, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('lf.bin', lf, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('kp.bin', kp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('dv.bin', dv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('mi.bin', mi, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vntr.bin', vntr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vnts.bin', vnts, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vntg.bin', vntg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clcs.bin', clcs, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('clcg.bin', clcg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('mlsr.bin', mlsr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('mlgr.bin', mlgr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('ccdtb4', ccdtb4)
-  ! FIXME: ckoe is array - call dump_scalar_r('ckoe', ckoe)
-  ! FIXME: pkoe is array - call dump_scalar_r('pkoe', pkoe)
-  call dump_scalar_r('t27311', t27311)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_078)
 !----------------------------------------------------------------------
@@ -472,7 +389,6 @@ end if
             cvdvx3=c*(qv(i,j,1)/qvsi(i,j,1)-1.e0)
             cvdvx4=a*ls(i,j,1)*lf(i,j,1)
 
-! -----
 
 ! Calculate the evaporation rate from the rain water to the water vapor.
 
@@ -494,7 +410,6 @@ end if
 
             end if
 
-! -----
 
 ! Calculate the deposition rate from the water vapor to the cloud ice.
 
@@ -520,7 +435,6 @@ end if
 
             end if
 
-! -----
 
 ! Calculate the deposition rate from the water vapor to the snow.
 
@@ -550,7 +464,6 @@ end if
 
             end if
 
-! -----
 
 ! Calculate the deposition rate from the water vapor to the graupel.
 
@@ -580,7 +493,6 @@ end if
 
             end if
 
-! -----
 
 ! Adjust the deposition rate from the water vapor to the ice
 ! hydrometeor.
@@ -598,7 +510,6 @@ end if
 
             end if
 
-! -----
 
 !! -----
 
@@ -614,7 +525,6 @@ end if
 
           end if
 
-! -----
 
         end do
         end do
@@ -658,7 +568,6 @@ end if
               cvdvx3=c*(qv(i,j,k)/qvsi(i,j,k)-1.e0)
               cvdvx4=a*ls(i,j,k)*lf(i,j,k)
 
-! -----
 
 ! Calculate the evaporation rate from the rain water to the water vapor.
 
@@ -680,7 +589,6 @@ end if
 
               end if
 
-! -----
 
 ! Calculate the deposition rate from the water vapor to the cloud ice.
 
@@ -706,7 +614,6 @@ end if
 
               end if
 
-! -----
 
 ! Calculate the deposition rate from the water vapor to the snow.
 
@@ -736,7 +643,6 @@ end if
 
               end if
 
-! -----
 
 ! Calculate the deposition rate from the water vapor to the graupel.
 
@@ -766,7 +672,6 @@ end if
 
               end if
 
-! -----
 
 ! Adjust the deposition rate from the water vapor to the ice
 ! hydrometeor.
@@ -784,7 +689,6 @@ end if
 
               end if
 
-! -----
 
 !! -----
 
@@ -800,7 +704,6 @@ end if
 
             end if
 
-! -----
 
           end do
           end do
@@ -816,18 +719,8 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_depsit == DUMP_TARGET_depsit .and. .not. dump_done_depsit) then
-  call dump_array_3d('vdvr_ref.bin', vdvr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vdvi_ref.bin', vdvi, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vdvs_ref.bin', vdvs, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vdvg_ref.bin', vdvg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_depsit = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !!!! -----
 

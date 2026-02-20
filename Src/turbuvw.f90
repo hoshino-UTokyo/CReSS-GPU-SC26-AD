@@ -23,8 +23,6 @@
 ! Module reference
 
       use m_getiname
-      use m_comprofile
-      use m_dump_kernel
       use m_getrname
 
 !-----7--------------------------------------------------------------7--
@@ -212,14 +210,7 @@
 !                          they are not used again.
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_turbuvw = 0
-      integer, parameter :: DUMP_TARGET_turbuvw = 360
-      logical, save :: dump_done_turbuvw = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -234,7 +225,6 @@
       call getrname(fpdyiv,dyiv)
       call getrname(fpdziv,dziv)
 
-! -----
 
 ! Set the common used variables.
 
@@ -243,89 +233,13 @@
       dxiv25=.25e0*dxiv
       dyiv25=.25e0*dyiv
 
-! -----
 
 !! Calculate the velocity turbulent mixing.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: turbuvw.f90 :: subroutine s_turbuvw
-! Summary : Calculates velocity turbulent mixing for u, v, w components
-!           using stress tensor divergence with terrain and map factors.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region.
-!   - No writes to module/global variables.
-!   - No synchronization constructs.
-!   - Very large parallel region with many conditional branches.
-!   - Multiple code paths based on trnopt, mfcopt, mpopt, advopt.
-!   - Stencil operations on stress tensors (t11, t22, t33, t12, t13, t23).
-!   - Temporary arrays reused (tmp1, t11, t22 as scratch).
-!   - All grid points independent within each loop nest.
-! Next:
-!   - Consider separating into multiple kernels by component (u, v, w).
-!   - Evaluate conditions outside kernel to select specific code path.
-!   - OpenACC kernels with collapse(2) on i,j loops.
-!   - Data region should cover all stress tensors and force arrays.
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 804.6K
-!   - TotalTime: 13.603s (0.46%)
-!   - AvgTime: 37.786ms
-!@llm end meta_info ------------------------------------------------------
 
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('turbuvw.f90', 's_turbuvw', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(2)+1,8) * int((ni-1)-(2)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_turbuvw = dump_call_count_turbuvw + 1
-if (dump_call_count_turbuvw == DUMP_TARGET_turbuvw .and. .not. dump_done_turbuvw) then
-  call dump_init('turbuvw')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('trnopt', trnopt)
-  call dump_scalar_i('mpopt', mpopt)
-  call dump_scalar_i('mfcopt', mfcopt)
-  call dump_scalar_i('advopt', advopt)
-  call dump_scalar_r('dxiv', dxiv)
-  call dump_scalar_r('dxiv05', dxiv05)
-  call dump_scalar_r('dxiv25', dxiv25)
-  call dump_scalar_r('dyiv', dyiv)
-  call dump_scalar_r('dziv', dziv)
-  call dump_array_3d('j31.bin', j31, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('j32.bin', j32, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('jcb.bin', jcb, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('jcb8u.bin', jcb8u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('jcb8v.bin', jcb8v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('mf.bin', mf, 0, ni+1, 0, nj+1)
-  call dump_array_2d('mf8u.bin', mf8u, 0, ni+1, 0, nj+1)
-  call dump_array_2d('mf8v.bin', mf8v, 0, ni+1, 0, nj+1)
-  call dump_array_3d('rmf.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
-  call dump_array_3d('rmf8u.bin', rmf8u, 0, ni+1, 0, nj+1, 1, 3)
-  call dump_array_3d('rmf8v.bin', rmf8v, 0, ni+1, 0, nj+1, 1, 3)
-  call dump_array_3d('t11_in.bin', t11, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t22_in.bin', t22, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t33_in.bin', t33, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t12_in.bin', t12, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t13_in.bin', t13, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t23_in.bin', t23, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t31_in.bin', t31, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t32_in.bin', t32, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ufrc_in.bin', ufrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vfrc_in.bin', vfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wfrc_in.bin', wfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp1_in.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('dyiv05', dyiv05)
-  call dump_scalar_r('dyiv25', dyiv25)
-end if
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_338)
 !----------------------------------------------------------------------
@@ -1048,7 +962,6 @@ end if
 
       end if
 
-! -----
 
 ! Calculate the u turbulent mixing.
 
@@ -1555,7 +1468,6 @@ end if
 
       end if
 
-! -----
 
 ! Calculate the v turbulent mixing.
 
@@ -2062,7 +1974,6 @@ end if
 
       end if
 
-! -----
 
 ! Calculate the w turbulent mixing.
 
@@ -2577,32 +2488,13 @@ end if
 
       end if
 
-! -----
 
 !$omp end parallel
 
 #endif
 
-! Dump output data at target call
-if (dump_call_count_turbuvw == DUMP_TARGET_turbuvw .and. .not. dump_done_turbuvw) then
-  call dump_array_3d('t11_ref.bin', t11, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t22_ref.bin', t22, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t33_ref.bin', t33, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t12_ref.bin', t12, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t13_ref.bin', t13, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t23_ref.bin', t23, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t31_ref.bin', t31, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('t32_ref.bin', t32, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ufrc_ref.bin', ufrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vfrc_ref.bin', vfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wfrc_ref.bin', wfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp1_ref.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_turbuvw = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

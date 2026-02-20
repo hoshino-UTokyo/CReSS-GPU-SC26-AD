@@ -21,7 +21,6 @@
 !-----7--------------------------------------------------------------7--
 
 ! Implicit typing
-      use m_comprofile
 
       implicit none
 
@@ -120,41 +119,9 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Reposition the restructed variable form original restart variable.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: repsit3d.f90 :: s_repsit3d
-! Summary : Copy 3D variable from original restart to restructured domain array with index offset
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - Three conditional branches based on xo flag (ox, xo, or default)
-!   - Outer k loop is serial with inner !$omp do on i,j
-!   - Simple array copy with offset: var_rst(di+i,dj+j,k) = var(i,j,k)
-!   - No function calls inside parallel region
-!   - No synchronization constructs
-! Next:
-!   - Collapse k,j,i loops for better GPU parallelism
-!   - Use OpenACC teams distribute parallel for collapse(3)
-!   - Consider separate kernels for each xo case
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('repsit3d.f90', 's_repsit3d', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk)-(1)+1,8) &
-     & * int((jend)-(jstr)+1,8) &
-     & * int((iend+1)-(istr)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -209,8 +176,6 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

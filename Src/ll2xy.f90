@@ -25,7 +25,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
       use m_getindx
       use m_getiname
       use m_getrname
@@ -169,11 +168,6 @@
 
       real rr          ! Radius on map coordinates system
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -207,33 +201,6 @@
 
 !!! Calculate the x and the y coordinates from the latitude and the
 !!! longitude.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: ll2xy.f90 :: s_ll2xy
-! Summary : Convert latitude/longitude to x/y coordinates using various map
-!           projections (lat-lon, Polar Stereographic, Lambert, Mercator).
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls; uses intrinsic math functions (sin,cos,tan,exp,log)
-!   - Multiple projection methods selected by mpopt (0,1,2,3,4,5,10,13)
-!   - Independent calculations for each (i,j) grid point
-!   - Uses module variables from m_commath (d2r, eps, cc)
-!   - No synchronization constructs besides implicit barrier at omp end do
-!   - All loops are embarrassingly parallel
-! Next:
-!   - Convert to OpenACC or OpenACC kernels
-!   - All math intrinsics have GPU equivalents
-!   - Perfect candidate for GPU; collapse i,j loops for maximum parallelism
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('ll2xy.f90', 's_ll2xy', &
-   & 'OMP section 1')
-end if
-loop_len = int((jend)-(jstr)+1,8) * int((iend)-(istr)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared)
 
@@ -395,8 +362,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

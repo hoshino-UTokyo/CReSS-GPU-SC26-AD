@@ -20,8 +20,6 @@
 ! Module reference
 
       use m_getrname
-      use m_comprofile
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -124,14 +122,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_pgradiv = 0
-      integer, parameter :: DUMP_TARGET_pgradiv = 14400
-      logical, save :: dump_done_pgradiv = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -141,67 +132,17 @@
       call getrname(fpdziv,dziv)
       call getrname(fpweicoe,weicoe)
 
-! -----
 
 ! Set the common used variable.
 
       dtdzw=dts*dziv*weicoe
 
-! -----
 
 ! Calculate the pressure gradient force vertically.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: pgradiv.f90 :: s_pgradiv
-! Summary : Compute vertical pressure gradient force using implicit method,
-!           updating forcing term for w equation.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region (pure arithmetic)
-!   - No global/module variable writes (only intent(inout) fw, fpdvj arrays)
-!   - No sync constructs
-!   - Two separate k-loops: first computes fpdvj, second updates fw
-!   - Second loop has k-1 dependency on fpdvj (read from previous level)
-! Next:
-!   - Convert to OpenACC with collapse for k,j,i loops
-!   - First loop is independent; second loop needs fpdvj from k-1 level
-!   - Can fuse loops or ensure proper synchronization between them
-! Runtime:
-!   - Calls: 14400
-!   - AvgLoops: 100.4M
-!   - TotalTime: 117.847s (3.95%)
-!   - AvgTime: 8.184ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('pgradiv.f90', 's_pgradiv', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-2)-(2)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_pgradiv = dump_call_count_pgradiv + 1
-if (dump_call_count_pgradiv == DUMP_TARGET_pgradiv .and. .not. dump_done_pgradiv) then
-  call dump_init('pgradiv')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('dts', dts)
-  call dump_scalar_r('dziv', dziv)
-  call dump_scalar_r('weicoe', weicoe)
-  call dump_array_3d('jcb.bin', jcb, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wfrc.bin', wfrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('fp.bin', fp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('fw_in.bin', fw, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('fpdvj_in.bin', fpdvj, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('dtdzw', dtdzw)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_231)
 !----------------------------------------------------------------------
@@ -274,18 +215,9 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_pgradiv == DUMP_TARGET_pgradiv .and. .not. dump_done_pgradiv) then
-  call dump_array_3d('fw_ref.bin', fw, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('fpdvj_ref.bin', fpdvj, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_pgradiv = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
       end subroutine s_pgradiv
 

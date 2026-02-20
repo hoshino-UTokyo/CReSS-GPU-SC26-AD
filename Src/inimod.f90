@@ -20,8 +20,6 @@
 ! Module reference
 
       use m_comdmp
-      use m_comprofile
-      use m_dump_kernel
       use m_comerr
       use m_comname
       use m_comsave
@@ -84,17 +82,6 @@
 ! Internal private variable
 
       integer in_sub   ! Substitute for in
-
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
-      ! Dump variables
-      integer, save :: dump_call_count_inimod = 0
-      integer, parameter :: DUMP_TARGET_inimod = 1
-      logical, save :: dump_done_inimod = .false.
-
 
 !-----7--------------------------------------------------------------7--
 
@@ -165,47 +152,6 @@
 
 ! For the integer and real variables.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: inimod.f90 :: s_inimod
-! Summary : Initialize integer (iname, riname) and real (rname, rrname) namelist
-!           table arrays to zero
-! GPU diff: Easy
-! Findings:
-!   - Two simple loops initializing namelist arrays to zero
-!   - No function calls within the parallel region
-!   - No global writes beyond array initialization
-!   - No sync constructs or thread-dependent logic
-! Next:
-!   - Can be directly ported to GPU with OpenACC parallel loop
-!   - Consider using array syntax for simpler GPU offload
-! Runtime:
-!   - Calls: 1
-!   - AvgLoops: 219
-!   - TotalTime: 0.000s (0.00%)
-!   - AvgTime: 0.021ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('inimod.f90', 's_inimod', &
-   & 'OMP section 1')
-end if
-loop_len = int((nin)-(1)+1,8)
-call profile_start(prof_id1)
-
-
-! Dump input data at target call
-dump_call_count_inimod = dump_call_count_inimod + 1
-if (dump_call_count_inimod == DUMP_TARGET_inimod .and. .not. dump_done_inimod) then
-  call dump_init('inimod')
-  call dump_scalar_i('nin', nin)
-  call dump_scalar_i('nrn', nrn)
-  call dump_array_1d_int('iname_in.bin', iname, 1, nin)
-  call dump_array_1d_int('riname_in.bin', riname, 1, nin)
-  call dump_array_1d('rname_in.bin', rname, 1, nrn)
-  call dump_array_1d('rrname_in.bin', rrname, 1, nrn)
-end if
-
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(in_sub)
@@ -227,19 +173,6 @@ end if
 !$omp end do
 
 !$omp end parallel
-
-! Dump output data at target call
-if (dump_call_count_inimod == DUMP_TARGET_inimod .and. .not. dump_done_inimod) then
-  call dump_array_1d_int('iname_ref.bin', iname, 1, nin)
-  call dump_array_1d_int('riname_ref.bin', riname, 1, nin)
-  call dump_array_1d('rname_ref.bin', rname, 1, nrn)
-  call dump_array_1d('rrname_ref.bin', rrname, 1, nrn)
-  call dump_finalize()
-  dump_done_inimod = .true.
-end if
-
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

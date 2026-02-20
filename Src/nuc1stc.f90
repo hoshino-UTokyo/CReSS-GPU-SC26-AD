@@ -26,8 +26,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
-      use m_dump_kernel
       use m_comphy
 
 !-----7--------------------------------------------------------------7--
@@ -168,14 +166,7 @@
       real nuhci       ! Nucleation rate of homogeneous
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_nuc1stc = 0
-      integer, parameter :: DUMP_TARGET_nuc1stc = 45720
-      logical, save :: dump_done_nuc1stc = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -193,70 +184,13 @@
       kpa25=2.5e0*kpa
       kpa50=5.e0*kpa
 
-! -----
 
 !!!! Calculate the nucleation rate of the condensation, contact and
 !!!! homogeneous.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: nuc1stc.f90 :: s_nuc1stc
-! Summary : Calculate ice nucleation rates (condensation, contact,
-!           homogeneous) based on temperature and cloud water.
-! GPU diff: Medium
-! Findings:
-!   - Conditional branch for nk.eq.1 vs nk.gt.1 cases
-!   - Complex conditionals (temperature thresholds) per grid point
-!   - Uses exp, log, min intrinsics - GPU compatible
-!   - Many private variables (tc, piv, knd, dar, f1, f2, ft, etc.)
-!   - Output array nuci written independently per grid point
-!   - No inter-thread dependencies within each omp do
-! Next:
-!   - Branch divergence may reduce GPU efficiency
-!   - Consider precomputing masks for temperature conditions
-!   - Can port as single kernel with good occupancy
-! Runtime:
-!   - Calls: 45720
-!   - AvgLoops: 806.4K
-!   - TotalTime: 1.366s (0.05%)
-!   - AvgTime: 0.030ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('nuc1stc.f90', 's_nuc1stc', &
-   & 'OMP section 1')
-end if
-loop_len = int((nj-1)-(1)+1,8) * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_nuc1stc = dump_call_count_nuc1stc + 1
-if (dump_call_count_nuc1stc == DUMP_TARGET_nuc1stc .and. .not. dump_done_nuc1stc) then
-  call dump_init('nuc1stc')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_r('dtb', dtb)
-  call dump_scalar_r('thresq', thresq)
-  call dump_array_3d('t.bin', t, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('t0', t0)
-  call dump_scalar_r('rv', rv)
-  call dump_array_3d('p.bin', p, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qc.bin', qc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ncc.bin', ncc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tcel.bin', tcel, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('lv.bin', lv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('kp.bin', kp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('mu.bin', mu, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('diaqc.bin', diaqc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('cc45', cc45)
-  call dump_scalar_r('cdar', cdar)
-  call dump_scalar_r('cknd', cknd)
-  call dump_scalar_r('kpa25', kpa25)
-  call dump_scalar_r('kpa50', kpa50)
-  call dump_scalar_r('rwdt2', rwdt2)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_212)
 !----------------------------------------------------------------------
@@ -402,7 +336,6 @@ end if
 
             end if
 
-! -----
 
 ! Calculate the nucleation rate of the contact.
 
@@ -442,7 +375,6 @@ end if
 
             end if
 
-! -----
 
 ! Calculate the nucleation rate of the homogeneous.
 
@@ -456,13 +388,11 @@ end if
 
             end if
 
-! -----
 
 ! Finally get the total nucleation rate.
 
             nuci(i,j,1)=nufci+nucci+nuhci
 
-! -----
 
 !! -----
 
@@ -475,7 +405,6 @@ end if
 
           end if
 
-! -----
 
         end do
         end do
@@ -514,7 +443,6 @@ end if
 
               end if
 
-! -----
 
 ! Calculate the nucleation rate of the contact.
 
@@ -554,7 +482,6 @@ end if
 
               end if
 
-! -----
 
 ! Calculate the nucleation rate of the homogeneous.
 
@@ -568,13 +495,11 @@ end if
 
               end if
 
-! -----
 
 ! Finally get the total nucleation rate.
 
               nuci(i,j,k)=nufci+nucci+nuhci
 
-! -----
 
 !! -----
 
@@ -587,7 +512,6 @@ end if
 
             end if
 
-! -----
 
           end do
           end do
@@ -603,15 +527,8 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_nuc1stc == DUMP_TARGET_nuc1stc .and. .not. dump_done_nuc1stc) then
-  call dump_array_3d('nuci_ref.bin', nuci, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_nuc1stc = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
 !!!! -----
 

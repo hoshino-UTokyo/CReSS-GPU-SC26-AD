@@ -20,7 +20,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -125,11 +124,6 @@
       real cqprdr      ! Optional precipitation mixing ratio
                        ! at current forecast time
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -140,35 +134,6 @@
 
 ! Calculate the analysis nudging terms for optional precipitation mixing
 ! ratio.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: qp2rdr.f90 :: subroutine s_qp2rdr
-! Summary : Performs analysis nudging of precipitation mixing ratio
-!           toward radar observations with time interpolation.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - No function calls inside parallel region.
-!   - Reads module constant lim34n from commath.
-!   - No synchronization constructs.
-!   - Uses intrinsic max() - GPU compatible.
-!   - Conditional updates based on data validity thresholds.
-!   - All grid points are independent.
-! Next:
-!   - Direct OpenACC kernels with conditional update.
-!   - Data validity check may cause minor warp divergence.
-!@llm end meta_info ------------------------------------------------------
-
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('qp2rdr.f90', 's_qp2rdr', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-2)-(2)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -223,8 +188,6 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

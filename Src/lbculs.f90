@@ -18,7 +18,6 @@
 ! Module reference
 
       use m_commpi
-      use m_comprofile
       use m_getiname
 
 !-----7--------------------------------------------------------------7--
@@ -131,11 +130,6 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -188,32 +182,6 @@
 ! -----
 
 !! Set the lateral boundary conditions.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: lbculs.f90 :: s_lbculs
-! Summary : Apply lateral boundary conditions for scalar variable using
-!           3rd-order extrapolation formula at domain boundaries.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls within parallel region
-!   - Uses 3rd-order extrapolation: s(0) = s(3) - 3*(s(2)-s(1))
-!   - Modifies ghost zone values (index 0 or ni/nj)
-!   - Uses module variables from m_commpi (ebw,ebe,ebs,ebn,isub,jsub,nisub,njsub)
-!   - No synchronization constructs besides implicit barrier at omp end do
-! Next:
-!   - Convert to OpenACC or OpenACC kernels
-!   - Collapse k and j/i loops for better GPU occupancy
-!   - Simple arithmetic allows efficient GPU vectorization
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('lbculs.f90', 's_lbculs', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) * int((nj)-(0)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -298,8 +266,6 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !! -----
 

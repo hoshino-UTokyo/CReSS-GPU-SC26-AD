@@ -25,8 +25,6 @@
 !-----7--------------------------------------------------------------7--
 
 ! Implicit typing
-      use m_comprofile
-      use m_dump_kernel
 
       implicit none
 
@@ -105,14 +103,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_sheartke = 0
-      integer, parameter :: DUMP_TARGET_sheartke = 360
-      logical, save :: dump_done_sheartke = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -120,52 +111,9 @@
 ! Calculate the shear production in the turbulent kinetic energy
 ! equation.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: sheartke.f90 :: s_sheartke
-! Summary : Calculates shear production term in TKE equation by adding
-!           Jacobian times eddy viscosity times deformation squared to forcing.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Simple 3D loop with single multiply-add operation per point
-!   - All loops independent with private i,j,k indices
-!   - No synchronization constructs
-!   - Minimal computation per grid point
-! Next:
-!   - Straightforward GPU port with 3D kernel
-!   - Use OpenACC/OpenACC with collapse(3)
-!   - Good candidate for kernel fusion with other TKE terms
-! Runtime:
-!   - Calls: 360
-!   - AvgLoops: 100.4M
-!   - TotalTime: 1.960s (0.07%)
-!   - AvgTime: 5.446ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('sheartke.f90', 's_sheartke', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-2)-(2)+1,8) &
-     & * int((nj-2)-(2)+1,8) &
-     & * int((ni-2)-(2)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_sheartke = dump_call_count_sheartke + 1
-if (dump_call_count_sheartke == DUMP_TARGET_sheartke .and. .not. dump_done_sheartke) then
-  call dump_init('sheartke')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_array_3d('jcb.bin', jcb, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ssq.bin', ssq, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rkv.bin', rkv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tkefrc_in.bin', tkefrc, 0, ni+1, 0, nj+1, 1, nk)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_294)
 ! GPU version (OpenACC)
@@ -205,17 +153,9 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_sheartke == DUMP_TARGET_sheartke .and. .not. dump_done_sheartke) then
-  call dump_array_3d('tkefrc_ref.bin', tkefrc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_sheartke = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
       end subroutine s_sheartke
 

@@ -25,12 +25,10 @@
 ! Module reference
 
       use m_comindx
-      use m_comprofile
       use m_comphy
       use m_diver3d
       use m_getiname
       use m_getrname
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -232,14 +230,7 @@
 !     wpg: This variable is also temporary.
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_pgrad = 0
-      integer, parameter :: DUMP_TARGET_pgrad = 14400
-      logical, save :: dump_done_pgrad = .false.
 
 !-----7--------------------------------------------------------------7--
 
@@ -256,7 +247,6 @@
       call getrname(fpdyiv,dyiv)
       call getrname(fpdziv,dziv)
 
-! -----
 
 ! Set the common used variables.
 
@@ -265,7 +255,6 @@
       divch=divndc/dts*dx*dy
       divcv=divndc/dts*dz*dz
 
-! -----
 
 ! Calculate the divergence damping.
 
@@ -277,83 +266,13 @@
 
       end if
 
-! -----
 
 !! Calculate the pressure gradient force.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: pgrad.f90 :: subroutine s_pgrad
-! Summary : Calculates pressure gradient force for u, v, w equations
-!           including divergence damping and terrain-following corrections.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_* usage.
-!   - Calls diver3d() before parallel region - need to check that subroutine.
-!   - Reads module constant divndc from comphy (indirectly via divch/divcv).
-!   - No synchronization constructs within parallel region.
-!   - Multiple code paths based on divopt, trnopt, mfcopt, mpopt.
-!   - Multi-stage stencil with temporary arrays (tmp1, tmp2, tmp3).
-!   - Terrain correction (trnopt>=1) adds extra stencil stage.
-! Next:
-!   - Ensure diver3d is GPU-ready before porting this routine.
-!   - Use multiple kernels matching the loop structure.
-!   - Map scale factor conditionals can be evaluated outside kernel.
-! Runtime:
-!   - Calls: 14400
-!   - AvgLoops: 102.4M
-!   - TotalTime: 292.883s (9.83%)
-!   - AvgTime: 20.339ms
-!@llm end meta_info ------------------------------------------------------
 
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('pgrad.f90', 's_pgrad', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
 
-! Dump input data at target call
-dump_call_count_pgrad = dump_call_count_pgrad + 1
-if (dump_call_count_pgrad == DUMP_TARGET_pgrad .and. .not. dump_done_pgrad) then
-  call dump_init('pgrad')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('trnopt', trnopt)
-  call dump_scalar_i('mpopt', mpopt)
-  call dump_scalar_i('mfcopt', mfcopt)
-  call dump_scalar_i('divopt', divopt)
-  call dump_scalar_r('dxiv', dxiv)
-  call dump_scalar_r('dyiv', dyiv)
-  call dump_scalar_r('dziv', dziv)
-  call dump_scalar_r('dziv25', dziv25)
-  call dump_scalar_r('divch', divch)
-  call dump_scalar_r('divcv', divcv)
-  call dump_array_3d('j31.bin', j31, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('j32.bin', j32, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('jcb.bin', jcb, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_2d('mf.bin', mf, 0, ni+1, 0, nj+1)
-  call dump_array_2d('mf8u.bin', mf8u, 0, ni+1, 0, nj+1)
-  call dump_array_2d('mf8v.bin', mf8v, 0, ni+1, 0, nj+1)
-  call dump_array_3d('rmf.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
-  call dump_array_3d('rmf8u.bin', rmf8u, 0, ni+1, 0, nj+1, 1, 3)
-  call dump_array_3d('rmf8v.bin', rmf8v, 0, ni+1, 0, nj+1, 1, 3)
-  call dump_array_3d('rst8u.bin', rst8u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rst8v.bin', rst8v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('rst8w.bin', rst8w, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wc.bin', wc, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('pp.bin', pp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp1.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp2_in.bin', tmp2, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('tmp3_in.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
-end if
 
-call profile_start(prof_id1)
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_230)
 !----------------------------------------------------------------------
@@ -698,7 +617,6 @@ call profile_start(prof_id1)
 
       end if
 
-! -----
 
 ! Calculate the vertical components of pressure gradient force.
 
@@ -716,7 +634,6 @@ call profile_start(prof_id1)
 
       end do
 
-! -----
 
 ! Reset and add the divergence damping to the pressure perturbation for
 ! anisotropic case.
@@ -739,7 +656,6 @@ call profile_start(prof_id1)
 
       end if
 
-! -----
 
 ! Calculate the horizontal components of pressure gradient force.
 
@@ -1031,21 +947,11 @@ call profile_start(prof_id1)
 
       end if
 
-! -----
 
 !$omp end parallel
 #endif
 
-call profile_stop(prof_id1, loop_len)
 
-! Dump output data at target call
-if (dump_call_count_pgrad == DUMP_TARGET_pgrad .and. .not. dump_done_pgrad) then
-  call dump_array_3d('upg_ref.bin', upg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('vpg_ref.bin', vpg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wpg_ref.bin', wpg, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_pgrad = .true.
-end if
 
 !! -----
 

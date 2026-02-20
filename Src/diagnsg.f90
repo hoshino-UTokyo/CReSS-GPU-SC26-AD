@@ -24,7 +24,6 @@
 ! Module reference
 
       use m_commath
-      use m_comprofile
       use m_comphy
       use m_getiname
 
@@ -135,11 +134,6 @@
       integer j        ! Array index in y direction
       integer k        ! Array index in z direction
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -167,34 +161,6 @@
 
 !!! Get the diagnostic concentrations of the precipitation categories of
 !!! the ice hydrometeor.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: diagnsg.f90 :: s_diagnsg
-! Summary : Calculate diagnostic concentrations for precipitation ice
-!           categories (snow, graupel, hail) from mixing ratios and density.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - Uses intrinsic max, min, sqrt functions (GPU-compatible)
-!   - Private variable k for outer loop
-!   - Writes to nidia output array for snow, graupel, hail categories
-!   - Conditional branch based on haiopt (2 vs 3 precipitation categories)
-!   - Independent point-wise operations per grid cell
-! Next:
-!   - Direct conversion to OpenACC with collapsed loops
-!   - Handle haiopt conditional outside kernel or use unified kernel
-!   - Data managed automatically via Unified Memory
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('diagnsg.f90', 's_diagnsg', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -291,8 +257,6 @@ call profile_start(prof_id1)
 !! -----
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 !!! -----
 

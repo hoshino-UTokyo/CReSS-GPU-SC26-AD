@@ -20,7 +20,6 @@
 ! Module reference
 
       use m_comphy
-      use m_comprofile
       use m_getrname
 
 !-----7--------------------------------------------------------------7--
@@ -149,11 +148,6 @@
       real a           ! Temporary variable
       real b           ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variable.
@@ -169,34 +163,6 @@
 ! -----
 
 ! Perform the saturation adjustment.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: sadjstbw.f90 :: s_sadjstbw
-! Summary : Perform saturation adjustment for water when total water
-!           exceeds critical value, computing new qv/qw/ptp from thermodynamics
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread usage
-!   - No external function calls (only intrinsic exp, log)
-!   - Complex conditional branching within loops
-!   - Writes to ptptmp, qvtmp, qwtmp arrays
-!   - Uses module variables from m_comphy (es0, t0, epsva, lv0, cp, qccrit)
-!   - No synchronization constructs
-! Next:
-!   - Convert to OpenACC with parallel loop collapse(3)
-!   - Ensure m_comphy module constants are accessible on device
-!   - Consider branch divergence impact on GPU performance
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('sadjstbw.f90', 's_sadjstbw', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(2)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -306,8 +272,6 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

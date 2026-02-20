@@ -20,8 +20,6 @@
 ! Module reference
 
       use m_comphy
-      use m_comprofile
-      use m_dump_kernel
       use m_getrname
 
 !-----7--------------------------------------------------------------7--
@@ -139,14 +137,7 @@
       real b           ! Temporary variable
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_siadjst = 0
-      integer, parameter :: DUMP_TARGET_siadjst = 720
-      logical, save :: dump_done_siadjst = .false.
 
 
 !-----7--------------------------------------------------------------7--
@@ -155,7 +146,6 @@
 
       call getrname(fpthresq,thresq)
 
-! -----
 
 ! Set the common used variables.
 
@@ -163,71 +153,12 @@
 
       mi0iv=1.e0/mi0
 
-! -----
 
 ! Perform the saturation adjustment.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: siadjst.f90 :: s_siadjst
-! Summary : Performs saturation adjustment for ice, converting between water vapor
-!           and cloud ice based on saturation conditions at low temperatures.
-! GPU diff: Medium
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Uses intrinsic functions: exp, log
-!   - Uses module constants from m_comphy (t0, tlow, es0, epsva, lv0, lf0, etc.)
-!   - Complex thermodynamic calculations with multiple conditional branches
-!   - Two-iteration adjustment loop structure within each grid point
-!   - Updates ptp, qv, qi, nci arrays (multiple output variables)
-!   - All loops independent with private i,j,k and local scalar variables
-!   - No synchronization constructs
-! Next:
-!   - Port exp/log intrinsics directly (GPU-compatible)
-!   - May need to handle thread divergence from nested conditionals
-!   - Consider data regions for the 4 updated 3D arrays
-! Runtime:
-!   - Calls: 720
-!   - AvgLoops: 102.4M
-!   - TotalTime: 4.520s (0.15%)
-!   - AvgTime: 6.277ms
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('siadjst.f90', 's_siadjst', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 
-! Dump input data at target call
-dump_call_count_siadjst = dump_call_count_siadjst + 1
-if (dump_call_count_siadjst == DUMP_TARGET_siadjst .and. .not. dump_done_siadjst) then
-  call dump_init('siadjst')
-  call dump_scalar_r('thresq', thresq)
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_array_3d('p.bin', p, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('cp', cp)
-  call dump_scalar_r('t0', t0)
-  call dump_scalar_r('epsva', epsva)
-  call dump_scalar_r('es0', es0)
-  call dump_scalar_r('lv0', lv0)
-  call dump_scalar_r('lf0', lf0)
-  call dump_array_3d('ptbr.bin', ptbr, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('pi.bin', pi, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('ptp_in.bin', ptp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qv_in.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qi_in.bin', qi, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('nci_in.bin', nci, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_scalar_r('cwmci', cwmci)
-  call dump_scalar_r('mi0iv', mi0iv)
-end if
+
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_296)
 ! GPU version (OpenACC)
@@ -460,20 +391,9 @@ end if
 !$omp end parallel
 #endif
 
-! Dump output data at target call
-if (dump_call_count_siadjst == DUMP_TARGET_siadjst .and. .not. dump_done_siadjst) then
-  call dump_array_3d('ptp_ref.bin', ptp, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qv_ref.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('qi_ref.bin', qi, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('nci_ref.bin', nci, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_siadjst = .true.
-end if
 
 
-call profile_stop(prof_id1, loop_len)
 
-! -----
 
       end subroutine s_siadjst
 

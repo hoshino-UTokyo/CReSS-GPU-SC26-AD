@@ -18,7 +18,6 @@
 ! Module reference
 
       use m_getrname
-      use m_comprofile
 
 !-----7--------------------------------------------------------------7--
 
@@ -128,11 +127,6 @@
 
       real a           ! Temporary variable
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -150,33 +144,6 @@
 ! -----
 
 ! Calculate the non linear scalar numerical smoothing.
-
-!@llm start meta_info ----------------------------------------------------
-! Location: nlsms.f90 :: s_nlsms
-! Summary : Non-linear smoothing for scalar variable using finite
-!           differences with a*abs(a) nonlinear diffusion operator.
-! GPU diff: Medium
-! Findings:
-!   - Multiple sequential do-k loops with omp do inside
-!   - Temporary arrays tmp1, tmp2, tmp3 store intermediate differences
-!   - Read-after-write dependencies between k-loops on tmp arrays
-!   - Final sfrc update depends on all tmp arrays being computed first
-!   - No function calls; uses intrinsic abs only
-! Next:
-!   - May need to fuse loops or use multiple kernel launches
-!   - Ensure proper synchronization between kernel stages
-!   - Consider 3D kernel with k-loop parallelization
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('nlsms.f90', 's_nlsms', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni-1)-(1)+1,8)
-call profile_start(prof_id1)
 
 !$omp parallel default(shared) private(k)
 
@@ -258,8 +225,6 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

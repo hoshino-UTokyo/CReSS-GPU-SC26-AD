@@ -18,7 +18,6 @@
 ! Module reference
 
       use m_chkerr
-      use m_comprofile
       use m_comgrp
       use m_commpi
       use m_cpondpe
@@ -111,11 +110,6 @@
       integer igc_sub  ! Substitute for igc
       integer jgc_sub  ! Substitute for jgc
 
-
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
-
 !-----7--------------------------------------------------------------7--
 
 ! Get the required namelist variables.
@@ -198,31 +192,6 @@
 
 ! Initialize the other table and set boundary conditions.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: allocgrp.f90 :: s_allocgrp
-! Summary : Initialize group domain arrangement tables (grpxy, xgrp, ygrp)
-!           and set boundary conditions based on wbc, ebc, sbc, nbc options
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No function calls inside parallel region
-!   - Writes to module-level arrays grpxy, xgrp, ygrp from m_comgrp
-!   - Simple initialization loops with no data dependencies
-!   - Conditional blocks for cyclic boundary setup
-! Next:
-!   - Straightforward GPU port with OpenACC parallel loops
-!   - Small loop sizes (nigrp, njgrp, nsrl) may not benefit from GPU
-!   - Consider keeping on CPU if domain decomposition is small
-!@llm end meta_info ------------------------------------------------------
-
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('allocgrp.f90', 's_allocgrp', &
-   & 'OMP section 1')
-end if
-loop_len = int((njgrp+1)-(0)+1,8) * int((nigrp+1)-(0)+1,8)
-call profile_start(prof_id1)
-
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(igc_sub,jgc_sub)
@@ -271,8 +240,6 @@ call profile_start(prof_id1)
 !$omp end do
 
 !$omp end parallel
-
-call profile_stop(prof_id1, loop_len)
 
 ! -----
 

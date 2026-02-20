@@ -21,9 +21,7 @@
 ! Module reference
 
       use m_getiname
-      use m_comprofile
       use m_getrname
-      use m_dump_kernel
 
 !-----7--------------------------------------------------------------7--
 
@@ -164,14 +162,7 @@
       integer k        ! Array index in z direction
 
 
-      ! Profiling variables
-      integer, save :: prof_id1 = -1
-      integer(8) :: loop_len
 
-      ! Dump variables
-      integer, save :: dump_call_count_diver3d = 0
-      integer, parameter :: DUMP_TARGET_diver3d = 14400
-      logical, save :: dump_done_diver3d = .false.
 
 !-----7--------------------------------------------------------------7--
 
@@ -183,72 +174,12 @@
       call getrname(fpdyiv,dyiv)
       call getrname(fpdziv,dziv)
 
-! -----
 
 !! Calculate the 3 dimensional negative divergence.
 
-!@llm start meta_info ----------------------------------------------------
-! Location: diver3d.f90 :: s_diver3d
-! Summary : Calculate 3D negative divergence using velocity components u,v,wc
-!           weighted by Jacobian and map scale factors in x, y, z directions.
-! GPU diff: Easy
-! Findings:
-!   - No omp_get_thread_num usage
-!   - No external function calls inside parallel region
-!   - No global/module variable writes
-!   - No synchronization constructs
-!   - Multiple branches (mfcopt, mpopt) but all are simple data-parallel loops
-!   - Three-phase computation: multiply u, multiply v, multiply wc, then combine
-! Next:
-!   - Direct OpenACC with collapse(2) on j-i loops
-!   - tmp1, tmp2, tmp3 are temporary arrays; consider loop fusion for GPU
-! Runtime:
-!   - Calls: 14400
-!   - AvgLoops: 102.5M
-!   - TotalTime: 232.922s (7.82%)
-!   - AvgTime: 16.175ms
-!@llm end meta_info ------------------------------------------------------
 
-! Register profiling section (first call only)
-if (prof_id1 < 0) then
-  prof_id1 = profile_register('diver3d.f90', 's_diver3d', &
-   & 'OMP section 1')
-end if
-loop_len = int((nk-1)-(1)+1,8) &
-     & * int((nj-1)-(1)+1,8) &
-     & * int((ni)-(1)+1,8)
 
-! Dump input data at target call
-dump_call_count_diver3d = dump_call_count_diver3d + 1
-if (dump_call_count_diver3d == DUMP_TARGET_diver3d .and. .not. dump_done_diver3d) then
-  call dump_init('diver3d')
-  call dump_scalar_i('ni', ni)
-  call dump_scalar_i('nj', nj)
-  call dump_scalar_i('nk', nk)
-  call dump_scalar_i('mpopt', mpopt)
-  call dump_scalar_i('mfcopt', mfcopt)
-  call dump_scalar_r('dxiv', dxiv)
-  call dump_scalar_r('dyiv', dyiv)
-  call dump_scalar_r('dziv', dziv)
-  call dump_array_2d('mf.bin', mf, 0, ni+1, 0, nj+1)
-  call dump_array_3d('rmf.bin', rmf, 0, ni+1, 0, nj+1, 1, 4)
-  call dump_array_3d('rmf8u.bin', rmf8u, 0, ni+1, 0, nj+1, 1, 3)
-  call dump_array_3d('rmf8v.bin', rmf8v, 0, ni+1, 0, nj+1, 1, 3)
-  call dump_array_3d('var8u.bin', var8u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('var8v.bin', var8v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('var8w.bin', var8w, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('u.bin', u, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('v.bin', v, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_array_3d('wc.bin', wc, 0, ni+1, 0, nj+1, 1, nk)
-  ! FIXME: tmp1 is an array, not scalar
-  ! ! FIXME: tmp1 is array - call dump_scalar_i('tmp1', tmp1)
-  ! FIXME: tmp2 is an array, not scalar
-  ! ! FIXME: tmp2 is array - call dump_scalar_r('tmp2', tmp2)
-  ! FIXME: tmp3 is an array, not scalar
-  ! ! FIXME: tmp3 is array - call dump_scalar_r('tmp3', tmp3)
-end if
 
-call profile_start(prof_id1)
 
 #if defined(USE_GPU) && !defined(DISABLE_GPU_091)
 !----------------------------------------------------------------------
@@ -580,7 +511,6 @@ call profile_start(prof_id1)
 
       end do
 
-! -----
 
 ! Calculate the 3 dimensional divergence.
 
@@ -644,19 +574,11 @@ call profile_start(prof_id1)
 
       end if
 
-! -----
 
 !$omp end parallel
 #endif
 
-call profile_stop(prof_id1, loop_len)
 
-! Dump output data at target call
-if (dump_call_count_diver3d == DUMP_TARGET_diver3d .and. .not. dump_done_diver3d) then
-  call dump_array_3d('div3d_ref.bin', div3d, 0, ni+1, 0, nj+1, 1, nk)
-  call dump_finalize()
-  dump_done_diver3d = .true.
-end if
 
 !! -----
 
