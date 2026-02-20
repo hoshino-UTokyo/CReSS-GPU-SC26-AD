@@ -177,6 +177,28 @@ if (dump_call_count_setcst4d == DUMP_TARGET_setcst4d .and. .not. dump_done_setcs
   call dump_scalar_r('invar', invar)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_287)
+! GPU version (OpenACC)
+
+      !$acc kernels
+      !$acc loop independent
+      do n=nmin,nmax
+        !$acc loop independent
+        do k=kmin,kmax
+          !$acc loop independent
+          do j=jmin,jmax
+            !$acc loop independent
+            do i=imin,imax
+              outvar(i,j,k,n)=invar
+            end do
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+#else
+! CPU version (OpenMP) - Original code preserved
+
 !$omp parallel default(shared) private(k,n)
 
       do n=nmin,nmax
@@ -198,6 +220,7 @@ end if
       end do
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_setcst4d == DUMP_TARGET_setcst4d .and. .not. dump_done_setcst4d) then

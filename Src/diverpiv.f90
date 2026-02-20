@@ -170,6 +170,25 @@ if (dump_call_count_diverpiv == DUMP_TARGET_diverpiv .and. .not. dump_done_diver
   call dump_array_3d('w.bin', w, 0, ni+1, 0, nj+1, 1, nk)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_094)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 2, nk-2
+      do j = 2, nj-2
+        do i = 2, ni-2
+          pdiv(i,j,k) = rcsq(i,j,k) * (w(i,j,k) - w(i,j,k+1)) * dziv
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-2
@@ -187,6 +206,7 @@ end if
       end do
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_diverpiv == DUMP_TARGET_diverpiv .and. .not. dump_done_diverpiv) then

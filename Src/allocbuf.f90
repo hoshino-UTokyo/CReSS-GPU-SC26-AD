@@ -439,6 +439,74 @@ if (dump_call_count_allocbuf == DUMP_TARGET_allocbuf .and. .not. dump_done_alloc
   call dump_scalar_i('nni', nni)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_018)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    !$acc kernels
+    !$acc loop independent
+    do ijpe = 0, npe-1
+      idxbuf(1,ijpe) = 0
+      idxbuf(2,ijpe) = 0
+      idxbuf(3,ijpe) = 0
+      mxnbuf(ijpe) = 0.e0
+    end do
+    !$acc end kernels
+
+    ! Loop 2: Initialize sbuf and rbuf
+    !$acc kernels
+    !$acc loop independent
+    do ijpe = 1, siz
+      sbuf(ijpe) = 0.e0
+      rbuf(ijpe) = 0.e0
+    end do
+    !$acc end kernels
+
+    ! Loop 3: Initialize grpxy
+    !$acc kernels
+    !$acc loop independent
+    do jgc_sub = 0, njgrp+1
+      !$acc loop independent
+      do igc_sub = 0, nigrp+1
+        grpxy(igc_sub,jgc_sub) = -1
+      end do
+    end do
+    !$acc end kernels
+
+    ! Loop 4: Set periodic boundary for x-direction
+    if (abs(wbc).eq.1 .and. abs(ebc).eq.1) then
+      !$acc kernels
+      !$acc loop independent
+      do jgc_sub = 0, njgrp+1
+        grpxy(0,jgc_sub) = nsrl
+        grpxy(nigrp1,jgc_sub) = nsrl
+      end do
+      !$acc end kernels
+    end if
+
+    ! Loop 5: Set periodic boundary for y-direction
+    if (abs(sbc).eq.1 .and. abs(nbc).eq.1) then
+      !$acc kernels
+      !$acc loop independent
+      do igc_sub = 0, nigrp+1
+        grpxy(igc_sub,0) = nsrl
+        grpxy(igc_sub,njgrp1) = nsrl
+      end do
+      !$acc end kernels
+    end if
+
+    ! Loop 6: Initialize xgrp and ygrp
+    !$acc kernels
+    !$acc loop independent
+    do ijsc = 0, nsrl-1
+      xgrp(ijsc) = -1
+      ygrp(ijsc) = -1
+    end do
+    !$acc end kernels
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(ijpe)
@@ -509,6 +577,7 @@ end if
 !$omp end do
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_allocbuf == DUMP_TARGET_allocbuf .and. .not. dump_done_allocbuf) then

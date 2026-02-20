@@ -415,6 +415,25 @@ if (dump_call_count_forcept == DUMP_TARGET_forcept .and. .not. dump_done_forcept
   call dump_array_3d('tmp5_in.bin', tmp5, 0, ni+1, 0, nj+1, 1, nk)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_112)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 1, nk-1
+      do j = 1, nj-1
+        do i = 1, ni-1
+          pt(i,j,k) = ptbr(i,j,k) + ptpp(i,j,k)
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
         do k=1,nk-1
@@ -432,6 +451,8 @@ end if
         end do
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_forcept == DUMP_TARGET_forcept .and. .not. dump_done_forcept) then

@@ -281,6 +281,56 @@ if (dump_call_count_jacobian == DUMP_TARGET_jacobian .and. .not. dump_done_jacob
   call dump_array_1d('z.bin', z, 1, nk)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_181)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    ! Compute j31
+    !$acc kernels
+    !$acc loop independent
+    do k = 1, nk
+      !$acc loop independent
+      do j = 0, nj
+        !$acc loop independent
+        do i = 1, ni
+          j31(i,j,k) = 2.0e0 * (zph(i-1,j,k) - zph(i,j,k)) / (x(i+1) - x(i-1))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    ! Compute j32
+    !$acc kernels
+    !$acc loop independent
+    do k = 1, nk
+      !$acc loop independent
+      do j = 1, nj
+        !$acc loop independent
+        do i = 0, ni
+          j32(i,j,k) = 2.0e0 * (zph(i,j-1,k) - zph(i,j,k)) / (y(j+1) - y(j-1))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    ! Compute jcb
+    !$acc kernels
+    !$acc loop independent
+    do k = 1, nk-1
+      !$acc loop independent
+      do j = 0, nj
+        !$acc loop independent
+        do i = 0, ni
+          jcb(i,j,k) = (zph(i,j,k+1) - zph(i,j,k)) / (z(k+1) - z(k))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk
@@ -322,6 +372,8 @@ end if
       end do
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_jacobian == DUMP_TARGET_jacobian .and. .not. dump_done_jacobian) then

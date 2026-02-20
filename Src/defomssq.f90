@@ -181,6 +181,34 @@ if (dump_call_count_defomssq == DUMP_TARGET_defomssq .and. .not. dump_done_defom
   call dump_scalar_r('s328s', s328s)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_075)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+    !$acc kernels
+    !$acc loop independent
+    do k = 1, nk-1
+      !$acc loop independent
+      do j = 1, nj-1
+        !$acc loop independent private(s128s, s318s, s328s)
+        do i = 1, ni-1
+          s128s = (s12(i,j,k) + s12(i+1,j+1,k)) + (s12(i+1,j,k) + s12(i,j+1,k))
+          s318s = (s31(i,j,k) + s31(i+1,j,k+1)) + (s31(i,j,k+1) + s31(i+1,j,k))
+          s328s = (s32(i,j,k) + s32(i,j+1,k+1)) + (s32(i,j+1,k) + s32(i,j,k+1))
+
+          ssq(i,j,k) = 0.5e0 * (s33(i,j,k)*s33(i,j,k) &
+                       + (s11(i,j,k)*s11(i,j,k) + s22(i,j,k)*s22(i,j,k))) &
+                       + 0.0625e0 * (s128s*s128s + (s318s*s318s + s328s*s328s))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1
@@ -205,6 +233,7 @@ end if
       end do
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_defomssq == DUMP_TARGET_defomssq .and. .not. dump_done_defomssq) then

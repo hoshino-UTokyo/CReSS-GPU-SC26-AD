@@ -325,6 +325,561 @@ if (dump_call_count_eddyvis == DUMP_TARGET_eddyvis .and. .not. dump_done_eddyvis
   call dump_array_3d('nsq8w.bin', nsq8w, 0, ni+1, 0, nj+1, 1, nk)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_097)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+    ! Local variables
+
+    ! Smagorinsky formulation (tubopt=1)
+    if (tubopt == 1) then
+
+      ! Isotropic case
+      if (isoopt == 1) then
+
+        if (mfcopt == 0) then
+
+          !$acc kernels
+          !$acc loop independent collapse(3) private(ln, ln2)
+          do k = 1, nk-1
+            do j = 1, nj-1
+              do i = 1, ni-1
+                ln = exp(oned3*log(ds3*jcb(i,j,k)))
+                ln2 = ln*ln
+                priv(i,j,k) = cpriv
+                rkv(i,j,k) = csnum2*ln2*sqrt(max(ssq(i,j,k) &
+                     -(nsq8w(i,j,k)+nsq8w(i,j,k+1))*cpriv, 0.e0))
+                rkv(i,j,k) = rbr(i,j,k)*min(rkv(i,j,k), ckmax*ln2)
+                rkh(i,j,k) = rkv(i,j,k)
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+        else
+
+          if (mpopt == 0 .or. mpopt == 5 .or. mpopt == 10) then
+
+            !$acc kernels
+            !$acc loop independent collapse(3) private(ln, ln2)
+            do k = 1, nk-1
+              do j = 1, nj-1
+                do i = 1, ni-1
+                  ln = exp(oned3*log(ds3*rmf(i,j,2)*jcb(i,j,k)))
+                  ln2 = ln*ln
+                  priv(i,j,k) = cpriv
+                  rkv(i,j,k) = csnum2*ln2*sqrt(max(ssq(i,j,k) &
+                       -(nsq8w(i,j,k)+nsq8w(i,j,k+1))*cpriv, 0.e0))
+                  rkv(i,j,k) = rbr(i,j,k)*min(rkv(i,j,k), ckmax*ln2)
+                  rkh(i,j,k) = rkv(i,j,k)
+                end do
+              end do
+            end do
+            !$acc end kernels
+
+          else
+
+            !$acc kernels
+            !$acc loop independent collapse(3) private(ln, ln2)
+            do k = 1, nk-1
+              do j = 1, nj-1
+                do i = 1, ni-1
+                  ln = exp(oned3*log(ds3*rmf(i,j,3)*jcb(i,j,k)))
+                  ln2 = ln*ln
+                  priv(i,j,k) = cpriv
+                  rkv(i,j,k) = csnum2*ln2*sqrt(max(ssq(i,j,k) &
+                       -(nsq8w(i,j,k)+nsq8w(i,j,k+1))*cpriv, 0.e0))
+                  rkv(i,j,k) = rbr(i,j,k)*min(rkv(i,j,k), ckmax*ln2)
+                  rkh(i,j,k) = rkv(i,j,k)
+                end do
+              end do
+            end do
+            !$acc end kernels
+
+          end if
+
+        end if
+
+      ! Anisotropic case (isoopt=2)
+      else if (isoopt == 2) then
+
+        if (mfcopt == 0) then
+
+          !$acc kernels
+          !$acc loop independent collapse(3) private(ln, ln2, stabc)
+          do k = 1, nk-1
+            do j = 1, nj-1
+              do i = 1, ni-1
+                ln = zph(i,j,k+1) - zph(i,j,k)
+                ln2 = ln*ln
+                priv(i,j,k) = cpriv
+                stabc = sqrt(max(ssq(i,j,k) &
+                     -(nsq8w(i,j,k)+nsq8w(i,j,k+1))*cpriv, 0.e0))
+                rkv(i,j,k) = rbr(i,j,k)*min(stabc*csnum2, ckmax)*ln2
+                rkh(i,j,k) = rbr(i,j,k)*min(stabc*cslnh2, khmax)
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+        else
+
+          if (mpopt == 0 .or. mpopt == 5 .or. mpopt == 10) then
+
+            !$acc kernels
+            !$acc loop independent collapse(3) private(ln, ln2, stabc)
+            do k = 1, nk-1
+              do j = 1, nj-1
+                do i = 1, ni-1
+                  ln = zph(i,j,k+1) - zph(i,j,k)
+                  ln2 = ln*ln
+                  priv(i,j,k) = cpriv
+                  stabc = sqrt(max(ssq(i,j,k) &
+                       -(nsq8w(i,j,k)+nsq8w(i,j,k+1))*cpriv, 0.e0))
+                  rkv(i,j,k) = rbr(i,j,k)*min(stabc*csnum2, ckmax)*ln2
+                  rkh(i,j,k) = rbr(i,j,k)*min(stabc*cslnh2, khmax)*rmf(i,j,2)
+                end do
+              end do
+            end do
+            !$acc end kernels
+
+          else
+
+            !$acc kernels
+            !$acc loop independent collapse(3) private(ln, ln2, stabc)
+            do k = 1, nk-1
+              do j = 1, nj-1
+                do i = 1, ni-1
+                  ln = zph(i,j,k+1) - zph(i,j,k)
+                  ln2 = ln*ln
+                  priv(i,j,k) = cpriv
+                  stabc = sqrt(max(ssq(i,j,k) &
+                       -(nsq8w(i,j,k)+nsq8w(i,j,k+1))*cpriv, 0.e0))
+                  rkv(i,j,k) = rbr(i,j,k)*min(stabc*csnum2, ckmax)*ln2
+                  rkh(i,j,k) = rbr(i,j,k)*min(stabc*cslnh2, khmax)*rmf(i,j,3)
+                end do
+              end do
+            end do
+            !$acc end kernels
+
+          end if
+
+        end if
+
+      end if
+
+    ! Deardorff formulation (tubopt/=1)
+    else
+
+      ! No surface process (sfcopt=0)
+      if (sfcopt == 0) then
+
+        ! Isotropic case
+        if (isoopt == 1) then
+
+          if (mfcopt == 0) then
+
+            !$acc kernels
+            !$acc loop independent collapse(3) private(ln, ln0, ln02, nsq)
+            do k = 1, nk-1
+              do j = 1, nj-1
+                do i = 1, ni-1
+                  ln0 = exp(oned3*log(ds3*jcb(i,j,k)))
+                  ln02 = ln0*ln0
+                  nsq = nsq8w(i,j,k) + nsq8w(i,j,k+1)
+                  if (nsq < 0.e0) then
+                    ln = ln0
+                  else
+                    ln = max(.1e0*ln0, min(.76e0*sqrt(tke(i,j,k)/(nsq+eps)), ln0))
+                  end if
+                  priv(i,j,k) = 1.e0 + 2.e0*ln/ln0
+                  rkv(i,j,k) = ckm*ln*sqrt(tke(i,j,k))
+                  if (priv(i,j,k)*nsq < ssq(i,j,k)) then
+                    rkv(i,j,k) = max(rkv(i,j,k), ckmin*ln02)
+                  end if
+                  rkv(i,j,k) = rbr(i,j,k)*min(rkv(i,j,k), ckmax*ln02)
+                  rkh(i,j,k) = rkv(i,j,k)
+                end do
+              end do
+            end do
+            !$acc end kernels
+
+          else
+
+            if (mpopt == 0 .or. mpopt == 5 .or. mpopt == 10) then
+
+              !$acc kernels
+              !$acc loop independent collapse(3) private(ln, ln0, ln02, nsq)
+              do k = 1, nk-1
+                do j = 1, nj-1
+                  do i = 1, ni-1
+                    ln0 = exp(oned3*log(ds3*rmf(i,j,2)*jcb(i,j,k)))
+                    ln02 = ln0*ln0
+                    nsq = nsq8w(i,j,k) + nsq8w(i,j,k+1)
+                    if (nsq < 0.e0) then
+                      ln = ln0
+                    else
+                      ln = max(.1e0*ln0, min(.76e0*sqrt(tke(i,j,k)/(nsq+eps)), ln0))
+                    end if
+                    priv(i,j,k) = 1.e0 + 2.e0*ln/ln0
+                    rkv(i,j,k) = ckm*ln*sqrt(tke(i,j,k))
+                    if (priv(i,j,k)*nsq < ssq(i,j,k)) then
+                      rkv(i,j,k) = max(rkv(i,j,k), ckmin*ln02)
+                    end if
+                    rkv(i,j,k) = rbr(i,j,k)*min(rkv(i,j,k), ckmax*ln02)
+                    rkh(i,j,k) = rkv(i,j,k)
+                  end do
+                end do
+              end do
+              !$acc end kernels
+
+            else
+
+              !$acc kernels
+              !$acc loop independent collapse(3) private(ln, ln0, ln02, nsq)
+              do k = 1, nk-1
+                do j = 1, nj-1
+                  do i = 1, ni-1
+                    ln0 = exp(oned3*log(ds3*rmf(i,j,3)*jcb(i,j,k)))
+                    ln02 = ln0*ln0
+                    nsq = nsq8w(i,j,k) + nsq8w(i,j,k+1)
+                    if (nsq < 0.e0) then
+                      ln = ln0
+                    else
+                      ln = max(.1e0*ln0, min(.76e0*sqrt(tke(i,j,k)/(nsq+eps)), ln0))
+                    end if
+                    priv(i,j,k) = 1.e0 + 2.e0*ln/ln0
+                    rkv(i,j,k) = ckm*ln*sqrt(tke(i,j,k))
+                    if (priv(i,j,k)*nsq < ssq(i,j,k)) then
+                      rkv(i,j,k) = max(rkv(i,j,k), ckmin*ln02)
+                    end if
+                    rkv(i,j,k) = rbr(i,j,k)*min(rkv(i,j,k), ckmax*ln02)
+                    rkh(i,j,k) = rkv(i,j,k)
+                  end do
+                end do
+              end do
+              !$acc end kernels
+
+            end if
+
+          end if
+
+        ! Anisotropic case (isoopt=2)
+        else if (isoopt == 2) then
+
+          if (mfcopt == 0) then
+
+            !$acc kernels
+            !$acc loop independent collapse(3) private(ln, ln0, ln02, nsq, a)
+            do k = 1, nk-1
+              do j = 1, nj-1
+                do i = 1, ni-1
+                  ln0 = zph(i,j,k+1) - zph(i,j,k)
+                  ln02 = ln0*ln0
+                  nsq = nsq8w(i,j,k) + nsq8w(i,j,k+1)
+                  if (nsq < 0.e0) then
+                    ln = ln0
+                  else
+                    ln = max(.1e0*ln0, min(.76e0*sqrt(tke(i,j,k)/(nsq+eps)), ln0))
+                  end if
+                  priv(i,j,k) = 1.e0 + 2.e0*ln/ln0
+                  a = ckm*sqrt(tke(i,j,k))
+                  rkv(i,j,k) = a*ln
+                  rkh(i,j,k) = a*lnh
+                  if (priv(i,j,k)*nsq < ssq(i,j,k)) then
+                    rkv(i,j,k) = max(rkv(i,j,k), ckmin*ln02)
+                    rkh(i,j,k) = max(rkh(i,j,k), khmin)
+                  end if
+                  rkv(i,j,k) = rbr(i,j,k)*min(rkv(i,j,k), ckmax*ln02)
+                  rkh(i,j,k) = rbr(i,j,k)*min(rkh(i,j,k), khmax)
+                end do
+              end do
+            end do
+            !$acc end kernels
+
+          else
+
+            if (mpopt == 0 .or. mpopt == 5 .or. mpopt == 10) then
+
+              !$acc kernels
+              !$acc loop independent collapse(3) private(ln, ln0, ln02, nsq, a)
+              do k = 1, nk-1
+                do j = 1, nj-1
+                  do i = 1, ni-1
+                    ln0 = zph(i,j,k+1) - zph(i,j,k)
+                    ln02 = ln0*ln0
+                    nsq = nsq8w(i,j,k) + nsq8w(i,j,k+1)
+                    if (nsq < 0.e0) then
+                      ln = ln0
+                    else
+                      ln = max(.1e0*ln0, min(.76e0*sqrt(tke(i,j,k)/(nsq+eps)), ln0))
+                    end if
+                    priv(i,j,k) = 1.e0 + 2.e0*ln/ln0
+                    a = ckm*sqrt(tke(i,j,k))
+                    rkv(i,j,k) = a*ln
+                    rkh(i,j,k) = a*lnh*rmf(i,j,4)
+                    if (priv(i,j,k)*nsq < ssq(i,j,k)) then
+                      rkv(i,j,k) = max(rkv(i,j,k), ckmin*ln02)
+                      rkh(i,j,k) = max(rkh(i,j,k), khmin*rmf(i,j,2))
+                    end if
+                    rkv(i,j,k) = rbr(i,j,k)*min(rkv(i,j,k), ckmax*ln02)
+                    rkh(i,j,k) = rbr(i,j,k)*min(rkh(i,j,k), khmax*rmf(i,j,2))
+                  end do
+                end do
+              end do
+              !$acc end kernels
+
+            else
+
+              !$acc kernels
+              !$acc loop independent collapse(3) private(ln, ln0, ln02, nsq, a)
+              do k = 1, nk-1
+                do j = 1, nj-1
+                  do i = 1, ni-1
+                    ln0 = zph(i,j,k+1) - zph(i,j,k)
+                    ln02 = ln0*ln0
+                    nsq = nsq8w(i,j,k) + nsq8w(i,j,k+1)
+                    if (nsq < 0.e0) then
+                      ln = ln0
+                    else
+                      ln = max(.1e0*ln0, min(.76e0*sqrt(tke(i,j,k)/(nsq+eps)), ln0))
+                    end if
+                    priv(i,j,k) = 1.e0 + 2.e0*ln/ln0
+                    a = ckm*sqrt(tke(i,j,k))
+                    rkv(i,j,k) = a*ln
+                    rkh(i,j,k) = a*lnh*rmf(i,j,2)
+                    if (priv(i,j,k)*nsq < ssq(i,j,k)) then
+                      rkv(i,j,k) = max(rkv(i,j,k), ckmin*ln02)
+                      rkh(i,j,k) = max(rkh(i,j,k), khmin*rmf(i,j,3))
+                    end if
+                    rkv(i,j,k) = rbr(i,j,k)*min(rkv(i,j,k), ckmax*ln02)
+                    rkh(i,j,k) = rbr(i,j,k)*min(rkh(i,j,k), khmax*rmf(i,j,3))
+                  end do
+                end do
+              end do
+              !$acc end kernels
+
+            end if
+
+          end if
+
+        end if
+
+      ! With surface process (sfcopt/=0)
+      else
+
+        ! Isotropic case
+        if (isoopt == 1) then
+
+          if (mfcopt == 0) then
+
+            !$acc kernels
+            !$acc loop independent collapse(3) private(ln, ln0, ln02, htskp, nsq)
+            do k = 1, nk-1
+              do j = 1, nj-1
+                do i = 1, ni-1
+                  ln0 = exp(oned3*log(ds3*jcb(i,j,k)))
+                  ln02 = ln0*ln0
+                  htskp = kappa*abs(.5e0*(zph(i,j,k)+zph(i,j,k+1))-zph(i,j,2))
+                  nsq = nsq8w(i,j,k) + nsq8w(i,j,k+1)
+                  if (nsq < 0.e0) then
+                    ln = ln0
+                  else
+                    ln = max(.1e0*ln0, min(.76e0*sqrt(tke(i,j,k)/(nsq+eps)), ln0))
+                  end if
+                  ln = ln*htskp/(htskp+ln)
+                  priv(i,j,k) = 1.e0 + 2.e0*ln/ln0
+                  rkv(i,j,k) = ckm*ln*sqrt(tke(i,j,k))
+                  if (priv(i,j,k)*nsq < ssq(i,j,k)) then
+                    rkv(i,j,k) = max(rkv(i,j,k), ckmin*ln02)
+                  end if
+                  rkv(i,j,k) = rbr(i,j,k)*min(rkv(i,j,k), ckmax*ln02)
+                  rkh(i,j,k) = rkv(i,j,k)
+                end do
+              end do
+            end do
+            !$acc end kernels
+
+          else
+
+            if (mpopt == 0 .or. mpopt == 5 .or. mpopt == 10) then
+
+              !$acc kernels
+              !$acc loop independent collapse(3) private(ln, ln0, ln02, htskp, nsq)
+              do k = 1, nk-1
+                do j = 1, nj-1
+                  do i = 1, ni-1
+                    ln0 = exp(oned3*log(ds3*rmf(i,j,2)*jcb(i,j,k)))
+                    ln02 = ln0*ln0
+                    htskp = kappa*abs(.5e0*(zph(i,j,k)+zph(i,j,k+1))-zph(i,j,2))
+                    nsq = nsq8w(i,j,k) + nsq8w(i,j,k+1)
+                    if (nsq < 0.e0) then
+                      ln = ln0
+                    else
+                      ln = max(.1e0*ln0, min(.76e0*sqrt(tke(i,j,k)/(nsq+eps)), ln0))
+                    end if
+                    ln = ln*htskp/(htskp+ln)
+                    priv(i,j,k) = 1.e0 + 2.e0*ln/ln0
+                    rkv(i,j,k) = ckm*ln*sqrt(tke(i,j,k))
+                    if (priv(i,j,k)*nsq < ssq(i,j,k)) then
+                      rkv(i,j,k) = max(rkv(i,j,k), ckmin*ln02)
+                    end if
+                    rkv(i,j,k) = rbr(i,j,k)*min(rkv(i,j,k), ckmax*ln02)
+                    rkh(i,j,k) = rkv(i,j,k)
+                  end do
+                end do
+              end do
+              !$acc end kernels
+
+            else
+
+              !$acc kernels
+              !$acc loop independent collapse(3) private(ln, ln0, ln02, htskp, nsq)
+              do k = 1, nk-1
+                do j = 1, nj-1
+                  do i = 1, ni-1
+                    ln0 = exp(oned3*log(ds3*rmf(i,j,3)*jcb(i,j,k)))
+                    ln02 = ln0*ln0
+                    htskp = kappa*abs(.5e0*(zph(i,j,k)+zph(i,j,k+1))-zph(i,j,2))
+                    nsq = nsq8w(i,j,k) + nsq8w(i,j,k+1)
+                    if (nsq < 0.e0) then
+                      ln = ln0
+                    else
+                      ln = max(.1e0*ln0, min(.76e0*sqrt(tke(i,j,k)/(nsq+eps)), ln0))
+                    end if
+                    ln = ln*htskp/(htskp+ln)
+                    priv(i,j,k) = 1.e0 + 2.e0*ln/ln0
+                    rkv(i,j,k) = ckm*ln*sqrt(tke(i,j,k))
+                    if (priv(i,j,k)*nsq < ssq(i,j,k)) then
+                      rkv(i,j,k) = max(rkv(i,j,k), ckmin*ln02)
+                    end if
+                    rkv(i,j,k) = rbr(i,j,k)*min(rkv(i,j,k), ckmax*ln02)
+                    rkh(i,j,k) = rkv(i,j,k)
+                  end do
+                end do
+              end do
+              !$acc end kernels
+
+            end if
+
+          end if
+
+        ! Anisotropic case (isoopt=2)
+        else if (isoopt == 2) then
+
+          if (mfcopt == 0) then
+
+            !$acc kernels
+            !$acc loop independent collapse(3) private(ln, ln0, ln02, htskp, nsq, a)
+            do k = 1, nk-1
+              do j = 1, nj-1
+                do i = 1, ni-1
+                  ln0 = zph(i,j,k+1) - zph(i,j,k)
+                  ln02 = ln0*ln0
+                  htskp = kappa*abs(.5e0*(zph(i,j,k)+zph(i,j,k+1))-zph(i,j,2))
+                  nsq = nsq8w(i,j,k) + nsq8w(i,j,k+1)
+                  if (nsq < 0.e0) then
+                    ln = ln0
+                  else
+                    ln = max(.1e0*ln0, min(.76e0*sqrt(tke(i,j,k)/(nsq+eps)), ln0))
+                  end if
+                  ln = ln*htskp/(htskp+ln)
+                  priv(i,j,k) = 1.e0 + 2.e0*ln/ln0
+                  a = ckm*sqrt(tke(i,j,k))
+                  rkv(i,j,k) = a*ln
+                  rkh(i,j,k) = a*lnh
+                  if (priv(i,j,k)*nsq < ssq(i,j,k)) then
+                    rkv(i,j,k) = max(rkv(i,j,k), ckmin*ln02)
+                    rkh(i,j,k) = max(rkh(i,j,k), khmin)
+                  end if
+                  rkv(i,j,k) = rbr(i,j,k)*min(rkv(i,j,k), ckmax*ln02)
+                  rkh(i,j,k) = rbr(i,j,k)*min(rkh(i,j,k), khmax)
+                end do
+              end do
+            end do
+            !$acc end kernels
+
+          else
+
+            if (mpopt == 0 .or. mpopt == 5 .or. mpopt == 10) then
+
+              !$acc kernels
+              !$acc loop independent collapse(3) private(ln, ln0, ln02, htskp, nsq, a)
+              do k = 1, nk-1
+                do j = 1, nj-1
+                  do i = 1, ni-1
+                    ln0 = zph(i,j,k+1) - zph(i,j,k)
+                    ln02 = ln0*ln0
+                    htskp = kappa*abs(.5e0*(zph(i,j,k)+zph(i,j,k+1))-zph(i,j,2))
+                    nsq = nsq8w(i,j,k) + nsq8w(i,j,k+1)
+                    if (nsq < 0.e0) then
+                      ln = ln0
+                    else
+                      ln = max(.1e0*ln0, min(.76e0*sqrt(tke(i,j,k)/(nsq+eps)), ln0))
+                    end if
+                    ln = ln*htskp/(htskp+ln)
+                    priv(i,j,k) = 1.e0 + 2.e0*ln/ln0
+                    a = ckm*sqrt(tke(i,j,k))
+                    rkv(i,j,k) = a*ln
+                    rkh(i,j,k) = a*lnh*rmf(i,j,4)
+                    if (priv(i,j,k)*nsq < ssq(i,j,k)) then
+                      rkv(i,j,k) = max(rkv(i,j,k), ckmin*ln02)
+                      rkh(i,j,k) = max(rkh(i,j,k), khmin*rmf(i,j,2))
+                    end if
+                    rkv(i,j,k) = rbr(i,j,k)*min(rkv(i,j,k), ckmax*ln02)
+                    rkh(i,j,k) = rbr(i,j,k)*min(rkh(i,j,k), khmax*rmf(i,j,2))
+                  end do
+                end do
+              end do
+              !$acc end kernels
+
+            else
+
+              !$acc kernels
+              !$acc loop independent collapse(3) private(ln, ln0, ln02, htskp, nsq, a)
+              do k = 1, nk-1
+                do j = 1, nj-1
+                  do i = 1, ni-1
+                    ln0 = zph(i,j,k+1) - zph(i,j,k)
+                    ln02 = ln0*ln0
+                    htskp = kappa*abs(.5e0*(zph(i,j,k)+zph(i,j,k+1))-zph(i,j,2))
+                    nsq = nsq8w(i,j,k) + nsq8w(i,j,k+1)
+                    if (nsq < 0.e0) then
+                      ln = ln0
+                    else
+                      ln = max(.1e0*ln0, min(.76e0*sqrt(tke(i,j,k)/(nsq+eps)), ln0))
+                    end if
+                    ln = ln*htskp/(htskp+ln)
+                    priv(i,j,k) = 1.e0 + 2.e0*ln/ln0
+                    a = ckm*sqrt(tke(i,j,k))
+                    rkv(i,j,k) = a*ln
+                    rkh(i,j,k) = a*lnh*rmf(i,j,2)
+                    if (priv(i,j,k)*nsq < ssq(i,j,k)) then
+                      rkv(i,j,k) = max(rkv(i,j,k), ckmin*ln02)
+                      rkh(i,j,k) = max(rkh(i,j,k), khmin*rmf(i,j,3))
+                    end if
+                    rkv(i,j,k) = rbr(i,j,k)*min(rkv(i,j,k), ckmax*ln02)
+                    rkh(i,j,k) = rbr(i,j,k)*min(rkh(i,j,k), khmax*rmf(i,j,3))
+                  end do
+                end do
+              end do
+              !$acc end kernels
+
+            end if
+
+          end if
+
+        end if
+
+      end if
+
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !! Calculate the eddy viscosity with the Smagorinsky formulation.
@@ -1208,6 +1763,7 @@ end if
 !!! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_eddyvis == DUMP_TARGET_eddyvis .and. .not. dump_done_eddyvis) then

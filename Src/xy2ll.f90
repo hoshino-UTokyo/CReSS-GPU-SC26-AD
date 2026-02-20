@@ -279,6 +279,148 @@ if (dump_call_count_xy2ll == DUMP_TARGET_xy2ll .and. .not. dump_done_xy2ll) then
   call dump_scalar_r('tlonw', tlonw)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_387)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (mpopt.eq.0.or.mpopt.eq.10) then
+      if (pname(1:ncpn).eq.'solver') then
+        !$acc kernels
+        !$acc loop independent collapse(2) private(xx,yy)
+        do j = jstr, jend
+          do i = istr, iend
+            xx = x(i) + x0
+            yy = y(j) + y0
+
+            lat(i,j) = max(min(yy*r2d3, 90.e0), -90.e0)
+            lon(i,j) = xx * r2d3
+
+            if (lon(i,j).gt.180.e0) lon(i,j) = lon(i,j) - 360.e0
+            if (lon(i,j).lt.-180.e0) lon(i,j) = lon(i,j) + 360.e0
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        !$acc loop independent collapse(2)
+        do j = jstr, jend
+          do i = istr, iend
+            lat(i,j) = max(min(y(j)+y0, 90.e0), -90.e0)
+            lon(i,j) = x(i) + x0
+
+            if (lon(i,j).gt.180.e0) lon(i,j) = lon(i,j) - 360.e0
+            if (lon(i,j).lt.-180.e0) lon(i,j) = lon(i,j) + 360.e0
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+    ! mpopt == 1: Polar Stereographic
+    else if (mpopt.eq.1) then
+      !$acc kernels
+      !$acc loop independent collapse(2) private(xx,yy,rr)
+      do j = jstr, jend
+        do i = istr, iend
+          xx = x(i) + x0
+          yy = rpol * y(j) + y0
+
+          rr = sqrt(xx*xx + yy*yy) * cpj(3)
+          lat(i,j) = max(min(rpol*(90.e0 - r2d2*atan(rr)), 90.e0), -90.e0)
+
+          if (yy.gt.0.e0) then
+            lon(i,j) = tlonw + atan(-xx/(yy+eps)) * r2d
+          else
+            lon(i,j) = tlon + atan(-xx/(yy-eps)) * r2d
+          end if
+
+          if (lon(i,j).gt.180.e0) lon(i,j) = lon(i,j) - 360.e0
+          if (lon(i,j).lt.-180.e0) lon(i,j) = lon(i,j) + 360.e0
+        end do
+      end do
+      !$acc end kernels
+
+    ! mpopt == 2: Lambert Conformal Conic
+    else if (mpopt.eq.2) then
+      !$acc kernels
+      !$acc loop independent collapse(2) private(xx,yy,rr)
+      do j = jstr, jend
+        do i = istr, iend
+          xx = x(i) + x0
+          yy = rpol * y(j) + y0
+
+          rr = cpj(2) * exp(cpj(5) * log(sqrt(xx*xx + yy*yy) * cpj(7) + eps))
+          lat(i,j) = max(min(rpol*(90.e0 - r2d2*atan(rr)), 90.e0), -90.e0)
+
+          if (yy.gt.0.e0) then
+            lon(i,j) = tlonw + atan(-xx/(yy+eps)) * r2d5
+          else
+            lon(i,j) = tlon + atan(-xx/(yy-eps)) * r2d5
+          end if
+
+          if (lon(i,j).gt.180.e0) lon(i,j) = lon(i,j) - 360.e0
+          if (lon(i,j).lt.-180.e0) lon(i,j) = lon(i,j) + 360.e0
+        end do
+      end do
+      !$acc end kernels
+
+    ! mpopt == 3 or 13: Mercator
+    else if (mpopt.eq.3.or.mpopt.eq.13) then
+      !$acc kernels
+      !$acc loop independent collapse(2) private(xx,yy)
+      do j = jstr, jend
+        do i = istr, iend
+          xx = x(i) + x0
+          yy = y(j) + y0
+
+          lat(i,j) = max(min(90.e0 - 2.e0*atan(exp(-yy*cpj(3)))*r2d, 90.e0), -90.e0)
+          lon(i,j) = xx * r2d3
+
+          if (lon(i,j).gt.180.e0) lon(i,j) = lon(i,j) - 360.e0
+          if (lon(i,j).lt.-180.e0) lon(i,j) = lon(i,j) + 360.e0
+        end do
+      end do
+      !$acc end kernels
+
+    ! mpopt == 4: direct coordinates
+    else if (mpopt.eq.4) then
+      !$acc kernels
+      !$acc loop independent collapse(2) private(xx,yy)
+      do j = jstr, jend
+        do i = istr, iend
+          xx = x(i) + x0
+          yy = y(j) + y0
+
+          lat(i,j) = max(min(cpj(2)*yy, 90.e0), -90.e0)
+          lon(i,j) = cpj(2)*xx/cos(lat(i,j)*d2r) + tlon
+
+          if (lon(i,j).gt.180.e0) lon(i,j) = lon(i,j) - 360.e0
+          if (lon(i,j).lt.-180.e0) lon(i,j) = lon(i,j) + 360.e0
+        end do
+      end do
+      !$acc end kernels
+
+    ! mpopt == 5: circular cylinder
+    else if (mpopt.eq.5) then
+      !$acc kernels
+      !$acc loop independent collapse(2) private(xx)
+      do j = jstr, jend
+        do i = istr, iend
+          xx = x(i) + x0
+
+          lat(i,j) = max(min(cpj(2)*y0, 90.e0), -90.e0)
+          lon(i,j) = cpj(2)*xx/cos(lat(i,j)*d2r)
+
+          if (lon(i,j).gt.180.e0) lon(i,j) = lon(i,j) - 360.e0
+          if (lon(i,j).lt.-180.e0) lon(i,j) = lon(i,j) + 360.e0
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 !! Calculate the latitude and the longitude with latitude and longitude
@@ -517,6 +659,8 @@ end if
 ! -----
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_xy2ll == DUMP_TARGET_xy2ll .and. .not. dump_done_xy2ll) then

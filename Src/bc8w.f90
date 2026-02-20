@@ -180,6 +180,63 @@ if (dump_call_count_bc8w == DUMP_TARGET_bc8w .and. .not. dump_done_bc8w) then
   call dump_scalar_i('nkm2', nkm2)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_030)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (bbc == 2) then
+      !$acc kernels
+      !$acc loop independent
+      do j = 0, nj+1
+        !$acc loop independent
+        do i = 0, ni+1
+          var8w(i,j,1) = var8w(i,j,3)
+        end do
+      end do
+      !$acc end kernels
+
+    else if (bbc >= 3) then
+      !$acc kernels
+      !$acc loop independent
+      do j = 0, nj+1
+        !$acc loop independent
+        do i = 0, ni+1
+          var8w(i,j,1) = var8w(i,j,2)
+        end do
+      end do
+      !$acc end kernels
+
+    end if
+
+    ! Set the top boundary conditions
+    if (tbc == 2) then
+      !$acc kernels
+      !$acc loop independent
+      do j = 0, nj+1
+        !$acc loop independent
+        do i = 0, ni+1
+          var8w(i,j,nk) = var8w(i,j,nkm2)
+        end do
+      end do
+      !$acc end kernels
+
+    else if (tbc >= 3) then
+      !$acc kernels
+      !$acc loop independent
+      do j = 0, nj+1
+        !$acc loop independent
+        do i = 0, ni+1
+          var8w(i,j,nk) = var8w(i,j,nkm1)
+        end do
+      end do
+      !$acc end kernels
+
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Set the bottom boundary conditions.
@@ -243,6 +300,7 @@ end if
 ! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_bc8w == DUMP_TARGET_bc8w .and. .not. dump_done_bc8w) then

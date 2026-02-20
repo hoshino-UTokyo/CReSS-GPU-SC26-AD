@@ -264,6 +264,394 @@ if (dump_call_count_turbs == DUMP_TARGET_turbs .and. .not. dump_done_turbs) then
   call dump_array_3d('tmp3_in.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_336)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (trnopt == 0) then
+
+      if (mfcopt == 0) then
+
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 2, nj-2
+            !$acc loop independent
+            do i = 2, ni-1
+              tmp1(i,j,k) = jcb8u(i,j,k) * h1(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 2, nj-1
+            !$acc loop independent
+            do i = 2, ni-2
+              tmp2(i,j,k) = jcb8v(i,j,k) * h2(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 2, nj-2
+            !$acc loop independent
+            do i = 2, ni-2
+              sfrc(i,j,k) = sfrc(i,j,k) + ((h3(i,j,k+1) - h3(i,j,k)) * dziv &
+                   + ((tmp1(i+1,j,k) - tmp1(i,j,k)) * dxiv &
+                   + (tmp2(i,j+1,k) - tmp2(i,j,k)) * dyiv))
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+      else
+
+        if (mpopt == 0 .or. mpopt == 5 .or. mpopt == 10) then
+
+          if (mpopt == 0 .or. mpopt == 10) then
+
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-2
+                !$acc loop independent
+                do i = 2, ni-1
+                  tmp1(i,j,k) = jcb8u(i,j,k) * h1(i,j,k)
+                end do
+              end do
+            end do
+            !$acc end kernels
+
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-1
+                !$acc loop independent
+                do i = 2, ni-2
+                  tmp2(i,j,k) = rmf8v(i,j,2) * jcb8v(i,j,k) * h2(i,j,k)
+                end do
+              end do
+            end do
+            !$acc end kernels
+
+          else
+
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-2
+                !$acc loop independent
+                do i = 2, ni-1
+                  tmp1(i,j,k) = rmf8u(i,j,2) * jcb8u(i,j,k) * h1(i,j,k)
+                end do
+              end do
+            end do
+            !$acc end kernels
+
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-1
+                !$acc loop independent
+                do i = 2, ni-2
+                  tmp2(i,j,k) = jcb8v(i,j,k) * h2(i,j,k)
+                end do
+              end do
+            end do
+            !$acc end kernels
+
+          end if
+
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 2, nj-2
+              !$acc loop independent
+              do i = 2, ni-2
+                sfrc(i,j,k) = sfrc(i,j,k) + ((h3(i,j,k+1) - h3(i,j,k)) * dziv &
+                     + mf(i,j) * ((tmp1(i+1,j,k) - tmp1(i,j,k)) * dxiv &
+                     + (tmp2(i,j+1,k) - tmp2(i,j,k)) * dyiv))
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+        else
+
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 2, nj-2
+              !$acc loop independent
+              do i = 2, ni-1
+                tmp1(i,j,k) = rmf8u(i,j,2) * jcb8u(i,j,k) * h1(i,j,k)
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 2, nj-1
+              !$acc loop independent
+              do i = 2, ni-2
+                tmp2(i,j,k) = rmf8v(i,j,2) * jcb8v(i,j,k) * h2(i,j,k)
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 2, nj-2
+              !$acc loop independent
+              do i = 2, ni-2
+                sfrc(i,j,k) = sfrc(i,j,k) + ((h3(i,j,k+1) - h3(i,j,k)) * dziv &
+                     + rmf(i,j,1) * ((tmp1(i+1,j,k) - tmp1(i,j,k)) * dxiv &
+                     + (tmp2(i,j+1,k) - tmp2(i,j,k)) * dyiv))
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+        end if
+
+      end if
+
+    else
+
+      !$acc kernels
+      !$acc loop independent
+      do k = 2, nk-1
+        !$acc loop independent
+        do j = 2, nj-2
+          !$acc loop independent
+          do i = 2, ni-1
+            tmp1(i,j,k) = j31(i,j,k) * (h1(i,j,k-1) + h1(i,j,k))
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      !$acc loop independent
+      do k = 2, nk-1
+        !$acc loop independent
+        do j = 2, nj-1
+          !$acc loop independent
+          do i = 2, ni-2
+            tmp2(i,j,k) = j32(i,j,k) * (h2(i,j,k-1) + h2(i,j,k))
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      !$acc loop independent
+      do k = 2, nk-1
+        !$acc loop independent
+        do j = 2, nj-2
+          !$acc loop independent
+          do i = 2, ni-2
+            tmp3(i,j,k) = h3(i,j,k) + 0.25e0 &
+                 * ((tmp1(i,j,k) + tmp1(i+1,j,k)) + (tmp2(i,j,k) + tmp2(i,j+1,k)))
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      if (mfcopt == 0) then
+
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 2, nj-2
+            !$acc loop independent
+            do i = 2, ni-1
+              tmp1(i,j,k) = jcb8u(i,j,k) * h1(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 2, nj-1
+            !$acc loop independent
+            do i = 2, ni-2
+              tmp2(i,j,k) = jcb8v(i,j,k) * h2(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 2, nj-2
+            !$acc loop independent
+            do i = 2, ni-2
+              sfrc(i,j,k) = sfrc(i,j,k) + ((tmp3(i,j,k+1) - tmp3(i,j,k)) * dziv &
+                   + ((tmp1(i+1,j,k) - tmp1(i,j,k)) * dxiv &
+                   + (tmp2(i,j+1,k) - tmp2(i,j,k)) * dyiv))
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+      else
+
+        if (mpopt == 0 .or. mpopt == 5 .or. mpopt == 10) then
+
+          if (mpopt == 0 .or. mpopt == 10) then
+
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-2
+                !$acc loop independent
+                do i = 2, ni-1
+                  tmp1(i,j,k) = jcb8u(i,j,k) * h1(i,j,k)
+                end do
+              end do
+            end do
+            !$acc end kernels
+
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-1
+                !$acc loop independent
+                do i = 2, ni-2
+                  tmp2(i,j,k) = rmf8v(i,j,2) * jcb8v(i,j,k) * h2(i,j,k)
+                end do
+              end do
+            end do
+            !$acc end kernels
+
+          else
+
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-2
+                !$acc loop independent
+                do i = 2, ni-1
+                  tmp1(i,j,k) = rmf8u(i,j,2) * jcb8u(i,j,k) * h1(i,j,k)
+                end do
+              end do
+            end do
+            !$acc end kernels
+
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-1
+                !$acc loop independent
+                do i = 2, ni-2
+                  tmp2(i,j,k) = jcb8v(i,j,k) * h2(i,j,k)
+                end do
+              end do
+            end do
+            !$acc end kernels
+
+          end if
+
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 2, nj-2
+              !$acc loop independent
+              do i = 2, ni-2
+                sfrc(i,j,k) = sfrc(i,j,k) + ((tmp3(i,j,k+1) - tmp3(i,j,k)) * dziv &
+                     + mf(i,j) * ((tmp1(i+1,j,k) - tmp1(i,j,k)) * dxiv &
+                     + (tmp2(i,j+1,k) - tmp2(i,j,k)) * dyiv))
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+        else
+
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 2, nj-2
+              !$acc loop independent
+              do i = 2, ni-1
+                tmp1(i,j,k) = rmf8u(i,j,2) * jcb8u(i,j,k) * h1(i,j,k)
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 2, nj-1
+              !$acc loop independent
+              do i = 2, ni-2
+                tmp2(i,j,k) = rmf8v(i,j,2) * jcb8v(i,j,k) * h2(i,j,k)
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 2, nj-2
+              !$acc loop independent
+              do i = 2, ni-2
+                sfrc(i,j,k) = sfrc(i,j,k) + ((tmp3(i,j,k+1) - tmp3(i,j,k)) * dziv &
+                     + rmf(i,j,1) * ((tmp1(i+1,j,k) - tmp1(i,j,k)) * dxiv &
+                     + (tmp2(i,j+1,k) - tmp2(i,j,k)) * dyiv))
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+        end if
+
+      end if
+
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       if(trnopt.eq.0) then
@@ -638,6 +1026,8 @@ end if
       end if
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_turbs == DUMP_TARGET_turbs .and. .not. dump_done_turbs) then

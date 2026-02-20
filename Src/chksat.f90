@@ -140,6 +140,7 @@
 
       real qvs         ! Saturation mixing ratio
 
+      real pres        ! Full pressure
 
       ! Profiling variables
       integer, save :: prof_id1 = -1
@@ -240,6 +241,74 @@ if (dump_call_count_chksat == DUMP_TARGET_chksat .and. .not. dump_done_chksat) t
   call dump_scalar_r('rddvcp', rddvcp)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_055)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+      if(fproc(1:3).eq.'bar') then
+
+    !$acc kernels
+    !$acc loop independent
+        do k=kstr,kend
+          !$acc loop independent
+          do j=jstr,jend
+            !$acc loop independent
+            do i=istr,iend
+
+              t=ptbr(i,j,k)*exp(rddvcp*log(p0iv*pbr(i,j,k)))
+
+              if(t.gt.tlow) then
+                es=es0*exp(17.269e0*(t-t0)/(t-35.86e0))
+                qvs=epsva*es/(pbr(i,j,k)-es)
+              else
+                es=es0*exp(21.875e0*(t-t0)/(t-7.66e0))
+                qvs=epsva*es/(pbr(i,j,k)-es)
+              end if
+
+              qv(i,j,k)=min(qv(i,j,k),qvs)
+
+            end do
+          end do
+        end do
+    !$acc end kernels
+
+      else if(fproc(1:5).eq.'total') then
+
+    !$acc kernels
+    !$acc loop independent
+        do k=kstr,kend
+          !$acc loop independent
+          do j=jstr,jend
+            !$acc loop independent
+            do i=istr,iend
+
+              pres=pbr(i,j,k)+pp(i,j,k)
+              t=(ptbr(i,j,k)+ptp(i,j,k))                                &
+     &          *exp(rddvcp*log(p0iv*pres))
+
+              if(t.gt.tlow) then
+                es=es0*exp(17.269e0*(t-t0)/(t-35.86e0))
+                qvs=epsva*es/(pres-es)
+              else
+                es=es0*exp(21.875e0*(t-t0)/(t-7.66e0))
+                qvs=epsva*es/(pres-es)
+              end if
+
+              qv(i,j,k)=min(qv(i,j,k),qvs)
+
+            end do
+          end do
+        end do
+    !$acc end kernels
+
+      end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
       if(fproc(1:3).eq.'bar') then
@@ -314,6 +383,7 @@ end if
       end if
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_chksat == DUMP_TARGET_chksat .and. .not. dump_done_chksat) then

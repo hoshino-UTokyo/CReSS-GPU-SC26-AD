@@ -326,6 +326,117 @@ if (dump_call_count_depsit == DUMP_TARGET_depsit .and. .not. dump_done_depsit) t
   call dump_scalar_r('t27311', t27311)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_078)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    !$acc kernels
+    !$acc loop independent collapse(3) &
+    !$acc&     private(itsc,qvssw,qvssi,gi,cvdvx1,cvdvx2,cvdvx3,cvdvx4,sink,a,b,c)
+    do k = 1, max(1, nk-1)
+      do j = 1, nj-1
+        do i = 1, ni-1
+
+          if (t(i,j,k) > tlow) then
+
+            qvssw = qv(i,j,k) - qvsw(i,j,k)
+            qvssi = qv(i,j,k) - qvsi(i,j,k)
+
+            a = 1.e0 / (rv * kp(i,j,k) * t(i,j,k) * t(i,j,k))
+            b = dv(i,j,k) * rbr(i,j,k)
+            c = ccdtb4 * rbv(i,j,k)
+
+            gi = 1.e0 / (ls(i,j,k)*ls(i,j,k)*a + 1.e0/(b*qvsi(i,j,k)))
+
+            cvdvx1 = c * (qv(i,j,k)/qvsw(i,j,k) - 1.e0) &
+                 / (lv(i,j,k)*lv(i,j,k)*a + 1.e0/(b*qvsw(i,j,k)))
+
+            cvdvx2 = ccdtb4 * dv(i,j,k) * qvsst0(i,j,k)
+            cvdvx3 = c * (qv(i,j,k)/qvsi(i,j,k) - 1.e0)
+            cvdvx4 = a * ls(i,j,k) * lf(i,j,k)
+
+            ! Evaporation from rain
+            if (qr(i,j,k) > thresq) then
+              if (qv(i,j,k) < qvsw(i,j,k)) then
+                vdvr(i,j,k) = max(cvdvx1*vntr(i,j,k), qvssw)
+              else
+                vdvr(i,j,k) = 0.e0
+              end if
+            else
+              vdvr(i,j,k) = 0.e0
+            end if
+
+            ! Deposition to cloud ice
+            if (qi(i,j,k) > thresq) then
+              if (t(i,j,k) < t27311) then
+                itsc = int(-tcel(i,j,k))
+                itsc = max(0, min(itsc, 40))
+                vdvi(i,j,k) = ckoe(itsc) * (qv(i,j,k)-qvsi(i,j,k)) &
+                     / (qvsw(i,j,k)-qvsi(i,j,k)) * nci(i,j,k) &
+                     * exp(pkoe(itsc)*log(mi(i,j,k))) * dtb
+              else
+                vdvi(i,j,k) = 0.e0
+              end if
+            else
+              vdvi(i,j,k) = 0.e0
+            end if
+
+            ! Deposition to snow
+            if (qs(i,j,k) > thresq) then
+              if (t(i,j,k) > t0) then
+                if (mlsr(i,j,k) > 0.e0) then
+                  vdvs(i,j,k) = cvdvx2 * vnts(i,j,k)
+                else
+                  vdvs(i,j,k) = cvdvx1 * vnts(i,j,k)
+                end if
+              else
+                vdvs(i,j,k) = gi * (cvdvx3*vnts(i,j,k) - cvdvx4*clcs(i,j,k))
+              end if
+            else
+              vdvs(i,j,k) = 0.e0
+            end if
+
+            ! Deposition to graupel
+            if (qg(i,j,k) > thresq) then
+              if (t(i,j,k) > t0) then
+                if (mlgr(i,j,k) > 0.e0) then
+                  vdvg(i,j,k) = cvdvx2 * vntg(i,j,k)
+                else
+                  vdvg(i,j,k) = cvdvx1 * vntg(i,j,k)
+                end if
+              else
+                vdvg(i,j,k) = gi * (cvdvx3*vntg(i,j,k) - cvdvx4*clcg(i,j,k))
+              end if
+            else
+              vdvg(i,j,k) = 0.e0
+            end if
+
+            ! Adjust deposition rate
+            sink = vdvi(i,j,k) + vdvs(i,j,k) + vdvg(i,j,k)
+            if ((qvssi < sink .and. qvssi > 0.e0) .or. &
+                (qvssi > sink .and. qvssi < 0.e0)) then
+              a = qvssi / sink
+              vdvi(i,j,k) = vdvi(i,j,k) * a
+              vdvs(i,j,k) = vdvs(i,j,k) * a
+              vdvg(i,j,k) = vdvg(i,j,k) * a
+            end if
+
+          else
+            vdvr(i,j,k) = 0.e0
+            vdvi(i,j,k) = 0.e0
+            vdvs(i,j,k) = 0.e0
+            vdvg(i,j,k) = 0.e0
+          end if
+
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !!! In the case nk = 1.
@@ -703,6 +814,7 @@ end if
 !!! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_depsit == DUMP_TARGET_depsit .and. .not. dump_done_depsit) then

@@ -186,6 +186,71 @@ if (dump_call_count_bc8v == DUMP_TARGET_bc8v .and. .not. dump_done_bc8v) then
   call dump_scalar_i('njsub', njsub)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_029)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (ebs == 1 .and. jsub == 0) then
+
+      if (sbc == 2) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, kmax
+          !$acc loop independent
+          do i = 0, ni+1
+            var8v(i,1,k) = var8v(i,3,k)
+          end do
+        end do
+        !$acc end kernels
+
+      else if (sbc >= 3) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, kmax
+          !$acc loop independent
+          do i = 0, ni+1
+            var8v(i,1,k) = var8v(i,2,k)
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+    end if
+
+    ! Set the north boundary conditions
+    if (ebn == 1 .and. jsub == njsub-1) then
+
+      if (nbc == 2) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, kmax
+          !$acc loop independent
+          do i = 0, ni+1
+            var8v(i,nj,k) = var8v(i,njm2,k)
+          end do
+        end do
+        !$acc end kernels
+
+      else if (nbc >= 3) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, kmax
+          !$acc loop independent
+          do i = 0, ni+1
+            var8v(i,nj,k) = var8v(i,njm1,k)
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the south boundary conditions.
@@ -265,6 +330,7 @@ end if
 ! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_bc8v == DUMP_TARGET_bc8v .and. .not. dump_done_bc8v) then

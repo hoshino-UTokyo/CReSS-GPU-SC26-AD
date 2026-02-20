@@ -184,6 +184,203 @@ if (dump_call_count_chkrain == DUMP_TARGET_chkrain .and. .not. dump_done_chkrain
   call dump_scalar_c('fmois', fmois)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_054)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+! Fill in the undefined value in the case of dry run.
+
+      if(fmois(1:3).eq.'dry') then
+
+        !$acc kernels
+        !$acc loop independent
+        do j=1,nj-1
+          !$acc loop independent
+          do i=1,ni-1
+            fall(i,j)=-1.e0
+          end do
+        end do
+        !$acc end kernels
+
+! -----
+
+!!! Check the precipitation in the case of moist run.
+
+      else if(fmois(1:5).eq.'moist') then
+
+! Fill in the undefined value in the case of no cloud physics.
+
+        if(abs(cphopt).eq.0) then
+
+          !$acc kernels
+          !$acc loop independent
+          do j=1,nj-1
+            !$acc loop independent
+            do i=1,ni-1
+              fall(i,j)=-1.e0
+            end do
+          end do
+          !$acc end kernels
+
+        else
+
+! -----
+
+!! Check the precipitation in the case of processing cloud physics.
+
+! For the bulk method.
+
+          if(abs(cphopt).lt.10) then
+
+            if(abs(cphopt).eq.1) then
+
+              !$acc kernels
+              !$acc loop independent
+              do j=1,nj-1
+                !$acc loop independent
+                do i=1,ni-1
+
+                  if(prwtr(i,j,1,1).gt.prmin.or.                        &
+     &               prwtr(i,j,1,2).gt.prmin) then
+
+                    fall(i,j)=1.e0
+
+                  else
+
+                    fall(i,j)=-1.e0
+
+                  end if
+
+                end do
+              end do
+              !$acc end kernels
+
+            else if(abs(cphopt).ge.2) then
+
+              if(haiopt.eq.0) then
+
+                !$acc kernels
+                !$acc loop independent
+                do j=1,nj-1
+                  !$acc loop independent
+                  do i=1,ni-1
+
+                    if(prwtr(i,j,1,1).gt.prmin.or.                      &
+     &                 prwtr(i,j,1,2).gt.prmin.or.                      &
+     &                 price(i,j,1,1).gt.prmin.or.                      &
+     &                 price(i,j,1,2).gt.prmin.or.                      &
+     &                 price(i,j,1,3).gt.prmin) then
+
+                      fall(i,j)=1.e0
+
+                    else
+
+                      fall(i,j)=-1.e0
+
+                    end if
+
+                  end do
+                end do
+                !$acc end kernels
+
+              else
+
+                !$acc kernels
+                !$acc loop independent
+                do j=1,nj-1
+                  !$acc loop independent
+                  do i=1,ni-1
+
+                    if(prwtr(i,j,1,1).gt.prmin.or.                      &
+     &                 prwtr(i,j,1,2).gt.prmin.or.                      &
+     &                 price(i,j,1,1).gt.prmin.or.                      &
+     &                 price(i,j,1,2).gt.prmin.or.                      &
+     &                 price(i,j,1,3).gt.prmin.or.                      &
+     &                 price(i,j,1,4).gt.prmin) then
+
+                      fall(i,j)=1.e0
+
+                    else
+
+                      fall(i,j)=-1.e0
+
+                    end if
+
+                  end do
+                end do
+                !$acc end kernels
+
+              end if
+
+            end if
+
+! -----
+
+! For the bin method.
+
+          else if(abs(cphopt).gt.10.and.abs(cphopt).lt.20) then
+
+            if(abs(cphopt).eq.11) then
+
+              !$acc kernels
+              !$acc loop independent
+              do j=1,nj-1
+                !$acc loop independent
+                do i=1,ni-1
+
+                  if(prwtr(i,j,1,1).gt.prmin) then
+                    fall(i,j)=1.e0
+                  else
+                    fall(i,j)=-1.e0
+                  end if
+
+                end do
+              end do
+              !$acc end kernels
+
+            else if(abs(cphopt).eq.12) then
+
+              !$acc kernels
+              !$acc loop independent
+              do j=1,nj-1
+                !$acc loop independent
+                do i=1,ni-1
+
+                  if(prwtr(i,j,1,1).gt.prmin.or.                        &
+     &               price(i,j,1,1).gt.prmin) then
+
+                    fall(i,j)=1.e0
+
+                  else
+
+                    fall(i,j)=-1.e0
+
+                  end if
+
+                end do
+              end do
+              !$acc end kernels
+
+            end if
+
+          end if
+
+! -----
+
+!! -----
+
+        end if
+
+      end if
+
+!!! -----
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
+
 !$omp parallel default(shared)
 
 ! Fill in the undefined value in the case of dry run.
@@ -374,6 +571,7 @@ end if
 !!! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_chkrain == DUMP_TARGET_chkrain .and. .not. dump_done_chkrain) then

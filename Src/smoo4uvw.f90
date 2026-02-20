@@ -302,6 +302,301 @@ if (dump_call_count_smoo4uvw == DUMP_TARGET_smoo4uvw .and. .not. dump_done_smoo4
   ! ! FIXME: tmp5 is array - call dump_scalar_r('tmp5', tmp5)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_304)
+! GPU version (OpenACC) - u smoothing
+
+      !$acc kernels
+      do k=1,nk-1
+        !$acc loop independent collapse(2)
+        do j=jsouth,nj-jnorth
+        do i=iwest,ni+1-ieast
+          tmp4(i,j,k)=rst8u(i,j,k)*(u(i,j,k)-ubr(i,j,k))/jcb8u(i,j,k)
+          tmp5(i,j,k)=2.e0*tmp4(i,j,k)
+        end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      do k=2,nk-2
+        !$acc loop independent collapse(2)
+        do j=2,nj-2
+        do i=1+iwest,ni-ieast
+          tmp1(i,j,k)=(tmp4(i+1,j,k)+tmp4(i-1,j,k))-tmp5(i,j,k)
+        end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      do k=2,nk-2
+        !$acc loop independent collapse(2)
+        do j=1+jsouth,nj-1-jnorth
+        do i=2,ni-1
+          tmp2(i,j,k)=(tmp4(i,j+1,k)+tmp4(i,j-1,k))-tmp5(i,j,k)
+        end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      do k=2,nk-2
+        !$acc loop independent collapse(2)
+        do j=2,nj-2
+        do i=2,ni-1
+          tmp3(i,j,k)=(tmp4(i,j,k+1)+tmp4(i,j,k-1))-tmp5(i,j,k)
+        end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      do k=2,nk-2
+        !$acc loop independent collapse(2)
+        do j=2,nj-2
+        do i=2,ni-1
+          ufrc(i,j,k)=ufrc(i,j,k)                                     &
+     &      +smhcoe*(tmp1(i,j,k)+tmp2(i,j,k))+smvcoe*tmp3(i,j,k)
+        end do
+        end do
+      end do
+      !$acc end kernels
+
+      if(mod(smtopt,10).eq.2) then
+        !$acc kernels
+        do k=2,nk-2
+          !$acc loop independent collapse(2)
+          do j=2+jsouth,nj-2-jnorth
+          do i=2+iwest,ni-1-ieast
+            ufrc(i,j,k)=ufrc(i,j,k)                                   &
+     &        +smhcoe*((tmp1(i,j,k)-(tmp1(i+1,j,k)+tmp1(i-1,j,k)))    &
+     &        +(tmp2(i,j,k)-(tmp2(i,j+1,k)+tmp2(i,j-1,k))))
+          end do
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        !$acc loop independent collapse(2)
+        do j=2+jsouth,nj-2-jnorth
+        do i=2+iwest,ni-1-ieast
+          tmp3(i,j,1)=tmp3(i,j,2)
+          tmp3(i,j,nkm1)=tmp3(i,j,nkm2)
+        end do
+        end do
+        !$acc end kernels
+        !$acc kernels
+        do k=2,nk-2
+          !$acc loop independent collapse(2)
+          do j=2+jsouth,nj-2-jnorth
+          do i=2+iwest,ni-1-ieast
+            ufrc(i,j,k)=ufrc(i,j,k)                                   &
+     &        +(smvcoe*(tmp3(i,j,k)-(tmp3(i,j,k+1)+tmp3(i,j,k-1)))    &
+     &        +smhcoe*((tmp1(i,j,k)-(tmp1(i+1,j,k)+tmp1(i-1,j,k)))    &
+     &        +(tmp2(i,j,k)-(tmp2(i,j+1,k)+tmp2(i,j-1,k)))))
+          end do
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+! GPU version (OpenACC) - v smoothing
+
+      !$acc kernels
+      do k=1,nk-1
+        !$acc loop independent collapse(2)
+        do j=jsouth,nj+1-jnorth
+        do i=iwest,ni-ieast
+          tmp4(i,j,k)=rst8v(i,j,k)*(v(i,j,k)-vbr(i,j,k))/jcb8v(i,j,k)
+          tmp5(i,j,k)=2.e0*tmp4(i,j,k)
+        end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      do k=2,nk-2
+        !$acc loop independent collapse(2)
+        do j=2,nj-1
+        do i=1+iwest,ni-1-ieast
+          tmp1(i,j,k)=(tmp4(i+1,j,k)+tmp4(i-1,j,k))-tmp5(i,j,k)
+        end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      do k=2,nk-2
+        !$acc loop independent collapse(2)
+        do j=1+jsouth,nj-jnorth
+        do i=2,ni-2
+          tmp2(i,j,k)=(tmp4(i,j+1,k)+tmp4(i,j-1,k))-tmp5(i,j,k)
+        end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      do k=2,nk-2
+        !$acc loop independent collapse(2)
+        do j=2,nj-1
+        do i=2,ni-2
+          tmp3(i,j,k)=(tmp4(i,j,k+1)+tmp4(i,j,k-1))-tmp5(i,j,k)
+        end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      do k=2,nk-2
+        !$acc loop independent collapse(2)
+        do j=2,nj-1
+        do i=2,ni-2
+          vfrc(i,j,k)=vfrc(i,j,k)                                     &
+     &      +smhcoe*(tmp1(i,j,k)+tmp2(i,j,k))+smvcoe*tmp3(i,j,k)
+        end do
+        end do
+      end do
+      !$acc end kernels
+
+      if(mod(smtopt,10).eq.2) then
+        !$acc kernels
+        do k=2,nk-2
+          !$acc loop independent collapse(2)
+          do j=2+jsouth,nj-1-jnorth
+          do i=2+iwest,ni-2-ieast
+            vfrc(i,j,k)=vfrc(i,j,k)                                   &
+     &        +smhcoe*((tmp1(i,j,k)-(tmp1(i+1,j,k)+tmp1(i-1,j,k)))    &
+     &        +(tmp2(i,j,k)-(tmp2(i,j+1,k)+tmp2(i,j-1,k))))
+          end do
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        !$acc loop independent collapse(2)
+        do j=2+jsouth,nj-1-jnorth
+        do i=2+iwest,ni-2-ieast
+          tmp3(i,j,1)=tmp3(i,j,2)
+          tmp3(i,j,nkm1)=tmp3(i,j,nkm2)
+        end do
+        end do
+        !$acc end kernels
+        !$acc kernels
+        do k=2,nk-2
+          !$acc loop independent collapse(2)
+          do j=2+jsouth,nj-1-jnorth
+          do i=2+iwest,ni-2-ieast
+            vfrc(i,j,k)=vfrc(i,j,k)                                   &
+     &        +(smvcoe*(tmp3(i,j,k)-(tmp3(i,j,k+1)+tmp3(i,j,k-1)))    &
+     &        +smhcoe*((tmp1(i,j,k)-(tmp1(i+1,j,k)+tmp1(i-1,j,k)))    &
+     &        +(tmp2(i,j,k)-(tmp2(i,j+1,k)+tmp2(i,j-1,k)))))
+          end do
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+! GPU version (OpenACC) - w smoothing
+
+      !$acc kernels
+      do k=1,nk
+        !$acc loop independent collapse(2)
+        do j=jsouth,nj-jnorth
+        do i=iwest,ni-ieast
+          tmp4(i,j,k)=rst8w(i,j,k)*w(i,j,k)/jcb8w(i,j,k)
+          tmp5(i,j,k)=2.e0*tmp4(i,j,k)
+        end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      do k=2,nk-1
+        !$acc loop independent collapse(2)
+        do j=2,nj-2
+        do i=1+iwest,ni-1-ieast
+          tmp1(i,j,k)=(tmp4(i+1,j,k)+tmp4(i-1,j,k))-tmp5(i,j,k)
+        end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      do k=2,nk-1
+        !$acc loop independent collapse(2)
+        do j=1+jsouth,nj-1-jnorth
+        do i=2,ni-2
+          tmp2(i,j,k)=(tmp4(i,j+1,k)+tmp4(i,j-1,k))-tmp5(i,j,k)
+        end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      do k=2,nk-1
+        !$acc loop independent collapse(2)
+        do j=2,nj-2
+        do i=2,ni-2
+          tmp3(i,j,k)=(tmp4(i,j,k+1)+tmp4(i,j,k-1))-tmp5(i,j,k)
+        end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      do k=2,nk-1
+        !$acc loop independent collapse(2)
+        do j=2,nj-2
+        do i=2,ni-2
+          wfrc(i,j,k)=wfrc(i,j,k)                                     &
+     &      +smhcoe*(tmp1(i,j,k)+tmp2(i,j,k))+smvcoe*tmp3(i,j,k)
+        end do
+        end do
+      end do
+      !$acc end kernels
+
+      if(mod(smtopt,10).eq.2) then
+        !$acc kernels
+        do k=2,nk-1
+          !$acc loop independent collapse(2)
+          do j=2+jsouth,nj-2-jnorth
+          do i=2+iwest,ni-2-ieast
+            wfrc(i,j,k)=wfrc(i,j,k)                                   &
+     &        +smhcoe*((tmp1(i,j,k)-(tmp1(i+1,j,k)+tmp1(i-1,j,k)))    &
+     &        +(tmp2(i,j,k)-(tmp2(i,j+1,k)+tmp2(i,j-1,k))))
+          end do
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        !$acc loop independent collapse(2)
+        do j=2+jsouth,nj-2-jnorth
+        do i=2+iwest,ni-2-ieast
+          tmp3(i,j,1)=tmp3(i,j,2)
+          tmp3(i,j,nk)=tmp3(i,j,nkm1)
+        end do
+        end do
+        !$acc end kernels
+        !$acc kernels
+        do k=2,nk-1
+          !$acc loop independent collapse(2)
+          do j=2+jsouth,nj-2-jnorth
+          do i=2+iwest,ni-2-ieast
+            wfrc(i,j,k)=wfrc(i,j,k)                                   &
+     &        +(smvcoe*(tmp3(i,j,k)-(tmp3(i,j,k+1)+tmp3(i,j,k-1)))    &
+     &        +smhcoe*((tmp1(i,j,k)-(tmp1(i+1,j,k)+tmp1(i-1,j,k)))    &
+     &        +(tmp2(i,j,k)-(tmp2(i,j+1,k)+tmp2(i,j-1,k)))))
+          end do
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+#else
+! CPU version (OpenMP) - Original code preserved
+
 !$omp parallel default(shared) private(k)
 
 ! Calculate the 4th order u smoothing.
@@ -659,6 +954,7 @@ end if
 ! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_smoo4uvw == DUMP_TARGET_smoo4uvw .and. .not. dump_done_smoo4uvw) then

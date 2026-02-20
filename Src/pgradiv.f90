@@ -203,6 +203,43 @@ if (dump_call_count_pgradiv == DUMP_TARGET_pgradiv .and. .not. dump_done_pgradiv
   call dump_scalar_r('dtdzw', dtdzw)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_231)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    ! First loop: compute fpdvj
+    !$acc kernels
+    !$acc loop independent
+    do k = 2, nk-2
+      !$acc loop independent
+      do j = 2, nj-2
+        !$acc loop independent
+        do i = 2, ni-2
+          fpdvj(i,j,k) = fp(i,j,k) / jcb(i,j,k)
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    ! Second loop: update fw (depends on fpdvj, so separate kernels region)
+    !$acc kernels
+    !$acc loop independent
+    do k = 3, nk-2
+      !$acc loop independent
+      do j = 2, nj-2
+        !$acc loop independent
+        do i = 2, ni-2
+          fw(i,j,k) = wfrc(i,j,k) + fw(i,j,k) &
+               + (fpdvj(i,j,k-1) - fpdvj(i,j,k)) * dtdzw
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-2
@@ -235,6 +272,7 @@ end if
       end do
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_pgradiv == DUMP_TARGET_pgradiv .and. .not. dump_done_pgradiv) then

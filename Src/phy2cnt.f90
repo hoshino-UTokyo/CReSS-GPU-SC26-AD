@@ -260,6 +260,155 @@ end if
 
 call profile_start(prof_id1)
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_236)
+! GPU version (OpenACC)
+      if(trnopt.eq.0) then
+
+        if(sthopt.eq.0) then
+
+!$acc kernels
+!$acc loop independent
+          do k=2,nk-1
+!$acc loop independent
+            do j=1,nj-1
+!$acc loop independent
+            do i=1,ni-1
+              wc(i,j,k)=w(i,j,k)
+            end do
+            end do
+          end do
+!$acc end kernels
+
+        else if(sthopt.ge.1) then
+
+!$acc kernels
+!$acc loop independent
+          do k=2,nk-1
+!$acc loop independent
+            do j=1,nj-1
+!$acc loop independent
+            do i=1,ni-1
+              wc(i,j,k)=w(i,j,k)/jcb8w(i,j,k)
+            end do
+            end do
+          end do
+!$acc end kernels
+
+        end if
+
+      else
+
+!$acc kernels
+!$acc loop independent
+        do k=2,nk-1
+!$acc loop independent
+          do j=1,nj-1
+!$acc loop independent
+          do i=1,ni
+            j31u2(i,j,k)=(u(i,j,k-1)+u(i,j,k))*j31(i,j,k)
+          end do
+          end do
+        end do
+!$acc end kernels
+
+!$acc kernels
+!$acc loop independent
+        do k=2,nk-1
+!$acc loop independent
+          do j=1,nj
+!$acc loop independent
+          do i=1,ni-1
+            j32v2(i,j,k)=(v(i,j,k-1)+v(i,j,k))*j32(i,j,k)
+          end do
+          end do
+        end do
+!$acc end kernels
+
+        if(mfcopt.eq.0) then
+
+!$acc kernels
+!$acc loop independent
+          do k=2,nk-1
+!$acc loop independent
+            do j=1,nj-1
+!$acc loop independent
+            do i=1,ni-1
+              wc(i,j,k)=(.25e0*((j31u2(i,j,k)+j31u2(i+1,j,k))           &
+     &          +(j32v2(i,j,k)+j32v2(i,j+1,k)))+w(i,j,k))/jcb8w(i,j,k)
+            end do
+            end do
+          end do
+!$acc end kernels
+
+        else
+
+          if(mpopt.eq.0.or.mpopt.eq.10) then
+
+!$acc kernels
+!$acc loop independent
+            do k=2,nk-1
+!$acc loop independent
+              do j=1,nj-1
+!$acc loop independent
+              do i=1,ni-1
+                wc(i,j,k)=(.25e0*(mf(i,j)*(j31u2(i,j,k)+j31u2(i+1,j,k)) &
+     &            +(j32v2(i,j,k)+j32v2(i,j+1,k)))+w(i,j,k))/jcb8w(i,j,k)
+              end do
+              end do
+            end do
+!$acc end kernels
+
+          else if(mpopt.eq.5) then
+
+!$acc kernels
+!$acc loop independent
+            do k=2,nk-1
+!$acc loop independent
+              do j=1,nj-1
+!$acc loop independent
+              do i=1,ni-1
+                wc(i,j,k)=(.25e0*((j31u2(i,j,k)+j31u2(i+1,j,k))         &
+     &            +mf(i,j)*(j32v2(i,j,k)+j32v2(i,j+1,k)))               &
+     &            +w(i,j,k))/jcb8w(i,j,k)
+              end do
+              end do
+            end do
+!$acc end kernels
+
+          else
+
+!$acc kernels
+!$acc loop independent
+            do j=1,nj-1
+!$acc loop independent
+            do i=1,ni-1
+              mf25(i,j)=.25e0*mf(i,j)
+            end do
+            end do
+!$acc end kernels
+
+!$acc kernels
+!$acc loop independent
+            do k=2,nk-1
+!$acc loop independent
+              do j=1,nj-1
+!$acc loop independent
+              do i=1,ni-1
+                wc(i,j,k)=(mf25(i,j)*((j31u2(i,j,k)+j31u2(i+1,j,k))     &
+     &            +(j32v2(i,j,k)+j32v2(i,j+1,k)))+w(i,j,k))/jcb8w(i,j,k)
+              end do
+              end do
+            end do
+!$acc end kernels
+
+          end if
+
+        end if
+
+      end if
+
+#else
+! CPU version (OpenMP) - Original code preserved
 !$omp parallel default(shared) private(k)
 
       if(trnopt.eq.0) then
@@ -412,6 +561,7 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
+#endif
 
 call profile_stop(prof_id1, loop_len)
 

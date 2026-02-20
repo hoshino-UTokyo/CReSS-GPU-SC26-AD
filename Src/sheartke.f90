@@ -167,6 +167,25 @@ if (dump_call_count_sheartke == DUMP_TARGET_sheartke .and. .not. dump_done_shear
   call dump_array_3d('tkefrc_in.bin', tkefrc, 0, ni+1, 0, nj+1, 1, nk)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_294)
+! GPU version (OpenACC)
+
+      !$acc kernels
+      !$acc loop independent
+      do k=2,nk-2
+        !$acc loop independent
+        do j=2,nj-2
+          !$acc loop independent
+          do i=2,ni-2
+            tkefrc(i,j,k)=tkefrc(i,j,k)+jcb(i,j,k)*rkv(i,j,k)*ssq(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+#else
+! CPU version (OpenMP) - Original code preserved
+
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-2
@@ -184,6 +203,7 @@ end if
       end do
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_sheartke == DUMP_TARGET_sheartke .and. .not. dump_done_sheartke) then

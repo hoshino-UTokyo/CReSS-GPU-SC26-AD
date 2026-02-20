@@ -265,6 +265,138 @@ if (dump_call_count_diverpih == DUMP_TARGET_diverpih .and. .not. dump_done_diver
   call dump_array_3d('tmp3_in.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_093)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+    ! For the flat terrain case
+    if (trnopt == 0) then
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 2, nk-2
+        do j = 2, nj-2
+          do i = 2, ni-2
+            pdiv(i,j,k) = rcsq(i,j,k) * pdiv(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+    ! For the curved grid case
+    else
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 2, nk-2
+        do j = 2, nj-2
+          do i = 2, ni-1
+            tmp1(i,j,k) = (u(i,j,k) + u(i,j,k-1)) * j31(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 2, nk-2
+        do j = 2, nj-1
+          do i = 2, ni-2
+            tmp2(i,j,k) = (v(i,j,k) + v(i,j,k-1)) * j32(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      if (mfcopt == 0) then
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 2, nk-2
+          do j = 2, nj-2
+            do i = 2, ni-2
+              tmp3(i,j,k) = 0.25e0 * ((tmp1(i,j,k) + tmp1(i+1,j,k)) &
+                   + (tmp2(i,j,k) + tmp2(i,j+1,k)))
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+      else
+        if (mpopt == 0 .or. mpopt == 10) then
+          !$acc kernels
+          !$acc loop independent collapse(3)
+          do k = 2, nk-2
+            do j = 2, nj-2
+              do i = 2, ni-2
+                tmp3(i,j,k) = 0.25e0 * (mf(i,j) * (tmp1(i,j,k) + tmp1(i+1,j,k)) &
+                     + (tmp2(i,j,k) + tmp2(i,j+1,k)))
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+        else if (mpopt == 5) then
+          !$acc kernels
+          !$acc loop independent collapse(3)
+          do k = 2, nk-2
+            do j = 2, nj-2
+              do i = 2, ni-2
+                tmp3(i,j,k) = 0.25e0 * ((tmp1(i,j,k) + tmp1(i+1,j,k)) &
+                     + mf(i,j) * (tmp2(i,j,k) + tmp2(i,j+1,k)))
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+        else
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do j = 2, nj-2
+            do i = 2, ni-2
+              pdiv(i,j,nk) = 0.25e0 * mf(i,j)
+            end do
+          end do
+          !$acc end kernels
+
+          !$acc kernels
+          !$acc loop independent collapse(3)
+          do k = 2, nk-2
+            do j = 2, nj-2
+              do i = 2, ni-2
+                tmp3(i,j,k) = pdiv(i,j,nk) * ((tmp1(i,j,k) + tmp1(i+1,j,k)) &
+                     + (tmp2(i,j,k) + tmp2(i,j+1,k)))
+              end do
+            end do
+          end do
+          !$acc end kernels
+        end if
+      end if
+
+      !$acc kernels
+      !$acc loop independent collapse(2)
+      do j = 2, nj-2
+        do i = 2, ni-2
+          tmp3(i,j,nkm1) = 0.0e0
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 2, nk-2
+        do j = 2, nj-2
+          do i = 2, ni-2
+            pdiv(i,j,k) = rcsq(i,j,k) &
+                 * (pdiv(i,j,k) + (tmp3(i,j,k) - tmp3(i,j,k+1)) * dziv)
+          end do
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! For the flat terrain case.
@@ -429,6 +561,7 @@ end if
 ! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_diverpih == DUMP_TARGET_diverpih .and. .not. dump_done_diverpih) then

@@ -220,6 +220,62 @@ end if
 
 call profile_start(prof_id1)
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_038)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (nisub == 1) then
+      if (wbc == -1 .and. ebc == -1) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, kmax
+          !$acc loop independent
+          do j = 0, nj+1
+            var(iwrcv,j,k) = var(iesnd,j,k)
+          end do
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, kmax
+          !$acc loop independent
+          do j = 0, nj+1
+            var(iercv,j,k) = var(iwsnd,j,k)
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+    if (njsub == 1) then
+      if (sbc == -1 .and. nbc == -1) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, kmax
+          !$acc loop independent
+          do i = 0, ni+1
+            var(i,jsrcv,k) = var(i,jnsnd,k)
+          end do
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, kmax
+          !$acc loop independent
+          do i = 0, ni+1
+            var(i,jnrcv,k) = var(i,jssnd,k)
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the west and east boundary conditions.
@@ -295,6 +351,7 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
+#endif
 
 call profile_stop(prof_id1, loop_len)
 

@@ -515,6 +515,157 @@ if (dump_call_count_timeflt == DUMP_TARGET_timeflt .and. .not. dump_done_timeflt
   ! ! FIXME: nqa is array - call dump_scalar_i('nqa', nqa)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_327)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    ! Perform the Asselin time filter for the velocity (u component)
+    !$acc kernels
+    !$acc loop independent
+    do k = 1, nk-1
+      !$acc loop independent
+      do j = 1, nj-1
+        !$acc loop independent
+        do i = 1, ni
+          u(i,j,k) = m1fc2*u(i,j,k) + filcoe*(uf(i,j,k) + up(i,j,k))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    ! Perform the Asselin time filter for the velocity (v component)
+    !$acc kernels
+    !$acc loop independent
+    do k = 1, nk-1
+      !$acc loop independent
+      do j = 1, nj
+        !$acc loop independent
+        do i = 1, ni-1
+          v(i,j,k) = m1fc2*v(i,j,k) + filcoe*(vf(i,j,k) + vp(i,j,k))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    ! Perform the Asselin time filter for the velocity (w component)
+    !$acc kernels
+    !$acc loop independent
+    do k = 1, nk
+      !$acc loop independent
+      do j = 1, nj-1
+        !$acc loop independent
+        do i = 1, ni-1
+          w(i,j,k) = m1fc2*w(i,j,k) + filcoe*(wf(i,j,k) + wp(i,j,k))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    ! Perform the Asselin time filter for pressure and temperature
+    !$acc kernels
+    !$acc loop independent
+    do k = 1, nk-1
+      !$acc loop independent
+      do j = 1, nj-1
+        !$acc loop independent
+        do i = 1, ni-1
+          pp(i,j,k) = m1fc2*pp(i,j,k) + filcoe*(ppf(i,j,k) + ppp(i,j,k))
+          ptp(i,j,k) = m1fc2*ptp(i,j,k) + filcoe*(ptpf(i,j,k) + ptpp(i,j,k))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    ! Perform the Asselin time filter for water vapor
+    if (fmois(1:5) == 'moist') then
+      !$acc kernels
+      !$acc loop independent
+      do k = 1, nk-1
+        !$acc loop independent
+        do j = 1, nj-1
+          !$acc loop independent
+          do i = 1, ni-1
+            qv(i,j,k) = m1fc2*qv(i,j,k) + filcoe*(qvf(i,j,k) + qvp(i,j,k))
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      ! Perform the Asselin time filter for water hydrometeor
+      if (abs(cphopt) >= 1) then
+        do n = 1, nqw
+          !$acc kernels
+          !$acc loop independent
+          do k = 1, nk-1
+            !$acc loop independent
+            do j = 1, nj-1
+              !$acc loop independent
+              do i = 1, ni-1
+                qwtr(i,j,k,n) = m1fc2*qwtr(i,j,k,n) + filcoe*(qwtrf(i,j,k,n) + qwtrp(i,j,k,n))
+              end do
+            end do
+          end do
+          !$acc end kernels
+        end do
+      end if
+
+      ! Perform the Asselin time filter for ice hydrometeor
+      if (abs(cphopt) >= 2) then
+        do n = 1, nqi
+          !$acc kernels
+          !$acc loop independent
+          do k = 1, nk-1
+            !$acc loop independent
+            do j = 1, nj-1
+              !$acc loop independent
+              do i = 1, ni-1
+                qice(i,j,k,n) = m1fc2*qice(i,j,k,n) + filcoe*(qicef(i,j,k,n) + qicep(i,j,k,n))
+              end do
+            end do
+          end do
+          !$acc end kernels
+        end do
+      end if
+
+      ! Perform the Asselin time filter for ice concentrations
+      if (abs(cphopt) >= 3) then
+        do n = 1, nni
+          !$acc kernels
+          !$acc loop independent
+          do k = 1, nk-1
+            !$acc loop independent
+            do j = 1, nj-1
+              !$acc loop independent
+              do i = 1, ni-1
+                nice(i,j,k,n) = m1fc2*nice(i,j,k,n) + filcoe*(nicef(i,j,k,n) + nicep(i,j,k,n))
+              end do
+            end do
+          end do
+          !$acc end kernels
+        end do
+      end if
+    end if
+
+    ! Perform the Asselin time filter for TKE
+    if (tubopt >= 2) then
+      !$acc kernels
+      !$acc loop independent
+      do k = 1, nk-1
+        !$acc loop independent
+        do j = 1, nj-1
+          !$acc loop independent
+          do i = 1, ni-1
+            tke(i,j,k) = m1fc4*tke(i,j,k) + fc2*(tkef(i,j,k) + tkep(i,j,k))
+          end do
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k,n)
 
 ! Perform the Asselin time filter for the velocity.
@@ -1120,6 +1271,8 @@ end if
 ! -----
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_timeflt == DUMP_TARGET_timeflt .and. .not. dump_done_timeflt) then

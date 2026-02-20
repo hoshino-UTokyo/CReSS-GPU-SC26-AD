@@ -162,6 +162,36 @@ if (dump_call_count_vbcs == DUMP_TARGET_vbcs .and. .not. dump_done_vbcs) then
   call dump_scalar_i('nkm2', nkm2)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_360)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    ! Bottom boundary
+    !$acc kernels
+    !$acc loop independent
+    do j = 1, nj-1
+      !$acc loop independent
+      do i = 1, ni-1
+        sf(i,j,1) = sf(i,j,2)
+      end do
+    end do
+    !$acc end kernels
+
+    ! Top boundary
+    !$acc kernels
+    !$acc loop independent
+    do j = 1, nj-1
+      !$acc loop independent
+      do i = 1, ni-1
+        sf(i,j,nkm1) = sf(i,j,nkm2)
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Set the bottom boundary conditions.
@@ -193,6 +223,8 @@ end if
 ! -----
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_vbcs == DUMP_TARGET_vbcs .and. .not. dump_done_vbcs) then

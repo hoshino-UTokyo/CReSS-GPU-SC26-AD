@@ -604,6 +604,500 @@ end if
 
 call profile_start(prof_id1)
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_310)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+! Set common used variable.
+
+      if(fmois(1:5).eq.'moist'.or.gwmopt.eq.0                           &
+     &  .or.aslopt.ge.1.or.trkopt.ge.1.or.tubopt.ge.2                   &
+     &  .or.(abs(cphopt).ge.1.and.abs(cphopt).lt.20)) then
+
+        if(advopt.le.3) then
+
+          !$acc kernels
+          !$acc loop independent
+          do k=2,nk-2
+            !$acc loop independent
+            do j=2,nj-2
+            !$acc loop independent
+            do i=2,ni-2
+              dtdrst(i,j,k)=dtb2/rst(i,j,k)
+            end do
+            end do
+          end do
+          !$acc end kernels
+
+        else
+
+          !$acc kernels
+          !$acc loop independent
+          do k=2,nk-2
+            !$acc loop independent
+            do j=2,nj-2
+            !$acc loop independent
+            do i=2,ni-2
+              dtdrst(i,j,k)=dtb/rst(i,j,k)
+            end do
+            end do
+          end do
+          !$acc end kernels
+
+        end if
+
+      end if
+
+! -----
+
+! Solve the potential temperature perturbation to the next time step.
+
+      if(gwmopt.eq.0) then
+
+        !$acc kernels
+        !$acc loop independent
+        do k=2,nk-2
+          !$acc loop independent
+          do j=2,nj-2
+          !$acc loop independent
+          do i=2,ni-2
+            ptpf(i,j,k)=ptpp(i,j,k)+ptfrc(i,j,k)*dtdrst(i,j,k)
+          end do
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+! -----
+
+! Solve the hydrometeor to the next time step.
+
+      if(fmois(1:5).eq.'moist') then
+
+        !$acc kernels
+        !$acc loop independent
+        do k=2,nk-2
+          !$acc loop independent
+          do j=2,nj-2
+          !$acc loop independent
+          do i=2,ni-2
+            qvf(i,j,k)=max(0.e0,qvp(i,j,k)+qvfrc(i,j,k)*dtdrst(i,j,k))
+          end do
+          end do
+        end do
+        !$acc end kernels
+
+        if(abs(cphopt).lt.10) then
+
+          if(abs(cphopt).ge.1) then
+
+            !$acc kernels
+            !$acc loop independent
+            do k=2,nk-2
+              !$acc loop independent
+              do j=2,nj-2
+              !$acc loop independent
+              do i=2,ni-2
+                qwtrf(i,j,k,1)                                          &
+     &            =max(0.e0,qwtrp(i,j,k,1)+qwtrf(i,j,k,1)*dtdrst(i,j,k))
+
+                qwtrf(i,j,k,2)                                          &
+     &            =max(0.e0,qwtrp(i,j,k,2)+qwtrf(i,j,k,2)*dtdrst(i,j,k))
+
+              end do
+              end do
+            end do
+            !$acc end kernels
+
+          end if
+
+          if(abs(cphopt).eq.4) then
+
+            !$acc kernels
+            !$acc loop independent
+            do k=2,nk-2
+              !$acc loop independent
+              do j=2,nj-2
+              !$acc loop independent
+              do i=2,ni-2
+                nwtrf(i,j,k,1)                                          &
+     &            =nwtrp(i,j,k,1)+nwtrf(i,j,k,1)*dtdrst(i,j,k)
+
+                nwtrf(i,j,k,2)                                          &
+     &            =nwtrp(i,j,k,2)+nwtrf(i,j,k,2)*dtdrst(i,j,k)
+
+              end do
+              end do
+            end do
+            !$acc end kernels
+
+          end if
+
+          if(abs(cphopt).ge.2) then
+
+            if(haiopt.eq.0) then
+
+              !$acc kernels
+              !$acc loop independent
+              do k=2,nk-2
+                !$acc loop independent
+                do j=2,nj-2
+                !$acc loop independent
+                do i=2,ni-2
+                  qicef(i,j,k,1)=max(0.e0,                              &
+     &              qicep(i,j,k,1)+qicef(i,j,k,1)*dtdrst(i,j,k))
+
+                  qicef(i,j,k,2)=max(0.e0,                              &
+     &              qicep(i,j,k,2)+qicef(i,j,k,2)*dtdrst(i,j,k))
+
+                  qicef(i,j,k,3)=max(0.e0,                              &
+     &              qicep(i,j,k,3)+qicef(i,j,k,3)*dtdrst(i,j,k))
+
+                end do
+                end do
+              end do
+              !$acc end kernels
+
+            else
+
+              !$acc kernels
+              !$acc loop independent
+              do k=2,nk-2
+                !$acc loop independent
+                do j=2,nj-2
+                !$acc loop independent
+                do i=2,ni-2
+                  qicef(i,j,k,1)=max(0.e0,                              &
+     &              qicep(i,j,k,1)+qicef(i,j,k,1)*dtdrst(i,j,k))
+
+                  qicef(i,j,k,2)=max(0.e0,                              &
+     &              qicep(i,j,k,2)+qicef(i,j,k,2)*dtdrst(i,j,k))
+
+                  qicef(i,j,k,3)=max(0.e0,                              &
+     &              qicep(i,j,k,3)+qicef(i,j,k,3)*dtdrst(i,j,k))
+
+                  qicef(i,j,k,4)=max(0.e0,                              &
+     &              qicep(i,j,k,4)+qicef(i,j,k,4)*dtdrst(i,j,k))
+
+                end do
+                end do
+              end do
+              !$acc end kernels
+
+            end if
+
+          end if
+
+          if(abs(cphopt).eq.2) then
+
+            !$acc kernels
+            !$acc loop independent
+            do k=2,nk-2
+              !$acc loop independent
+              do j=2,nj-2
+              !$acc loop independent
+              do i=2,ni-2
+                nicef(i,j,k,1)                                          &
+     &            =nicep(i,j,k,1)+nicef(i,j,k,1)*dtdrst(i,j,k)
+              end do
+              end do
+            end do
+            !$acc end kernels
+
+          else if(abs(cphopt).ge.3) then
+
+            if(haiopt.eq.0) then
+
+              !$acc kernels
+              !$acc loop independent
+              do k=2,nk-2
+                !$acc loop independent
+                do j=2,nj-2
+                !$acc loop independent
+                do i=2,ni-2
+                  nicef(i,j,k,1)                                        &
+     &              =nicep(i,j,k,1)+nicef(i,j,k,1)*dtdrst(i,j,k)
+
+                  nicef(i,j,k,2)                                        &
+     &              =nicep(i,j,k,2)+nicef(i,j,k,2)*dtdrst(i,j,k)
+
+                  nicef(i,j,k,3)                                        &
+     &              =nicep(i,j,k,3)+nicef(i,j,k,3)*dtdrst(i,j,k)
+
+                end do
+                end do
+              end do
+              !$acc end kernels
+
+            else
+
+              !$acc kernels
+              !$acc loop independent
+              do k=2,nk-2
+                !$acc loop independent
+                do j=2,nj-2
+                !$acc loop independent
+                do i=2,ni-2
+                  nicef(i,j,k,1)                                        &
+     &              =nicep(i,j,k,1)+nicef(i,j,k,1)*dtdrst(i,j,k)
+
+                  nicef(i,j,k,2)                                        &
+     &              =nicep(i,j,k,2)+nicef(i,j,k,2)*dtdrst(i,j,k)
+
+                  nicef(i,j,k,3)                                        &
+     &              =nicep(i,j,k,3)+nicef(i,j,k,3)*dtdrst(i,j,k)
+
+                  nicef(i,j,k,4)                                        &
+     &              =nicep(i,j,k,4)+nicef(i,j,k,4)*dtdrst(i,j,k)
+
+                end do
+                end do
+              end do
+              !$acc end kernels
+
+            end if
+
+          end if
+
+          if(cphopt.lt.0) then
+
+            if(qcgopt.eq.2) then
+
+              !$acc kernels
+              !$acc loop independent
+              do k=2,nk-2
+                !$acc loop independent
+                do j=2,nj-2
+                !$acc loop independent
+                do i=2,ni-2
+                  qcwtrf(i,j,k,1)                                       &
+     &              =qcwtrp(i,j,k,1)+qcwtrf(i,j,k,1)*dtdrst(i,j,k)
+
+                  qcwtrf(i,j,k,2)                                       &
+     &              =qcwtrp(i,j,k,2)+qcwtrf(i,j,k,2)*dtdrst(i,j,k)
+
+                end do
+                end do
+              end do
+              !$acc end kernels
+
+            end if
+
+            if(haiopt.eq.0) then
+
+              !$acc kernels
+              !$acc loop independent
+              do k=2,nk-2
+                !$acc loop independent
+                do j=2,nj-2
+                !$acc loop independent
+                do i=2,ni-2
+                  qcicef(i,j,k,1)                                       &
+     &              =qcicep(i,j,k,1)+qcicef(i,j,k,1)*dtdrst(i,j,k)
+
+                  qcicef(i,j,k,2)                                       &
+     &              =qcicep(i,j,k,2)+qcicef(i,j,k,2)*dtdrst(i,j,k)
+
+                  qcicef(i,j,k,3)                                       &
+     &              =qcicep(i,j,k,3)+qcicef(i,j,k,3)*dtdrst(i,j,k)
+
+                end do
+                end do
+              end do
+              !$acc end kernels
+
+            else
+
+              !$acc kernels
+              !$acc loop independent
+              do k=2,nk-2
+                !$acc loop independent
+                do j=2,nj-2
+                !$acc loop independent
+                do i=2,ni-2
+                  qcicef(i,j,k,1)                                       &
+     &              =qcicep(i,j,k,1)+qcicef(i,j,k,1)*dtdrst(i,j,k)
+
+                  qcicef(i,j,k,2)                                       &
+     &              =qcicep(i,j,k,2)+qcicef(i,j,k,2)*dtdrst(i,j,k)
+
+                  qcicef(i,j,k,3)                                       &
+     &              =qcicep(i,j,k,3)+qcicef(i,j,k,3)*dtdrst(i,j,k)
+
+                  qcicef(i,j,k,4)                                       &
+     &              =qcicep(i,j,k,4)+qcicef(i,j,k,4)*dtdrst(i,j,k)
+
+                end do
+                end do
+              end do
+              !$acc end kernels
+
+            end if
+
+          end if
+
+        else if(abs(cphopt).gt.10.and.abs(cphopt).lt.20) then
+
+          if(abs(cphopt).ge.11) then
+
+            do n_sub=1,nqw
+
+              !$acc kernels
+              !$acc loop independent
+              do k=2,nk-2
+                !$acc loop independent
+                do j=2,nj-2
+                !$acc loop independent
+                do i=2,ni-2
+                  qwtrf(i,j,k,n_sub)                                    &
+     &              =qwtrp(i,j,k,n_sub)+qwtrf(i,j,k,n_sub)*dtdrst(i,j,k)
+                end do
+                end do
+              end do
+              !$acc end kernels
+
+            end do
+
+            do n_sub=1,nnw
+
+              !$acc kernels
+              !$acc loop independent
+              do k=2,nk-2
+                !$acc loop independent
+                do j=2,nj-2
+                !$acc loop independent
+                do i=2,ni-2
+                  nwtrf(i,j,k,n_sub)                                    &
+     &              =nwtrp(i,j,k,n_sub)+nwtrf(i,j,k,n_sub)*dtdrst(i,j,k)
+                end do
+                end do
+              end do
+              !$acc end kernels
+
+            end do
+
+          end if
+
+          if(abs(cphopt).eq.12) then
+
+            do n_sub=1,nqi
+
+              !$acc kernels
+              !$acc loop independent
+              do k=2,nk-2
+                !$acc loop independent
+                do j=2,nj-2
+                !$acc loop independent
+                do i=2,ni-2
+                  qicef(i,j,k,n_sub)                                    &
+     &              =qicep(i,j,k,n_sub)+qicef(i,j,k,n_sub)*dtdrst(i,j,k)
+                end do
+                end do
+              end do
+              !$acc end kernels
+
+            end do
+
+            do n_sub=1,nni
+
+              !$acc kernels
+              !$acc loop independent
+              do k=2,nk-2
+                !$acc loop independent
+                do j=2,nj-2
+                !$acc loop independent
+                do i=2,ni-2
+                  nicef(i,j,k,n_sub)                                    &
+     &              =nicep(i,j,k,n_sub)+nicef(i,j,k,n_sub)*dtdrst(i,j,k)
+                end do
+                end do
+              end do
+              !$acc end kernels
+
+            end do
+
+          end if
+
+        end if
+
+      end if
+
+! -----
+
+! Solve the aerosol to the next time step.
+
+      if(aslopt.ge.1) then
+
+        do n_sub=1,nqa(0)
+
+          !$acc kernels
+          !$acc loop independent
+          do k=2,nk-2
+            !$acc loop independent
+            do j=2,nj-2
+            !$acc loop independent
+            do i=2,ni-2
+              qaslf(i,j,k,n_sub)=max(0.e0,                              &
+     &          qaslp(i,j,k,n_sub)+qaslf(i,j,k,n_sub)*dtdrst(i,j,k))
+            end do
+            end do
+          end do
+          !$acc end kernels
+
+        end do
+
+      end if
+
+! -----
+
+! Solve the tracer to the next time step.
+
+      if(trkopt.ge.1) then
+
+        !$acc kernels
+        !$acc loop independent
+        do k=2,nk-2
+          !$acc loop independent
+          do j=2,nj-2
+          !$acc loop independent
+          do i=2,ni-2
+            qtf(i,j,k)=max(0.e0,qtp(i,j,k)+qtf(i,j,k)*dtdrst(i,j,k))
+          end do
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+! -----
+
+! Solve the turbulent kinetic energy to the next time step.
+
+      if(tubopt.ge.2) then
+
+        !$acc kernels
+        !$acc loop independent
+        do k=2,nk-2
+          !$acc loop independent
+          do j=2,nj-2
+          !$acc loop independent
+          do i=2,ni-2
+            tkef(i,j,k)=max(0.e0,tkep(i,j,k)+tkef(i,j,k)*dtdrst(i,j,k))
+          end do
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+! -----
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k,n_sub)
 
 ! Set common used variable.
@@ -1113,6 +1607,7 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
+#endif
 
 call profile_stop(prof_id1, loop_len)
 

@@ -378,6 +378,36 @@ if (dump_call_count_fallblk == DUMP_TARGET_fallblk .and. .not. dump_done_fallblk
   dump_done_fallblk = .true.
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_108)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    dtps = dtb
+    dtpg = dtb
+
+    ! GPU version with OpenACC reduction
+    !$acc parallel loop collapse(3) &
+    !$acc&   reduction(min:dtpc,dtpr,dtpi,dtps,dtpg) &
+    !$acc&   private(dzjcb)
+    do k = 1, nk-1
+      do j = 1, nj-1
+        do i = 1, ni-1
+          dzjcb = dz * jcb(i,j,k)
+
+          dtpc = min(dzjcb / (ucq(i,j,k) + eps), dtpc)
+          dtpr = min(dzjcb / (urq(i,j,k) + eps), dtpr)
+          dtpi = min(dzjcb / (uiq(i,j,k) + eps), dtpi)
+          dtps = min(dzjcb / (usq(i,j,k) + eps), dtps)
+          dtpg = min(dzjcb / (ugq(i,j,k) + eps), dtpg)
+        end do
+      end do
+    end do
+    !$acc end parallel loop
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       if(flqcqi_opt.eq.0) then
@@ -485,6 +515,8 @@ end if
       end if
 
 !$omp end parallel
+
+#endif
 
 
 

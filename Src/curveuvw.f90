@@ -240,6 +240,223 @@ if (dump_call_count_curveuvw == DUMP_TARGET_curveuvw .and. .not. dump_done_curve
   call dump_scalar_r('rev125', rev125)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_073)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+! Set the common used array - tmp1, tmp2
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 1, nk-1
+      do j = 1, nj-1
+        do i = 1, ni-1
+          tmp1(i,j,k) = u(i,j,k) + u(i+1,j,k)
+          tmp2(i,j,k) = v(i,j,k) + v(i,j+1,k)
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+! Set tmp3
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 2, nk-2
+      do j = 1, nj-1
+        do i = 1, ni-1
+          tmp3(i,j,k) = rst(i,j,k) * (w(i,j,k) + w(i,j,k+1))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+! For x and y components of velocity - tmp4, tmp5
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 2, nk-2
+      do j = 2, nj-2
+        do i = 1, ni-1
+          tmp4(i,j,k) = tmp1(i,j,k) * tmp3(i,j,k)
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 2, nk-2
+      do j = 1, nj-1
+        do i = 2, ni-2
+          tmp5(i,j,k) = tmp2(i,j,k) * tmp3(i,j,k)
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+! Update ufrc, vfrc
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 2, nk-2
+      do j = 2, nj-2
+        do i = 2, ni-1
+          ufrc(i,j,k) = ufrc(i,j,k) - rev125 * (tmp4(i-1,j,k) + tmp4(i,j,k))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 2, nk-2
+      do j = 2, nj-1
+        do i = 2, ni-2
+          vfrc(i,j,k) = vfrc(i,j,k) - rev125 * (tmp5(i,j-1,k) + tmp5(i,j,k))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+! Calculate the curvature of earth in the z components of velocity equation
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 1, nk-1
+      do j = 2, nj-2
+        do i = 2, ni-2
+          tmp3(i,j,k) = rst(i,j,k) &
+            * (tmp1(i,j,k) * tmp1(i,j,k) + tmp2(i,j,k) * tmp2(i,j,k))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 2, nk-1
+      do j = 2, nj-2
+        do i = 2, ni-2
+          wfrc(i,j,k) = wfrc(i,j,k) + rev125 * (tmp3(i,j,k-1) + tmp3(i,j,k))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+! Add the terms in the case of turning on the option for map scale factor
+    if (mfcopt == 1) then
+
+      if (mpopt == 0 .or. mpopt == 10) then
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 2, nk-2
+          do j = 1, nj-1
+            do i = 1, ni-1
+              tmp3(i,j,k) = rmf8v(i,j,3) * rst(i,j,k) * tmp1(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+      else if (mpopt == 5) then
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 2, nk-2
+          do j = 1, nj-1
+            do i = 1, ni-1
+              tmp3(i,j,k) = rmf8u(i,j,3) * rst(i,j,k) * tmp2(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+      else
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 2, nk-2
+          do j = 1, nj-1
+            do i = 1, ni-1
+              tmp3(i,j,k) = rst(i,j,k) &
+                * (rmf8v(i,j,3) * tmp1(i,j,k) - rmf8u(i,j,3) * tmp2(i,j,k))
+            end do
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 2, nk-2
+        do j = 1, nj-1
+          do i = 2, ni-2
+            tmp1(i,j,k) = tmp1(i,j,k) * tmp3(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 2, nk-2
+        do j = 2, nj-2
+          do i = 1, ni-1
+            tmp2(i,j,k) = tmp2(i,j,k) * tmp3(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      if (mpopt == 5) then
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 2, nk-2
+          do j = 2, nj-2
+            do i = 2, ni-1
+              ufrc(i,j,k) = ufrc(i,j,k) - (tmp2(i-1,j,k) + tmp2(i,j,k))
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 2, nk-2
+          do j = 2, nj-1
+            do i = 2, ni-2
+              vfrc(i,j,k) = vfrc(i,j,k) + (tmp1(i,j-1,k) + tmp1(i,j,k))
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+      else
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 2, nk-2
+          do j = 2, nj-2
+            do i = 2, ni-1
+              ufrc(i,j,k) = ufrc(i,j,k) + (tmp2(i-1,j,k) + tmp2(i,j,k))
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 2, nk-2
+          do j = 2, nj-1
+            do i = 2, ni-2
+              vfrc(i,j,k) = vfrc(i,j,k) - (tmp1(i,j-1,k) + tmp1(i,j,k))
+            end do
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
 ! Set the common used array.
@@ -500,6 +717,8 @@ end if
 ! -----
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_curveuvw == DUMP_TARGET_curveuvw .and. .not. dump_done_curveuvw) then

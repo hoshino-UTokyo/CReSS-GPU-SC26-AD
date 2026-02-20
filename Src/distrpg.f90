@@ -219,6 +219,142 @@ if (dump_call_count_distrpg == DUMP_TARGET_distrpg .and. .not. dump_done_distrpg
   call dump_scalar_r('rhow2', rhow2)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_088)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+    rhos2 = rhos * rhos
+    rhow2 = rhow * rhow
+
+    if (nk == 1) then
+      if (abs(cphopt) == 2) then
+        !$acc kernels
+        !$acc loop independent
+        do j = 1, nj-1
+          !$acc loop independent private(alpha, alpha1, a, b)
+          do i = 1, ni-1
+            if (qs(i,j,1) > thresq) then
+              if (t(i,j,1) < t0) then
+                a = diaqs(i,j,1) * diaqs(i,j,1)
+                b = diaqr(i,j,1) * diaqr(i,j,1)
+                a = rhos2 * a * a * a
+                b = rhow2 * b * b * b
+                alpha = a / (a + b)
+                alpha1 = 1.e0 - alpha
+                clrsg(i,j,1) = alpha1 * clrs(i,j,1)
+                clrs(i,j,1) = alpha * clrs(i,j,1)
+                clsr(i,j,1) = alpha1 * clsr(i,j,1)
+              else
+                clrsg(i,j,1) = clrs(i,j,1)
+                clrs(i,j,1) = 0.e0
+              end if
+            else
+              clrsg(i,j,1) = 0.e0
+            end if
+          end do
+        end do
+        !$acc end kernels
+      else if (abs(cphopt) >= 3) then
+        !$acc kernels
+        !$acc loop independent
+        do j = 1, nj-1
+          !$acc loop independent private(alpha, alpha1, a, b)
+          do i = 1, ni-1
+            if (qs(i,j,1) > thresq) then
+              if (t(i,j,1) < t0) then
+                a = diaqs(i,j,1) * diaqs(i,j,1)
+                b = diaqr(i,j,1) * diaqr(i,j,1)
+                a = rhos2 * a * a * a
+                b = rhow2 * b * b * b
+                alpha = a / (a + b)
+                alpha1 = 1.e0 - alpha
+                clrsg(i,j,1) = alpha1 * clrs(i,j,1)
+                clrs(i,j,1) = alpha * clrs(i,j,1)
+                clsr(i,j,1) = alpha1 * clsr(i,j,1)
+                clrsn(i,j,1) = alpha1 * clrsn(i,j,1)
+                clsrn(i,j,1) = alpha1 * clsrn(i,j,1)
+              else
+                clrsg(i,j,1) = clrs(i,j,1)
+                clrs(i,j,1) = 0.e0
+              end if
+            else
+              clrsg(i,j,1) = 0.e0
+            end if
+          end do
+        end do
+        !$acc end kernels
+      end if
+    else
+      if (abs(cphopt) == 2) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, nk-1
+          !$acc loop independent
+          do j = 1, nj-1
+            !$acc loop independent private(alpha, alpha1, a, b)
+            do i = 1, ni-1
+              if (qs(i,j,k) > thresq) then
+                if (t(i,j,k) < t0) then
+                  a = diaqs(i,j,k) * diaqs(i,j,k)
+                  b = diaqr(i,j,k) * diaqr(i,j,k)
+                  a = rhos2 * a * a * a
+                  b = rhow2 * b * b * b
+                  alpha = a / (a + b)
+                  alpha1 = 1.e0 - alpha
+                  clrsg(i,j,k) = alpha1 * clrs(i,j,k)
+                  clrs(i,j,k) = alpha * clrs(i,j,k)
+                  clsr(i,j,k) = alpha1 * clsr(i,j,k)
+                else
+                  clrsg(i,j,k) = clrs(i,j,k)
+                  clrs(i,j,k) = 0.e0
+                end if
+              else
+                clrsg(i,j,k) = 0.e0
+              end if
+            end do
+          end do
+        end do
+        !$acc end kernels
+      else if (abs(cphopt) >= 3) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, nk-1
+          !$acc loop independent
+          do j = 1, nj-1
+            !$acc loop independent private(alpha, alpha1, a, b)
+            do i = 1, ni-1
+              if (qs(i,j,k) > thresq) then
+                if (t(i,j,k) < t0) then
+                  a = diaqs(i,j,k) * diaqs(i,j,k)
+                  b = diaqr(i,j,k) * diaqr(i,j,k)
+                  a = rhos2 * a * a * a
+                  b = rhow2 * b * b * b
+                  alpha = a / (a + b)
+                  alpha1 = 1.e0 - alpha
+                  clrsg(i,j,k) = alpha1 * clrs(i,j,k)
+                  clrs(i,j,k) = alpha * clrs(i,j,k)
+                  clsr(i,j,k) = alpha1 * clsr(i,j,k)
+                  clrsn(i,j,k) = alpha1 * clrsn(i,j,k)
+                  clsrn(i,j,k) = alpha1 * clsrn(i,j,k)
+                else
+                  clrsg(i,j,k) = clrs(i,j,k)
+                  clrs(i,j,k) = 0.e0
+                end if
+              else
+                clrsg(i,j,k) = 0.e0
+              end if
+            end do
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !! In the case nk = 1.
@@ -452,6 +588,7 @@ end if
 !! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_distrpg == DUMP_TARGET_distrpg .and. .not. dump_done_distrpg) then

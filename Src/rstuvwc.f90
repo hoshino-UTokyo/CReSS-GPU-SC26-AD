@@ -238,6 +238,125 @@ if (dump_call_count_rstuvwc == DUMP_TARGET_rstuvwc .and. .not. dump_done_rstuvwc
   call dump_array_3d('wc.bin', wc, 0, ni+1, 0, nj+1, 1, nk)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_266)
+! GPU version (OpenACC)
+
+      if(mfcopt.eq.0) then
+
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k=1,nk-1
+          do j=1,nj-1
+            do i=iwest,ni+1-ieast
+              rstxu(i,j,k)=rst8u(i,j,k)*u(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k=1,nk-1
+          do j=jsouth,nj+1-jnorth
+            do i=1,ni-1
+              rstxv(i,j,k)=rst8v(i,j,k)*v(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+      else
+
+        if(mpopt.eq.0.or.mpopt.eq.10) then
+
+          !$acc kernels
+          !$acc loop independent collapse(3)
+          do k=1,nk-1
+            do j=1,nj-1
+              do i=iwest,ni+1-ieast
+                rstxu(i,j,k)=mf8u(i,j)*rst8u(i,j,k)*u(i,j,k)
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+          !$acc kernels
+          !$acc loop independent collapse(3)
+          do k=1,nk-1
+            do j=jsouth,nj+1-jnorth
+              do i=1,ni-1
+                rstxv(i,j,k)=rst8v(i,j,k)*v(i,j,k)
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+        else if(mpopt.eq.5) then
+
+          !$acc kernels
+          !$acc loop independent collapse(3)
+          do k=1,nk-1
+            do j=1,nj-1
+              do i=iwest,ni+1-ieast
+                rstxu(i,j,k)=rst8u(i,j,k)*u(i,j,k)
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+          !$acc kernels
+          !$acc loop independent collapse(3)
+          do k=1,nk-1
+            do j=jsouth,nj+1-jnorth
+              do i=1,ni-1
+                rstxv(i,j,k)=mf8v(i,j)*rst8v(i,j,k)*v(i,j,k)
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+        else
+
+          !$acc kernels
+          !$acc loop independent collapse(3)
+          do k=1,nk-1
+            do j=1,nj-1
+              do i=iwest,ni+1-ieast
+                rstxu(i,j,k)=mf8u(i,j)*rst8u(i,j,k)*u(i,j,k)
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+          !$acc kernels
+          !$acc loop independent collapse(3)
+          do k=1,nk-1
+            do j=jsouth,nj+1-jnorth
+              do i=1,ni-1
+                rstxv(i,j,k)=mf8v(i,j)*rst8v(i,j,k)*v(i,j,k)
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+        end if
+
+      end if
+
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k=1,nk
+        do j=1,nj-1
+          do i=1,ni-1
+            rstxwc(i,j,k)=rst8w(i,j,k)*wc(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+#else
+! CPU version (OpenMP) - Original code preserved
+
 !$omp parallel default(shared) private(k)
 
       if(mfcopt.eq.0) then
@@ -379,6 +498,7 @@ end if
       end if
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_rstuvwc == DUMP_TARGET_rstuvwc .and. .not. dump_done_rstuvwc) then

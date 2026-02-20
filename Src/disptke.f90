@@ -240,6 +240,86 @@ end if
 
 call profile_start(prof_id1)
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_087)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    ! Isotropic case
+    if (isoopt == 1) then
+
+      if (mfcopt == 0) then
+
+        !$acc kernels
+        !$acc loop independent collapse(3) private(ln)
+        do k = 2, nk-2
+          do j = 2, nj-2
+            do i = 2, ni-2
+              ln = (priv(i,j,k) - 1.0) * exp(oned3 * log(ds308 * jcb(i,j,k))) + eps
+              tkefrc(i,j,k) = tkefrc(i,j,k) - (0.37 * priv(i,j,k) - 0.18) &
+                   * rst(i,j,k) * tke(i,j,k) * sqrt(tke(i,j,k)) / ln
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+      else
+
+        if (mpopt == 0 .or. mpopt == 5 .or. mpopt == 10) then
+
+          !$acc kernels
+          !$acc loop independent collapse(3) private(ln)
+          do k = 2, nk-2
+            do j = 2, nj-2
+              do i = 2, ni-2
+                ln = (priv(i,j,k) - 1.0) * exp(oned3 * log(ds308 * rmf(i,j,2) * jcb(i,j,k))) + eps
+                tkefrc(i,j,k) = tkefrc(i,j,k) - (0.37 * priv(i,j,k) - 0.18) &
+                     * rst(i,j,k) * tke(i,j,k) * sqrt(tke(i,j,k)) / ln
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+        else
+
+          !$acc kernels
+          !$acc loop independent collapse(3) private(ln)
+          do k = 2, nk-2
+            do j = 2, nj-2
+              do i = 2, ni-2
+                ln = (priv(i,j,k) - 1.0) * exp(oned3 * log(ds308 * rmf(i,j,3) * jcb(i,j,k))) + eps
+                tkefrc(i,j,k) = tkefrc(i,j,k) - (0.37 * priv(i,j,k) - 0.18) &
+                     * rst(i,j,k) * tke(i,j,k) * sqrt(tke(i,j,k)) / ln
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+        end if
+
+      end if
+
+    ! Anisotropic case
+    else if (isoopt == 2) then
+
+      !$acc kernels
+      !$acc loop independent collapse(3) private(ln)
+      do k = 2, nk-2
+        do j = 2, nj-2
+          do i = 2, ni-2
+            ln = (priv(i,j,k) - 1.0) * jcb(i,j,k) * dz05 + eps
+            tkefrc(i,j,k) = tkefrc(i,j,k) - (0.37 * priv(i,j,k) - 0.18) &
+                 * rst(i,j,k) * tke(i,j,k) * sqrt(tke(i,j,k)) / ln
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Isotropic case.
@@ -343,6 +423,7 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
+#endif
 
 call profile_stop(prof_id1, loop_len)
 

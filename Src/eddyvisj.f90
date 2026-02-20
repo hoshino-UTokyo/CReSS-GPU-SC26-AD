@@ -177,6 +177,46 @@ if (dump_call_count_eddyvisj == DUMP_TARGET_eddyvisj .and. .not. dump_done_eddyv
   call dump_array_3d('rkv_in.bin', rkv, 0, ni+1, 0, nj+1, 1, nk)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_098)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (mfcopt .eq. 0) then
+
+      !$acc kernels
+      !$acc loop independent collapse(3) private(jcbiv)
+      do k = 1, nk-1
+        do j = 1, nj-1
+          do i = 1, ni-1
+            jcbiv = 1.e0 / jcb(i,j,k)
+            rkh(i,j,k) = jcbiv * rkh(i,j,k)
+            rkv(i,j,k) = jcbiv * rkv(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+    else
+
+      !$acc kernels
+      !$acc loop independent collapse(3) private(jcbiv)
+      do k = 1, nk-1
+        do j = 1, nj-1
+          do i = 1, ni-1
+            jcbiv = 1.e0 / jcb(i,j,k)
+            rkh(i,j,k) = jcbiv * mf(i,j) * rkh(i,j,k)
+            rkv(i,j,k) = jcbiv * rkv(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       if(mfcopt.eq.0) then
@@ -222,6 +262,7 @@ end if
       end if
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_eddyvisj == DUMP_TARGET_eddyvisj .and. .not. dump_done_eddyvisj) then

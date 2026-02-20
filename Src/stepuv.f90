@@ -350,6 +350,40 @@ end if
 
 call profile_start(prof_id1)
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_313)
+! GPU version (OpenACC)
+
+    ! Update u velocity
+    !$acc kernels
+    !$acc loop independent
+    do k = 2, nk-2
+      !$acc loop independent
+      do j = 2, nj-2
+        !$acc loop independent
+        do i = 2, ni-1
+          uf(i,j,k) = uf(i,j,k) + dts * (ufrc(i,j,k) + usml(i,j,k)) / rst8u(i,j,k)
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    ! Update v velocity
+    !$acc kernels
+    !$acc loop independent
+    do k = 2, nk-2
+      !$acc loop independent
+      do j = 2, nj-1
+        !$acc loop independent
+        do i = 2, ni-2
+          vf(i,j,k) = vf(i,j,k) + dts * (vfrc(i,j,k) + vsml(i,j,k)) / rst8v(i,j,k)
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+#else
+! CPU version (OpenMP) - Original code preserved
+
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-2
@@ -377,6 +411,7 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
+#endif
 
 call profile_stop(prof_id1, loop_len)
 

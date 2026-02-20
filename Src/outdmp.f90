@@ -466,6 +466,37 @@ if (dump_call_count_outdmp == DUMP_TARGET_outdmp .and. .not. dump_done_outdmp) t
   ! ! FIXME: zsth is array - call dump_scalar_r('zsth', zsth)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_217)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+        if(fdmp(1:3).eq.'act') then
+
+          if(mod(dmplev,10).eq.2) then
+
+            !$acc kernels
+            !$acc loop independent
+            do k=2,nk-2
+              z1d(k)=dz*(real(k)-1.5e0)
+            end do
+            !$acc end kernels
+
+          else if(mod(dmplev,10).eq.3) then
+
+            !$acc kernels
+            !$acc loop independent
+            do k=2,nk-2
+              z1d(k)=.5e0*(zsth(k)+zsth(k+1))
+            end do
+            !$acc end kernels
+
+          end if
+
+        end if
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
         if(fdmp(1:3).eq.'act') then
@@ -495,6 +526,7 @@ end if
         end if
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_outdmp == DUMP_TARGET_outdmp .and. .not. dump_done_outdmp) then

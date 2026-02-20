@@ -264,6 +264,23 @@ end if
 
 call profile_start(prof_id1)
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_308)
+! GPU version (OpenACC)
+
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 2, nk-2
+      do j = 2, nj-2
+        do i = 2, ni-2
+          ppf(i,j,k) = ppf(i,j,k) + dts * fp(i,j,k) / jcb(i,j,k)
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+#else
+! CPU version (OpenMP) - Original code preserved
+
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-2
@@ -281,6 +298,7 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
+#endif
 
 call profile_stop(prof_id1, loop_len)
 

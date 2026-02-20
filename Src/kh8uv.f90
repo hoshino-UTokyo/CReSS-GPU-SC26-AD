@@ -191,6 +191,133 @@ if (dump_call_count_kh8uv == DUMP_TARGET_kh8uv .and. .not. dump_done_kh8uv) then
   call dump_array_3d('rkh_in.bin', rkh, 0, ni+1, 0, nj+1, 1, nk)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_182)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (mfcopt .eq. 1 .and. (mpopt .eq. 0 .or. mpopt .eq. 10)) then
+
+      ! Pass 1: Compute rkh8u using original rkh
+      !$acc kernels
+      !$acc loop independent
+      do k = 1, nk-1
+        !$acc loop independent
+        do j = 1, nj-1
+          !$acc loop independent
+          do i = 2, ni-1
+            rkh8u(i,j,k) = rkh(i-1,j,k) + rkh(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      ! Pass 2: Modify rkh with map scale factor
+      !$acc kernels
+      !$acc loop independent
+      do k = 1, nk-1
+        !$acc loop independent
+        do j = 1, nj-1
+          !$acc loop independent
+          do i = 1, ni-1
+            rkh(i,j,k) = rmf(i,j,2) * rkh(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      ! Pass 3: Compute rkh8v using modified rkh
+      !$acc kernels
+      !$acc loop independent
+      do k = 1, nk-1
+        !$acc loop independent
+        do j = 2, nj-1
+          !$acc loop independent
+          do i = 1, ni-1
+            rkh8v(i,j,k) = rkh(i,j-1,k) + rkh(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+    else if (mfcopt .eq. 1 .and. mpopt .eq. 5) then
+
+      ! Pass 1: Compute rkh8v using original rkh
+      !$acc kernels
+      !$acc loop independent
+      do k = 1, nk-1
+        !$acc loop independent
+        do j = 2, nj-1
+          !$acc loop independent
+          do i = 1, ni-1
+            rkh8v(i,j,k) = rkh(i,j-1,k) + rkh(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      ! Pass 2: Modify rkh with map scale factor
+      !$acc kernels
+      !$acc loop independent
+      do k = 1, nk-1
+        !$acc loop independent
+        do j = 1, nj-1
+          !$acc loop independent
+          do i = 1, ni-1
+            rkh(i,j,k) = rmf(i,j,2) * rkh(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      ! Pass 3: Compute rkh8u using modified rkh
+      !$acc kernels
+      !$acc loop independent
+      do k = 1, nk-1
+        !$acc loop independent
+        do j = 1, nj-1
+          !$acc loop independent
+          do i = 2, ni-1
+            rkh8u(i,j,k) = rkh(i-1,j,k) + rkh(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+    else
+
+      ! No map scale factor correction: compute both in parallel
+      !$acc kernels
+      !$acc loop independent
+      do k = 1, nk-1
+        !$acc loop independent
+        do j = 1, nj-1
+          !$acc loop independent
+          do i = 2, ni-1
+            rkh8u(i,j,k) = rkh(i-1,j,k) + rkh(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      !$acc loop independent
+      do k = 1, nk-1
+        !$acc loop independent
+        do j = 2, nj-1
+          !$acc loop independent
+          do i = 1, ni-1
+            rkh8v(i,j,k) = rkh(i,j-1,k) + rkh(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       if(mfcopt.eq.1.and.(mpopt.eq.0.or.mpopt.eq.10)) then
@@ -310,6 +437,8 @@ end if
       end if
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_kh8uv == DUMP_TARGET_kh8uv .and. .not. dump_done_kh8uv) then

@@ -329,6 +329,138 @@ if (dump_call_count_more0q == DUMP_TARGET_more0q .and. .not. dump_done_more0q) t
   call dump_array_3d('shgr_in.bin', shgr, 0, ni+1, 0, nj+1, 1, nk)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_204)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+    ! First loop: evaporation rate adjustment
+    !$acc kernels
+    !$acc loop independent
+    do j = 1, nj-1
+      !$acc loop independent
+      do i = 1, ni-1
+        if (qrp(i,j,1) > thresq) then
+          vdvr(i,j,1) = max(vdvr(i,j,1), 0.0e0)
+        end if
+        if (qip(i,j,1) > thresq) then
+          vdvi(i,j,1) = max(vdvi(i,j,1), 0.0e0)
+        end if
+        if (qsp(i,j,1) > thresq) then
+          vdvs(i,j,1) = max(vdvs(i,j,1), 0.0e0)
+        end if
+        if (qgp(i,j,1) > thresq) then
+          vdvg(i,j,1) = max(vdvg(i,j,1), 0.0e0)
+        end if
+      end do
+    end do
+    !$acc end kernels
+
+    ! Second loop: microphysical rate scaling
+    !$acc kernels
+    !$acc loop independent
+    do j = 1, nj-1
+      !$acc loop independent private(sink, handle)
+      do i = 1, ni-1
+        ! Cloud water
+        if (qcp(i,j,1) > thresq) then
+          sink = nuci(i,j,1) + clcr(i,j,1) + clcs(i,j,1) + clcg(i,j,1) &
+               + cncr(i,j,1) - mlic(i,j,1)
+          if (qcf(i,j,1) < sink) then
+            handle = qcf(i,j,1) / sink
+            nuci(i,j,1) = nuci(i,j,1) * handle
+            clcr(i,j,1) = clcr(i,j,1) * handle
+            clcs(i,j,1) = clcs(i,j,1) * handle
+            clcg(i,j,1) = clcg(i,j,1) * handle
+            cncr(i,j,1) = cncr(i,j,1) * handle
+            mlic(i,j,1) = mlic(i,j,1) * handle
+          end if
+        end if
+
+        ! Cloud ice
+        if (qip(i,j,1) > thresq) then
+          sink = clir(i,j,1) + clis(i,j,1) + clig(i,j,1) + cnis(i,j,1) &
+               + mlic(i,j,1) - vdvi(i,j,1) - nuvi(i,j,1) - nuci(i,j,1) &
+               - spsi(i,j,1) - spgi(i,j,1)
+          if (qif(i,j,1) < sink) then
+            handle = qif(i,j,1) / sink
+            clir(i,j,1) = clir(i,j,1) * handle
+            clis(i,j,1) = clis(i,j,1) * handle
+            clig(i,j,1) = clig(i,j,1) * handle
+            cnis(i,j,1) = cnis(i,j,1) * handle
+            mlic(i,j,1) = mlic(i,j,1) * handle
+            vdvi(i,j,1) = vdvi(i,j,1) * handle
+            nuvi(i,j,1) = nuvi(i,j,1) * handle
+            nuci(i,j,1) = nuci(i,j,1) * handle
+            spsi(i,j,1) = spsi(i,j,1) * handle
+            spgi(i,j,1) = spgi(i,j,1) * handle
+          end if
+        end if
+
+        ! Rain water
+        if (qrp(i,j,1) > thresq) then
+          sink = clri(i,j,1) + clrs(i,j,1) + clrg(i,j,1) - clcr(i,j,1) &
+               - vdvr(i,j,1) - cncr(i,j,1) - mlsr(i,j,1) - mlgr(i,j,1)
+          if (qrf(i,j,1) < sink) then
+            handle = qrf(i,j,1) / sink
+            clri(i,j,1) = clri(i,j,1) * handle
+            clrs(i,j,1) = clrs(i,j,1) * handle
+            clrg(i,j,1) = clrg(i,j,1) * handle
+            clcr(i,j,1) = clcr(i,j,1) * handle
+            vdvr(i,j,1) = vdvr(i,j,1) * handle
+            cncr(i,j,1) = cncr(i,j,1) * handle
+            mlsr(i,j,1) = mlsr(i,j,1) * handle
+            mlgr(i,j,1) = mlgr(i,j,1) * handle
+          end if
+        end if
+
+        ! Snow
+        if (qsp(i,j,1) > thresq) then
+          sink = clsr(i,j,1) + clsg(i,j,1) + cnsg(i,j,1) - clcs(i,j,1) &
+               - clis(i,j,1) - clrs(i,j,1) - vdvs(i,j,1) - cnis(i,j,1) &
+               - spsi(i,j,1) - shsr(i,j,1)
+          if (qsf(i,j,1) < sink) then
+            handle = qsf(i,j,1) / sink
+            clsr(i,j,1) = clsr(i,j,1) * handle
+            clsg(i,j,1) = clsg(i,j,1) * handle
+            cnsg(i,j,1) = cnsg(i,j,1) * handle
+            clcs(i,j,1) = clcs(i,j,1) * handle
+            clis(i,j,1) = clis(i,j,1) * handle
+            clrs(i,j,1) = clrs(i,j,1) * handle
+            vdvs(i,j,1) = vdvs(i,j,1) * handle
+            cnis(i,j,1) = cnis(i,j,1) * handle
+            spsi(i,j,1) = spsi(i,j,1) * handle
+            shsr(i,j,1) = shsr(i,j,1) * handle
+          end if
+        end if
+
+        ! Graupel
+        if (qgp(i,j,1) > thresq) then
+          sink = -clcg(i,j,1) - clig(i,j,1) - clrg(i,j,1) - clsg(i,j,1) &
+               - clrsg(i,j,1) - vdvg(i,j,1) - cnsg(i,j,1) - spgi(i,j,1) &
+               - frrg(i,j,1) - shgr(i,j,1)
+          if (qgf(i,j,1) < sink) then
+            handle = qgf(i,j,1) / sink
+            clcg(i,j,1) = clcg(i,j,1) * handle
+            clig(i,j,1) = clig(i,j,1) * handle
+            clrg(i,j,1) = clrg(i,j,1) * handle
+            clsg(i,j,1) = clsg(i,j,1) * handle
+            clrsg(i,j,1) = clrsg(i,j,1) * handle
+            vdvg(i,j,1) = vdvg(i,j,1) * handle
+            cnsg(i,j,1) = cnsg(i,j,1) * handle
+            spgi(i,j,1) = spgi(i,j,1) * handle
+            frrg(i,j,1) = frrg(i,j,1) * handle
+            shgr(i,j,1) = shgr(i,j,1) * handle
+          end if
+        end if
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !!! In the case nk = 1.
@@ -756,6 +888,7 @@ end if
 !!! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_more0q == DUMP_TARGET_more0q .and. .not. dump_done_more0q) then

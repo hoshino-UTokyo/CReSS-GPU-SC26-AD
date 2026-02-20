@@ -220,6 +220,55 @@ end if
 
 call profile_start(prof_id1)
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_027)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if(abs(wbc).ne.1.or.abs(ebc).ne.1 &
+         .or.abs(sbc).ne.1.or.abs(nbc).ne.1) then
+
+      if(ebsw.eq.1.and.isub.eq.0.and.jsub.eq.0) then
+        !$acc kernels
+        !$acc loop independent
+        do k=1,kmax
+          var(isw,jss,k)=.5e0*(var(iswp1,jss,k)+var(isw,jssp1,k))
+        end do
+        !$acc end kernels
+      end if
+
+      if(ebse.eq.1.and.isub.eq.nisub-1.and.jsub.eq.0) then
+        !$acc kernels
+        !$acc loop independent
+        do k=1,kmax
+          var(ise,jss,k)=.5e0*(var(isem1,jss,k)+var(ise,jssp1,k))
+        end do
+        !$acc end kernels
+      end if
+
+      if(ebnw.eq.1.and.isub.eq.0.and.jsub.eq.njsub-1) then
+        !$acc kernels
+        !$acc loop independent
+        do k=1,kmax
+          var(isw,jsn,k)=.5e0*(var(iswp1,jsn,k)+var(isw,jsnm1,k))
+        end do
+        !$acc end kernels
+      end if
+
+      if(ebne.eq.1.and.isub.eq.nisub-1.and.jsub.eq.njsub-1) then
+        !$acc kernels
+        !$acc loop independent
+        do k=1,kmax
+          var(ise,jsn,k)=.5e0*(var(isem1,jsn,k)+var(ise,jsnm1,k))
+        end do
+        !$acc end kernels
+      end if
+
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
       if(abs(wbc).ne.1.or.abs(ebc).ne.1                                 &
@@ -276,6 +325,7 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
+#endif
 
 call profile_stop(prof_id1, loop_len)
 

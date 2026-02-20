@@ -320,6 +320,377 @@ if (dump_call_count_exbcpt == DUMP_TARGET_exbcpt .and. .not. dump_done_exbcpt) t
   call dump_scalar_r('tpdt', tpdt)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_102)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+    ! Southwest corner
+    if (ebs == 1 .and. jsub == 0) then
+      if (exbvar(5:5) == '-') then
+        if (abs(wbc) /= 1 .and. abs(ebc) /= 1) then
+          if (advopt <= 3) then
+            if (ebw == 1 .and. isub == 0) then
+              !$acc kernels
+              !$acc loop independent private(ptb1,ptb2i,ptb2j,radwe,radsn)
+              do k = 2, nk-2
+                ptb1 = ptpgpv(1,1,k) + ptptd(1,1,k) * gtinc1
+                ptb2i = ptpgpv(2,1,k) + ptptd(2,1,k) * gtinc2
+                ptb2j = ptpgpv(1,2,k) + ptptd(1,2,k) * gtinc2
+                radwe = ((ptp(2,1,k) - ptpp(1,1,k)) - (ptb2i - ptb1)) &
+                     * ptcpx(1,k,1) / (1.0e0 - ptcpx(1,k,1))
+                radsn = ((ptp(1,2,k) - ptpp(1,1,k)) - (ptb2j - ptb1)) &
+                     * ptcpy(1,k,1) / (1.0e0 - ptcpy(1,k,1))
+                ptpf(1,1,k) = ptpp(1,1,k) + ptptd(1,1,k) * dt2 &
+                     - 2.0e0 * (radwe + radsn) - dmpdt * (ptpp(1,1,k) - ptb1)
+              end do
+              !$acc end kernels
+            end if
+            if (ebe == 1 .and. isub == nisub-1) then
+              !$acc kernels
+              !$acc loop independent private(ptb1,ptb2i,ptb2j,radwe,radsn)
+              do k = 2, nk-2
+                ptb1 = ptpgpv(nim1,1,k) + ptptd(nim1,1,k) * gtinc1
+                ptb2i = ptpgpv(nim2,1,k) + ptptd(nim2,1,k) * gtinc2
+                ptb2j = ptpgpv(nim1,2,k) + ptptd(nim1,2,k) * gtinc2
+                radwe = ((ptp(nim2,1,k) - ptpp(nim1,1,k)) - (ptb2i - ptb1)) &
+                     * ptcpx(1,k,2) / (1.0e0 + ptcpx(1,k,2))
+                radsn = ((ptp(nim1,2,k) - ptpp(nim1,1,k)) - (ptb2j - ptb1)) &
+                     * ptcpy(nim1,k,1) / (1.0e0 - ptcpy(nim1,k,1))
+                ptpf(nim1,1,k) = ptpp(nim1,1,k) + ptptd(nim1,1,k) * dt2 &
+                     + 2.0e0 * (radwe - radsn) - dmpdt * (ptpp(nim1,1,k) - ptb1)
+              end do
+              !$acc end kernels
+            end if
+          else
+            if (ebw == 1 .and. isub == 0) then
+              !$acc kernels
+              !$acc loop independent private(ptb1,ptb2i,ptb2j,radwe,radsn)
+              do k = 2, nk-2
+                ptb1 = ptpgpv(1,1,k) + ptptd(1,1,k) * tpdt
+                ptb2i = ptpgpv(2,1,k) + ptptd(2,1,k) * tpdt
+                ptb2j = ptpgpv(1,2,k) + ptptd(1,2,k) * tpdt
+                radwe = ((ptpp(2,1,k) - ptpp(1,1,k)) - (ptb2i - ptb1)) * ptcpx(1,k,1)
+                radsn = ((ptpp(1,2,k) - ptpp(1,1,k)) - (ptb2j - ptb1)) * ptcpy(1,k,1)
+                ptpf(1,1,k) = ptpp(1,1,k) + ptptd(1,1,k) * dt &
+                     - (radwe + radsn) - dmpdt * (ptpp(1,1,k) - ptb1)
+              end do
+              !$acc end kernels
+            end if
+            if (ebe == 1 .and. isub == nisub-1) then
+              !$acc kernels
+              !$acc loop independent private(ptb1,ptb2i,ptb2j,radwe,radsn)
+              do k = 2, nk-2
+                ptb1 = ptpgpv(nim1,1,k) + ptptd(nim1,1,k) * tpdt
+                ptb2i = ptpgpv(nim2,1,k) + ptptd(nim2,1,k) * tpdt
+                ptb2j = ptpgpv(nim1,2,k) + ptptd(nim1,2,k) * tpdt
+                radwe = ((ptpp(nim2,1,k) - ptpp(nim1,1,k)) - (ptb2i - ptb1)) * ptcpx(1,k,2)
+                radsn = ((ptpp(nim1,2,k) - ptpp(nim1,1,k)) - (ptb2j - ptb1)) * ptcpy(nim1,k,1)
+                ptpf(nim1,1,k) = ptpp(nim1,1,k) + ptptd(nim1,1,k) * dt &
+                     + (radwe - radsn) - dmpdt * (ptpp(nim1,1,k) - ptb1)
+              end do
+              !$acc end kernels
+            end if
+          end if
+        end if
+      end if
+    end if
+
+    ! Northwest corner
+    if (ebn == 1 .and. jsub == njsub-1) then
+      if (exbvar(5:5) == '-') then
+        if (abs(wbc) /= 1 .and. abs(ebc) /= 1) then
+          if (advopt <= 3) then
+            if (ebw == 1 .and. isub == 0) then
+              !$acc kernels
+              !$acc loop independent private(ptb1,ptb2i,ptb2j,radwe,radsn)
+              do k = 2, nk-2
+                ptb1 = ptpgpv(1,njm1,k) + ptptd(1,njm1,k) * gtinc1
+                ptb2i = ptpgpv(2,njm1,k) + ptptd(2,njm1,k) * gtinc2
+                ptb2j = ptpgpv(1,njm2,k) + ptptd(1,njm2,k) * gtinc2
+                radwe = ((ptp(2,njm1,k) - ptpp(1,njm1,k)) - (ptb2i - ptb1)) &
+                     * ptcpx(njm1,k,1) / (1.0e0 - ptcpx(njm1,k,1))
+                radsn = ((ptp(1,njm2,k) - ptpp(1,njm1,k)) - (ptb2j - ptb1)) &
+                     * ptcpy(1,k,2) / (1.0e0 + ptcpy(1,k,2))
+                ptpf(1,njm1,k) = ptpp(1,njm1,k) + ptptd(1,njm1,k) * dt2 &
+                     - 2.0e0 * (radwe - radsn) - dmpdt * (ptpp(1,njm1,k) - ptb1)
+              end do
+              !$acc end kernels
+            end if
+            if (ebe == 1 .and. isub == nisub-1) then
+              !$acc kernels
+              !$acc loop independent private(ptb1,ptb2i,ptb2j,radwe,radsn)
+              do k = 2, nk-2
+                ptb1 = ptpgpv(nim1,njm1,k) + ptptd(nim1,njm1,k) * gtinc1
+                ptb2i = ptpgpv(nim2,njm1,k) + ptptd(nim2,njm1,k) * gtinc2
+                ptb2j = ptpgpv(nim1,njm2,k) + ptptd(nim1,njm2,k) * gtinc2
+                radwe = ((ptp(nim2,njm1,k) - ptpp(nim1,njm1,k)) - (ptb2i - ptb1)) &
+                     * ptcpx(njm1,k,2) / (1.0e0 + ptcpx(njm1,k,2))
+                radsn = ((ptp(nim1,njm2,k) - ptpp(nim1,njm1,k)) - (ptb2j - ptb1)) &
+                     * ptcpy(nim1,k,2) / (1.0e0 + ptcpy(nim1,k,2))
+                ptpf(nim1,njm1,k) = ptpp(nim1,njm1,k) + ptptd(nim1,njm1,k) * dt2 &
+                     + 2.0e0 * (radwe + radsn) - dmpdt * (ptpp(nim1,njm1,k) - ptb1)
+              end do
+              !$acc end kernels
+            end if
+          else
+            if (ebw == 1 .and. isub == 0) then
+              !$acc kernels
+              !$acc loop independent private(ptb1,ptb2i,ptb2j,radwe,radsn)
+              do k = 2, nk-2
+                ptb1 = ptpgpv(1,njm1,k) + ptptd(1,njm1,k) * tpdt
+                ptb2i = ptpgpv(2,njm1,k) + ptptd(2,njm1,k) * tpdt
+                ptb2j = ptpgpv(1,njm2,k) + ptptd(1,njm2,k) * tpdt
+                radwe = ((ptpp(2,njm1,k) - ptpp(1,njm1,k)) - (ptb2i - ptb1)) * ptcpx(njm1,k,1)
+                radsn = ((ptpp(1,njm2,k) - ptpp(1,njm1,k)) - (ptb2j - ptb1)) * ptcpy(1,k,2)
+                ptpf(1,njm1,k) = ptpp(1,njm1,k) + ptptd(1,njm1,k) * dt &
+                     - (radwe - radsn) - dmpdt * (ptpp(1,njm1,k) - ptb1)
+              end do
+              !$acc end kernels
+            end if
+            if (ebe == 1 .and. isub == nisub-1) then
+              !$acc kernels
+              !$acc loop independent private(ptb1,ptb2i,ptb2j,radwe,radsn)
+              do k = 2, nk-2
+                ptb1 = ptpgpv(nim1,njm1,k) + ptptd(nim1,njm1,k) * tpdt
+                ptb2i = ptpgpv(nim2,njm1,k) + ptptd(nim2,njm1,k) * tpdt
+                ptb2j = ptpgpv(nim1,njm2,k) + ptptd(nim1,njm2,k) * tpdt
+                radwe = ((ptpp(nim2,njm1,k) - ptpp(nim1,njm1,k)) - (ptb2i - ptb1)) * ptcpx(njm1,k,2)
+                radsn = ((ptpp(nim1,njm2,k) - ptpp(nim1,njm1,k)) - (ptb2j - ptb1)) * ptcpy(nim1,k,2)
+                ptpf(nim1,njm1,k) = ptpp(nim1,njm1,k) + ptptd(nim1,njm1,k) * dt &
+                     + (radwe + radsn) - dmpdt * (ptpp(nim1,njm1,k) - ptb1)
+              end do
+              !$acc end kernels
+            end if
+          end if
+        end if
+      end if
+    end if
+
+    ! West boundary
+    if (ebw == 1 .and. isub == 0) then
+      if (abs(wbc) /= 1) then
+        if (advopt <= 3) then
+          if (exbvar(5:5) == '-') then
+            !$acc kernels
+            !$acc loop independent collapse(2) private(ptb1,ptb2,gamma)
+            do k = 2, nk-2
+              do j = 2, nj-2
+                gamma = 2.0e0 * ptcpx(j,k,1) / (1.0e0 - ptcpx(j,k,1))
+                ptb1 = ptpgpv(1,j,k) + ptptd(1,j,k) * gtinc1
+                ptb2 = ptpgpv(2,j,k) + ptptd(2,j,k) * gtinc2
+                ptpf(1,j,k) = ptpp(1,j,k) + ptptd(1,j,k) * dt2 &
+                     - gamma * ((ptp(2,j,k) - ptpp(1,j,k)) - (ptb2 - ptb1)) &
+                     - dmpdt * (ptpp(1,j,k) - ptb1)
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k = 2, nk-2
+              do j = 2, nj-2
+                ptpf(1,j,k) = ptpp(1,j,k) + ptptd(1,j,k) * dt2
+              end do
+            end do
+            !$acc end kernels
+          end if
+        else
+          if (exbvar(5:5) == '-') then
+            !$acc kernels
+            !$acc loop independent collapse(2) private(ptb1,ptb2)
+            do k = 2, nk-2
+              do j = 2, nj-2
+                ptb1 = ptpgpv(1,j,k) + ptptd(1,j,k) * tpdt
+                ptb2 = ptpgpv(2,j,k) + ptptd(2,j,k) * tpdt
+                ptpf(1,j,k) = ptpp(1,j,k) + ptptd(1,j,k) * dt &
+                     - ptcpx(j,k,1) * ((ptpp(2,j,k) - ptpp(1,j,k)) - (ptb2 - ptb1)) &
+                     - dmpdt * (ptpp(1,j,k) - ptb1)
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k = 2, nk-2
+              do j = 2, nj-2
+                ptpf(1,j,k) = ptpp(1,j,k) + ptptd(1,j,k) * dt
+              end do
+            end do
+            !$acc end kernels
+          end if
+        end if
+      end if
+    end if
+
+    ! East boundary
+    if (ebe == 1 .and. isub == nisub-1) then
+      if (abs(ebc) /= 1) then
+        if (advopt <= 3) then
+          if (exbvar(5:5) == '-') then
+            !$acc kernels
+            !$acc loop independent collapse(2) private(ptb1,ptb2,gamma)
+            do k = 2, nk-2
+              do j = 2, nj-2
+                gamma = 2.0e0 * ptcpx(j,k,2) / (1.0e0 + ptcpx(j,k,2))
+                ptb1 = ptpgpv(nim1,j,k) + ptptd(nim1,j,k) * gtinc1
+                ptb2 = ptpgpv(nim2,j,k) + ptptd(nim2,j,k) * gtinc2
+                ptpf(nim1,j,k) = ptpp(nim1,j,k) + ptptd(nim1,j,k) * dt2 &
+                     + gamma * ((ptp(nim2,j,k) - ptpp(nim1,j,k)) - (ptb2 - ptb1)) &
+                     - dmpdt * (ptpp(nim1,j,k) - ptb1)
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k = 2, nk-2
+              do j = 2, nj-2
+                ptpf(nim1,j,k) = ptpp(nim1,j,k) + ptptd(nim1,j,k) * dt2
+              end do
+            end do
+            !$acc end kernels
+          end if
+        else
+          if (exbvar(5:5) == '-') then
+            !$acc kernels
+            !$acc loop independent collapse(2) private(ptb1,ptb2)
+            do k = 2, nk-2
+              do j = 2, nj-2
+                ptb1 = ptpgpv(nim1,j,k) + ptptd(nim1,j,k) * tpdt
+                ptb2 = ptpgpv(nim2,j,k) + ptptd(nim2,j,k) * tpdt
+                ptpf(nim1,j,k) = ptpp(nim1,j,k) + ptptd(nim1,j,k) * dt &
+                     + ptcpx(j,k,2) * ((ptpp(nim2,j,k) - ptpp(nim1,j,k)) - (ptb2 - ptb1)) &
+                     - dmpdt * (ptpp(nim1,j,k) - ptb1)
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k = 2, nk-2
+              do j = 2, nj-2
+                ptpf(nim1,j,k) = ptpp(nim1,j,k) + ptptd(nim1,j,k) * dt
+              end do
+            end do
+            !$acc end kernels
+          end if
+        end if
+      end if
+    end if
+
+    ! South boundary
+    if (ebs == 1 .and. jsub == 0) then
+      if (exbvar(5:5) == '-') then
+        if (advopt <= 3) then
+          !$acc kernels
+          !$acc loop independent collapse(2) private(ptb1,ptb2,gamma)
+          do k = 2, nk-2
+            do i = 2, ni-2
+              gamma = 2.0e0 * ptcpy(i,k,1) / (1.0e0 - ptcpy(i,k,1))
+              ptb1 = ptpgpv(i,1,k) + ptptd(i,1,k) * gtinc1
+              ptb2 = ptpgpv(i,2,k) + ptptd(i,2,k) * gtinc2
+              ptpf(i,1,k) = ptpp(i,1,k) + ptptd(i,1,k) * dt2 &
+                   - gamma * ((ptp(i,2,k) - ptpp(i,1,k)) - (ptb2 - ptb1)) &
+                   - dmpdt * (ptpp(i,1,k) - ptb1)
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent collapse(2) private(ptb1,ptb2)
+          do k = 2, nk-2
+            do i = 2, ni-2
+              ptb1 = ptpgpv(i,1,k) + ptptd(i,1,k) * tpdt
+              ptb2 = ptpgpv(i,2,k) + ptptd(i,2,k) * tpdt
+              ptpf(i,1,k) = ptpp(i,1,k) + ptptd(i,1,k) * dt &
+                   - ptcpy(i,k,1) * ((ptpp(i,2,k) - ptpp(i,1,k)) - (ptb2 - ptb1)) &
+                   - dmpdt * (ptpp(i,1,k) - ptb1)
+            end do
+          end do
+          !$acc end kernels
+        end if
+      else
+        if (advopt <= 3) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k = 2, nk-2
+            do i = 1, ni-1
+              ptpf(i,1,k) = ptpp(i,1,k) + ptptd(i,1,k) * dt2
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k = 2, nk-2
+            do i = 1, ni-1
+              ptpf(i,1,k) = ptpp(i,1,k) + ptptd(i,1,k) * dt
+            end do
+          end do
+          !$acc end kernels
+        end if
+      end if
+    end if
+
+    ! North boundary
+    if (ebn == 1 .and. jsub == njsub-1) then
+      if (exbvar(5:5) == '-') then
+        if (advopt <= 3) then
+          !$acc kernels
+          !$acc loop independent collapse(2) private(ptb1,ptb2,gamma)
+          do k = 2, nk-2
+            do i = 2, ni-2
+              gamma = 2.0e0 * ptcpy(i,k,2) / (1.0e0 + ptcpy(i,k,2))
+              ptb1 = ptpgpv(i,njm1,k) + ptptd(i,njm1,k) * gtinc1
+              ptb2 = ptpgpv(i,njm2,k) + ptptd(i,njm2,k) * gtinc2
+              ptpf(i,njm1,k) = ptpp(i,njm1,k) + ptptd(i,njm1,k) * dt2 &
+                   + gamma * ((ptp(i,njm2,k) - ptpp(i,njm1,k)) - (ptb2 - ptb1)) &
+                   - dmpdt * (ptpp(i,njm1,k) - ptb1)
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent collapse(2) private(ptb1,ptb2)
+          do k = 2, nk-2
+            do i = 2, ni-2
+              ptb1 = ptpgpv(i,njm1,k) + ptptd(i,njm1,k) * tpdt
+              ptb2 = ptpgpv(i,njm2,k) + ptptd(i,njm2,k) * tpdt
+              ptpf(i,njm1,k) = ptpp(i,njm1,k) + ptptd(i,njm1,k) * dt &
+                   + ptcpy(i,k,2) * ((ptpp(i,njm2,k) - ptpp(i,njm1,k)) - (ptb2 - ptb1)) &
+                   - dmpdt * (ptpp(i,njm1,k) - ptb1)
+            end do
+          end do
+          !$acc end kernels
+        end if
+      else
+        if (advopt <= 3) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k = 2, nk-2
+            do i = 1, ni-1
+              ptpf(i,njm1,k) = ptpp(i,njm1,k) + ptptd(i,njm1,k) * dt2
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k = 2, nk-2
+            do i = 1, ni-1
+              ptpf(i,njm1,k) = ptpp(i,njm1,k) + ptptd(i,njm1,k) * dt
+            end do
+          end do
+          !$acc end kernels
+        end if
+      end if
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Force the boundary value to the external boundary value at the four
@@ -886,6 +1257,8 @@ end if
 ! -----
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_exbcpt == DUMP_TARGET_exbcpt .and. .not. dump_done_exbcpt) then

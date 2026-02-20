@@ -299,6 +299,224 @@ if (dump_call_count_prodctwg == DUMP_TARGET_prodctwg .and. .not. dump_done_prodc
   call dump_scalar_r('esgiv', esgiv)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_240)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+    if (nk == 1) then
+
+      if (abs(cphopt) == 2) then
+        !$acc kernels
+        !$acc loop independent
+        do j = 1, nj-1
+          !$acc loop independent private(pgdry,lfice,cligw,clsgw,sink,a)
+          do i = 1, ni-1
+            if (qg(i,j,1) > thresq) then
+              if (tcel(i,j,1) < t0cel) then
+                pgdry = clcg(i,j,1) + clrg(i,j,1) + clig(i,j,1) + clsg(i,j,1)
+                lfice = lf(i,j,1) + cw*tcel(i,j,1)
+                cligw = eigiv*clig(i,j,1)
+                clsgw = esgiv*clsg(i,j,1)
+                pgwet(i,j,1) = cc2dtn*vntg(i,j,1) &
+                     *(lv(i,j,1)*dv(i,j,1)*rbr(i,j,1)*qvsst0(i,j,1) &
+                     +kp(i,j,1)*tcel(i,j,1))/(lfice*rbr(i,j,1)) &
+                     +(cligw+clsgw)*(1.e0-ci*tcel(i,j,1)/lfice)
+                if (pgwet(i,j,1) > 0.e0 .and. pgwet(i,j,1) < pgdry) then
+                  clig(i,j,1) = cligw
+                  clsg(i,j,1) = clsgw
+                  sink = clir(i,j,1) + clis(i,j,1) + clig(i,j,1)
+                  if (qi(i,j,1) < sink) then
+                    a = qi(i,j,1)/sink
+                    clir(i,j,1) = clir(i,j,1)*a
+                    clis(i,j,1) = clis(i,j,1)*a
+                    clig(i,j,1) = clig(i,j,1)*a
+                  end if
+                  sink = clsr(i,j,1) + clsg(i,j,1)
+                  if (qs(i,j,1) < sink) then
+                    a = qs(i,j,1)/sink
+                    clsr(i,j,1) = clsr(i,j,1)*a
+                    clsg(i,j,1) = clsg(i,j,1)*a
+                  end if
+                else
+                  pgwet(i,j,1) = -1.e0
+                end if
+              else
+                pgwet(i,j,1) = -1.e0
+              end if
+            else
+              pgwet(i,j,1) = -1.e0
+            end if
+          end do
+        end do
+        !$acc end kernels
+
+      else if (abs(cphopt) >= 3) then
+        !$acc kernels
+        !$acc loop independent
+        do j = 1, nj-1
+          !$acc loop independent private(pgdry,lfice,cligw,clsgw,sink,a)
+          do i = 1, ni-1
+            if (qg(i,j,1) > thresq) then
+              if (tcel(i,j,1) < t0cel) then
+                pgdry = clcg(i,j,1) + clrg(i,j,1) + clig(i,j,1) + clsg(i,j,1)
+                lfice = lf(i,j,1) + cw*tcel(i,j,1)
+                cligw = eigiv*clig(i,j,1)
+                clsgw = esgiv*clsg(i,j,1)
+                pgwet(i,j,1) = cc2dtn*vntg(i,j,1) &
+                     *(lv(i,j,1)*dv(i,j,1)*rbr(i,j,1)*qvsst0(i,j,1) &
+                     +kp(i,j,1)*tcel(i,j,1))/(lfice*rbr(i,j,1)) &
+                     +(cligw+clsgw)*(1.e0-ci*tcel(i,j,1)/lfice)
+                if (pgwet(i,j,1) > 0.e0 .and. pgwet(i,j,1) < pgdry) then
+                  clig(i,j,1) = cligw
+                  clsg(i,j,1) = clsgw
+                  clsgn(i,j,1) = esgiv*clsgn(i,j,1)
+                  sink = clir(i,j,1) + clis(i,j,1) + clig(i,j,1)
+                  if (qi(i,j,1) < sink) then
+                    a = qi(i,j,1)/sink
+                    clir(i,j,1) = clir(i,j,1)*a
+                    clis(i,j,1) = clis(i,j,1)*a
+                    clig(i,j,1) = clig(i,j,1)*a
+                  end if
+                  sink = clsr(i,j,1) + clsg(i,j,1)
+                  if (qs(i,j,1) < sink) then
+                    a = qs(i,j,1)/sink
+                    clsr(i,j,1) = clsr(i,j,1)*a
+                    clsg(i,j,1) = clsg(i,j,1)*a
+                  end if
+                  sink = clsrn(i,j,1) + clsgn(i,j,1)
+                  if (ncs(i,j,1) < sink) then
+                    a = ncs(i,j,1)/sink
+                    clsrn(i,j,1) = clsrn(i,j,1)*a
+                    clsgn(i,j,1) = clsgn(i,j,1)*a
+                  end if
+                else
+                  pgwet(i,j,1) = -1.e0
+                end if
+              else
+                pgwet(i,j,1) = -1.e0
+              end if
+            else
+              pgwet(i,j,1) = -1.e0
+            end if
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+    else
+      ! nk > 1
+
+      if (abs(cphopt) == 2) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, nk-1
+          !$acc loop independent
+          do j = 1, nj-1
+            !$acc loop independent private(pgdry,lfice,cligw,clsgw,sink,a)
+            do i = 1, ni-1
+              if (qg(i,j,k) > thresq) then
+                if (tcel(i,j,k) < t0cel) then
+                  pgdry = clcg(i,j,k) + clrg(i,j,k) + clig(i,j,k) + clsg(i,j,k)
+                  lfice = lf(i,j,k) + cw*tcel(i,j,k)
+                  cligw = eigiv*clig(i,j,k)
+                  clsgw = esgiv*clsg(i,j,k)
+                  pgwet(i,j,k) = cc2dtn*vntg(i,j,k) &
+                       *(lv(i,j,k)*dv(i,j,k)*rbr(i,j,k)*qvsst0(i,j,k) &
+                       +kp(i,j,k)*tcel(i,j,k))/(lfice*rbr(i,j,k)) &
+                       +(cligw+clsgw)*(1.e0-ci*tcel(i,j,k)/lfice)
+                  if (pgwet(i,j,k) > 0.e0 .and. pgwet(i,j,k) < pgdry) then
+                    clig(i,j,k) = cligw
+                    clsg(i,j,k) = clsgw
+                    sink = clir(i,j,k) + clis(i,j,k) + clig(i,j,k)
+                    if (qi(i,j,k) < sink) then
+                      a = qi(i,j,k)/sink
+                      clir(i,j,k) = clir(i,j,k)*a
+                      clis(i,j,k) = clis(i,j,k)*a
+                      clig(i,j,k) = clig(i,j,k)*a
+                    end if
+                    sink = clsr(i,j,k) + clsg(i,j,k)
+                    if (qs(i,j,k) < sink) then
+                      a = qs(i,j,k)/sink
+                      clsr(i,j,k) = clsr(i,j,k)*a
+                      clsg(i,j,k) = clsg(i,j,k)*a
+                    end if
+                  else
+                    pgwet(i,j,k) = -1.e0
+                  end if
+                else
+                  pgwet(i,j,k) = -1.e0
+                end if
+              else
+                pgwet(i,j,k) = -1.e0
+              end if
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+      else if (abs(cphopt) >= 3) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, nk-1
+          !$acc loop independent
+          do j = 1, nj-1
+            !$acc loop independent private(pgdry,lfice,cligw,clsgw,sink,a)
+            do i = 1, ni-1
+              if (qg(i,j,k) > thresq) then
+                if (tcel(i,j,k) < t0cel) then
+                  pgdry = clcg(i,j,k) + clrg(i,j,k) + clig(i,j,k) + clsg(i,j,k)
+                  lfice = lf(i,j,k) + cw*tcel(i,j,k)
+                  cligw = eigiv*clig(i,j,k)
+                  clsgw = esgiv*clsg(i,j,k)
+                  pgwet(i,j,k) = cc2dtn*vntg(i,j,k) &
+                       *(lv(i,j,k)*dv(i,j,k)*rbr(i,j,k)*qvsst0(i,j,k) &
+                       +kp(i,j,k)*tcel(i,j,k))/(lfice*rbr(i,j,k)) &
+                       +(cligw+clsgw)*(1.e0-ci*tcel(i,j,k)/lfice)
+                  if (pgwet(i,j,k) > 0.e0 .and. pgwet(i,j,k) < pgdry) then
+                    clig(i,j,k) = cligw
+                    clsg(i,j,k) = clsgw
+                    clsgn(i,j,k) = esgiv*clsgn(i,j,k)
+                    sink = clir(i,j,k) + clis(i,j,k) + clig(i,j,k)
+                    if (qi(i,j,k) < sink) then
+                      a = qi(i,j,k)/sink
+                      clir(i,j,k) = clir(i,j,k)*a
+                      clis(i,j,k) = clis(i,j,k)*a
+                      clig(i,j,k) = clig(i,j,k)*a
+                    end if
+                    sink = clsr(i,j,k) + clsg(i,j,k)
+                    if (qs(i,j,k) < sink) then
+                      a = qs(i,j,k)/sink
+                      clsr(i,j,k) = clsr(i,j,k)*a
+                      clsg(i,j,k) = clsg(i,j,k)*a
+                    end if
+                    sink = clsrn(i,j,k) + clsgn(i,j,k)
+                    if (ncs(i,j,k) < sink) then
+                      a = ncs(i,j,k)/sink
+                      clsrn(i,j,k) = clsrn(i,j,k)*a
+                      clsgn(i,j,k) = clsgn(i,j,k)*a
+                    end if
+                  else
+                    pgwet(i,j,k) = -1.e0
+                  end if
+                else
+                  pgwet(i,j,k) = -1.e0
+                end if
+              else
+                pgwet(i,j,k) = -1.e0
+              end if
+            end do
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !! In the case nk = 1.
@@ -670,6 +888,7 @@ end if
 !! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_prodctwg == DUMP_TARGET_prodctwg .and. .not. dump_done_prodctwg) then

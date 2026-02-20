@@ -219,6 +219,66 @@ if (dump_call_count_heatsfc == DUMP_TARGET_heatsfc .and. .not. dump_done_heatsfc
   call dump_scalar_c('fmois', fmois)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_164)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (fmois(1:3) .eq. 'dry') then
+
+      !$acc kernels
+      !$acc loop independent
+      do j = 1, nj-1
+        !$acc loop independent private(tmsfc)
+        do i = 1, ni-1
+          if (land(i,j) .eq. 1) then
+            tmsfc = kai(i,j) * tice(i,j) + (1.e0 - kai(i,j)) * tund(i,j,1)
+            hs(i,j) = cp * ct(i,j) * (tmsfc - t(i,j,2))
+          else
+            hs(i,j) = cp * ct(i,j) * (tund(i,j,1) - t(i,j,2))
+          end if
+          le(i,j) = 0.e0
+        end do
+      end do
+      !$acc end kernels
+
+    else if (fmois(1:5) .eq. 'moist') then
+
+      !$acc kernels
+      !$acc loop independent
+      do j = 1, nj-1
+        !$acc loop independent private(tmsfc, lva, lsa)
+        do i = 1, ni-1
+          if (land(i,j) .lt. 0) then
+            lva = lv0 * exp((.167e0 + 3.67e-4*t(i,j,2)) * log(t0/t(i,j,2)))
+            hs(i,j) = cp * ct(i,j) * (tund(i,j,1) - t(i,j,2))
+            le(i,j) = lva * cq(i,j) * (qvsfc(i,j) - qv(i,j,2))
+          else if (land(i,j) .eq. 1) then
+            tmsfc = kai(i,j) * tice(i,j) + (1.e0 - kai(i,j)) * tund(i,j,1)
+            lva = lv0 * exp((.167e0 + 3.67e-4*t(i,j,2)) * log(t0/t(i,j,2)))
+            hs(i,j) = cp * ct(i,j) * (tmsfc - t(i,j,2))
+            le(i,j) = lva * cq(i,j) * (qvsfc(i,j) - qv(i,j,2))
+          else
+            if (t(i,j,2) .gt. tlow) then
+              lva = lv0 * exp((.167e0 + 3.67e-4*t(i,j,2)) * log(t0/t(i,j,2)))
+              hs(i,j) = cp * ct(i,j) * (tund(i,j,1) - t(i,j,2))
+              le(i,j) = lva * cq(i,j) * (qvsfc(i,j) - qv(i,j,2))
+            else
+              lsa = lv0 * exp((.167e0 + 3.67e-4*t(i,j,2)) * log(t0/t(i,j,2))) &
+                  + (lf0 + cwmci * (t(i,j,2) - t0))
+              hs(i,j) = cp * ct(i,j) * (tund(i,j,1) - t(i,j,2))
+              le(i,j) = lsa * cq(i,j) * (qvsfc(i,j) - qv(i,j,2))
+            end if
+          end if
+        end do
+      end do
+      !$acc end kernels
+
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
       if(fmois(1:3).eq.'dry') then
@@ -299,6 +359,8 @@ end if
       end if
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_heatsfc == DUMP_TARGET_heatsfc .and. .not. dump_done_heatsfc) then

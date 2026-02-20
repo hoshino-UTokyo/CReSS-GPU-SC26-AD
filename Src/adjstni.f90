@@ -267,6 +267,68 @@ if (dump_call_count_adjstni == DUMP_TARGET_adjstni .and. .not. dump_done_adjstni
   end if
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_003)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (haiopt == 0) then
+      !$acc kernels
+      !$acc loop independent
+      do k = 1, nk-1
+        !$acc loop independent
+        do j = 1, nj-1
+          !$acc loop independent private(ndia)
+          do i = 1, ni-1
+            ! Adjust cloud ice concentrations
+            nci(i,j,k) = min(max(nci(i,j,k), mimiv5*qi(i,j,k)), mi0iv2*qi(i,j,k))
+
+            ! Adjust snow concentrations
+            ndia = sqrt(sqrt(cdiaqs*rbr(i,j,k)*qs(i,j,k))) * rbv(i,j,k)
+            ncs(i,j,k) = max(ncs(i,j,k), msmiv2*qs(i,j,k), 5.62341e-3*ndia)
+            ncs(i,j,k) = min(ncs(i,j,k), ms0iv2*qs(i,j,k), 1.77838e2*ndia)
+
+            ! Adjust graupel concentrations
+            ndia = sqrt(sqrt(cdiaqg*rbr(i,j,k)*qg(i,j,k))) * rbv(i,j,k)
+            ncg(i,j,k) = max(ncg(i,j,k), mgmiv2*qg(i,j,k), 5.62341e-3*ndia)
+            ncg(i,j,k) = min(ncg(i,j,k), mg0iv2*qg(i,j,k), 1.77838e2*ndia)
+          end do
+        end do
+      end do
+      !$acc end kernels
+    else
+      !$acc kernels
+      !$acc loop independent
+      do k = 1, nk-1
+        !$acc loop independent
+        do j = 1, nj-1
+          !$acc loop independent private(ndia)
+          do i = 1, ni-1
+            ! Adjust cloud ice concentrations
+            nci(i,j,k) = min(max(nci(i,j,k), mimiv5*qi(i,j,k)), mi0iv2*qi(i,j,k))
+
+            ! Adjust snow concentrations
+            ndia = sqrt(sqrt(cdiaqs*rbr(i,j,k)*qs(i,j,k))) * rbv(i,j,k)
+            ncs(i,j,k) = max(ncs(i,j,k), msmiv2*qs(i,j,k), 5.62341e-3*ndia)
+            ncs(i,j,k) = min(ncs(i,j,k), ms0iv2*qs(i,j,k), 1.77838e2*ndia)
+
+            ! Adjust graupel concentrations
+            ndia = sqrt(sqrt(cdiaqg*rbr(i,j,k)*qg(i,j,k))) * rbv(i,j,k)
+            ncg(i,j,k) = max(ncg(i,j,k), mgmiv2*qg(i,j,k), 5.62341e-3*ndia)
+            ncg(i,j,k) = min(ncg(i,j,k), mg0iv2*qg(i,j,k), 1.77838e2*ndia)
+
+            ! Adjust hail concentrations
+            ndia = sqrt(sqrt(cdiaqh*rbr(i,j,k)*qh(i,j,k))) * rbv(i,j,k)
+            nch(i,j,k) = max(nch(i,j,k), mhmiv2*qh(i,j,k), 5.62341e-3*ndia)
+            nch(i,j,k) = min(nch(i,j,k), mh0iv2*qh(i,j,k), 1.77838e2*ndia)
+          end do
+        end do
+      end do
+      !$acc end kernels
+    end if
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !! Adjust the concentrations of the cloud ice, snow and graupel.
@@ -371,6 +433,7 @@ end if
 !! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_adjstni == DUMP_TARGET_adjstni .and. .not. dump_done_adjstni) then

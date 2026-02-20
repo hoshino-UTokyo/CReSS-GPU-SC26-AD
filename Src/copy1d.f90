@@ -143,6 +143,22 @@ if (dump_call_count_copy1d == DUMP_TARGET_copy1d .and. .not. dump_done_copy1d) t
   call dump_array_1d('invar.bin', invar, kmin, kmax)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_065)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+    !$acc kernels
+    !$acc loop independent
+    do k = kmin, kmax
+      outvar(k) = invar(k)
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(k)
@@ -154,6 +170,7 @@ end if
 !$omp end do
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_copy1d == DUMP_TARGET_copy1d .and. .not. dump_done_copy1d) then

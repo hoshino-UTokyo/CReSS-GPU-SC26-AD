@@ -422,6 +422,273 @@ if (dump_call_count_inisfc == DUMP_TARGET_inisfc .and. .not. dump_done_inisfc) t
   call dump_array_2d('rland_in.bin', rland, 0, ni+1, 0, nj+1)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_177)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+! Reset the land use categories.
+
+      if(sfcdat(1:1).eq.'o'.and.sfcdat(3:3).eq.'o') then
+
+        !$acc kernels
+        !$acc loop independent
+        do j_sub=1,nj-1
+          !$acc loop independent
+          do i_sub=1,ni-1
+
+            if(land(i_sub,j_sub).lt.0) then
+
+              if(int(kai(i_sub,j_sub)).gt.0                              &
+     &          .and.int(kai(i_sub,j_sub)).lt.100) then
+
+                land(i_sub,j_sub)=1
+
+              else if(int(kai(i_sub,j_sub)).eq.100) then
+
+                land(i_sub,j_sub)=3
+
+              end if
+
+            else if(land(i_sub,j_sub).ge.0                              &
+     &        .and.land(i_sub,j_sub).lt.5) then
+
+              land(i_sub,j_sub)=3
+
+            end if
+
+          end do
+        end do
+        !$acc end kernels
+
+      else if(sfcdat(1:1).eq.'o'.and.sfcdat(3:3).eq.'x') then
+
+        !$acc kernels
+        !$acc loop independent
+        do j_sub=1,nj-1
+          !$acc loop independent
+          do i_sub=1,ni-1
+
+            if(land(i_sub,j_sub).ge.0.and.land(i_sub,j_sub).lt.5) then
+
+              land(i_sub,j_sub)=3
+
+            end if
+
+          end do
+        end do
+        !$acc end kernels
+
+      else if(sfcdat(1:1).eq.'x'.and.sfcdat(3:3).eq.'o') then
+
+        !$acc kernels
+        !$acc loop independent
+        do j_sub=1,nj-1
+          !$acc loop independent
+          do i_sub=1,ni-1
+
+            if(zph(i_sub,j_sub,2).le.zsfc) then
+
+              if(int(kai(i_sub,j_sub)).gt.0                              &
+     &          .and.int(kai(i_sub,j_sub)).lt.100) then
+
+                land(i_sub,j_sub)=1
+
+              else if(int(kai(i_sub,j_sub)).eq.100) then
+
+                land(i_sub,j_sub)=3
+
+              else
+
+                land(i_sub,j_sub)=-1
+
+              end if
+
+            else
+
+              land(i_sub,j_sub)=lnduse
+
+            end if
+
+          end do
+        end do
+        !$acc end kernels
+
+      else if(sfcdat(1:1).eq.'x'.and.sfcdat(3:3).eq.'x') then
+
+        !$acc kernels
+        !$acc loop independent
+        do j_sub=1,nj-1
+          !$acc loop independent
+          do i_sub=1,ni-1
+
+            if(zph(i_sub,j_sub,2).le.zsfc) then
+
+              land(i_sub,j_sub)=-1
+
+            else
+
+              land(i_sub,j_sub)=lnduse
+
+            end if
+
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+! -----
+
+! Reset the sea ice distribution by the all-or-nothing arrangement.
+
+      if(sfcdat(3:3).eq.'o') then
+
+        if(dstopt.eq.1) then
+
+          !$acc kernels
+          !$acc loop independent
+          do j_sub=1,nj-1
+            !$acc loop independent
+            do i_sub=1,ni-1
+              kai(i_sub,j_sub)=.01e0*kai(i_sub,j_sub)
+            end do
+          end do
+          !$acc end kernels
+
+        end if
+
+      end if
+
+! -----
+
+! Reset the evapotranspiration efficiency, albedo, roughness length,
+! thermal capacity and thermal diffusivity.
+
+      if(sfcdat(1:1).eq.'o') then
+
+        !$acc kernels
+        !$acc loop independent
+        do j_sub=1,nj-1
+          !$acc loop independent
+          do i_sub=1,ni-1
+
+            if(land(i_sub,j_sub).lt.3) then
+
+              albe(i_sub,j_sub)=sealbe
+
+              beta(i_sub,j_sub)=sebeta
+
+              z0m(i_sub,j_sub)=sez0m
+              z0h(i_sub,j_sub)=sez0h
+
+              cap(i_sub,j_sub)=secap
+              nuu(i_sub,j_sub)=senuu
+
+            else if(land(i_sub,j_sub).ge.3                              &
+     &        .and.land(i_sub,j_sub).lt.5) then
+
+              albe(i_sub,j_sub)=icalbe
+
+              beta(i_sub,j_sub)=icbeta
+
+              z0m(i_sub,j_sub)=icz0m
+              z0h(i_sub,j_sub)=icz0h
+
+              cap(i_sub,j_sub)=0.e0
+              nuu(i_sub,j_sub)=0.e0
+
+            else if(land(i_sub,j_sub).ge.5                              &
+     &        .and.land(i_sub,j_sub).lt.10) then
+
+              albe(i_sub,j_sub)=snalbe
+
+              beta(i_sub,j_sub)=snbeta
+
+              z0m(i_sub,j_sub)=snz0m
+              z0h(i_sub,j_sub)=snz0h
+
+              cap(i_sub,j_sub)=0.e0
+              nuu(i_sub,j_sub)=0.e0
+
+            end if
+
+          end do
+        end do
+        !$acc end kernels
+
+      else
+
+        !$acc kernels
+        !$acc loop independent
+        do j_sub=1,nj-1
+          !$acc loop independent
+          do i_sub=1,ni-1
+
+            if(land(i_sub,j_sub).lt.3) then
+
+              albe(i_sub,j_sub)=sealbe
+
+              beta(i_sub,j_sub)=sebeta
+
+              z0m(i_sub,j_sub)=sez0m
+              z0h(i_sub,j_sub)=sez0h
+
+              cap(i_sub,j_sub)=secap
+              nuu(i_sub,j_sub)=senuu
+
+            else if(land(i_sub,j_sub).ge.3                              &
+     &        .and.land(i_sub,j_sub).lt.5) then
+
+              albe(i_sub,j_sub)=icalbe
+
+              beta(i_sub,j_sub)=icbeta
+
+              z0m(i_sub,j_sub)=icz0m
+              z0h(i_sub,j_sub)=icz0h
+
+              cap(i_sub,j_sub)=0.e0
+              nuu(i_sub,j_sub)=0.e0
+
+            else if(land(i_sub,j_sub).ge.5                              &
+     &        .and.land(i_sub,j_sub).lt.10) then
+
+              albe(i_sub,j_sub)=snalbe
+
+              beta(i_sub,j_sub)=snbeta
+
+              z0m(i_sub,j_sub)=snz0m
+              z0h(i_sub,j_sub)=snz0h
+
+              cap(i_sub,j_sub)=0.e0
+              nuu(i_sub,j_sub)=0.e0
+
+            else
+
+              albe(i_sub,j_sub)=gralbe
+
+              beta(i_sub,j_sub)=grbeta
+
+              z0m(i_sub,j_sub)=grz0m
+              z0h(i_sub,j_sub)=grz0h
+
+              cap(i_sub,j_sub)=grcap
+              nuu(i_sub,j_sub)=grnuu
+
+            end if
+
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+! ----
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Reset the land use categories.
@@ -683,6 +950,8 @@ end if
 ! ----
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_inisfc == DUMP_TARGET_inisfc .and. .not. dump_done_inisfc) then

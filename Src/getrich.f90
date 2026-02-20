@@ -184,6 +184,31 @@ if (dump_call_count_getrich == DUMP_TARGET_getrich .and. .not. dump_done_getrich
   call dump_array_2d('va.bin', va, 0, ni+1, 0, nj+1)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_136)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    !$acc kernels
+    !$acc loop independent collapse(2) private(dz0m, dz0h, a)
+    do j = 1, nj-1
+      do i = 1, ni-1
+        dz0m = za(i,j) - z0m(i,j)
+        dz0h = za(i,j) - z0h(i,j)
+        a = g * (ptv(i,j,2) - ptv(i,j,1)) / (ptv(i,j,1) * va(i,j) * va(i,j))
+        rch(i,j) = max(a * dz0m * dz0m / dz0h, rchmin)
+        if (land(i,j) .eq. 1) then
+          dz0m = za(i,j) - icz0m
+          dz0h = za(i,j) - icz0h
+          rch(i,j) = (1.e0 - kai(i,j)) * rch(i,j) + kai(i,j) * max(a * dz0m * dz0m / dz0h, rchmin)
+        end if
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j,dz0m,dz0h,a)
@@ -213,6 +238,8 @@ end if
 !$omp end do
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_getrich == DUMP_TARGET_getrich .and. .not. dump_done_getrich) then

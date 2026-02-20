@@ -230,6 +230,63 @@ if (dump_call_count_upwqp == DUMP_TARGET_upwqp .and. .not. dump_done_upwqp) then
   call dump_scalar_r('rwiv05', rwiv05)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_349)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    ! Calculate flux
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 1, nk-1
+      do j = 1, nj-1
+        do i = 1, ni-1
+          qpflx(i,j,k) = rbr(i,j,k) * uq(i,j,k) * qpf(i,j,k)
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    ! Update mixing ratio
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 1, nk-2
+      do j = 1, nj-1
+        do i = 1, ni-1
+          qpf(i,j,k) = max(qpf(i,j,k) + &
+                       (qpflx(i,j,k+1) - qpflx(i,j,k)) / rst(i,j,k) * dzvdt, 0.e0)
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    if (advopt <= 3) then
+      !$acc kernels
+      !$acc loop independent collapse(2)
+      do j = 1, nj-1
+        do i = 1, ni-1
+          qpf(i,j,nkm1) = qpf(i,j,nkm2)
+          precip(i,j,1) = (qpflx(i,j,1) + qpflx(i,j,2)) * rwiv05
+          precip(i,j,2) = precip(i,j,2) + precip(i,j,1) * dtp05
+        end do
+      end do
+      !$acc end kernels
+    else
+      !$acc kernels
+      !$acc loop independent collapse(2)
+      do j = 1, nj-1
+        do i = 1, ni-1
+          qpf(i,j,nkm1) = qpf(i,j,nkm2)
+          precip(i,j,1) = (qpflx(i,j,1) + qpflx(i,j,2)) * rwiv05
+          precip(i,j,2) = precip(i,j,2) + precip(i,j,1) * dtp
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1
@@ -296,6 +353,8 @@ end if
       end if
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_upwqp == DUMP_TARGET_upwqp .and. .not. dump_done_upwqp) then

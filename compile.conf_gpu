@@ -1,0 +1,35 @@
+################################################################################
+#                                                                              #
+#     User configuration file, compile.conf_gpu                                #
+#                                                                              #
+#     GPU (OpenACC) build configuration for CReSS.                            #
+#     Based on compile.conf with OpenACC and Unified Memory enabled.          #
+#                                                                              #
+#     < How to compile >                                                       #
+#                                                                              #
+#     $ ./compile_radlib.csh solver compile.conf_gpu                          #
+#                                                                              #
+#     < How to disable specific GPU kernels for binary search >               #
+#                                                                              #
+#     Add DISABLE_GPU_NNN flags to EXTRA_FLAGS:                               #
+#     $ make EXTRA_FLAGS="-DDISABLE_GPU_091 -DDISABLE_GPU_102"                #
+#                                                                              #
+################################################################################
+
+#LDFLAGS = -L"./" -lrrtmg_kgkgb -lisp -fast -mp -acc -gpu=managed
+LDFLAGS = -fast -mp -acc -gpu=managed
+FFLAGS = -fast -mp -acc -gpu=managed -Mpreprocess -Mbyteswapio -mcmodel=medium -Minfo=accel -DUSE_GPU $(EXTRA_FLAGS)
+
+#------------------------------------------------------------------------------#
+
+FC      = mpifort   # nvfortran with MPI wrapper
+CC      = nvc       # NVIDIA C compiler
+
+#------------------------------------------------------------------------------#
+
+AR         = ar
+ARFLAGS    = vru
+CPP        = cpp -E
+CPPFLAGS   = -DDIRECT -DIEEE -DASCII -DLEN -DUSE_GPU
+AS         = as
+RANLIB     = ranlib

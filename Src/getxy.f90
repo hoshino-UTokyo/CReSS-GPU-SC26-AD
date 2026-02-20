@@ -223,6 +223,95 @@ if (dump_call_count_getxy == DUMP_TARGET_getxy .and. .not. dump_done_getxy) then
   ! ! FIXME: y is array - call dump_scalar_r('y', y)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_143)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+! Calculate the x and the y coordinates at the data grid points.
+
+      if(xo(1:2).eq.'oo') then
+
+        !$acc kernels
+        !$acc loop independent
+        do i=imin,imax
+          x(i)=real(ies2+i)*dx
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent
+        do j=jmin,jmax
+          y(j)=real(jes2+j)*dy
+        end do
+        !$acc end kernels
+
+! -----
+
+! Calculate the x and the y coordinates at the u points.
+
+      else if(xo(1:2).eq.'ox') then
+
+        !$acc kernels
+        !$acc loop independent
+        do i=imin,imax
+          x(i)=real(ies2+i)*dx
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent
+        do j=jmin,jmax-1
+          y(j)=.5e0*real(jes23+2*j)*dy
+        end do
+        !$acc end kernels
+
+! -----
+
+! Calculate the x and the y coordinates at the v points.
+
+      else if(xo(1:2).eq.'xo') then
+
+        !$acc kernels
+        !$acc loop independent
+        do i=imin,imax-1
+          x(i)=.5e0*real(ies23+2*i)*dx
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent
+        do j=jmin,jmax
+          y(j)=real(jes2+j)*dy
+        end do
+        !$acc end kernels
+
+! -----
+
+! Calculate the x and the y coordinates at the w and the scalar points.
+
+      else
+
+        !$acc kernels
+        !$acc loop independent
+        do i=imin,imax-1
+          x(i)=.5e0*real(ies23+2*i)*dx
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent
+        do j=jmin,jmax-1
+          y(j)=.5e0*real(jes23+2*j)*dy
+        end do
+        !$acc end kernels
+
+      end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Calculate the x and the y coordinates at the data grid points.
@@ -316,6 +405,8 @@ end if
 ! -----
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_getxy == DUMP_TARGET_getxy .and. .not. dump_done_getxy) then

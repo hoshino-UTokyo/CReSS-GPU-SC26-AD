@@ -252,6 +252,27 @@ if (dump_call_count_phycood == DUMP_TARGET_phycood .and. .not. dump_done_phycood
   call dump_array_1d('zsth_in.bin', zsth, 1, nk)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_237)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    htmax = -1.e35
+
+    !$acc kernels
+    !$acc loop independent reduction(max: htmax)
+    do j = 0, nj
+      !$acc loop independent reduction(max: htmax)
+      do i = 0, ni
+        htmax = max(ht(i,j), htmax)
+      end do
+    end do
+    !$acc end kernels
+    !$acc wait
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j) reduction(max: htmax)
@@ -265,6 +286,7 @@ end if
 !$omp end do
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_phycood == DUMP_TARGET_phycood .and. .not. dump_done_phycood) then
@@ -334,6 +356,23 @@ call profile_stop(prof_id1, loop_len)
 !   - Small loop range (nk typically ~50-100), may be better on CPU
 !   - Consider keeping this on host if nk is small
 !@llm end meta_info ------------------------------------------------------
+#if defined(USE_GPU) && !defined(DISABLE_GPU_238)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    !$acc kernels
+    !$acc loop independent reduction(min: kflat)
+    do k=2,nk-1
+      if(zsth(k).gt.zflat) then
+        kflat=min(k,kflat)
+      end if
+    end do
+    !$acc end kernels
+    !$acc wait
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(k) reduction(min: kflat)
@@ -351,6 +390,7 @@ call profile_stop(prof_id1, loop_len)
 !$omp end do
 
 !$omp end parallel
+#endif
 
 ! -----
 
@@ -416,6 +456,55 @@ if (dump_call_count_phycood == DUMP_TARGET_phycood .and. .not. dump_done_phycood
   call dump_array_2d('ht.bin', ht, 0, ni+1, 0, nj+1)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_239)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    ! First kernel: compute zph for k=2 to nk-1
+    !$acc kernels
+    !$acc loop independent
+    do k=2,nk-1
+      !$acc loop independent
+      do j=0,nj
+        !$acc loop independent
+        do i=0,ni
+          if(zsth(k).gt.zflat0) then
+            zph(i,j,k)=zsth(k)
+          else
+            zph(i,j,k)=htuiv*(zflat0-ht(i,j))*(zsth(k)-zsfc)+ht(i,j)
+          end if
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    ! Second kernel: set boundary conditions for zph
+    !$acc kernels
+    !$acc loop independent
+    do j=0,nj
+      !$acc loop independent
+      do i=0,ni
+        zph(i,j,2)=ht(i,j)
+        zph(i,j,1)=2.e0*zph(i,j,2)-zph(i,j,3)
+        zph(i,j,nk)=2.e0*zph(i,j,nkm1)-zph(i,j,nkm2)
+      end do
+    end do
+    !$acc end kernels
+
+    ! Third kernel: update zsth for k=2 to nk-1
+    !$acc kernels
+    !$acc loop independent
+    do k=2,nk-1
+      if(zsth(k).le.zflat0) then
+        zsth(k)=htuivz*(zsth(k)-zsfc)
+      end if
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-1
@@ -465,6 +554,7 @@ end if
 !$omp end do
 
 !$omp end parallel
+#endif
 
 ! Dump output data for sec3 at target call
 if (dump_call_count_phycood == DUMP_TARGET_phycood .and. .not. dump_done_phycood_sec3) then

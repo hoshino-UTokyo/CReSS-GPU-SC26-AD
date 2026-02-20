@@ -325,6 +325,391 @@ if (dump_call_count_exbcq == DUMP_TARGET_exbcq .and. .not. dump_done_exbcq) then
   call dump_scalar_r('tpdt', tpdt)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_103)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (ebs == 1 .and. jsub == 0) then
+      if (exbvar(ape:ape) == '-') then
+        if (abs(wbc) /= 1 .and. abs(ebc) /= 1) then
+          if (advopt <= 3) then
+            if (ebw == 1 .and. isub == 0) then
+              !$acc kernels
+              !$acc loop independent private(qb1,qb2i,qb2j,radwe,radsn)
+              do k = 2, nk-2
+                qb1 = max(qgpv(1,1,k) + qtd(1,1,k) * gtinc1, 0.0e0)
+                qb2i = max(qgpv(2,1,k) + qtd(2,1,k) * gtinc2, 0.0e0)
+                qb2j = max(qgpv(1,2,k) + qtd(1,2,k) * gtinc2, 0.0e0)
+                radwe = ((q(2,1,k) - qp(1,1,k)) - (qb2i - qb1)) &
+                     * qcpx(1,k,1) / (1.0e0 - qcpx(1,k,1))
+                radsn = ((q(1,2,k) - qp(1,1,k)) - (qb2j - qb1)) &
+                     * qcpy(1,k,1) / (1.0e0 - qcpy(1,k,1))
+                qf(1,1,k) = max(qp(1,1,k) + qtd(1,1,k) * dt2 &
+                     - 2.0e0 * (radwe + radsn) - dmpdt * (qp(1,1,k) - qb1), 0.0e0)
+              end do
+              !$acc end kernels
+            end if
+            if (ebe == 1 .and. isub == nisub-1) then
+              !$acc kernels
+              !$acc loop independent private(qb1,qb2i,qb2j,radwe,radsn)
+              do k = 2, nk-2
+                qb1 = max(qgpv(nim1,1,k) + qtd(nim1,1,k) * gtinc1, 0.0e0)
+                qb2i = max(qgpv(nim2,1,k) + qtd(nim2,1,k) * gtinc2, 0.0e0)
+                qb2j = max(qgpv(nim1,2,k) + qtd(nim1,2,k) * gtinc2, 0.0e0)
+                radwe = ((q(nim2,1,k) - qp(nim1,1,k)) - (qb2i - qb1)) &
+                     * qcpx(1,k,2) / (1.0e0 + qcpx(1,k,2))
+                radsn = ((q(nim1,2,k) - qp(nim1,1,k)) - (qb2j - qb1)) &
+                     * qcpy(nim1,k,1) / (1.0e0 - qcpy(nim1,k,1))
+                qf(nim1,1,k) = max(qp(nim1,1,k) + qtd(nim1,1,k) * dt2 &
+                     + 2.0e0 * (radwe - radsn) - dmpdt * (qp(nim1,1,k) - qb1), 0.0e0)
+              end do
+              !$acc end kernels
+            end if
+          else
+            if (ebw == 1 .and. isub == 0) then
+              !$acc kernels
+              !$acc loop independent private(qb1,qb2i,qb2j,radwe,radsn)
+              do k = 2, nk-2
+                qb1 = max(qgpv(1,1,k) + qtd(1,1,k) * tpdt, 0.0e0)
+                qb2i = max(qgpv(2,1,k) + qtd(2,1,k) * tpdt, 0.0e0)
+                qb2j = max(qgpv(1,2,k) + qtd(1,2,k) * tpdt, 0.0e0)
+                radwe = ((qp(2,1,k) - qp(1,1,k)) - (qb2i - qb1)) * qcpx(1,k,1)
+                radsn = ((qp(1,2,k) - qp(1,1,k)) - (qb2j - qb1)) * qcpy(1,k,1)
+                qf(1,1,k) = max(qp(1,1,k) + qtd(1,1,k) * dt &
+                     - (radwe + radsn) - dmpdt * (qp(1,1,k) - qb1), 0.0e0)
+              end do
+              !$acc end kernels
+            end if
+            if (ebe == 1 .and. isub == nisub-1) then
+              !$acc kernels
+              !$acc loop independent private(qb1,qb2i,qb2j,radwe,radsn)
+              do k = 2, nk-2
+                qb1 = max(qgpv(nim1,1,k) + qtd(nim1,1,k) * tpdt, 0.0e0)
+                qb2i = max(qgpv(nim2,1,k) + qtd(nim2,1,k) * tpdt, 0.0e0)
+                qb2j = max(qgpv(nim1,2,k) + qtd(nim1,2,k) * tpdt, 0.0e0)
+                radwe = ((qp(nim2,1,k) - qp(nim1,1,k)) - (qb2i - qb1)) * qcpx(1,k,2)
+                radsn = ((qp(nim1,2,k) - qp(nim1,1,k)) - (qb2j - qb1)) * qcpy(nim1,k,1)
+                qf(nim1,1,k) = max(qp(nim1,1,k) + qtd(nim1,1,k) * dt &
+                     + (radwe - radsn) - dmpdt * (qp(nim1,1,k) - qb1), 0.0e0)
+              end do
+              !$acc end kernels
+            end if
+          end if
+        end if
+      end if
+    end if
+
+    ! Northwest corner
+    if (ebn == 1 .and. jsub == njsub-1) then
+      if (exbvar(ape:ape) == '-') then
+        if (abs(wbc) /= 1 .and. abs(ebc) /= 1) then
+          if (advopt <= 3) then
+            if (ebw == 1 .and. isub == 0) then
+              !$acc kernels
+              !$acc loop independent private(qb1,qb2i,qb2j,radwe,radsn)
+              do k = 2, nk-2
+                qb1 = max(qgpv(1,njm1,k) + qtd(1,njm1,k) * gtinc1, 0.0e0)
+                qb2i = max(qgpv(2,njm1,k) + qtd(2,njm1,k) * gtinc2, 0.0e0)
+                qb2j = max(qgpv(1,njm2,k) + qtd(1,njm2,k) * gtinc2, 0.0e0)
+                radwe = ((q(2,njm1,k) - qp(1,njm1,k)) - (qb2i - qb1)) &
+                     * qcpx(njm1,k,1) / (1.0e0 - qcpx(njm1,k,1))
+                radsn = ((q(1,njm2,k) - qp(1,njm1,k)) - (qb2j - qb1)) &
+                     * qcpy(1,k,2) / (1.0e0 + qcpy(1,k,2))
+                qf(1,njm1,k) = max(qp(1,njm1,k) + qtd(1,njm1,k) * dt2 &
+                     - 2.0e0 * (radwe - radsn) - dmpdt * (qp(1,njm1,k) - qb1), 0.0e0)
+              end do
+              !$acc end kernels
+            end if
+            if (ebe == 1 .and. isub == nisub-1) then
+              !$acc kernels
+              !$acc loop independent private(qb1,qb2i,qb2j,radwe,radsn)
+              do k = 2, nk-2
+                qb1 = max(qgpv(nim1,njm1,k) + qtd(nim1,njm1,k) * gtinc1, 0.0e0)
+                qb2i = max(qgpv(nim2,njm1,k) + qtd(nim2,njm1,k) * gtinc2, 0.0e0)
+                qb2j = max(qgpv(nim1,njm2,k) + qtd(nim1,njm2,k) * gtinc2, 0.0e0)
+                radwe = ((q(nim2,njm1,k) - qp(nim1,njm1,k)) - (qb2i - qb1)) &
+                     * qcpx(njm1,k,2) / (1.0e0 + qcpx(njm1,k,2))
+                radsn = ((q(nim1,njm2,k) - qp(nim1,njm1,k)) - (qb2j - qb1)) &
+                     * qcpy(nim1,k,2) / (1.0e0 + qcpy(nim1,k,2))
+                qf(nim1,njm1,k) = max(qp(nim1,njm1,k) + qtd(nim1,njm1,k) * dt2 &
+                     + 2.0e0 * (radwe + radsn) - dmpdt * (qp(nim1,njm1,k) - qb1), 0.0e0)
+              end do
+              !$acc end kernels
+            end if
+          else
+            if (ebw == 1 .and. isub == 0) then
+              !$acc kernels
+              !$acc loop independent private(qb1,qb2i,qb2j,radwe,radsn)
+              do k = 2, nk-2
+                qb1 = max(qgpv(1,njm1,k) + qtd(1,njm1,k) * tpdt, 0.0e0)
+                qb2i = max(qgpv(2,njm1,k) + qtd(2,njm1,k) * tpdt, 0.0e0)
+                qb2j = max(qgpv(1,njm2,k) + qtd(1,njm2,k) * tpdt, 0.0e0)
+                radwe = ((qp(2,njm1,k) - qp(1,njm1,k)) - (qb2i - qb1)) * qcpx(njm1,k,1)
+                radsn = ((qp(1,njm2,k) - qp(1,njm1,k)) - (qb2j - qb1)) * qcpy(1,k,2)
+                qf(1,njm1,k) = max(qp(1,njm1,k) + qtd(1,njm1,k) * dt &
+                     - (radwe - radsn) - dmpdt * (qp(1,njm1,k) - qb1), 0.0e0)
+              end do
+              !$acc end kernels
+            end if
+            if (ebe == 1 .and. isub == nisub-1) then
+              !$acc kernels
+              !$acc loop independent private(qb1,qb2i,qb2j,radwe,radsn)
+              do k = 2, nk-2
+                qb1 = max(qgpv(nim1,njm1,k) + qtd(nim1,njm1,k) * tpdt, 0.0e0)
+                qb2i = max(qgpv(nim2,njm1,k) + qtd(nim2,njm1,k) * tpdt, 0.0e0)
+                qb2j = max(qgpv(nim1,njm2,k) + qtd(nim1,njm2,k) * tpdt, 0.0e0)
+                radwe = ((qp(nim2,njm1,k) - qp(nim1,njm1,k)) - (qb2i - qb1)) * qcpx(njm1,k,2)
+                radsn = ((qp(nim1,njm2,k) - qp(nim1,njm1,k)) - (qb2j - qb1)) * qcpy(nim1,k,2)
+                qf(nim1,njm1,k) = max(qp(nim1,njm1,k) + qtd(nim1,njm1,k) * dt &
+                     + (radwe + radsn) - dmpdt * (qp(nim1,njm1,k) - qb1), 0.0e0)
+              end do
+              !$acc end kernels
+            end if
+          end if
+        end if
+      end if
+    end if
+
+    ! West boundary
+    if (ebw == 1 .and. isub == 0) then
+      if (abs(wbc) /= 1) then
+        if (advopt <= 3) then
+          if (exbvar(ape:ape) == '-') then
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent private(qb1,qb2,gamma)
+              do j = 2, nj-2
+                gamma = 2.0e0 * qcpx(j,k,1) / (1.0e0 - qcpx(j,k,1))
+                qb1 = max(qgpv(1,j,k) + qtd(1,j,k) * gtinc1, 0.0e0)
+                qb2 = max(qgpv(2,j,k) + qtd(2,j,k) * gtinc2, 0.0e0)
+                qf(1,j,k) = max(qp(1,j,k) + qtd(1,j,k) * dt2 &
+                     - gamma * ((q(2,j,k) - qp(1,j,k)) - (qb2 - qb1)) &
+                     - dmpdt * (qp(1,j,k) - qb1), 0.0e0)
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-2
+                qf(1,j,k) = max(qp(1,j,k) + qtd(1,j,k) * dt2, 0.0e0)
+              end do
+            end do
+            !$acc end kernels
+          end if
+        else
+          if (exbvar(ape:ape) == '-') then
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent private(qb1,qb2)
+              do j = 2, nj-2
+                qb1 = max(qgpv(1,j,k) + qtd(1,j,k) * tpdt, 0.0e0)
+                qb2 = max(qgpv(2,j,k) + qtd(2,j,k) * tpdt, 0.0e0)
+                qf(1,j,k) = max(qp(1,j,k) + qtd(1,j,k) * dt &
+                     - qcpx(j,k,1) * ((qp(2,j,k) - qp(1,j,k)) - (qb2 - qb1)) &
+                     - dmpdt * (qp(1,j,k) - qb1), 0.0e0)
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-2
+                qf(1,j,k) = max(qp(1,j,k) + qtd(1,j,k) * dt, 0.0e0)
+              end do
+            end do
+            !$acc end kernels
+          end if
+        end if
+      end if
+    end if
+
+    ! East boundary
+    if (ebe == 1 .and. isub == nisub-1) then
+      if (abs(ebc) /= 1) then
+        if (advopt <= 3) then
+          if (exbvar(ape:ape) == '-') then
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent private(qb1,qb2,gamma)
+              do j = 2, nj-2
+                gamma = 2.0e0 * qcpx(j,k,2) / (1.0e0 + qcpx(j,k,2))
+                qb1 = max(qgpv(nim1,j,k) + qtd(nim1,j,k) * gtinc1, 0.0e0)
+                qb2 = max(qgpv(nim2,j,k) + qtd(nim2,j,k) * gtinc2, 0.0e0)
+                qf(nim1,j,k) = max(qp(nim1,j,k) + qtd(nim1,j,k) * dt2 &
+                     + gamma * ((q(nim2,j,k) - qp(nim1,j,k)) - (qb2 - qb1)) &
+                     - dmpdt * (qp(nim1,j,k) - qb1), 0.0e0)
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-2
+                qf(nim1,j,k) = max(qp(nim1,j,k) + qtd(nim1,j,k) * dt2, 0.0e0)
+              end do
+            end do
+            !$acc end kernels
+          end if
+        else
+          if (exbvar(ape:ape) == '-') then
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent private(qb1,qb2)
+              do j = 2, nj-2
+                qb1 = max(qgpv(nim1,j,k) + qtd(nim1,j,k) * tpdt, 0.0e0)
+                qb2 = max(qgpv(nim2,j,k) + qtd(nim2,j,k) * tpdt, 0.0e0)
+                qf(nim1,j,k) = max(qp(nim1,j,k) + qtd(nim1,j,k) * dt &
+                     + qcpx(j,k,2) * ((qp(nim2,j,k) - qp(nim1,j,k)) - (qb2 - qb1)) &
+                     - dmpdt * (qp(nim1,j,k) - qb1), 0.0e0)
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-2
+                qf(nim1,j,k) = max(qp(nim1,j,k) + qtd(nim1,j,k) * dt, 0.0e0)
+              end do
+            end do
+            !$acc end kernels
+          end if
+        end if
+      end if
+    end if
+
+    ! South boundary
+    if (ebs == 1 .and. jsub == 0) then
+      if (exbvar(ape:ape) == '-') then
+        if (advopt <= 3) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent private(qb1,qb2,gamma)
+            do i = 2, ni-2
+              gamma = 2.0e0 * qcpy(i,k,1) / (1.0e0 - qcpy(i,k,1))
+              qb1 = max(qgpv(i,1,k) + qtd(i,1,k) * gtinc1, 0.0e0)
+              qb2 = max(qgpv(i,2,k) + qtd(i,2,k) * gtinc2, 0.0e0)
+              qf(i,1,k) = max(qp(i,1,k) + qtd(i,1,k) * dt2 &
+                   - gamma * ((q(i,2,k) - qp(i,1,k)) - (qb2 - qb1)) &
+                   - dmpdt * (qp(i,1,k) - qb1), 0.0e0)
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent private(qb1,qb2)
+            do i = 2, ni-2
+              qb1 = max(qgpv(i,1,k) + qtd(i,1,k) * tpdt, 0.0e0)
+              qb2 = max(qgpv(i,2,k) + qtd(i,2,k) * tpdt, 0.0e0)
+              qf(i,1,k) = max(qp(i,1,k) + qtd(i,1,k) * dt &
+                   - qcpy(i,k,1) * ((qp(i,2,k) - qp(i,1,k)) - (qb2 - qb1)) &
+                   - dmpdt * (qp(i,1,k) - qb1), 0.0e0)
+            end do
+          end do
+          !$acc end kernels
+        end if
+      else
+        if (advopt <= 3) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do i = 1, ni-1
+              qf(i,1,k) = max(qp(i,1,k) + qtd(i,1,k) * dt2, 0.0e0)
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do i = 1, ni-1
+              qf(i,1,k) = max(qp(i,1,k) + qtd(i,1,k) * dt, 0.0e0)
+            end do
+          end do
+          !$acc end kernels
+        end if
+      end if
+    end if
+
+    ! North boundary
+    if (ebn == 1 .and. jsub == njsub-1) then
+      if (exbvar(ape:ape) == '-') then
+        if (advopt <= 3) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent private(qb1,qb2,gamma)
+            do i = 2, ni-2
+              gamma = 2.0e0 * qcpy(i,k,2) / (1.0e0 + qcpy(i,k,2))
+              qb1 = max(qgpv(i,njm1,k) + qtd(i,njm1,k) * gtinc1, 0.0e0)
+              qb2 = max(qgpv(i,njm2,k) + qtd(i,njm2,k) * gtinc2, 0.0e0)
+              qf(i,njm1,k) = max(qp(i,njm1,k) + qtd(i,njm1,k) * dt2 &
+                   + gamma * ((q(i,njm2,k) - qp(i,njm1,k)) - (qb2 - qb1)) &
+                   - dmpdt * (qp(i,njm1,k) - qb1), 0.0e0)
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent private(qb1,qb2)
+            do i = 2, ni-2
+              qb1 = max(qgpv(i,njm1,k) + qtd(i,njm1,k) * tpdt, 0.0e0)
+              qb2 = max(qgpv(i,njm2,k) + qtd(i,njm2,k) * tpdt, 0.0e0)
+              qf(i,njm1,k) = max(qp(i,njm1,k) + qtd(i,njm1,k) * dt &
+                   + qcpy(i,k,2) * ((qp(i,njm2,k) - qp(i,njm1,k)) - (qb2 - qb1)) &
+                   - dmpdt * (qp(i,njm1,k) - qb1), 0.0e0)
+            end do
+          end do
+          !$acc end kernels
+        end if
+      else
+        if (advopt <= 3) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do i = 1, ni-1
+              qf(i,njm1,k) = max(qp(i,njm1,k) + qtd(i,njm1,k) * dt2, 0.0e0)
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do i = 1, ni-1
+              qf(i,njm1,k) = max(qp(i,njm1,k) + qtd(i,njm1,k) * dt, 0.0e0)
+            end do
+          end do
+          !$acc end kernels
+        end if
+      end if
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Force the boundary value to the external boundary value at the four
@@ -888,6 +1273,8 @@ end if
 ! -----
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_exbcq == DUMP_TARGET_exbcq .and. .not. dump_done_exbcq) then

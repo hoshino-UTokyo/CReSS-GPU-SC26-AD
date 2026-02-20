@@ -378,6 +378,250 @@ if (dump_call_count_radiat == DUMP_TARGET_radiat .and. .not. dump_done_radiat) t
   call dump_scalar_r('sinphs', sinphs)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_247)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+! Calculate the zenith angle (2D loop)
+    !$acc kernels
+    !$acc loop independent
+    do j=1,nj-1
+      !$acc loop independent private(tlc)
+      do i=1,ni-1
+        tlc=rchr+rcmn+oned15*lon(i,j)
+        coseta(i,j)=sinphs*sin(lat(i,j)*d2r)                            &
+     &    +cosphs*cos(lat(i,j)*d2r)*cos(eqt+15.e0*(tlc-12.e0)*d2r)
+      end do
+    end do
+    !$acc end kernels
+
+! Get z physical coordinates at scalar points (3D loop)
+    !$acc kernels
+    !$acc loop independent
+    do k=1,nk-1
+      !$acc loop independent
+      do j=1,nj-1
+        !$acc loop independent
+        do i=1,ni-1
+          zph8s(i,j,k)=.5e0*(zph(i,j,k)+zph(i,j,k+1))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+! Reference z coordinates (2D loop)
+    !$acc kernels
+    !$acc loop independent
+    do j=1,nj-1
+      !$acc loop independent
+      do i=1,ni-1
+        zref(i,j)=min(zarad+zph(i,j,2),zph8s(i,j,nkm1))
+      end do
+    end do
+    !$acc end kernels
+
+! Dry air case
+    if(fmois(1:3).eq.'dry') then
+      !$acc kernels
+      !$acc loop independent
+      do k=1,nk-2
+        !$acc loop independent
+        do j=1,nj-1
+          !$acc loop independent private(dk,pa,ta,absrp,a)
+          do i=1,ni-1
+            if(zref(i,j).gt.zph8s(i,j,k)                                &
+     &        .and.zref(i,j).le.zph8s(i,j,k+1)) then
+              dk=(zref(i,j)-zph8s(i,j,k))/(zph8s(i,j,k+1)-zph8s(i,j,k))
+              pa=(1.e0-dk)*p(i,j,k)+dk*p(i,j,k+1)
+              ta=(1.e0-dk)*t(i,j,k)+dk*t(i,j,k+1)
+
+              if(coseta(i,j).gt.0.e0) then
+                if(land(i,j).lt.0) then
+                  absrp=1.e0                                             &
+     &              -(9.e0*(1.e0-coseta(i,j))*albe(i,j)+albe(i,j))
+                else if(land(i,j).eq.1) then
+                  absrp=1.e0-(kai(i,j)*icalbe+(1.e0-kai(i,j))           &
+     &              *(9.e0*(1.e0-coseta(i,j))*albe(i,j)+albe(i,j)))
+                else
+                  absrp=max(1.e0                                         &
+     &              -(.5e0*(1.e0-coseta(i,j))*albe(i,j)+albe(i,j)),0.e0)
+                end if
+
+                rgd(i,j)=sun0*(.554e0                                   &
+     &            +.43e0*exp(ln1013/(coseta(i,j)+eps)))*coseta(i,j)
+                rsd(i,j)=absrp*rgd(i,j)
+              else
+                rgd(i,j)=0.e0
+                rsd(i,j)=0.e0
+              end if
+
+              a=ta*ta
+              rld(i,j)=esgm51*a*a
+
+              if(land(i,j).eq.1) then
+                a=kai(i,j)*tice(i,j)+(1.e0-kai(i,j))*tund(i,j,1)
+                a=a*a
+              else
+                a=tund(i,j,1)*tund(i,j,1)
+              end if
+              rlu(i,j)=esgm*a*a
+            end if
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+! Moist air case
+    else if(fmois(1:5).eq.'moist') then
+
+! No cloud physics
+      if(abs(cphopt).eq.0) then
+        !$acc kernels
+        !$acc loop independent
+        do k=1,nk-2
+          !$acc loop independent
+          do j=1,nj-1
+            !$acc loop independent private(dk,pa,ta,ea,cdall,absrp,a,b)
+            do i=1,ni-1
+              if(zref(i,j).gt.zph8s(i,j,k)                              &
+     &          .and.zref(i,j).le.zph8s(i,j,k+1)) then
+                dk=(zref(i,j)-zph8s(i,j,k))                             &
+     &            /(zph8s(i,j,k+1)-zph8s(i,j,k))
+                pa=(1.e0-dk)*p(i,j,k)+dk*p(i,j,k+1)
+                ta=(1.e0-dk)*t(i,j,k)+dk*t(i,j,k+1)
+                ea=(1.e0-dk)*qv(i,j,k)+dk*qv(i,j,k+1)
+                ea=pa*ea/(epsva+ea)
+                cdall=cdl(i,j)+cdm(i,j)+cdh(i,j)
+
+                if(coseta(i,j).gt.0.e0) then
+                  if(land(i,j).lt.0) then
+                    absrp=1.e0-((9.e0-3.e0*cdall)                       &
+     &                *(1.e0-coseta(i,j))*albe(i,j)+albe(i,j))
+                  else if(land(i,j).eq.1) then
+                    absrp=1.e0-(kai(i,j)*icalbe                         &
+     &                +(1.e0-kai(i,j))*((9.e0-3.e0*cdall)               &
+     &                *(1.e0-coseta(i,j))*albe(i,j)+albe(i,j)))
+                  else
+                    absrp=max(1.e0-((.5e0-oned6*cdall)                  &
+     &                *(1.e0-coseta(i,j))*albe(i,j)+albe(i,j)),0.e0)
+                  end if
+
+                  b=.43e0+.00016e0*ea
+                  if(ea.gt.3000.e0) then
+                    a=0.e0
+                  else if(ea.gt.100.e0.and.ea.le.3000.e0) then
+                    a=1.12e0-b-.06e0*log10(ea)
+                  else
+                    a=.554e0
+                  end if
+
+                  rgd(i,j)=sun0*(a+b*exp(ln1013/(coseta(i,j)+eps)))     &
+     &              *(1.e0-.7e0*cdl(i,j))*(1.e0-.6e0*cdm(i,j))          &
+     &              *(1.e0-.3e0*cdh(i,j))*coseta(i,j)
+                  rsd(i,j)=absrp*rgd(i,j)
+                else
+                  rgd(i,j)=0.e0
+                  rsd(i,j)=0.e0
+                end if
+
+                a=cdl(i,j)+.85e0*cdm(i,j)+.5e0*cdh(i,j)
+                b=ta*ta
+                rld(i,j)=esgm*b*b*(1.e0+(.66e-2*sqrt(ea)-.49e0)        &
+     &            *(1.e0-(.75e0-.5e-4*ea)*a))
+
+                if(land(i,j).eq.1) then
+                  b=kai(i,j)*tice(i,j)+(1.e0-kai(i,j))*tund(i,j,1)
+                  b=b*b
+                else
+                  b=tund(i,j,1)*tund(i,j,1)
+                end if
+                rlu(i,j)=esgm*b*b
+              end if
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+! Cloud physics case
+      else
+        !$acc kernels
+        !$acc loop independent
+        do k=1,nk-2
+          !$acc loop independent
+          do j=1,nj-1
+            !$acc loop independent private(dk,pa,ta,ea,cdall,absrp,a,b)
+            do i=1,ni-1
+              if(zref(i,j).gt.zph8s(i,j,k)                              &
+     &          .and.zref(i,j).le.zph8s(i,j,k+1)) then
+                dk=(zref(i,j)-zph8s(i,j,k))                             &
+     &            /(zph8s(i,j,k+1)-zph8s(i,j,k))
+                pa=(1.e0-dk)*p(i,j,k)+dk*p(i,j,k+1)
+                ta=(1.e0-dk)*t(i,j,k)+dk*t(i,j,k+1)
+                ea=(1.e0-dk)*qv(i,j,k)+dk*qv(i,j,k+1)
+                ea=pa*ea/(epsva+ea)
+                cdall=cdl(i,j)+cdm(i,j)+cdh(i,j)
+
+                if(coseta(i,j).gt.0.e0) then
+                  if(land(i,j).lt.0) then
+                    absrp=1.e0-((9.e0-3.e0*cdall)                       &
+     &                *(1.e0-coseta(i,j))*albe(i,j)+albe(i,j))
+                  else if(land(i,j).eq.1) then
+                    absrp=1.e0-(kai(i,j)*icalbe                         &
+     &                +(1.e0-kai(i,j))*((9.e0-3.e0*cdall)               &
+     &                *(1.e0-coseta(i,j))*albe(i,j)+albe(i,j)))
+                  else
+                    absrp=max(1.e0-((.5e0-oned6*cdall)                  &
+     &                *(1.e0-coseta(i,j))*albe(i,j)+albe(i,j)),0.e0)
+                  end if
+
+                  b=.43e0+.00016e0*ea
+                  if(ea.gt.3000.e0) then
+                    a=0.e0
+                  else if(ea.gt.100.e0.and.ea.le.3000.e0) then
+                    a=1.12e0-b-.06e0*log10(ea)
+                  else
+                    a=.554e0
+                  end if
+
+                  rgd(i,j)=sun0*(a+b*exp(ln1013/(coseta(i,j)+eps)))     &
+     &              *(1.e0-.7e0*cdl(i,j))*(1.e0-.6e0*cdm(i,j))          &
+     &              *(1.e0-.3e0*cdh(i,j))*coseta(i,j)
+                  rsd(i,j)=absrp*rgd(i,j)
+                else
+                  rgd(i,j)=0.e0
+                  rsd(i,j)=0.e0
+                end if
+
+                if(fall(i,j).gt.0.e0) then
+                  a=cdl(i,j)+.85e0*cdm(i,j)+.5e0*cdh(i,j)+.1e0*cdall
+                else
+                  a=cdl(i,j)+.85e0*cdm(i,j)+.5e0*cdh(i,j)
+                end if
+
+                b=ta*ta
+                rld(i,j)=esgm*b*b*(1.e0+(.66e-2*sqrt(ea)-.49e0)        &
+     &            *(1.e0-(.75e0-.5e-4*ea)*a))
+
+                if(land(i,j).eq.1) then
+                  b=kai(i,j)*tice(i,j)+(1.e0-kai(i,j))*tund(i,j,1)
+                  b=b*b
+                else
+                  b=tund(i,j,1)*tund(i,j,1)
+                end if
+                rlu(i,j)=esgm*b*b
+              end if
+            end do
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Calculte the zenith angle.
@@ -789,6 +1033,7 @@ end if
 !!!! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_radiat == DUMP_TARGET_radiat .and. .not. dump_done_radiat) then

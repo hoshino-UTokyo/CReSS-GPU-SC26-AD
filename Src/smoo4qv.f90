@@ -257,6 +257,112 @@ if (dump_call_count_smoo4qv == DUMP_TARGET_smoo4qv .and. .not. dump_done_smoo4qv
   call dump_scalar_i('nkm2', nkm2)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_302)
+! GPU version (OpenACC) - same loop structure with acc kernels
+
+      !$acc kernels
+      do k=1,nk-1
+        !$acc loop independent collapse(2)
+        do j=jsouth,nj-jnorth
+        do i=iwest,ni-ieast
+          rbrqv(i,j,k)=rbr(i,j,k)*(qv(i,j,k)-qvbr(i,j,k))
+          rbrqv2(i,j,k)=2.e0*rbrqv(i,j,k)
+        end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      do k=2,nk-2
+        !$acc loop independent collapse(2)
+        do j=2,nj-2
+        do i=1+iwest,ni-1-ieast
+          tmp1(i,j,k)=(rbrqv(i+1,j,k)+rbrqv(i-1,j,k))-rbrqv2(i,j,k)
+        end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      do k=2,nk-2
+        !$acc loop independent collapse(2)
+        do j=1+jsouth,nj-1-jnorth
+        do i=2,ni-2
+          tmp2(i,j,k)=(rbrqv(i,j+1,k)+rbrqv(i,j-1,k))-rbrqv2(i,j,k)
+        end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      do k=2,nk-2
+        !$acc loop independent collapse(2)
+        do j=2,nj-2
+        do i=2,ni-2
+          tmp3(i,j,k)=(rbrqv(i,j,k+1)+rbrqv(i,j,k-1))-rbrqv2(i,j,k)
+        end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      do k=2,nk-2
+        !$acc loop independent collapse(2)
+        do j=2,nj-2
+        do i=2,ni-2
+          qvfrc(i,j,k)=qvfrc(i,j,k)                                   &
+     &      +smhcoe*(tmp1(i,j,k)+tmp2(i,j,k))+smvcoe*tmp3(i,j,k)
+        end do
+        end do
+      end do
+      !$acc end kernels
+
+      if(mod(smtopt,10).eq.2) then
+
+        !$acc kernels
+        do k=2,nk-2
+          !$acc loop independent collapse(2)
+          do j=2+jsouth,nj-2-jnorth
+          do i=2+iwest,ni-2-ieast
+            qvfrc(i,j,k)=qvfrc(i,j,k)                                 &
+     &        +smhcoe*((tmp1(i,j,k)-(tmp1(i+1,j,k)+tmp1(i-1,j,k)))    &
+     &        +(tmp2(i,j,k)-(tmp2(i,j+1,k)+tmp2(i,j-1,k))))
+          end do
+          end do
+        end do
+        !$acc end kernels
+
+      else
+
+        !$acc kernels
+        !$acc loop independent collapse(2)
+        do j=2+jsouth,nj-2-jnorth
+        do i=2+iwest,ni-2-ieast
+          tmp3(i,j,1)=tmp3(i,j,2)
+          tmp3(i,j,nkm1)=tmp3(i,j,nkm2)
+        end do
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        do k=2,nk-2
+          !$acc loop independent collapse(2)
+          do j=2+jsouth,nj-2-jnorth
+          do i=2+iwest,ni-2-ieast
+            qvfrc(i,j,k)=qvfrc(i,j,k)                                 &
+     &        +(smvcoe*(tmp3(i,j,k)-(tmp3(i,j,k+1)+tmp3(i,j,k-1)))    &
+     &        +smhcoe*((tmp1(i,j,k)-(tmp1(i+1,j,k)+tmp1(i-1,j,k)))    &
+     &        +(tmp2(i,j,k)-(tmp2(i,j+1,k)+tmp2(i,j-1,k)))))
+          end do
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+#else
+! CPU version (OpenMP) - Original code preserved
+
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1
@@ -374,6 +480,7 @@ end if
       end if
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_smoo4qv == DUMP_TARGET_smoo4qv .and. .not. dump_done_smoo4qv) then

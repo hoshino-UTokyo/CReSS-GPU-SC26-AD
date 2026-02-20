@@ -310,6 +310,487 @@ if (dump_call_count_advuvw == DUMP_TARGET_advuvw .and. .not. dump_done_advuvw) t
   call dump_array_3d('tmp3_in.bin', tmp3, 0, ni+1, 0, nj+1, 1, nk)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_016)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 2, nk-2
+      do j = 2, nj-2
+        do i = 1, ni-1
+          tmp1(i,j,k) = (rstxu(i,j,k) + rstxu(i+1,j,k)) * (u(i+1,j,k) - u(i,j,k)) * dxv25n
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 2, nk-2
+      do j = 2, nj-1
+        do i = 2, ni-1
+          tmp2(i,j,k) = (rstxv(i-1,j,k) + rstxv(i,j,k)) * (u(i,j,k) - u(i,j-1,k)) * dyv25n
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 2, nk-1
+      do j = 2, nj-2
+        do i = 2, ni-1
+          tmp3(i,j,k) = (rstxwc(i-1,j,k) + rstxwc(i,j,k)) * (u(i,j,k) - u(i,j,k-1)) * dzv25n
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    if (advopt == 1) then
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 2, nk-2
+        do j = 2, nj-2
+          do i = 2, ni-1
+            ufrc(i,j,k) = ufrc(i,j,k) + ((tmp3(i,j,k) + tmp3(i,j,k+1)) &
+                 + ((tmp1(i-1,j,k) + tmp1(i,j,k)) + (tmp2(i,j,k) + tmp2(i,j+1,k))))
+          end do
+        end do
+      end do
+      !$acc end kernels
+    else
+      if (advopt == 2) then
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 2, nk-2
+          do j = 2, nj-2
+            do i = 2, ni-1
+              hadv(i,j,k) = (tmp1(i-1,j,k) + tmp1(i,j,k)) + (tmp2(i,j,k) + tmp2(i,j+1,k))
+            end do
+          end do
+        end do
+        !$acc end kernels
+      else if (advopt == 3) then
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 2, nk-2
+          do j = 2, nj-2
+            do i = 2, ni-1
+              hadv(i,j,k) = (tmp1(i-1,j,k) + tmp1(i,j,k)) + (tmp2(i,j,k) + tmp2(i,j+1,k))
+              vadv(i,j,k) = tmp3(i,j,k) + tmp3(i,j,k+1)
+            end do
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+    ! 4th order u advection
+    if (advopt == 2 .or. advopt == 3) then
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 2, nk-2
+        do j = 2+jsouth, nj-2-jnorth
+          do i = 1+iwest, ni-ieast
+            tmp1(i,j,k) = (rstxu(i-1,j,k) + rstxu(i+1,j,k)) * (u(i+1,j,k) - u(i-1,j,k)) * dxv24
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 2, nk-2
+        do j = 1+jsouth, nj-1-jnorth
+          do i = 2+iwest, ni-1-ieast
+            tmp2(i,j,k) = ((rstxv(i-1,j,k) + rstxv(i,j,k)) + (rstxv(i-1,j+1,k) + rstxv(i,j+1,k))) &
+                 * (u(i,j+1,k) - u(i,j-1,k)) * dyv48
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 2, nk-2
+        do j = 2+jsouth, nj-2-jnorth
+          do i = 2+iwest, ni-1-ieast
+            hadv(i,j,k) = fourd3 * hadv(i,j,k) &
+                 + ((tmp1(i-1,j,k) + tmp1(i+1,j,k)) + (tmp2(i,j-1,k) + tmp2(i,j+1,k)))
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      if (advopt == 2) then
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 2, nk-2
+          do j = 2, nj-2
+            do i = 2, ni-1
+              ufrc(i,j,k) = ufrc(i,j,k) + hadv(i,j,k) + (tmp3(i,j,k) + tmp3(i,j,k+1))
+            end do
+          end do
+        end do
+        !$acc end kernels
+      else if (advopt == 3) then
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 2, nk-2
+          do j = 2+jsouth, nj-2-jnorth
+            do i = 2+iwest, ni-1-ieast
+              tmp3(i,j,k) = ((rstxwc(i-1,j,k) + rstxwc(i,j,k)) + (rstxwc(i-1,j,k+1) + rstxwc(i,j,k+1))) &
+                   * (u(i,j,k+1) - u(i,j,k-1)) * dzv48
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 3, nk-3
+          do j = 2+jsouth, nj-2-jnorth
+            do i = 2+iwest, ni-1-ieast
+              vadv(i,j,k) = fourd3 * vadv(i,j,k) + (tmp3(i,j,k-1) + tmp3(i,j,k+1))
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 2, nk-2
+          do j = 2, nj-2
+            do i = 2, ni-1
+              ufrc(i,j,k) = ufrc(i,j,k) + hadv(i,j,k) + vadv(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+    !! Calculate the v advection (2nd order)
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 2, nk-2
+      do j = 2, nj-1
+        do i = 2, ni-1
+          tmp1(i,j,k) = (rstxu(i,j-1,k) + rstxu(i,j,k)) * (v(i,j,k) - v(i-1,j,k)) * dxv25n
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 2, nk-2
+      do j = 1, nj-1
+        do i = 2, ni-2
+          tmp2(i,j,k) = (rstxv(i,j,k) + rstxv(i,j+1,k)) * (v(i,j+1,k) - v(i,j,k)) * dyv25n
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 2, nk-1
+      do j = 2, nj-1
+        do i = 2, ni-2
+          tmp3(i,j,k) = (rstxwc(i,j-1,k) + rstxwc(i,j,k)) * (v(i,j,k) - v(i,j,k-1)) * dzv25n
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    if (advopt == 1) then
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 2, nk-2
+        do j = 2, nj-1
+          do i = 2, ni-2
+            vfrc(i,j,k) = vfrc(i,j,k) + ((tmp3(i,j,k) + tmp3(i,j,k+1)) &
+                 + ((tmp1(i,j,k) + tmp1(i+1,j,k)) + (tmp2(i,j-1,k) + tmp2(i,j,k))))
+          end do
+        end do
+      end do
+      !$acc end kernels
+    else
+      if (advopt == 2) then
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 2, nk-2
+          do j = 2, nj-1
+            do i = 2, ni-2
+              hadv(i,j,k) = (tmp1(i,j,k) + tmp1(i+1,j,k)) + (tmp2(i,j-1,k) + tmp2(i,j,k))
+            end do
+          end do
+        end do
+        !$acc end kernels
+      else if (advopt == 3) then
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 2, nk-2
+          do j = 2, nj-1
+            do i = 2, ni-2
+              hadv(i,j,k) = (tmp1(i,j,k) + tmp1(i+1,j,k)) + (tmp2(i,j-1,k) + tmp2(i,j,k))
+              vadv(i,j,k) = tmp3(i,j,k) + tmp3(i,j,k+1)
+            end do
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+    ! 4th order v advection
+    if (advopt == 2 .or. advopt == 3) then
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 2, nk-2
+        do j = 2+jsouth, nj-1-jnorth
+          do i = 1+iwest, ni-1-ieast
+            tmp1(i,j,k) = ((rstxu(i,j-1,k) + rstxu(i,j,k)) + (rstxu(i+1,j-1,k) + rstxu(i+1,j,k))) &
+                 * (v(i+1,j,k) - v(i-1,j,k)) * dxv48
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 2, nk-2
+        do j = 1+jsouth, nj-jnorth
+          do i = 2+iwest, ni-2-ieast
+            tmp2(i,j,k) = (rstxv(i,j-1,k) + rstxv(i,j+1,k)) * (v(i,j+1,k) - v(i,j-1,k)) * dyv24
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 2, nk-2
+        do j = 2+jsouth, nj-1-jnorth
+          do i = 2+iwest, ni-2-ieast
+            hadv(i,j,k) = fourd3 * hadv(i,j,k) &
+                 + ((tmp1(i-1,j,k) + tmp1(i+1,j,k)) + (tmp2(i,j-1,k) + tmp2(i,j+1,k)))
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      if (advopt == 2) then
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 2, nk-2
+          do j = 2, nj-1
+            do i = 2, ni-2
+              vfrc(i,j,k) = vfrc(i,j,k) + hadv(i,j,k) + (tmp3(i,j,k) + tmp3(i,j,k+1))
+            end do
+          end do
+        end do
+        !$acc end kernels
+      else if (advopt == 3) then
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 2, nk-2
+          do j = 2+jsouth, nj-1-jnorth
+            do i = 2+iwest, ni-2-ieast
+              tmp3(i,j,k) = ((rstxwc(i,j-1,k) + rstxwc(i,j,k)) + (rstxwc(i,j-1,k+1) + rstxwc(i,j,k+1))) &
+                   * (v(i,j,k+1) - v(i,j,k-1)) * dzv48
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 3, nk-3
+          do j = 2+jsouth, nj-1-jnorth
+            do i = 2+iwest, ni-2-ieast
+              vadv(i,j,k) = fourd3 * vadv(i,j,k) + (tmp3(i,j,k-1) + tmp3(i,j,k+1))
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 2, nk-2
+          do j = 2, nj-1
+            do i = 2, ni-2
+              vfrc(i,j,k) = vfrc(i,j,k) + hadv(i,j,k) + vadv(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+    !! Calculate the w advection (2nd order)
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 2, nk-1
+      do j = 2, nj-2
+        do i = 2, ni-1
+          tmp1(i,j,k) = (rstxu(i,j,k-1) + rstxu(i,j,k)) * (w(i,j,k) - w(i-1,j,k)) * dxv25n
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 2, nk-1
+      do j = 2, nj-1
+        do i = 2, ni-2
+          tmp2(i,j,k) = (rstxv(i,j,k-1) + rstxv(i,j,k)) * (w(i,j,k) - w(i,j-1,k)) * dyv25n
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 1, nk-1
+      do j = 2, nj-2
+        do i = 2, ni-2
+          tmp3(i,j,k) = (rstxwc(i,j,k) + rstxwc(i,j,k+1)) * (w(i,j,k+1) - w(i,j,k)) * dzv25n
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    if (advopt == 1) then
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 2, nk-1
+        do j = 2, nj-2
+          do i = 2, ni-2
+            wfrc(i,j,k) = wfrc(i,j,k) + ((tmp3(i,j,k-1) + tmp3(i,j,k)) &
+                 + ((tmp1(i,j,k) + tmp1(i+1,j,k)) + (tmp2(i,j,k) + tmp2(i,j+1,k))))
+          end do
+        end do
+      end do
+      !$acc end kernels
+    else
+      if (advopt == 2) then
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 2, nk-1
+          do j = 2, nj-2
+            do i = 2, ni-2
+              hadv(i,j,k) = (tmp1(i,j,k) + tmp1(i+1,j,k)) + (tmp2(i,j,k) + tmp2(i,j+1,k))
+            end do
+          end do
+        end do
+        !$acc end kernels
+      else if (advopt == 3) then
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 2, nk-1
+          do j = 2, nj-2
+            do i = 2, ni-2
+              hadv(i,j,k) = (tmp1(i,j,k) + tmp1(i+1,j,k)) + (tmp2(i,j,k) + tmp2(i,j+1,k))
+              vadv(i,j,k) = tmp3(i,j,k-1) + tmp3(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+    ! 4th order w advection
+    if (advopt == 2 .or. advopt == 3) then
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 2, nk-1
+        do j = 2+jsouth, nj-2-jnorth
+          do i = 1+iwest, ni-1-ieast
+            tmp1(i,j,k) = ((rstxu(i,j,k-1) + rstxu(i,j,k)) + (rstxu(i+1,j,k-1) + rstxu(i+1,j,k))) &
+                 * (w(i+1,j,k) - w(i-1,j,k)) * dxv48
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 2, nk-1
+        do j = 1+jsouth, nj-1-jnorth
+          do i = 2+iwest, ni-2-ieast
+            tmp2(i,j,k) = ((rstxv(i,j,k-1) + rstxv(i,j,k)) + (rstxv(i,j+1,k-1) + rstxv(i,j+1,k))) &
+                 * (w(i,j+1,k) - w(i,j-1,k)) * dyv48
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 2, nk-1
+        do j = 2+jsouth, nj-2-jnorth
+          do i = 2+iwest, ni-2-ieast
+            hadv(i,j,k) = fourd3 * hadv(i,j,k) &
+                 + ((tmp1(i-1,j,k) + tmp1(i+1,j,k)) + (tmp2(i,j-1,k) + tmp2(i,j+1,k)))
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      if (advopt == 2) then
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 2, nk-1
+          do j = 2, nj-2
+            do i = 2, ni-2
+              wfrc(i,j,k) = wfrc(i,j,k) + hadv(i,j,k) + (tmp3(i,j,k-1) + tmp3(i,j,k))
+            end do
+          end do
+        end do
+        !$acc end kernels
+      else if (advopt == 3) then
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 2, nk-1
+          do j = 2+jsouth, nj-2-jnorth
+            do i = 2+iwest, ni-2-ieast
+              tmp3(i,j,k) = (rstxwc(i,j,k-1) + rstxwc(i,j,k+1)) * (w(i,j,k+1) - w(i,j,k-1)) * dzv24
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 3, nk-2
+          do j = 2+jsouth, nj-2-jnorth
+            do i = 2+iwest, ni-2-ieast
+              vadv(i,j,k) = fourd3 * vadv(i,j,k) + (tmp3(i,j,k-1) + tmp3(i,j,k+1))
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 2, nk-1
+          do j = 2, nj-2
+            do i = 2, ni-2
+              wfrc(i,j,k) = wfrc(i,j,k) + hadv(i,j,k) + vadv(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !! Calculate the u advection.
@@ -994,6 +1475,7 @@ end if
 !! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_advuvw == DUMP_TARGET_advuvw .and. .not. dump_done_advuvw) then

@@ -503,6 +503,1047 @@ if (dump_call_count_swp2nxt == DUMP_TARGET_swp2nxt .and. .not. dump_done_swp2nxt
   ! ! FIXME: nqa is array - call dump_scalar_i('nqa', nqa)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_321)
+! GPU version (OpenACC)
+
+!!!! Swap the prognostic variables to the next time step in the case the
+!!!! centered advection scheme is performed.
+
+      if(advopt.le.3) then
+
+! Swap the velocity prognostic variables to the next time step.
+
+!$acc kernels
+!$acc loop independent
+        do k=1,nk-1
+!$acc loop independent
+          do j=jsouth,nj-jnorth
+!$acc loop independent
+          do i=iwest,ni+1-ieast
+            up(i,j,k)=u(i,j,k)
+            u(i,j,k)=uf(i,j,k)
+          end do
+          end do
+        end do
+!$acc end kernels
+
+!$acc kernels
+!$acc loop independent
+        do k=1,nk-1
+!$acc loop independent
+          do j=jsouth,nj+1-jnorth
+!$acc loop independent
+          do i=iwest,ni-ieast
+            vp(i,j,k)=v(i,j,k)
+            v(i,j,k)=vf(i,j,k)
+          end do
+          end do
+        end do
+!$acc end kernels
+
+!$acc kernels
+!$acc loop independent
+        do k=1,nk
+!$acc loop independent
+          do j=jsouth,nj-jnorth
+!$acc loop independent
+          do i=iwest,ni-ieast
+            wp(i,j,k)=w(i,j,k)
+            w(i,j,k)=wf(i,j,k)
+          end do
+          end do
+        end do
+!$acc end kernels
+
+! -----
+
+! Swap the pressure and potential temperature perturbation to the next
+! time step.
+
+!$acc kernels
+!$acc loop independent
+        do k=1,nk-1
+!$acc loop independent
+          do j=jsouth,nj-jnorth
+!$acc loop independent
+          do i=iwest,ni-ieast
+            ppp(i,j,k)=pp(i,j,k)
+            ptpp(i,j,k)=ptp(i,j,k)
+
+            pp(i,j,k)=ppf(i,j,k)
+            ptp(i,j,k)=ptpf(i,j,k)
+
+          end do
+          end do
+        end do
+!$acc end kernels
+
+! -----
+
+!!! Swap the hydrometeor to the next time step.
+
+        if(fmois(1:5).eq.'moist') then
+
+! Swap the water vapor mixing raito to the next time step.
+
+!$acc kernels
+!$acc loop independent
+          do k=1,nk-1
+!$acc loop independent
+            do j=jsouth,nj-jnorth
+!$acc loop independent
+            do i=iwest,ni-ieast
+              qvp(i,j,k)=qv(i,j,k)
+              qv(i,j,k)=qvf(i,j,k)
+            end do
+            end do
+          end do
+!$acc end kernels
+
+! -----
+
+!! For the bulk categories.
+
+          if(abs(cphopt).lt.10) then
+
+! Swap the water hydrometeor to the next time step.
+
+            if(abs(cphopt).ge.1) then
+
+!$acc kernels
+!$acc loop independent
+              do k=1,nk-1
+!$acc loop independent
+                do j=jsouth,nj-jnorth
+!$acc loop independent
+                do i=iwest,ni-ieast
+                  qwtrp(i,j,k,1)=qwtr(i,j,k,1)
+                  qwtrp(i,j,k,2)=qwtr(i,j,k,2)
+
+                  qwtr(i,j,k,1)=qwtrf(i,j,k,1)
+                  qwtr(i,j,k,2)=qwtrf(i,j,k,2)
+
+                end do
+                end do
+              end do
+!$acc end kernels
+
+            end if
+
+! -----
+
+! Swap the water concentrations to the next time step.
+
+            if(abs(cphopt).eq.4) then
+
+!$acc kernels
+!$acc loop independent
+              do k=1,nk-1
+!$acc loop independent
+                do j=jsouth,nj-jnorth
+!$acc loop independent
+                do i=iwest,ni-ieast
+                  nwtrp(i,j,k,1)=nwtr(i,j,k,1)
+                  nwtrp(i,j,k,2)=nwtr(i,j,k,2)
+
+                  nwtr(i,j,k,1)=nwtrf(i,j,k,1)
+                  nwtr(i,j,k,2)=nwtrf(i,j,k,2)
+
+                end do
+                end do
+              end do
+!$acc end kernels
+
+            end if
+
+! -----
+
+! Swap the ice hydrometeor to the next time step.
+
+            if(abs(cphopt).ge.2) then
+
+              if(haiopt.eq.0) then
+
+!$acc kernels
+!$acc loop independent
+                do k=1,nk-1
+!$acc loop independent
+                  do j=jsouth,nj-jnorth
+!$acc loop independent
+                  do i=iwest,ni-ieast
+                    qicep(i,j,k,1)=qice(i,j,k,1)
+                    qicep(i,j,k,2)=qice(i,j,k,2)
+                    qicep(i,j,k,3)=qice(i,j,k,3)
+
+                    qice(i,j,k,1)=qicef(i,j,k,1)
+                    qice(i,j,k,2)=qicef(i,j,k,2)
+                    qice(i,j,k,3)=qicef(i,j,k,3)
+
+                  end do
+                  end do
+                end do
+!$acc end kernels
+
+              else
+
+!$acc kernels
+!$acc loop independent
+                do k=1,nk-1
+!$acc loop independent
+                  do j=jsouth,nj-jnorth
+!$acc loop independent
+                  do i=iwest,ni-ieast
+                    qicep(i,j,k,1)=qice(i,j,k,1)
+                    qicep(i,j,k,2)=qice(i,j,k,2)
+                    qicep(i,j,k,3)=qice(i,j,k,3)
+                    qicep(i,j,k,4)=qice(i,j,k,4)
+
+                    qice(i,j,k,1)=qicef(i,j,k,1)
+                    qice(i,j,k,2)=qicef(i,j,k,2)
+                    qice(i,j,k,3)=qicef(i,j,k,3)
+                    qice(i,j,k,4)=qicef(i,j,k,4)
+
+                  end do
+                  end do
+                end do
+!$acc end kernels
+
+              end if
+
+            end if
+
+! -----
+
+! Swap the ice concentrations to the next time step.
+
+            if(abs(cphopt).eq.2) then
+
+!$acc kernels
+!$acc loop independent
+              do k=1,nk-1
+!$acc loop independent
+                do j=jsouth,nj-jnorth
+!$acc loop independent
+                do i=iwest,ni-ieast
+                  nicep(i,j,k,1)=nice(i,j,k,1)
+                  nice(i,j,k,1)=nicef(i,j,k,1)
+                end do
+                end do
+              end do
+!$acc end kernels
+
+            else if(abs(cphopt).ge.3) then
+
+              if(haiopt.eq.0) then
+
+!$acc kernels
+!$acc loop independent
+                do k=1,nk-1
+!$acc loop independent
+                  do j=jsouth,nj-jnorth
+!$acc loop independent
+                  do i=iwest,ni-ieast
+                    nicep(i,j,k,1)=nice(i,j,k,1)
+                    nicep(i,j,k,2)=nice(i,j,k,2)
+                    nicep(i,j,k,3)=nice(i,j,k,3)
+
+                    nice(i,j,k,1)=nicef(i,j,k,1)
+                    nice(i,j,k,2)=nicef(i,j,k,2)
+                    nice(i,j,k,3)=nicef(i,j,k,3)
+
+                  end do
+                  end do
+                end do
+!$acc end kernels
+
+              else
+
+!$acc kernels
+!$acc loop independent
+                do k=1,nk-1
+!$acc loop independent
+                  do j=jsouth,nj-jnorth
+!$acc loop independent
+                  do i=iwest,ni-ieast
+                    nicep(i,j,k,1)=nice(i,j,k,1)
+                    nicep(i,j,k,2)=nice(i,j,k,2)
+                    nicep(i,j,k,3)=nice(i,j,k,3)
+                    nicep(i,j,k,4)=nice(i,j,k,4)
+
+                    nice(i,j,k,1)=nicef(i,j,k,1)
+                    nice(i,j,k,2)=nicef(i,j,k,2)
+                    nice(i,j,k,3)=nicef(i,j,k,3)
+                    nice(i,j,k,4)=nicef(i,j,k,4)
+
+                  end do
+                  end do
+                end do
+!$acc end kernels
+
+              end if
+
+            end if
+
+! -----
+
+! Swap the charging distributions to the next time step.
+
+            if(cphopt.lt.0) then
+
+              if(qcgopt.eq.2) then
+
+!$acc kernels
+!$acc loop independent
+                do k=1,nk-1
+!$acc loop independent
+                  do j=jsouth,nj-jnorth
+!$acc loop independent
+                  do i=iwest,ni-ieast
+                    qcwtrp(i,j,k,1)=qcwtr(i,j,k,1)
+                    qcwtrp(i,j,k,2)=qcwtr(i,j,k,2)
+
+                    qcwtr(i,j,k,1)=qcwtrf(i,j,k,1)
+                    qcwtr(i,j,k,2)=qcwtrf(i,j,k,2)
+
+                  end do
+                  end do
+                end do
+!$acc end kernels
+
+              end if
+
+              if(haiopt.eq.0) then
+
+!$acc kernels
+!$acc loop independent
+                do k=1,nk-1
+!$acc loop independent
+                  do j=jsouth,nj-jnorth
+!$acc loop independent
+                  do i=iwest,ni-ieast
+                    qcicep(i,j,k,1)=qcice(i,j,k,1)
+                    qcicep(i,j,k,2)=qcice(i,j,k,2)
+                    qcicep(i,j,k,3)=qcice(i,j,k,3)
+
+                    qcice(i,j,k,1)=qcicef(i,j,k,1)
+                    qcice(i,j,k,2)=qcicef(i,j,k,2)
+                    qcice(i,j,k,3)=qcicef(i,j,k,3)
+
+                  end do
+                  end do
+                end do
+!$acc end kernels
+
+              else
+
+!$acc kernels
+!$acc loop independent
+                do k=1,nk-1
+!$acc loop independent
+                  do j=jsouth,nj-jnorth
+!$acc loop independent
+                  do i=iwest,ni-ieast
+                    qcicep(i,j,k,1)=qcice(i,j,k,1)
+                    qcicep(i,j,k,2)=qcice(i,j,k,2)
+                    qcicep(i,j,k,3)=qcice(i,j,k,3)
+                    qcicep(i,j,k,4)=qcice(i,j,k,4)
+
+                    qcice(i,j,k,1)=qcicef(i,j,k,1)
+                    qcice(i,j,k,2)=qcicef(i,j,k,2)
+                    qcice(i,j,k,3)=qcicef(i,j,k,3)
+                    qcice(i,j,k,4)=qcicef(i,j,k,4)
+
+                  end do
+                  end do
+                end do
+!$acc end kernels
+
+              end if
+
+            end if
+
+! -----
+
+!! -----
+
+!! For the bin categories.
+
+          else if(abs(cphopt).gt.10.and.abs(cphopt).lt.20) then
+
+! Swap the water hydrometeor to the next time step.
+
+            if(abs(cphopt).ge.11) then
+
+              do n=1,nqw
+!$acc kernels
+!$acc loop independent
+                do k=1,nk-1
+!$acc loop independent
+                  do j=jsouth,nj-jnorth
+!$acc loop independent
+                  do i=iwest,ni-ieast
+                    qwtrp(i,j,k,n)=qwtr(i,j,k,n)
+                    qwtr(i,j,k,n)=qwtrf(i,j,k,n)
+                  end do
+                  end do
+                end do
+!$acc end kernels
+              end do
+
+              do n=1,nnw
+!$acc kernels
+!$acc loop independent
+                do k=1,nk-1
+!$acc loop independent
+                  do j=jsouth,nj-jnorth
+!$acc loop independent
+                  do i=iwest,ni-ieast
+                    nwtrp(i,j,k,n)=nwtr(i,j,k,n)
+                    nwtr(i,j,k,n)=nwtrf(i,j,k,n)
+                  end do
+                  end do
+                end do
+!$acc end kernels
+              end do
+
+            end if
+
+! -----
+
+! Swap the ice hydrometeor to the next time step.
+
+            if(abs(cphopt).eq.12) then
+
+              do n=1,nqi
+!$acc kernels
+!$acc loop independent
+                do k=1,nk-1
+!$acc loop independent
+                  do j=jsouth,nj-jnorth
+!$acc loop independent
+                  do i=iwest,ni-ieast
+                    qicep(i,j,k,n)=qice(i,j,k,n)
+                    qice(i,j,k,n)=qicef(i,j,k,n)
+                  end do
+                  end do
+                end do
+!$acc end kernels
+              end do
+
+              do n=1,nni
+!$acc kernels
+!$acc loop independent
+                do k=1,nk-1
+!$acc loop independent
+                  do j=jsouth,nj-jnorth
+!$acc loop independent
+                  do i=iwest,ni-ieast
+                    nicep(i,j,k,n)=nice(i,j,k,n)
+                    nice(i,j,k,n)=nicef(i,j,k,n)
+                  end do
+                  end do
+                end do
+!$acc end kernels
+              end do
+
+            end if
+
+! -----
+
+          end if
+
+!! -----
+
+        end if
+
+!!! -----
+
+! Swap the aerosol to the next time step.
+
+        if(aslopt.ge.1) then
+
+          do n=1,nqa(0)
+!$acc kernels
+!$acc loop independent
+            do k=1,nk-1
+!$acc loop independent
+              do j=jsouth,nj-jnorth
+!$acc loop independent
+              do i=iwest,ni-ieast
+                qaslp(i,j,k,n)=qasl(i,j,k,n)
+                qasl(i,j,k,n)=qaslf(i,j,k,n)
+              end do
+              end do
+            end do
+!$acc end kernels
+          end do
+
+        end if
+
+! -----
+
+! Swap the tracer to the next time step.
+
+        if(trkopt.ge.1) then
+
+!$acc kernels
+!$acc loop independent
+          do k=1,nk-1
+!$acc loop independent
+            do j=jsouth,nj-jnorth
+!$acc loop independent
+            do i=iwest,ni-ieast
+              qtp(i,j,k)=qt(i,j,k)
+              qt(i,j,k)=qtf(i,j,k)
+            end do
+            end do
+          end do
+!$acc end kernels
+
+        end if
+
+! -----
+
+! Swap the turbulent kinetic energy to the next time step.
+
+        if(tubopt.ge.2) then
+
+!$acc kernels
+!$acc loop independent
+          do k=1,nk-1
+!$acc loop independent
+            do j=jsouth,nj-jnorth
+!$acc loop independent
+            do i=iwest,ni-ieast
+              tkep(i,j,k)=tke(i,j,k)
+              tke(i,j,k)=tkef(i,j,k)
+            end do
+            end do
+          end do
+!$acc end kernels
+
+        end if
+
+! -----
+
+! Swap the soil and sea temperature to the next time step.
+
+        if(sfcopt.ge.1) then
+
+          if(dtsoil.gt.0.e0) then
+
+!$acc kernels
+!$acc loop independent
+            do k=1,nund
+!$acc loop independent
+              do j=1,nj-1
+!$acc loop independent
+              do i=1,ni-1
+                tundp(i,j,k)=tund(i,j,k)
+                tund(i,j,k)=tundf(i,j,k)
+              end do
+              end do
+            end do
+!$acc end kernels
+
+          end if
+
+        end if
+
+! -----
+
+!!!! ----
+
+!!!! Swap the prognostic variables to the next time step in the case the
+!!!! Cubic Lagrange advection scheme is performed.
+
+      else
+
+! Swap the velocity prognostic variables to the next time step.
+
+!$acc kernels
+!$acc loop independent
+        do k=1,nk-1
+!$acc loop independent
+          do j=jsouth,nj-jnorth
+!$acc loop independent
+          do i=iwest,ni+1-ieast
+            up(i,j,k)=uf(i,j,k)
+          end do
+          end do
+        end do
+!$acc end kernels
+
+!$acc kernels
+!$acc loop independent
+        do k=1,nk-1
+!$acc loop independent
+          do j=jsouth,nj+1-jnorth
+!$acc loop independent
+          do i=iwest,ni-ieast
+            vp(i,j,k)=vf(i,j,k)
+          end do
+          end do
+        end do
+!$acc end kernels
+
+!$acc kernels
+!$acc loop independent
+        do k=1,nk
+!$acc loop independent
+          do j=jsouth,nj-jnorth
+!$acc loop independent
+          do i=iwest,ni-ieast
+            wp(i,j,k)=wf(i,j,k)
+          end do
+          end do
+        end do
+!$acc end kernels
+
+! -----
+
+! Swap the pressure and potential temperature perturbation to the next
+! time step.
+
+!$acc kernels
+!$acc loop independent
+        do k=1,nk-1
+!$acc loop independent
+          do j=jsouth,nj-jnorth
+!$acc loop independent
+          do i=iwest,ni-ieast
+            ppp(i,j,k)=ppf(i,j,k)
+            ptpp(i,j,k)=ptpf(i,j,k)
+          end do
+          end do
+        end do
+!$acc end kernels
+
+! -----
+
+!!! Swap the hydrometeor to the next time step.
+
+        if(fmois(1:5).eq.'moist') then
+
+! Swap the water vapor mixing raito to the next time step.
+
+!$acc kernels
+!$acc loop independent
+          do k=1,nk-1
+!$acc loop independent
+            do j=jsouth,nj-jnorth
+!$acc loop independent
+            do i=iwest,ni-ieast
+              qvp(i,j,k)=qvf(i,j,k)
+            end do
+            end do
+          end do
+!$acc end kernels
+
+! -----
+
+!! For the bulk categories.
+
+          if(abs(cphopt).lt.10) then
+
+! Swap the water hydrometeor to the next time step.
+
+            if(abs(cphopt).ge.1) then
+
+!$acc kernels
+!$acc loop independent
+              do k=1,nk-1
+!$acc loop independent
+                do j=jsouth,nj-jnorth
+!$acc loop independent
+                do i=iwest,ni-ieast
+                  qwtrp(i,j,k,1)=qwtrf(i,j,k,1)
+                  qwtrp(i,j,k,2)=qwtrf(i,j,k,2)
+                end do
+                end do
+              end do
+!$acc end kernels
+
+            end if
+
+! -----
+
+! Swap the water concentrations to the next time step.
+
+            if(abs(cphopt).eq.4) then
+
+!$acc kernels
+!$acc loop independent
+              do k=1,nk-1
+!$acc loop independent
+                do j=jsouth,nj-jnorth
+!$acc loop independent
+                do i=iwest,ni-ieast
+                  nwtrp(i,j,k,1)=nwtrf(i,j,k,1)
+                  nwtrp(i,j,k,2)=nwtrf(i,j,k,2)
+                end do
+                end do
+              end do
+!$acc end kernels
+
+            end if
+
+! -----
+
+! Swap the ice hydrometeor to the next time step.
+
+            if(abs(cphopt).ge.2) then
+
+              if(haiopt.eq.0) then
+
+!$acc kernels
+!$acc loop independent
+                do k=1,nk-1
+!$acc loop independent
+                  do j=jsouth,nj-jnorth
+!$acc loop independent
+                  do i=iwest,ni-ieast
+                    qicep(i,j,k,1)=qicef(i,j,k,1)
+                    qicep(i,j,k,2)=qicef(i,j,k,2)
+                    qicep(i,j,k,3)=qicef(i,j,k,3)
+                  end do
+                  end do
+                end do
+!$acc end kernels
+
+              else
+
+!$acc kernels
+!$acc loop independent
+                do k=1,nk-1
+!$acc loop independent
+                  do j=jsouth,nj-jnorth
+!$acc loop independent
+                  do i=iwest,ni-ieast
+                    qicep(i,j,k,1)=qicef(i,j,k,1)
+                    qicep(i,j,k,2)=qicef(i,j,k,2)
+                    qicep(i,j,k,3)=qicef(i,j,k,3)
+                    qicep(i,j,k,4)=qicef(i,j,k,4)
+                  end do
+                  end do
+                end do
+!$acc end kernels
+
+              end if
+
+            end if
+
+! -----
+
+! Swap the ice concentrations to the next time step.
+
+            if(abs(cphopt).eq.2) then
+
+!$acc kernels
+!$acc loop independent
+              do k=1,nk-1
+!$acc loop independent
+                do j=jsouth,nj-jnorth
+!$acc loop independent
+                do i=iwest,ni-ieast
+                  nicep(i,j,k,1)=nicef(i,j,k,1)
+                end do
+                end do
+              end do
+!$acc end kernels
+
+            else if(abs(cphopt).ge.3) then
+
+              if(haiopt.eq.0) then
+
+!$acc kernels
+!$acc loop independent
+                do k=1,nk-1
+!$acc loop independent
+                  do j=jsouth,nj-jnorth
+!$acc loop independent
+                  do i=iwest,ni-ieast
+                    nicep(i,j,k,1)=nicef(i,j,k,1)
+                    nicep(i,j,k,2)=nicef(i,j,k,2)
+                    nicep(i,j,k,3)=nicef(i,j,k,3)
+                  end do
+                  end do
+                end do
+!$acc end kernels
+
+              else
+
+!$acc kernels
+!$acc loop independent
+                do k=1,nk-1
+!$acc loop independent
+                  do j=jsouth,nj-jnorth
+!$acc loop independent
+                  do i=iwest,ni-ieast
+                    nicep(i,j,k,1)=nicef(i,j,k,1)
+                    nicep(i,j,k,2)=nicef(i,j,k,2)
+                    nicep(i,j,k,3)=nicef(i,j,k,3)
+                    nicep(i,j,k,4)=nicef(i,j,k,4)
+                  end do
+                  end do
+                end do
+!$acc end kernels
+
+              end if
+
+            end if
+
+! -----
+
+! Swap the charging distributions to the next time step.
+
+            if(cphopt.lt.0) then
+
+              if(qcgopt.eq.2) then
+
+!$acc kernels
+!$acc loop independent
+                do k=1,nk-1
+!$acc loop independent
+                  do j=jsouth,nj-jnorth
+!$acc loop independent
+                  do i=iwest,ni-ieast
+                    qcwtrp(i,j,k,1)=qcwtrf(i,j,k,1)
+                    qcwtrp(i,j,k,2)=qcwtrf(i,j,k,2)
+                  end do
+                  end do
+                end do
+!$acc end kernels
+
+              end if
+
+              if(haiopt.eq.0) then
+
+!$acc kernels
+!$acc loop independent
+                do k=1,nk-1
+!$acc loop independent
+                  do j=jsouth,nj-jnorth
+!$acc loop independent
+                  do i=iwest,ni-ieast
+                    qcicep(i,j,k,1)=qcicef(i,j,k,1)
+                    qcicep(i,j,k,2)=qcicef(i,j,k,2)
+                    qcicep(i,j,k,3)=qcicef(i,j,k,3)
+                  end do
+                  end do
+                end do
+!$acc end kernels
+
+              else
+
+!$acc kernels
+!$acc loop independent
+                do k=1,nk-1
+!$acc loop independent
+                  do j=jsouth,nj-jnorth
+!$acc loop independent
+                  do i=iwest,ni-ieast
+                    qcicep(i,j,k,1)=qcicef(i,j,k,1)
+                    qcicep(i,j,k,2)=qcicef(i,j,k,2)
+                    qcicep(i,j,k,3)=qcicef(i,j,k,3)
+                    qcicep(i,j,k,4)=qcicef(i,j,k,4)
+                  end do
+                  end do
+                end do
+!$acc end kernels
+
+              end if
+
+            end if
+
+! -----
+
+!! -----
+
+!! For the bin categories.
+
+          else if(abs(cphopt).gt.10.and.abs(cphopt).lt.20) then
+
+! Swap the water hydrometeor to the next time step.
+
+            if(abs(cphopt).ge.11) then
+
+              do n=1,nqw
+!$acc kernels
+!$acc loop independent
+                do k=1,nk-1
+!$acc loop independent
+                  do j=jsouth,nj-jnorth
+!$acc loop independent
+                  do i=iwest,ni-ieast
+                    qwtrp(i,j,k,n)=qwtrf(i,j,k,n)
+                  end do
+                  end do
+                end do
+!$acc end kernels
+              end do
+
+              do n=1,nnw
+!$acc kernels
+!$acc loop independent
+                do k=1,nk-1
+!$acc loop independent
+                  do j=jsouth,nj-jnorth
+!$acc loop independent
+                  do i=iwest,ni-ieast
+                    nwtrp(i,j,k,n)=nwtrf(i,j,k,n)
+                  end do
+                  end do
+                end do
+!$acc end kernels
+              end do
+
+            end if
+
+! -----
+
+! Swap the ice hydrometeor to the next time step.
+
+            if(abs(cphopt).eq.12) then
+
+              do n=1,nqi
+!$acc kernels
+!$acc loop independent
+                do k=1,nk-1
+!$acc loop independent
+                  do j=jsouth,nj-jnorth
+!$acc loop independent
+                  do i=iwest,ni-ieast
+                    qicep(i,j,k,n)=qicef(i,j,k,n)
+                  end do
+                  end do
+                end do
+!$acc end kernels
+              end do
+
+              do n=1,nni
+!$acc kernels
+!$acc loop independent
+                do k=1,nk-1
+!$acc loop independent
+                  do j=jsouth,nj-jnorth
+!$acc loop independent
+                  do i=iwest,ni-ieast
+                    nicep(i,j,k,n)=nicef(i,j,k,n)
+                  end do
+                  end do
+                end do
+!$acc end kernels
+              end do
+
+            end if
+
+! -----
+
+          end if
+
+!! -----
+
+        end if
+
+!!! -----
+
+! Swap the aerosol to the next time step.
+
+        if(aslopt.ge.1) then
+
+          do n=1,nqa(0)
+!$acc kernels
+!$acc loop independent
+            do k=1,nk-1
+!$acc loop independent
+              do j=jsouth,nj-jnorth
+!$acc loop independent
+              do i=iwest,ni-ieast
+                qaslp(i,j,k,n)=qaslf(i,j,k,n)
+              end do
+              end do
+            end do
+!$acc end kernels
+          end do
+
+        end if
+
+! -----
+
+! Swap the tracer to the next time step.
+
+        if(trkopt.ge.1) then
+
+!$acc kernels
+!$acc loop independent
+          do k=1,nk-1
+!$acc loop independent
+            do j=jsouth,nj-jnorth
+!$acc loop independent
+            do i=iwest,ni-ieast
+              qtp(i,j,k)=qtf(i,j,k)
+            end do
+            end do
+          end do
+!$acc end kernels
+
+        end if
+
+! -----
+
+! Swap the turbulent kinetic energy to the next time step.
+
+        if(tubopt.ge.2) then
+
+!$acc kernels
+!$acc loop independent
+          do k=1,nk-1
+!$acc loop independent
+            do j=jsouth,nj-jnorth
+!$acc loop independent
+            do i=iwest,ni-ieast
+              tkep(i,j,k)=tkef(i,j,k)
+            end do
+            end do
+          end do
+!$acc end kernels
+
+        end if
+
+! -----
+
+! Swap the soil and sea temperature to the next time step.
+
+        if(sfcopt.ge.1) then
+
+          if(dtsoil.gt.0.e0) then
+
+!$acc kernels
+!$acc loop independent
+            do k=1,nund
+!$acc loop independent
+              do j=1,nj-1
+!$acc loop independent
+              do i=1,ni-1
+                tundp(i,j,k)=tundf(i,j,k)
+              end do
+              end do
+            end do
+!$acc end kernels
+
+          end if
+
+        end if
+
+! -----
+
+      end if
+
+!!!! ----
+
+#else
+! CPU version (OpenMP) - Original code preserved
 !$omp parallel default(shared) private(k,n)
 
 !!!! Swap the prognostic variables to the next time step in the case the
@@ -992,525 +2033,6 @@ end if
 
               do j=jsouth,nj-jnorth
               do i=iwest,ni-ieast
-                qaslp(i,j,k,n)=qasl(i,j,k,n)
-                qasl(i,j,k,n)=qaslf(i,j,k,n)
-              end do
-              end do
-
-!$omp end do
-
-            end do
-
-          end do
-
-        end if
-
-! -----
-
-! Swap the tracer to the next time step.
-
-        if(trkopt.ge.1) then
-
-          do k=1,nk-1
-
-!$omp do schedule(runtime) private(i,j)
-
-            do j=jsouth,nj-jnorth
-            do i=iwest,ni-ieast
-              qtp(i,j,k)=qt(i,j,k)
-              qt(i,j,k)=qtf(i,j,k)
-            end do
-            end do
-
-!$omp end do
-
-          end do
-
-        end if
-
-! -----
-
-! Swap the turbulent kinetic energy to the next time step.
-
-        if(tubopt.ge.2) then
-
-          do k=1,nk-1
-
-!$omp do schedule(runtime) private(i,j)
-
-            do j=jsouth,nj-jnorth
-            do i=iwest,ni-ieast
-              tkep(i,j,k)=tke(i,j,k)
-              tke(i,j,k)=tkef(i,j,k)
-            end do
-            end do
-
-!$omp end do
-
-          end do
-
-        end if
-
-! -----
-
-! Swap the soil and sea temperature to the next time step.
-
-        if(sfcopt.ge.1) then
-
-          if(dtsoil.gt.0.e0) then
-
-            do k=1,nund
-
-!$omp do schedule(runtime) private(i,j)
-
-              do j=1,nj-1
-              do i=1,ni-1
-                tundp(i,j,k)=tund(i,j,k)
-                tund(i,j,k)=tundf(i,j,k)
-              end do
-              end do
-
-!$omp end do
-
-            end do
-
-          end if
-
-        end if
-
-! -----
-
-!!!! ----
-
-!!!! Swap the prognostic variables to the next time step in the case the
-!!!! Cubic Lagrange advection scheme is performed.
-
-      else
-
-! Swap the velocity prognostic variables to the next time step.
-
-        do k=1,nk-1
-
-!$omp do schedule(runtime) private(i,j)
-
-          do j=jsouth,nj-jnorth
-          do i=iwest,ni+1-ieast
-            up(i,j,k)=uf(i,j,k)
-          end do
-          end do
-
-!$omp end do
-
-!$omp do schedule(runtime) private(i,j)
-
-          do j=jsouth,nj+1-jnorth
-          do i=iwest,ni-ieast
-            vp(i,j,k)=vf(i,j,k)
-          end do
-          end do
-
-!$omp end do
-
-        end do
-
-        do k=1,nk
-
-!$omp do schedule(runtime) private(i,j)
-
-          do j=jsouth,nj-jnorth
-          do i=iwest,ni-ieast
-            wp(i,j,k)=wf(i,j,k)
-          end do
-          end do
-
-!$omp end do
-
-        end do
-
-! -----
-
-! Swap the pressure and potential temperature perturbation to the next
-! time step.
-
-        do k=1,nk-1
-
-!$omp do schedule(runtime) private(i,j)
-
-          do j=jsouth,nj-jnorth
-          do i=iwest,ni-ieast
-            ppp(i,j,k)=ppf(i,j,k)
-            ptpp(i,j,k)=ptpf(i,j,k)
-          end do
-          end do
-
-!$omp end do
-
-        end do
-
-! -----
-
-!!! Swap the hydrometeor to the next time step.
-
-        if(fmois(1:5).eq.'moist') then
-
-! Swap the water vapor mixing raito to the next time step.
-
-          do k=1,nk-1
-
-!$omp do schedule(runtime) private(i,j)
-
-            do j=jsouth,nj-jnorth
-            do i=iwest,ni-ieast
-              qvp(i,j,k)=qvf(i,j,k)
-            end do
-            end do
-
-!$omp end do
-
-          end do
-
-! -----
-
-!! For the bulk categories.
-
-          if(abs(cphopt).lt.10) then
-
-! Swap the water hydrometeor to the next time step.
-
-            if(abs(cphopt).ge.1) then
-
-              do k=1,nk-1
-
-!$omp do schedule(runtime) private(i,j)
-
-                do j=jsouth,nj-jnorth
-                do i=iwest,ni-ieast
-                  qwtrp(i,j,k,1)=qwtrf(i,j,k,1)
-                  qwtrp(i,j,k,2)=qwtrf(i,j,k,2)
-                end do
-                end do
-
-!$omp end do
-
-              end do
-
-            end if
-
-! -----
-
-! Swap the water concentrations to the next time step.
-
-            if(abs(cphopt).eq.4) then
-
-              do k=1,nk-1
-
-!$omp do schedule(runtime) private(i,j)
-
-                do j=jsouth,nj-jnorth
-                do i=iwest,ni-ieast
-                  nwtrp(i,j,k,1)=nwtrf(i,j,k,1)
-                  nwtrp(i,j,k,2)=nwtrf(i,j,k,2)
-                end do
-                end do
-
-!$omp end do
-
-              end do
-
-            end if
-
-! -----
-
-! Swap the ice hydrometeor to the next time step.
-
-            if(abs(cphopt).ge.2) then
-
-              if(haiopt.eq.0) then
-
-                do k=1,nk-1
-
-!$omp do schedule(runtime) private(i,j)
-
-                  do j=jsouth,nj-jnorth
-                  do i=iwest,ni-ieast
-                    qicep(i,j,k,1)=qicef(i,j,k,1)
-                    qicep(i,j,k,2)=qicef(i,j,k,2)
-                    qicep(i,j,k,3)=qicef(i,j,k,3)
-                  end do
-                  end do
-
-!$omp end do
-
-                end do
-
-              else
-
-                do k=1,nk-1
-
-!$omp do schedule(runtime) private(i,j)
-
-                  do j=jsouth,nj-jnorth
-                  do i=iwest,ni-ieast
-                    qicep(i,j,k,1)=qicef(i,j,k,1)
-                    qicep(i,j,k,2)=qicef(i,j,k,2)
-                    qicep(i,j,k,3)=qicef(i,j,k,3)
-                    qicep(i,j,k,4)=qicef(i,j,k,4)
-                  end do
-                  end do
-
-!$omp end do
-
-                end do
-
-              end if
-
-            end if
-
-! -----
-
-! Swap the ice concentrations to the next time step.
-
-            if(abs(cphopt).eq.2) then
-
-              do k=1,nk-1
-
-!$omp do schedule(runtime) private(i,j)
-
-                do j=jsouth,nj-jnorth
-                do i=iwest,ni-ieast
-                  nicep(i,j,k,1)=nicef(i,j,k,1)
-                end do
-                end do
-
-!$omp end do
-
-              end do
-
-            else if(abs(cphopt).ge.3) then
-
-              if(haiopt.eq.0) then
-
-                do k=1,nk-1
-
-!$omp do schedule(runtime) private(i,j)
-
-                  do j=jsouth,nj-jnorth
-                  do i=iwest,ni-ieast
-                    nicep(i,j,k,1)=nicef(i,j,k,1)
-                    nicep(i,j,k,2)=nicef(i,j,k,2)
-                    nicep(i,j,k,3)=nicef(i,j,k,3)
-                  end do
-                  end do
-
-!$omp end do
-
-                end do
-
-              else
-
-                do k=1,nk-1
-
-!$omp do schedule(runtime) private(i,j)
-
-                  do j=jsouth,nj-jnorth
-                  do i=iwest,ni-ieast
-                    nicep(i,j,k,1)=nicef(i,j,k,1)
-                    nicep(i,j,k,2)=nicef(i,j,k,2)
-                    nicep(i,j,k,3)=nicef(i,j,k,3)
-                    nicep(i,j,k,4)=nicef(i,j,k,4)
-                  end do
-                  end do
-
-!$omp end do
-
-                end do
-
-              end if
-
-            end if
-
-! -----
-
-! Swap the charging distributions to the next time step.
-
-            if(cphopt.lt.0) then
-
-              if(qcgopt.eq.2) then
-
-                do k=1,nk-1
-
-!$omp do schedule(runtime) private(i,j)
-
-                  do j=jsouth,nj-jnorth
-                  do i=iwest,ni-ieast
-                    qcwtrp(i,j,k,1)=qcwtrf(i,j,k,1)
-                    qcwtrp(i,j,k,2)=qcwtrf(i,j,k,2)
-                  end do
-                  end do
-
-!$omp end do
-
-                end do
-
-              end if
-
-              if(haiopt.eq.0) then
-
-                do k=1,nk-1
-
-!$omp do schedule(runtime) private(i,j)
-
-                  do j=jsouth,nj-jnorth
-                  do i=iwest,ni-ieast
-                    qcicep(i,j,k,1)=qcicef(i,j,k,1)
-                    qcicep(i,j,k,2)=qcicef(i,j,k,2)
-                    qcicep(i,j,k,3)=qcicef(i,j,k,3)
-                  end do
-                  end do
-
-!$omp end do
-
-                end do
-
-              else
-
-                do k=1,nk-1
-
-!$omp do schedule(runtime) private(i,j)
-
-                  do j=jsouth,nj-jnorth
-                  do i=iwest,ni-ieast
-                    qcicep(i,j,k,1)=qcicef(i,j,k,1)
-                    qcicep(i,j,k,2)=qcicef(i,j,k,2)
-                    qcicep(i,j,k,3)=qcicef(i,j,k,3)
-                    qcicep(i,j,k,4)=qcicef(i,j,k,4)
-                  end do
-                  end do
-
-!$omp end do
-
-                end do
-
-              end if
-
-            end if
-
-! -----
-
-!! -----
-
-!! For the bin categories.
-
-          else if(abs(cphopt).gt.10.and.abs(cphopt).lt.20) then
-
-! Swap the water hydrometeor to the next time step.
-
-            if(abs(cphopt).ge.11) then
-
-              do n=1,nqw
-
-                do k=1,nk-1
-
-!$omp do schedule(runtime) private(i,j)
-
-                  do j=jsouth,nj-jnorth
-                  do i=iwest,ni-ieast
-                    qwtrp(i,j,k,n)=qwtrf(i,j,k,n)
-                  end do
-                  end do
-
-!$omp end do
-
-                end do
-
-              end do
-
-              do n=1,nnw
-
-                do k=1,nk-1
-
-!$omp do schedule(runtime) private(i,j)
-
-                  do j=jsouth,nj-jnorth
-                  do i=iwest,ni-ieast
-                    nwtrp(i,j,k,n)=nwtrf(i,j,k,n)
-                  end do
-                  end do
-
-!$omp end do
-
-                end do
-
-              end do
-
-            end if
-
-! -----
-
-! Swap the ice hydrometeor to the next time step.
-
-            if(abs(cphopt).eq.12) then
-
-              do n=1,nqi
-
-                do k=1,nk-1
-
-!$omp do schedule(runtime) private(i,j)
-
-                  do j=jsouth,nj-jnorth
-                  do i=iwest,ni-ieast
-                    qicep(i,j,k,n)=qicef(i,j,k,n)
-                  end do
-                  end do
-
-!$omp end do
-
-                end do
-
-              end do
-
-              do n=1,nni
-
-                do k=1,nk-1
-
-!$omp do schedule(runtime) private(i,j)
-
-                  do j=jsouth,nj-jnorth
-                  do i=iwest,ni-ieast
-                    nicep(i,j,k,n)=nicef(i,j,k,n)
-                  end do
-                  end do
-
-!$omp end do
-
-                end do
-
-              end do
-
-            end if
-
-! -----
-
-          end if
-
-!! -----
-
-        end if
-
-!!! -----
-
-! Swap the aerosol to the next time step.
-
-        if(aslopt.ge.1) then
-
-          do n=1,nqa(0)
-
-            do k=1,nk-1
-
-!$omp do schedule(runtime) private(i,j)
-
-              do j=jsouth,nj-jnorth
-              do i=iwest,ni-ieast
                 qaslp(i,j,k,n)=qaslf(i,j,k,n)
               end do
               end do
@@ -1600,6 +2122,7 @@ end if
 !!!! ----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_swp2nxt == DUMP_TARGET_swp2nxt .and. .not. dump_done_swp2nxt) then

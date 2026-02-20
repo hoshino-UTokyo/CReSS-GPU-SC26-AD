@@ -327,6 +327,680 @@ if (dump_call_count_turbuvw == DUMP_TARGET_turbuvw .and. .not. dump_done_turbuvw
   call dump_scalar_r('dyiv25', dyiv25)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_338)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (mfcopt == 1) then
+      if (mpopt == 0 .or. mpopt == 10) then
+        !$acc kernels
+        !$acc loop independent
+        do j = 2, nj-1
+          !$acc loop independent
+          do i = 2, ni-1
+            t13(i,j,nk) = rmf8u(i,j-1,2) + rmf8u(i,j,2)
+          end do
+        end do
+        !$acc end kernels
+      else if (mpopt == 5) then
+        !$acc kernels
+        !$acc loop independent
+        do j = 2, nj-1
+          !$acc loop independent
+          do i = 2, ni-1
+            t23(i,j,nk) = rmf8v(i-1,j,2) + rmf8v(i,j,2)
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        !$acc loop independent
+        do j = 2, nj-1
+          !$acc loop independent
+          do i = 2, ni-1
+            t13(i,j,nk) = rmf8u(i,j-1,2) + rmf8u(i,j,2)
+            t23(i,j,nk) = rmf8v(i-1,j,2) + rmf8v(i,j,2)
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+    ! Calculate the u turbulent mixing
+    if (trnopt == 0) then
+      if (mfcopt == 0) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 2, nj-2
+            !$acc loop independent
+            do i = 1, ni-1
+              t11(i,j,k) = jcb(i,j,k) * t11(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 2, nj-1
+            !$acc loop independent
+            do i = 2, ni-1
+              tmp1(i,j,k) = (jcb8u(i,j-1,k) + jcb8u(i,j,k)) * t12(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        if (advopt <= 3) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 2, nj-2
+              !$acc loop independent
+              do i = 2, ni-1
+                ufrc(i,j,k) = ((t11(i,j,k) - t11(i-1,j,k)) * dxiv &
+                     + (tmp1(i,j+1,k) - tmp1(i,j,k)) * dyiv05) &
+                     + (t13(i,j,k+1) - t13(i,j,k)) * dziv
+              end do
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 2, nj-2
+              !$acc loop independent
+              do i = 2, ni-1
+                ufrc(i,j,k) = ufrc(i,j,k) + ((t11(i,j,k) - t11(i-1,j,k)) * dxiv &
+                     + (tmp1(i,j+1,k) - tmp1(i,j,k)) * dyiv05) &
+                     + (t13(i,j,k+1) - t13(i,j,k)) * dziv
+              end do
+            end do
+          end do
+          !$acc end kernels
+        end if
+      else
+        if (mpopt == 0 .or. mpopt == 5 .or. mpopt == 10) then
+          if (mpopt == 0 .or. mpopt == 10) then
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-2
+                !$acc loop independent
+                do i = 1, ni-1
+                  t11(i,j,k) = jcb(i,j,k) * t11(i,j,k)
+                end do
+              end do
+            end do
+            !$acc end kernels
+
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-1
+                !$acc loop independent
+                do i = 2, ni-1
+                  tmp1(i,j,k) = t13(i,j,nk) * (jcb8u(i,j-1,k) + jcb8u(i,j,k)) * t12(i,j,k)
+                end do
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-2
+                !$acc loop independent
+                do i = 1, ni-1
+                  t11(i,j,k) = rmf(i,j,2) * jcb(i,j,k) * t11(i,j,k)
+                end do
+              end do
+            end do
+            !$acc end kernels
+
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-1
+                !$acc loop independent
+                do i = 2, ni-1
+                  tmp1(i,j,k) = (jcb8u(i,j-1,k) + jcb8u(i,j,k)) * t12(i,j,k)
+                end do
+              end do
+            end do
+            !$acc end kernels
+          end if
+
+          if (advopt <= 3) then
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-2
+                !$acc loop independent
+                do i = 2, ni-1
+                  ufrc(i,j,k) = mf8u(i,j) * ((t11(i,j,k) - t11(i-1,j,k)) * dxiv &
+                       + (tmp1(i,j+1,k) - tmp1(i,j,k)) * dyiv25) &
+                       + (t13(i,j,k+1) - t13(i,j,k)) * dziv
+                end do
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-2
+                !$acc loop independent
+                do i = 2, ni-1
+                  ufrc(i,j,k) = ufrc(i,j,k) &
+                       + mf8u(i,j) * ((t11(i,j,k) - t11(i-1,j,k)) * dxiv &
+                       + (tmp1(i,j+1,k) - tmp1(i,j,k)) * dyiv25) &
+                       + (t13(i,j,k+1) - t13(i,j,k)) * dziv
+                end do
+              end do
+            end do
+            !$acc end kernels
+          end if
+        else
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 2, nj-2
+              !$acc loop independent
+              do i = 1, ni-1
+                t11(i,j,k) = rmf(i,j,2) * jcb(i,j,k) * t11(i,j,k)
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 2, nj-1
+              !$acc loop independent
+              do i = 2, ni-1
+                tmp1(i,j,k) = t13(i,j,nk) * (jcb8u(i,j-1,k) + jcb8u(i,j,k)) * t12(i,j,k)
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+          if (advopt <= 3) then
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-2
+                !$acc loop independent
+                do i = 2, ni-1
+                  ufrc(i,j,k) = rmf8u(i,j,1) * ((t11(i,j,k) - t11(i-1,j,k)) * dxiv &
+                       + (tmp1(i,j+1,k) - tmp1(i,j,k)) * dyiv25) &
+                       + (t13(i,j,k+1) - t13(i,j,k)) * dziv
+                end do
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-2
+                !$acc loop independent
+                do i = 2, ni-1
+                  ufrc(i,j,k) = ufrc(i,j,k) &
+                       + rmf8u(i,j,1) * ((t11(i,j,k) - t11(i-1,j,k)) * dxiv &
+                       + (tmp1(i,j+1,k) - tmp1(i,j,k)) * dyiv25) &
+                       + (t13(i,j,k+1) - t13(i,j,k)) * dziv
+                end do
+              end do
+            end do
+            !$acc end kernels
+          end if
+        end if
+      end if
+    end if
+
+    ! Calculate the v turbulent mixing
+    if (trnopt == 0) then
+      if (mfcopt == 0) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 1, nj-1
+            !$acc loop independent
+            do i = 2, ni-2
+              t22(i,j,k) = jcb(i,j,k) * t22(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 2, nj-1
+            !$acc loop independent
+            do i = 2, ni-1
+              tmp1(i,j,k) = (jcb8v(i-1,j,k) + jcb8v(i,j,k)) * t12(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        if (advopt <= 3) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 2, nj-1
+              !$acc loop independent
+              do i = 2, ni-2
+                vfrc(i,j,k) = ((t22(i,j,k) - t22(i,j-1,k)) * dyiv &
+                     + (tmp1(i+1,j,k) - tmp1(i,j,k)) * dxiv05) &
+                     + (t23(i,j,k+1) - t23(i,j,k)) * dziv
+              end do
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 2, nj-1
+              !$acc loop independent
+              do i = 2, ni-2
+                vfrc(i,j,k) = vfrc(i,j,k) + ((t22(i,j,k) - t22(i,j-1,k)) * dyiv &
+                     + (tmp1(i+1,j,k) - tmp1(i,j,k)) * dxiv05) &
+                     + (t23(i,j,k+1) - t23(i,j,k)) * dziv
+              end do
+            end do
+          end do
+          !$acc end kernels
+        end if
+      else
+        if (mpopt == 0 .or. mpopt == 5 .or. mpopt == 10) then
+          if (mpopt == 0 .or. mpopt == 10) then
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 1, nj-1
+                !$acc loop independent
+                do i = 2, ni-2
+                  t22(i,j,k) = rmf(i,j,2) * jcb(i,j,k) * t22(i,j,k)
+                end do
+              end do
+            end do
+            !$acc end kernels
+
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-1
+                !$acc loop independent
+                do i = 2, ni-1
+                  tmp1(i,j,k) = (jcb8v(i-1,j,k) + jcb8v(i,j,k)) * t12(i,j,k)
+                end do
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 1, nj-1
+                !$acc loop independent
+                do i = 2, ni-2
+                  t22(i,j,k) = jcb(i,j,k) * t22(i,j,k)
+                end do
+              end do
+            end do
+            !$acc end kernels
+
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-1
+                !$acc loop independent
+                do i = 2, ni-1
+                  tmp1(i,j,k) = t23(i,j,nk) * (jcb8v(i-1,j,k) + jcb8v(i,j,k)) * t12(i,j,k)
+                end do
+              end do
+            end do
+            !$acc end kernels
+          end if
+
+          if (advopt <= 3) then
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-1
+                !$acc loop independent
+                do i = 2, ni-2
+                  vfrc(i,j,k) = mf8v(i,j) * ((t22(i,j,k) - t22(i,j-1,k)) * dyiv &
+                       + (tmp1(i+1,j,k) - tmp1(i,j,k)) * dxiv25) &
+                       + (t23(i,j,k+1) - t23(i,j,k)) * dziv
+                end do
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-1
+                !$acc loop independent
+                do i = 2, ni-2
+                  vfrc(i,j,k) = vfrc(i,j,k) &
+                       + mf8v(i,j) * ((t22(i,j,k) - t22(i,j-1,k)) * dyiv &
+                       + (tmp1(i+1,j,k) - tmp1(i,j,k)) * dxiv25) &
+                       + (t23(i,j,k+1) - t23(i,j,k)) * dziv
+                end do
+              end do
+            end do
+            !$acc end kernels
+          end if
+        else
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 1, nj-1
+              !$acc loop independent
+              do i = 2, ni-2
+                t22(i,j,k) = rmf(i,j,2) * jcb(i,j,k) * t22(i,j,k)
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 2, nj-1
+              !$acc loop independent
+              do i = 2, ni-1
+                tmp1(i,j,k) = t23(i,j,nk) * (jcb8v(i-1,j,k) + jcb8v(i,j,k)) * t12(i,j,k)
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+          if (advopt <= 3) then
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-1
+                !$acc loop independent
+                do i = 2, ni-2
+                  vfrc(i,j,k) = rmf8v(i,j,1) * ((t22(i,j,k) - t22(i,j-1,k)) * dyiv &
+                       + (tmp1(i+1,j,k) - tmp1(i,j,k)) * dxiv25) &
+                       + (t23(i,j,k+1) - t23(i,j,k)) * dziv
+                end do
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-2
+              !$acc loop independent
+              do j = 2, nj-1
+                !$acc loop independent
+                do i = 2, ni-2
+                  vfrc(i,j,k) = vfrc(i,j,k) &
+                       + rmf8v(i,j,1) * ((t22(i,j,k) - t22(i,j-1,k)) * dyiv &
+                       + (tmp1(i+1,j,k) - tmp1(i,j,k)) * dxiv25) &
+                       + (t23(i,j,k+1) - t23(i,j,k)) * dziv
+                end do
+              end do
+            end do
+            !$acc end kernels
+          end if
+        end if
+      end if
+    end if
+
+    ! Calculate the w turbulent mixing
+    if (trnopt == 0) then
+      if (mfcopt == 0) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-1
+          !$acc loop independent
+          do j = 2, nj-2
+            !$acc loop independent
+            do i = 2, ni-1
+              t11(i,j,k) = (jcb8u(i,j,k-1) + jcb8u(i,j,k)) * t31(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-1
+          !$acc loop independent
+          do j = 2, nj-1
+            !$acc loop independent
+            do i = 2, ni-2
+              t22(i,j,k) = (jcb8v(i,j,k-1) + jcb8v(i,j,k)) * t32(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        if (advopt <= 3) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-1
+            !$acc loop independent
+            do j = 2, nj-2
+              !$acc loop independent
+              do i = 2, ni-2
+                wfrc(i,j,k) = (t33(i,j,k) - t33(i,j,k-1)) * dziv &
+                     + ((t11(i+1,j,k) - t11(i,j,k)) * dxiv05 &
+                     + (t22(i,j+1,k) - t22(i,j,k)) * dyiv05)
+              end do
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-1
+            !$acc loop independent
+            do j = 2, nj-2
+              !$acc loop independent
+              do i = 2, ni-2
+                wfrc(i,j,k) = wfrc(i,j,k) + (t33(i,j,k) - t33(i,j,k-1)) * dziv &
+                     + ((t11(i+1,j,k) - t11(i,j,k)) * dxiv05 &
+                     + (t22(i,j+1,k) - t22(i,j,k)) * dyiv05)
+              end do
+            end do
+          end do
+          !$acc end kernels
+        end if
+      else
+        if (mpopt == 0 .or. mpopt == 5 .or. mpopt == 10) then
+          if (mpopt == 0 .or. mpopt == 10) then
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-1
+              !$acc loop independent
+              do j = 2, nj-2
+                !$acc loop independent
+                do i = 2, ni-1
+                  t11(i,j,k) = (jcb8u(i,j,k-1) + jcb8u(i,j,k)) * t31(i,j,k)
+                end do
+              end do
+            end do
+            !$acc end kernels
+
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-1
+              !$acc loop independent
+              do j = 2, nj-1
+                !$acc loop independent
+                do i = 2, ni-2
+                  t22(i,j,k) = rmf8v(i,j,2) * (jcb8v(i,j,k-1) + jcb8v(i,j,k)) * t32(i,j,k)
+                end do
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-1
+              !$acc loop independent
+              do j = 2, nj-2
+                !$acc loop independent
+                do i = 2, ni-1
+                  t11(i,j,k) = rmf8u(i,j,2) * (jcb8u(i,j,k-1) + jcb8u(i,j,k)) * t31(i,j,k)
+                end do
+              end do
+            end do
+            !$acc end kernels
+
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-1
+              !$acc loop independent
+              do j = 2, nj-1
+                !$acc loop independent
+                do i = 2, ni-2
+                  t22(i,j,k) = (jcb8v(i,j,k-1) + jcb8v(i,j,k)) * t32(i,j,k)
+                end do
+              end do
+            end do
+            !$acc end kernels
+          end if
+
+          if (advopt <= 3) then
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-1
+              !$acc loop independent
+              do j = 2, nj-2
+                !$acc loop independent
+                do i = 2, ni-2
+                  wfrc(i,j,k) = (t33(i,j,k) - t33(i,j,k-1)) * dziv &
+                       + mf(i,j) * ((t11(i+1,j,k) - t11(i,j,k)) * dxiv05 &
+                       + (t22(i,j+1,k) - t22(i,j,k)) * dyiv05)
+                end do
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-1
+              !$acc loop independent
+              do j = 2, nj-2
+                !$acc loop independent
+                do i = 2, ni-2
+                  wfrc(i,j,k) = wfrc(i,j,k) + (t33(i,j,k) - t33(i,j,k-1)) * dziv &
+                       + mf(i,j) * ((t11(i+1,j,k) - t11(i,j,k)) * dxiv05 &
+                       + (t22(i,j+1,k) - t22(i,j,k)) * dyiv05)
+                end do
+              end do
+            end do
+            !$acc end kernels
+          end if
+        else
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-1
+            !$acc loop independent
+            do j = 2, nj-2
+              !$acc loop independent
+              do i = 2, ni-1
+                t11(i,j,k) = rmf8u(i,j,2) * (jcb8u(i,j,k-1) + jcb8u(i,j,k)) * t31(i,j,k)
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-1
+            !$acc loop independent
+            do j = 2, nj-1
+              !$acc loop independent
+              do i = 2, ni-2
+                t22(i,j,k) = rmf8v(i,j,2) * (jcb8v(i,j,k-1) + jcb8v(i,j,k)) * t32(i,j,k)
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+          if (advopt <= 3) then
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-1
+              !$acc loop independent
+              do j = 2, nj-2
+                !$acc loop independent
+                do i = 2, ni-2
+                  wfrc(i,j,k) = (t33(i,j,k) - t33(i,j,k-1)) * dziv &
+                       + rmf(i,j,1) * ((t11(i+1,j,k) - t11(i,j,k)) * dxiv05 &
+                       + (t22(i,j+1,k) - t22(i,j,k)) * dyiv05)
+                end do
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-1
+              !$acc loop independent
+              do j = 2, nj-2
+                !$acc loop independent
+                do i = 2, ni-2
+                  wfrc(i,j,k) = wfrc(i,j,k) + (t33(i,j,k) - t33(i,j,k-1)) * dziv &
+                       + rmf(i,j,1) * ((t11(i+1,j,k) - t11(i,j,k)) * dxiv05 &
+                       + (t22(i,j+1,k) - t22(i,j,k)) * dyiv05)
+                end do
+              end do
+            end do
+            !$acc end kernels
+          end if
+        end if
+      end if
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Calculate the invers of map scale factor at dot points.
@@ -1906,6 +2580,8 @@ end if
 ! -----
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_turbuvw == DUMP_TARGET_turbuvw .and. .not. dump_done_turbuvw) then

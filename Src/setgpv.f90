@@ -289,6 +289,302 @@ if (dump_call_count_setgpv == DUMP_TARGET_setgpv .and. .not. dump_done_setgpv) t
   call dump_scalar_r('gpviv', gpviv)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_288)
+! GPU version (OpenACC)
+
+! Set the time tendency of variables at current marked time.
+
+      if(ird.eq.1) then
+
+        !$acc kernels
+        !$acc loop independent
+        do k=1,nk
+          !$acc loop independent
+          do j=1,nj
+            !$acc loop independent
+            do i=1,ni
+              utd(i,j,k)=(utd(i,j,k)-ugpv(i,j,k))*gpviv
+              vtd(i,j,k)=(vtd(i,j,k)-vgpv(i,j,k))*gpviv
+              pptd(i,j,k)=(pptd(i,j,k)-ppgpv(i,j,k))*gpviv
+              ptptd(i,j,k)=(ptptd(i,j,k)-ptpgpv(i,j,k))*gpviv
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        if(gpvvar(1:1).eq.'o') then
+          !$acc kernels
+          !$acc loop independent
+          do k=1,nk
+            !$acc loop independent
+            do j=1,nj
+              !$acc loop independent
+              do i=1,ni
+                wtd(i,j,k)=(wtd(i,j,k)-wgpv(i,j,k))*gpviv
+              end do
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+        if(gpvvar(2:2).eq.'o') then
+          !$acc kernels
+          !$acc loop independent
+          do k=1,nk
+            !$acc loop independent
+            do j=1,nj
+              !$acc loop independent
+              do i=1,ni
+                qvtd(i,j,k)=(qvtd(i,j,k)-qvgpv(i,j,k))*gpviv
+              end do
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+        if(abs(cphopt).lt.10) then
+          if(abs(cphopt).ge.1) then
+            if(gpvvar(3:3).eq.'o') then
+              !$acc kernels
+              !$acc loop independent
+              do k=1,nk
+                !$acc loop independent
+                do j=1,nj
+                  !$acc loop independent
+                  do i=1,ni
+                    qwtd(i,j,k,1)=(qwtd(i,j,k,1)-qwgpv(i,j,k,1))*gpviv
+                  end do
+                end do
+              end do
+              !$acc end kernels
+            end if
+            if(gpvvar(4:4).eq.'o') then
+              !$acc kernels
+              !$acc loop independent
+              do k=1,nk
+                !$acc loop independent
+                do j=1,nj
+                  !$acc loop independent
+                  do i=1,ni
+                    qwtd(i,j,k,2)=(qwtd(i,j,k,2)-qwgpv(i,j,k,2))*gpviv
+                  end do
+                end do
+              end do
+              !$acc end kernels
+            end if
+          end if
+          if(abs(cphopt).ge.2) then
+            if(gpvvar(5:5).eq.'o') then
+              !$acc kernels
+              !$acc loop independent
+              do k=1,nk
+                !$acc loop independent
+                do j=1,nj
+                  !$acc loop independent
+                  do i=1,ni
+                    qitd(i,j,k,1)=(qitd(i,j,k,1)-qigpv(i,j,k,1))*gpviv
+                  end do
+                end do
+              end do
+              !$acc end kernels
+            end if
+            if(gpvvar(6:6).eq.'o') then
+              !$acc kernels
+              !$acc loop independent
+              do k=1,nk
+                !$acc loop independent
+                do j=1,nj
+                  !$acc loop independent
+                  do i=1,ni
+                    qitd(i,j,k,2)=(qitd(i,j,k,2)-qigpv(i,j,k,2))*gpviv
+                  end do
+                end do
+              end do
+              !$acc end kernels
+            end if
+            if(gpvvar(7:7).eq.'o'.or.gpvvar(8:8).eq.'o') then
+              !$acc kernels
+              !$acc loop independent
+              do k=1,nk
+                !$acc loop independent
+                do j=1,nj
+                  !$acc loop independent
+                  do i=1,ni
+                    qitd(i,j,k,3)=(qitd(i,j,k,3)-qigpv(i,j,k,3))*gpviv
+                  end do
+                end do
+              end do
+              !$acc end kernels
+            end if
+            if(gpvvar(8:8).eq.'o') then
+              if(haiopt.eq.1) then
+                !$acc kernels
+                !$acc loop independent
+                do k=1,nk
+                  !$acc loop independent
+                  do j=1,nj
+                    !$acc loop independent
+                    do i=1,ni
+                      qitd(i,j,k,4)=(qitd(i,j,k,4)-qigpv(i,j,k,4))*gpviv
+                    end do
+                  end do
+                end do
+                !$acc end kernels
+              end if
+            end if
+          end if
+        end if
+
+      end if
+
+! Set the variables at current marked time.
+
+      if(ird.eq.2) then
+
+        !$acc kernels
+        !$acc loop independent
+        do k=1,nk
+          !$acc loop independent
+          do j=1,nj
+            !$acc loop independent
+            do i=1,ni
+              ugpv(i,j,k)=utd(i,j,k)
+              vgpv(i,j,k)=vtd(i,j,k)
+              ppgpv(i,j,k)=pptd(i,j,k)
+              ptpgpv(i,j,k)=ptptd(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        if(gpvvar(1:1).eq.'o') then
+          !$acc kernels
+          !$acc loop independent
+          do k=1,nk
+            !$acc loop independent
+            do j=1,nj
+              !$acc loop independent
+              do i=1,ni
+                wgpv(i,j,k)=wtd(i,j,k)
+              end do
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+        if(gpvvar(2:2).eq.'o') then
+          !$acc kernels
+          !$acc loop independent
+          do k=1,nk
+            !$acc loop independent
+            do j=1,nj
+              !$acc loop independent
+              do i=1,ni
+                qvgpv(i,j,k)=qvtd(i,j,k)
+              end do
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+        if(abs(cphopt).lt.10) then
+          if(abs(cphopt).ge.1) then
+            if(gpvvar(3:3).eq.'o') then
+              !$acc kernels
+              !$acc loop independent
+              do k=1,nk
+                !$acc loop independent
+                do j=1,nj
+                  !$acc loop independent
+                  do i=1,ni
+                    qwgpv(i,j,k,1)=qwtd(i,j,k,1)
+                  end do
+                end do
+              end do
+              !$acc end kernels
+            end if
+            if(gpvvar(4:4).eq.'o') then
+              !$acc kernels
+              !$acc loop independent
+              do k=1,nk
+                !$acc loop independent
+                do j=1,nj
+                  !$acc loop independent
+                  do i=1,ni
+                    qwgpv(i,j,k,2)=qwtd(i,j,k,2)
+                  end do
+                end do
+              end do
+              !$acc end kernels
+            end if
+          end if
+          if(abs(cphopt).ge.2) then
+            if(gpvvar(5:5).eq.'o') then
+              !$acc kernels
+              !$acc loop independent
+              do k=1,nk
+                !$acc loop independent
+                do j=1,nj
+                  !$acc loop independent
+                  do i=1,ni
+                    qigpv(i,j,k,1)=qitd(i,j,k,1)
+                  end do
+                end do
+              end do
+              !$acc end kernels
+            end if
+            if(gpvvar(6:6).eq.'o') then
+              !$acc kernels
+              !$acc loop independent
+              do k=1,nk
+                !$acc loop independent
+                do j=1,nj
+                  !$acc loop independent
+                  do i=1,ni
+                    qigpv(i,j,k,2)=qitd(i,j,k,2)
+                  end do
+                end do
+              end do
+              !$acc end kernels
+            end if
+            if(gpvvar(7:7).eq.'o'.or.gpvvar(8:8).eq.'o') then
+              !$acc kernels
+              !$acc loop independent
+              do k=1,nk
+                !$acc loop independent
+                do j=1,nj
+                  !$acc loop independent
+                  do i=1,ni
+                    qigpv(i,j,k,3)=qitd(i,j,k,3)
+                  end do
+                end do
+              end do
+              !$acc end kernels
+            end if
+            if(gpvvar(8:8).eq.'o') then
+              if(haiopt.eq.1) then
+                !$acc kernels
+                !$acc loop independent
+                do k=1,nk
+                  !$acc loop independent
+                  do j=1,nj
+                    !$acc loop independent
+                    do i=1,ni
+                      qigpv(i,j,k,4)=qitd(i,j,k,4)
+                    end do
+                  end do
+                end do
+                !$acc end kernels
+              end if
+            end if
+          end if
+        end if
+
+      end if
+
+#else
+! CPU version (OpenMP) - Original code preserved
+
 !$omp parallel default(shared) private(k)
 
 ! Set the time tendency of variables at current marked time.
@@ -666,6 +962,7 @@ end if
 ! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_setgpv == DUMP_TARGET_setgpv .and. .not. dump_done_setgpv) then

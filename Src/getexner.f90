@@ -178,6 +178,30 @@ if (dump_call_count_getexner == DUMP_TARGET_getexner .and. .not. dump_done_getex
   call dump_scalar_r('rddvcp', rddvcp)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_125)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    rddvcp = rd / cp
+    p0iv = 1.0e0 / p0
+
+    !$acc kernels
+    do k = 1, nk-1
+      !$acc loop independent
+      do j = 1, nj-1
+        !$acc loop independent
+        do i = 1, ni-1
+          p(i,j,k) = pbr(i,j,k) + pp(i,j,k)
+          pi(i,j,k) = exp(rddvcp * log(p0iv * p(i,j,k)))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1
@@ -198,6 +222,8 @@ end if
       end do
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_getexner == DUMP_TARGET_getexner .and. .not. dump_done_getexner) then

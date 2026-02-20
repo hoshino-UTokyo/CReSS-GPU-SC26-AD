@@ -302,6 +302,172 @@ if (dump_call_count_initund == DUMP_TARGET_initund .and. .not. dump_done_initund
   call dump_scalar_r('rddvcp', rddvcp)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_179)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (sfcopt == 1 .or. sfcopt == 2 .or. sfcopt == 3) then
+
+      ! Set the surface temperature
+      if (sfcdat(2:2) == 'o') then
+
+        !$acc kernels
+        !$acc loop independent
+        do j = 1, nj-1
+          !$acc loop independent
+          do i = 1, ni-1
+            if (land(i,j) < 3) then
+              tundp(i,j,1) = sst(i,j)
+            else
+              tundp(i,j,1) = (ptbr(i,j,1) + ptp(i,j,1)) &
+                   * exp(rddvcp * log(p0iv * (pbr(i,j,1) + pp(i,j,1))))
+              tundp(i,j,1) = 0.5e0 * (tundp(i,j,1) + (ptbr(i,j,2) + ptp(i,j,2)) &
+                   * exp(rddvcp * log(p0iv * (pbr(i,j,2) + pp(i,j,2)))))
+              if (land(i,j) < 10) then
+                tundp(i,j,1) = min(tundp(i,j,1), t0)
+              end if
+            end if
+          end do
+        end do
+        !$acc end kernels
+
+      else
+
+        !$acc kernels
+        !$acc loop independent
+        do j = 1, nj-1
+          !$acc loop independent
+          do i = 1, ni-1
+            if (land(i,j) < 3) then
+              tundp(i,j,1) = sstcst
+            else
+              tundp(i,j,1) = (ptbr(i,j,1) + ptp(i,j,1)) &
+                   * exp(rddvcp * log(p0iv * (pbr(i,j,1) + pp(i,j,1))))
+              tundp(i,j,1) = 0.5e0 * (tundp(i,j,1) + (ptbr(i,j,2) + ptp(i,j,2)) &
+                   * exp(rddvcp * log(p0iv * (pbr(i,j,2) + pp(i,j,2)))))
+              if (land(i,j) < 10) then
+                tundp(i,j,1) = min(tundp(i,j,1), t0)
+              end if
+            end if
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+      ! Set the soil temperature - compute ek array
+      !$acc kernels
+      !$acc loop independent
+      do k = 2, nund
+        ek(k) = exp(real(1-k) * dzgrd)
+      end do
+      !$acc end kernels
+
+      do k = 2, nund
+        !$acc kernels
+        !$acc loop independent
+        do j = 1, nj-1
+          !$acc loop independent
+          do i = 1, ni-1
+            if (land(i,j) < 10) then
+              tundp(i,j,k) = tundp(i,j,1)
+            else
+              tundp(i,j,k) = ((tgdeep - tundp(i,j,1)) * enkm1v) * ek(k) &
+                   + (tundp(i,j,1) * enk - tgdeep) * enkm1v
+            end if
+          end do
+        end do
+        !$acc end kernels
+      end do
+
+      ! Copy the past value to the present
+      if (advopt <= 3) then
+        do k = 1, nund
+          !$acc kernels
+          !$acc loop independent
+          do j = 1, nj-1
+            !$acc loop independent
+            do i = 1, ni-1
+              tund(i,j,k) = tundp(i,j,k)
+            end do
+          end do
+          !$acc end kernels
+        end do
+      end if
+
+    else if (sfcopt > 10) then
+
+      ! Reset the sea temperature
+      if (advopt <= 3) then
+        if (sfcdat(2:2) == 'o') then
+          do k = 1, nund
+            !$acc kernels
+            !$acc loop independent
+            do j = 1, nj-1
+              !$acc loop independent
+              do i = 1, ni-1
+                if (land(i,j) < 3) then
+                  tund(i,j,k) = sst(i,j)
+                  tundp(i,j,k) = sst(i,j)
+                end if
+              end do
+            end do
+            !$acc end kernels
+          end do
+        else
+          do k = 1, nund
+            !$acc kernels
+            !$acc loop independent
+            do j = 1, nj-1
+              !$acc loop independent
+              do i = 1, ni-1
+                if (land(i,j) < 3) then
+                  tund(i,j,k) = sstcst
+                  tundp(i,j,k) = sstcst
+                end if
+              end do
+            end do
+            !$acc end kernels
+          end do
+        end if
+      else
+        if (sfcdat(2:2) == 'o') then
+          do k = 1, nund
+            !$acc kernels
+            !$acc loop independent
+            do j = 1, nj-1
+              !$acc loop independent
+              do i = 1, ni-1
+                if (land(i,j) < 3) then
+                  tundp(i,j,k) = sst(i,j)
+                end if
+              end do
+            end do
+            !$acc end kernels
+          end do
+        else
+          do k = 1, nund
+            !$acc kernels
+            !$acc loop independent
+            do j = 1, nj-1
+              !$acc loop independent
+              do i = 1, ni-1
+                if (land(i,j) < 3) then
+                  tundp(i,j,k) = sstcst
+                end if
+              end do
+            end do
+            !$acc end kernels
+          end do
+        end if
+      end if
+
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !! Initialized by diagnostic value.
@@ -548,6 +714,8 @@ end if
 ! -----
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_initund == DUMP_TARGET_initund .and. .not. dump_done_initund) then

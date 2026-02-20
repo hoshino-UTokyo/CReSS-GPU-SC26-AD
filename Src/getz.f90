@@ -158,6 +158,21 @@ if (dump_call_count_getz == DUMP_TARGET_getz .and. .not. dump_done_getz) then
   call dump_scalar_i('nk', nk)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_144)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    !$acc kernels
+    !$acc loop independent
+    do k = 1, nk
+      z(k) = zsfc + real(k-2) * dz
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(k)
@@ -169,6 +184,8 @@ end if
 !$omp end do
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_getz == DUMP_TARGET_getz .and. .not. dump_done_getz) then

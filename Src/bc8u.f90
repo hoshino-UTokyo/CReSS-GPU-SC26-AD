@@ -186,6 +186,71 @@ if (dump_call_count_bc8u == DUMP_TARGET_bc8u .and. .not. dump_done_bc8u) then
   call dump_scalar_i('nisub', nisub)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_028)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (ebw == 1 .and. isub == 0) then
+
+      if (wbc == 2) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, kmax
+          !$acc loop independent
+          do j = 0, nj+1
+            var8u(1,j,k) = var8u(3,j,k)
+          end do
+        end do
+        !$acc end kernels
+
+      else if (wbc >= 3) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, kmax
+          !$acc loop independent
+          do j = 0, nj+1
+            var8u(1,j,k) = var8u(2,j,k)
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+    end if
+
+    ! Set the east boundary conditions
+    if (ebe == 1 .and. isub == nisub-1) then
+
+      if (ebc == 2) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, kmax
+          !$acc loop independent
+          do j = 0, nj+1
+            var8u(ni,j,k) = var8u(nim2,j,k)
+          end do
+        end do
+        !$acc end kernels
+
+      else if (ebc >= 3) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, kmax
+          !$acc loop independent
+          do j = 0, nj+1
+            var8u(ni,j,k) = var8u(nim1,j,k)
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the west boundary conditions.
@@ -265,6 +330,7 @@ end if
 ! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_bc8u == DUMP_TARGET_bc8u .and. .not. dump_done_bc8u) then

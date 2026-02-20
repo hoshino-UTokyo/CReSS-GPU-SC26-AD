@@ -235,6 +235,84 @@ end if
 
 call profile_start(prof_id1)
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_083)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    ! Local variables
+
+    ! Derived constants
+
+    ! Set derived constants
+    miiv = 4.e0 / (3.e0 * mimax)
+    msmiv2 = 1.e-2 / msmax
+    ms0iv2 = 1.e2 / ms0
+    mgmiv2 = 1.e-2 / mgmax
+    mg0iv2 = 1.e2 / mg0
+    mhmiv2 = 1.e-2 / mhmax
+    mh0iv2 = 1.e2 / mh0
+    cdiaqs = ns0*ns0*ns0 / (cc*rhos)
+    cdiaqg = ng0*ng0*ng0 / (cc*rhog)
+    cdiaqh = nh0*nh0*nh0 / (cc*rhoh)
+
+    if (haiopt == 0) then
+
+      !$acc kernels
+      !$acc loop independent collapse(3) private(rbv)
+      do k = 1, nk-1
+        do j = 1, nj-1
+          do i = 1, ni-1
+            rbv = 1.e0 / rbr(i,j,k)
+
+            ! Cloud ice
+            nidia(i,j,k,1) = miiv * qice(i,j,k,1)
+
+            ! Snow
+            nidia(i,j,k,2) = sqrt(sqrt(cdiaqs*rbr(i,j,k)*qice(i,j,k,2))) * rbv
+            nidia(i,j,k,2) = min(max(nidia(i,j,k,2), msmiv2*qice(i,j,k,2)), ms0iv2*qice(i,j,k,2))
+
+            ! Graupel
+            nidia(i,j,k,3) = sqrt(sqrt(cdiaqg*rbr(i,j,k)*qice(i,j,k,3))) * rbv
+            nidia(i,j,k,3) = min(max(nidia(i,j,k,3), mgmiv2*qice(i,j,k,3)), mg0iv2*qice(i,j,k,3))
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+    else
+
+      !$acc kernels
+      !$acc loop independent collapse(3) private(rbv)
+      do k = 1, nk-1
+        do j = 1, nj-1
+          do i = 1, ni-1
+            rbv = 1.e0 / rbr(i,j,k)
+
+            ! Cloud ice
+            nidia(i,j,k,1) = miiv * qice(i,j,k,1)
+
+            ! Snow
+            nidia(i,j,k,2) = sqrt(sqrt(cdiaqs*rbr(i,j,k)*qice(i,j,k,2))) * rbv
+            nidia(i,j,k,2) = min(max(nidia(i,j,k,2), msmiv2*qice(i,j,k,2)), ms0iv2*qice(i,j,k,2))
+
+            ! Graupel
+            nidia(i,j,k,3) = sqrt(sqrt(cdiaqg*rbr(i,j,k)*qice(i,j,k,3))) * rbv
+            nidia(i,j,k,3) = min(max(nidia(i,j,k,3), mgmiv2*qice(i,j,k,3)), mg0iv2*qice(i,j,k,3))
+
+            ! Hail
+            nidia(i,j,k,4) = sqrt(sqrt(cdiaqh*rbr(i,j,k)*qice(i,j,k,4))) * rbv
+            nidia(i,j,k,4) = min(max(nidia(i,j,k,4), mhmiv2*qice(i,j,k,4)), mh0iv2*qice(i,j,k,4))
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !! Get the diagnostic concentrations of the cloud ice, snow and graupel.
@@ -355,6 +433,7 @@ call profile_start(prof_id1)
 !! -----
 
 !$omp end parallel
+#endif
 
 call profile_stop(prof_id1, loop_len)
 

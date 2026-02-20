@@ -221,6 +221,98 @@ if (dump_call_count_forcesfc == DUMP_TARGET_forcesfc .and. .not. dump_done_force
   call dump_scalar_c('fmois', fmois)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_113)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (fmois(1:3) == 'dry') then
+
+      !$acc kernels
+      !$acc loop independent
+      do j = 1, nj-1
+        !$acc loop independent
+        do i = 1, ni-1
+          ptfrc(i,j,1) = ct(i,j)*(ptv(i,j,2) - ptv(i,j,1))
+        end do
+      end do
+      !$acc end kernels
+
+    else if (fmois(1:5) == 'moist') then
+
+      !$acc kernels
+      !$acc loop independent
+      do j = 1, nj-1
+        !$acc loop independent
+        do i = 1, ni-1
+          ptfrc(i,j,1) = ct(i,j)*((ptbr(i,j,2) + ptp(i,j,2)) &
+               - ptv(i,j,1)*(1.e0 + qvsfc(i,j))/(1.e0 + epsav*qvsfc(i,j)))
+        end do
+      end do
+      !$acc end kernels
+
+    end if
+
+    ! Get the surface flux for water vapor mixing ratio
+    if (fmois(1:3) == 'dry') then
+
+      !$acc kernels
+      !$acc loop independent
+      do j = 1, nj-1
+        !$acc loop independent
+        do i = 1, ni-1
+          qvfrc(i,j,1) = 0.e0
+        end do
+      end do
+      !$acc end kernels
+
+    else if (fmois(1:5) == 'moist') then
+
+      !$acc kernels
+      !$acc loop independent
+      do j = 1, nj-1
+        !$acc loop independent
+        do i = 1, ni-1
+          qvfrc(i,j,1) = cq(i,j)*(qv(i,j,2) - qvsfc(i,j))
+        end do
+      end do
+      !$acc end kernels
+
+    end if
+
+    ! Get the surface flux for the x components of velocity
+    !$acc kernels
+    !$acc loop independent private(j318u, xcomp, zcomp)
+    do j = 1, nj-1
+      !$acc loop independent private(j318u, xcomp, zcomp)
+      do i = 2, ni-1
+        j318u = j31(i,j,2) + j31(i,j,3)
+        xcomp = 1.e0/sqrt(4.e0 + j318u*j318u)
+        zcomp = .125e0*j318u*xcomp
+        ufrc(i,j,1) = (ce(i-1,j) + ce(i,j))*(u(i,j,2)*xcomp &
+             + ((w(i-1,j,2) + w(i,j,3)) + (w(i-1,j,3) + w(i,j,2)))*zcomp)
+      end do
+    end do
+    !$acc end kernels
+
+    ! Get the surface flux for the y components of velocity
+    !$acc kernels
+    !$acc loop independent private(j328v, ycomp, zcomp)
+    do j = 2, nj-1
+      !$acc loop independent private(j328v, ycomp, zcomp)
+      do i = 1, ni-1
+        j328v = j32(i,j,2) + j32(i,j,3)
+        ycomp = 1.e0/sqrt(4.e0 + j328v*j328v)
+        zcomp = .125e0*j328v*ycomp
+        vfrc(i,j,1) = (ce(i,j-1) + ce(i,j))*(v(i,j,2)*ycomp &
+             + ((w(i,j-1,2) + w(i,j,3)) + (w(i,j-1,3) + w(i,j,2)))*zcomp)
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Get the surface flux for the potential tempeture.
@@ -327,6 +419,8 @@ end if
 ! -----
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_forcesfc == DUMP_TARGET_forcesfc .and. .not. dump_done_forcesfc) then

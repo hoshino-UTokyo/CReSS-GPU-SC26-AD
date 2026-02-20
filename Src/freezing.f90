@@ -213,6 +213,126 @@ if (dump_call_count_freezing == DUMP_TARGET_freezing .and. .not. dump_done_freez
   call dump_scalar_r('tclow', tclow)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_114)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    cfrrgn = 100.e0 * cc * dtb
+
+    if (nk == 1) then
+      if (abs(cphopt) == 2) then
+        !$acc kernels
+        !$acc loop independent collapse(2) private(diaqr3)
+        do j = 1, nj-1
+          do i = 1, ni-1
+            if (qr(i,j,1) > thresq) then
+              if (tcel(i,j,1) < t0cel) then
+                if (tcel(i,j,1) <= tclow) then
+                  frrg(i,j,1) = qr(i,j,1)
+                else
+                  diaqr3 = diaqr(i,j,1) * diaqr(i,j,1) * diaqr(i,j,1)
+                  frrg(i,j,1) = min(cfrrg * diaqr3 * diaqr3 * &
+                    (exp(-0.66e0 * tcel(i,j,1)) - 1.e0) * ncr(i,j,1), qr(i,j,1))
+                end if
+              else
+                frrg(i,j,1) = 0.e0
+              end if
+            else
+              frrg(i,j,1) = 0.e0
+            end if
+          end do
+        end do
+        !$acc end kernels
+      else if (abs(cphopt) >= 3) then
+        !$acc kernels
+        !$acc loop independent collapse(2) private(diaqr3, a)
+        do j = 1, nj-1
+          do i = 1, ni-1
+            if (qr(i,j,1) > thresq) then
+              if (tcel(i,j,1) < t0cel) then
+                if (tcel(i,j,1) <= tclow) then
+                  frrg(i,j,1) = qr(i,j,1)
+                  frrgn(i,j,1) = ncr(i,j,1)
+                else
+                  a = (exp(-0.66e0 * tcel(i,j,1)) - 1.e0) * ncr(i,j,1)
+                  diaqr3 = diaqr(i,j,1) * diaqr(i,j,1) * diaqr(i,j,1)
+                  frrg(i,j,1) = min(cfrrg * diaqr3 * diaqr3 * a, qr(i,j,1))
+                  frrgn(i,j,1) = min(cfrrgn * diaqr3 * a, ncr(i,j,1))
+                end if
+              else
+                frrg(i,j,1) = 0.e0
+                frrgn(i,j,1) = 0.e0
+              end if
+            else
+              frrg(i,j,1) = 0.e0
+              frrgn(i,j,1) = 0.e0
+            end if
+          end do
+        end do
+        !$acc end kernels
+      end if
+    else
+      if (abs(cphopt) == 2) then
+        !$acc kernels
+        !$acc loop independent collapse(3) private(diaqr3)
+        do k = 1, nk-1
+          do j = 1, nj-1
+            do i = 1, ni-1
+              if (qr(i,j,k) > thresq) then
+                if (tcel(i,j,k) < t0cel) then
+                  if (tcel(i,j,k) <= tclow) then
+                    frrg(i,j,k) = qr(i,j,k)
+                  else
+                    diaqr3 = diaqr(i,j,k) * diaqr(i,j,k) * diaqr(i,j,k)
+                    frrg(i,j,k) = min(qr(i,j,k), cfrrg * diaqr3 * diaqr3 * &
+                      (exp(-0.66e0 * tcel(i,j,k)) - 1.e0) * ncr(i,j,k))
+                  end if
+                else
+                  frrg(i,j,k) = 0.e0
+                end if
+              else
+                frrg(i,j,k) = 0.e0
+              end if
+            end do
+          end do
+        end do
+        !$acc end kernels
+      else if (abs(cphopt) >= 3) then
+        !$acc kernels
+        !$acc loop independent collapse(3) private(diaqr3, a)
+        do k = 1, nk-1
+          do j = 1, nj-1
+            do i = 1, ni-1
+              if (qr(i,j,k) > thresq) then
+                if (tcel(i,j,k) < t0cel) then
+                  if (tcel(i,j,k) <= tclow) then
+                    frrg(i,j,k) = qr(i,j,k)
+                    frrgn(i,j,k) = ncr(i,j,k)
+                  else
+                    a = (exp(-0.66e0 * tcel(i,j,k)) - 1.e0) * ncr(i,j,k)
+                    diaqr3 = diaqr(i,j,k) * diaqr(i,j,k) * diaqr(i,j,k)
+                    frrg(i,j,k) = min(cfrrg * diaqr3 * diaqr3 * a, qr(i,j,k))
+                    frrgn(i,j,k) = min(cfrrgn * diaqr3 * a, ncr(i,j,k))
+                  end if
+                else
+                  frrg(i,j,k) = 0.e0
+                  frrgn(i,j,k) = 0.e0
+                end if
+              else
+                frrg(i,j,k) = 0.e0
+                frrgn(i,j,k) = 0.e0
+              end if
+            end do
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !! In the case nk = 1.
@@ -434,6 +554,8 @@ end if
 !! -----
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_freezing == DUMP_TARGET_freezing .and. .not. dump_done_freezing) then

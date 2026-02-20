@@ -239,6 +239,89 @@ if (dump_call_count_vspdmp == DUMP_TARGET_vspdmp .and. .not. dump_done_vspdmp) t
   ! ! FIXME: z1dmax is array - call dump_scalar_i('z1dmax', z1dmax)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_380)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    ! Set the maximum z physical coordinates at each plane.
+    !$acc kernels
+    !$acc loop independent
+    do k = 3, nk
+      z1dmax(k) = lim36n
+    end do
+    !$acc end kernels
+
+    ! Find maximum z at each level - this requires reduction
+    ! Since z1dmax reduction across (i,j) is needed, we do this sequentially per k
+    do k = 3, nk
+      !$acc kernels
+      !$acc loop independent reduction(max:z1dmax(k))
+      do j = 1, nj-1
+        do i = 1, ni-1
+          z1dmax(k) = max(zph(i,j,k), z1dmax(k))
+        end do
+      end do
+      !$acc end kernels
+    end do
+
+    ! Get the lowest damping level (sequential, run on CPU)
+    !$acc wait
+
+    if (vspopt.eq.1) then
+      do_k_1: do k = 3, nk
+        if (z1dmax(k).gt.botgpv) then
+          ksp0(1) = k - 1
+          exit do_k_1
+        end if
+      end do do_k_1
+    end if
+
+    do_k_2: do k = 3, nk
+      if (z1dmax(k).gt.botbar) then
+        ksp0(2) = k - 1
+        exit do_k_2
+      end if
+    end do do_k_2
+
+    ! Finally get the relaxed vertical sponge damping coefficients.
+    if (vspopt.eq.1) then
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 2, nk-1
+        do j = 1, nj-1
+          do i = 1, ni-1
+            if (zph(i,j,k).gt.botgpv) then
+              rbct(i,j,k,1) = cgpv05 * (1.e0 - cos(cc * (zph(i,j,k) - botgpv) &
+                   / (zph(i,j,nkm1) - botgpv)))
+            else
+              rbct(i,j,k,1) = 0.e0
+            end if
+          end do
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 2, nk-1
+      do j = 1, nj-1
+        do i = 1, ni-1
+          if (zph(i,j,k).gt.botbar) then
+            rbct(i,j,k,2) = cbar05 * (1.e0 - cos(cc * (zph(i,j,k) - botbar) &
+                 / (zph(i,j,nkm1) - botbar)))
+          else
+            rbct(i,j,k,2) = 0.e0
+          end if
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the maximum z physical coordinates at each plane.
@@ -362,6 +445,8 @@ end if
 ! -----
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_vspdmp == DUMP_TARGET_vspdmp .and. .not. dump_done_vspdmp) then

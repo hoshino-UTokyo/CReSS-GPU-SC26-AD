@@ -177,6 +177,25 @@ if (dump_call_count_copy4d == DUMP_TARGET_copy4d .and. .not. dump_done_copy4d) t
   call dump_array_4d('invar.bin', invar, imin, imax, jmin, jmax, kmin, kmax, nmin, nmax)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_068)
+! GPU version (OpenACC)
+!$acc kernels
+!$acc loop independent
+      do n=nmin,nmax
+!$acc loop independent
+        do k=kmin,kmax
+!$acc loop independent
+          do j=jmin,jmax
+!$acc loop independent
+          do i=imin,imax
+            outvar(i,j,k,n)=invar(i,j,k,n)
+          end do
+          end do
+        end do
+      end do
+!$acc end kernels
+#else
+! CPU version (OpenMP) - Original code preserved
 !$omp parallel default(shared) private(k,n)
 
       do n=nmin,nmax
@@ -198,6 +217,7 @@ end if
       end do
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_copy4d == DUMP_TARGET_copy4d .and. .not. dump_done_copy4d) then

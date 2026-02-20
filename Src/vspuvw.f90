@@ -289,6 +289,136 @@ if (dump_call_count_vspuvw == DUMP_TARGET_vspuvw .and. .not. dump_done_vspuvw) t
   ! ! FIXME: ksp0 is array - call dump_scalar_i('ksp0', ksp0)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_385)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (vspvar(1:1).eq.'o'.or.vspvar(2:2).eq.'o') then
+      if (vspopt.eq.1) then
+        do k = ksp0(1)-1, nk-2
+          !$acc kernels
+          !$acc loop independent
+          do j = 1, nj-1
+            !$acc loop independent
+            do i = 1, ni-1
+              rbct8s(i,j,k) = 0.25e0 * (rbct(i,j,k,1) + rbct(i,j,k+1,1))
+            end do
+          end do
+          !$acc end kernels
+        end do
+      else
+        do k = ksp0(2)-1, nk-2
+          !$acc kernels
+          !$acc loop independent
+          do j = 1, nj-1
+            !$acc loop independent
+            do i = 1, ni-1
+              rbct8s(i,j,k) = 0.25e0 * (rbct(i,j,k,2) + rbct(i,j,k+1,2))
+            end do
+          end do
+          !$acc end kernels
+        end do
+      end if
+    end if
+
+    ! For the x components of velocity.
+    if (vspvar(1:1).eq.'o') then
+      if (vspopt.eq.1) then
+        do k = ksp0(1)-1, nk-2
+          !$acc kernels
+          !$acc loop independent
+          do j = 2, nj-2
+            !$acc loop independent
+            do i = 2, ni-1
+              ufrc(i,j,k) = ufrc(i,j,k) &
+                   - rst8u(i,j,k) * (rbct8s(i-1,j,k) + rbct8s(i,j,k)) &
+                   * (up(i,j,k) - (ugpv(i,j,k) + utd(i,j,k) * gtinc))
+            end do
+          end do
+          !$acc end kernels
+        end do
+      else
+        do k = ksp0(2)-1, nk-2
+          !$acc kernels
+          !$acc loop independent
+          do j = 2, nj-2
+            !$acc loop independent
+            do i = 2, ni-1
+              ufrc(i,j,k) = ufrc(i,j,k) - rst8u(i,j,k) &
+                   * (rbct8s(i-1,j,k) + rbct8s(i,j,k)) * (up(i,j,k) - ubr(i,j,k))
+            end do
+          end do
+          !$acc end kernels
+        end do
+      end if
+    end if
+
+    ! For the y components of velocity.
+    if (vspvar(2:2).eq.'o') then
+      if (vspopt.eq.1) then
+        do k = ksp0(1)-1, nk-2
+          !$acc kernels
+          !$acc loop independent
+          do j = 2, nj-1
+            !$acc loop independent
+            do i = 2, ni-2
+              vfrc(i,j,k) = vfrc(i,j,k) &
+                   - rst8v(i,j,k) * (rbct8s(i,j-1,k) + rbct8s(i,j,k)) &
+                   * (vp(i,j,k) - (vgpv(i,j,k) + vtd(i,j,k) * gtinc))
+            end do
+          end do
+          !$acc end kernels
+        end do
+      else
+        do k = ksp0(2)-1, nk-2
+          !$acc kernels
+          !$acc loop independent
+          do j = 2, nj-1
+            !$acc loop independent
+            do i = 2, ni-2
+              vfrc(i,j,k) = vfrc(i,j,k) - rst8v(i,j,k) &
+                   * (rbct8s(i,j-1,k) + rbct8s(i,j,k)) * (vp(i,j,k) - vbr(i,j,k))
+            end do
+          end do
+          !$acc end kernels
+        end do
+      end if
+    end if
+
+    ! For the z components of velocity.
+    if (vspvar(3:3).eq.'o') then
+      if (vspopt.eq.1.and.gpvvar(1:1).eq.'o') then
+        do k = ksp0(1), nk-1
+          !$acc kernels
+          !$acc loop independent
+          do j = 2, nj-2
+            !$acc loop independent
+            do i = 2, ni-2
+              wfrc(i,j,k) = wfrc(i,j,k) - rbct(i,j,k,1) * rst8w(i,j,k) &
+                   * (wp(i,j,k) - (wgpv(i,j,k) + wtd(i,j,k) * gtinc))
+            end do
+          end do
+          !$acc end kernels
+        end do
+      else
+        do k = ksp0(2), nk-1
+          !$acc kernels
+          !$acc loop independent
+          do j = 2, nj-2
+            !$acc loop independent
+            do i = 2, ni-2
+              wfrc(i,j,k) = wfrc(i,j,k) - rbct(i,j,k,2) * rst8w(i,j,k) * wp(i,j,k)
+            end do
+          end do
+          !$acc end kernels
+        end do
+      end if
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the common used variable.
@@ -492,6 +622,8 @@ end if
       end if
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_vspuvw == DUMP_TARGET_vspuvw .and. .not. dump_done_vspuvw) then

@@ -399,6 +399,223 @@ if (dump_call_count_setblk == DUMP_TARGET_setblk .and. .not. dump_done_setblk) t
   call dump_scalar_r('t23iv', t23iv)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_280)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+      if(nk.eq.1) then
+
+! First loop section: calculate thermodynamic properties and update nu(i,j)
+      !$acc kernels
+      !$acc loop independent
+      do j=1,nj-1
+        !$acc loop independent private(esw,esi,p20dvp)
+        do i=1,ni-1
+          t(i,j,1)=(ptbr(i,j,1)+ptp(i,j,1))*pi(i,j,1)
+          tcel(i,j,1)=t(i,j,1)-t0
+
+          esw=es0*exp(17.269e0*tcel(i,j,1)/(t(i,j,1)-35.86e0))
+          esi=es0*exp(21.875e0*tcel(i,j,1)/(t(i,j,1)-7.66e0))
+
+          qvsst0(i,j,1)=qv(i,j,1)-epses0/(p(i,j,1)-es0)
+          qvsw(i,j,1)=epsva*esw/(p(i,j,1)-esw)
+          qvsi(i,j,1)=epsva*esi/(p(i,j,1)-esi)
+
+          lv(i,j,1)=lv0                                                 &
+     &      *exp((.167e0+3.67e-4*t(i,j,1))*log(t0/t(i,j,1)))
+          lf(i,j,1)=lf0+cwmci*tcel(i,j,1)
+          ls(i,j,1)=lv(i,j,1)+lf(i,j,1)
+
+          p20dvp=p20/p(i,j,1)
+          nu(i,j)=p20dvp*exp(1.754e0*log(cnu*t(i,j,1)))
+          kp(i,j,1)                                                     &
+     &      =(kp0/(120.e0+t(i,j,1)))*exp(1.5e0*log(t23iv*t(i,j,1)))
+          mu(i,j,1)=rbr(i,j,1)*nu(i,j)
+          dv(i,j,1)=p20dvp*exp(1.81e0*log(cdv*t(i,j,1)))
+        end do
+      end do
+      !$acc end kernels
+
+! Second loop section: calculate hydrometeor parameters using nu(i,j)
+      !$acc kernels
+      !$acc loop independent
+      do j=1,nj-1
+        !$acc loop independent private(cvnt)
+        do i=1,ni-1
+          cvnt=sqrt(sqrt(r0*rbv(i,j,1))/nu(i,j))
+
+          if(qc(i,j,1).gt.thresq) then
+            diaqc(i,j,1)=exp(oned3*log(ccrw6*qc(i,j,1)/ncc(i,j,1)))
+          else
+            diaqc(i,j,1)=0.e0
+          end if
+
+          if(qr(i,j,1).gt.thresq) then
+            diaqr(i,j,1)=exp(oned3*log(cdiaqr*qr(i,j,1)/ncr(i,j,1)))
+            vntr(i,j,1)=rbr(i,j,1)*ncr(i,j,1)*(.78e0*diaqr(i,j,1)     &
+     &        +cvnt*cvntr*exp(pdiaqr*log(diaqr(i,j,1))))
+          else
+            diaqr(i,j,1)=0.e0
+            vntr(i,j,1)=0.e0
+          end if
+
+          if(qi(i,j,1).gt.thresq) then
+            mi(i,j,1)=qi(i,j,1)/nci(i,j,1)
+            diaqi(i,j,1)=exp(oned3*log(ccri6*mi(i,j,1)))
+          else
+            mi(i,j,1)=0.e0
+            diaqi(i,j,1)=0.e0
+          end if
+
+          if(qs(i,j,1).gt.thresq) then
+            diaqs(i,j,1)=exp(oned3*log(cdiaqs*qs(i,j,1)/ncs(i,j,1)))
+            vnts(i,j,1)=rbr(i,j,1)*ncs(i,j,1)*(.78e0*diaqs(i,j,1)     &
+     &        +cvnt*cvnts*exp(pdiaqs*log(diaqs(i,j,1))))
+          else
+            diaqs(i,j,1)=0.e0
+            vnts(i,j,1)=0.e0
+          end if
+
+          if(qg(i,j,1).gt.thresq) then
+            diaqg(i,j,1)=exp(oned3*log(cdiaqg*qg(i,j,1)/ncg(i,j,1)))
+            vntg(i,j,1)=rbr(i,j,1)*ncg(i,j,1)*(.78e0*diaqg(i,j,1)     &
+     &        +cvnt*cvntg*exp(pdiaqg*log(diaqg(i,j,1))))
+          else
+            diaqg(i,j,1)=0.e0
+            vntg(i,j,1)=0.e0
+          end if
+        end do
+      end do
+      !$acc end kernels
+
+      else
+
+! nk > 1 case
+! First loop section: calculate thermodynamic properties
+      !$acc kernels
+      !$acc loop independent
+      do k=1,nk-1
+        !$acc loop independent
+        do j=1,nj-1
+          !$acc loop independent private(esw,esi,p20dvp)
+          do i=1,ni-1
+            t(i,j,k)=(ptbr(i,j,k)+ptp(i,j,k))*pi(i,j,k)
+            tcel(i,j,k)=t(i,j,k)-t0
+
+            esw=es0*exp(17.269e0*tcel(i,j,k)/(t(i,j,k)-35.86e0))
+            esi=es0*exp(21.875e0*tcel(i,j,k)/(t(i,j,k)-7.66e0))
+
+            qvsst0(i,j,k)=qv(i,j,k)-epses0/(p(i,j,k)-es0)
+            qvsw(i,j,k)=epsva*esw/(p(i,j,k)-esw)
+            qvsi(i,j,k)=epsva*esi/(p(i,j,k)-esi)
+
+            lv(i,j,k)=lv0                                               &
+     &        *exp((.167e0+3.67e-4*t(i,j,k))*log(t0/t(i,j,k)))
+            lf(i,j,k)=lf0+cwmci*tcel(i,j,k)
+            ls(i,j,k)=lv(i,j,k)+lf(i,j,k)
+
+            p20dvp=p20/p(i,j,k)
+            kp(i,j,k)                                                   &
+     &        =(kp0/(120.e0+t(i,j,k)))*exp(1.5e0*log(t23iv*t(i,j,k)))
+            dv(i,j,k)=p20dvp*exp(1.81e0*log(cdv*t(i,j,k)))
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+! Compute nu(i,j) for the last k level (nk-1) only
+      !$acc kernels
+      !$acc loop independent
+      do j=1,nj-1
+        !$acc loop independent private(p20dvp)
+        do i=1,ni-1
+          p20dvp=p20/p(i,j,nk-1)
+          nu(i,j)=p20dvp*exp(1.754e0*log(cnu*t(i,j,nk-1)))
+        end do
+      end do
+      !$acc end kernels
+
+! Compute mu for all k levels using recomputed nu per level
+      !$acc kernels
+      !$acc loop independent
+      do k=1,nk-1
+        !$acc loop independent
+        do j=1,nj-1
+          !$acc loop independent private(p20dvp)
+          do i=1,ni-1
+            p20dvp=p20/p(i,j,k)
+            mu(i,j,k)=rbr(i,j,k)                                        &
+     &        *(p20dvp*exp(1.754e0*log(cnu*t(i,j,k))))
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+! Second loop section: calculate hydrometeor parameters
+      !$acc kernels
+      !$acc loop independent
+      do k=1,nk-1
+        !$acc loop independent
+        do j=1,nj-1
+          !$acc loop independent private(cvnt,p20dvp)
+          do i=1,ni-1
+            p20dvp=p20/p(i,j,k)
+            cvnt=sqrt(sqrt(r0*rbv(i,j,k))                               &
+     &        /(p20dvp*exp(1.754e0*log(cnu*t(i,j,k)))))
+
+            if(qc(i,j,k).gt.thresq) then
+              diaqc(i,j,k)=exp(oned3*log(ccrw6*qc(i,j,k)/ncc(i,j,k)))
+            else
+              diaqc(i,j,k)=0.e0
+            end if
+
+            if(qr(i,j,k).gt.thresq) then
+              diaqr(i,j,k)=exp(oned3*log(cdiaqr*qr(i,j,k)/ncr(i,j,k)))
+              vntr(i,j,k)=rbr(i,j,k)*ncr(i,j,k)*(.78e0*diaqr(i,j,k)   &
+     &          +cvnt*cvntr*exp(pdiaqr*log(diaqr(i,j,k))))
+            else
+              diaqr(i,j,k)=0.e0
+              vntr(i,j,k)=0.e0
+            end if
+
+            if(qi(i,j,k).gt.thresq) then
+              mi(i,j,k)=qi(i,j,k)/nci(i,j,k)
+              diaqi(i,j,k)=exp(oned3*log(ccri6*mi(i,j,k)))
+            else
+              mi(i,j,k)=0.e0
+              diaqi(i,j,k)=0.e0
+            end if
+
+            if(qs(i,j,k).gt.thresq) then
+              diaqs(i,j,k)=exp(oned3*log(cdiaqs*qs(i,j,k)/ncs(i,j,k)))
+              vnts(i,j,k)=rbr(i,j,k)*ncs(i,j,k)*(.78e0*diaqs(i,j,k)   &
+     &          +cvnt*cvnts*exp(pdiaqs*log(diaqs(i,j,k))))
+            else
+              diaqs(i,j,k)=0.e0
+              vnts(i,j,k)=0.e0
+            end if
+
+            if(qg(i,j,k).gt.thresq) then
+              diaqg(i,j,k)=exp(oned3*log(cdiaqg*qg(i,j,k)/ncg(i,j,k)))
+              vntg(i,j,k)=rbr(i,j,k)*ncg(i,j,k)*(.78e0*diaqg(i,j,k)   &
+     &          +cvnt*cvntg*exp(pdiaqg*log(diaqg(i,j,k))))
+            else
+              diaqg(i,j,k)=0.e0
+              vntg(i,j,k)=0.e0
+            end if
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
 !!!! In the case nk = 1.
@@ -1048,6 +1265,8 @@ end if
 !!!! -----
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_setblk == DUMP_TARGET_setblk .and. .not. dump_done_setblk) then

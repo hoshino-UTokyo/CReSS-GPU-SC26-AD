@@ -163,6 +163,22 @@ end if
 
 call profile_start(prof_id1)
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_067)
+! GPU version (OpenACC)
+!$acc kernels
+!$acc loop independent
+      do k=kmin,kmax
+!$acc loop independent
+        do j=jmin,jmax
+!$acc loop independent
+        do i=imin,imax
+          outvar(i,j,k)=invar(i,j,k)
+        end do
+        end do
+      end do
+!$acc end kernels
+#else
+! CPU version (OpenMP) - Original code preserved
 !$omp parallel default(shared) private(k)
 
       do k=kmin,kmax
@@ -180,6 +196,7 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
+#endif
 
 call profile_stop(prof_id1, loop_len)
 

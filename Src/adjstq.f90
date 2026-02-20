@@ -190,6 +190,85 @@ if (dump_call_count_adjstq == DUMP_TARGET_adjstq .and. .not. dump_done_adjstq) t
   call dump_array_4d('qice_in.bin', qice, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_007)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    ! qv adjustment
+    !$acc kernels
+    !$acc loop independent
+    do k = 1, nk-1
+      !$acc loop independent
+      do j = 1, nj-1
+        !$acc loop independent
+        do i = 1, ni-1
+          qv(i,j,k) = max(qv(i,j,k), 0.e0)
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    if (abs(cphopt) < 10) then
+
+      if (abs(cphopt) >= 1) then
+        ! qwtr adjustment
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, nk-1
+          !$acc loop independent
+          do j = 1, nj-1
+            !$acc loop independent
+            do i = 1, ni-1
+              qwtr(i,j,k,1) = max(qwtr(i,j,k,1), 0.e0)
+              qwtr(i,j,k,2) = max(qwtr(i,j,k,2), 0.e0)
+            end do
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+      if (abs(cphopt) >= 2) then
+        if (haiopt == 0) then
+          ! qice adjustment (3 components)
+          !$acc kernels
+          !$acc loop independent
+          do k = 1, nk-1
+            !$acc loop independent
+            do j = 1, nj-1
+              !$acc loop independent
+              do i = 1, ni-1
+                qice(i,j,k,1) = max(qice(i,j,k,1), 0.e0)
+                qice(i,j,k,2) = max(qice(i,j,k,2), 0.e0)
+                qice(i,j,k,3) = max(qice(i,j,k,3), 0.e0)
+              end do
+            end do
+          end do
+          !$acc end kernels
+        else
+          ! qice adjustment (4 components with hail)
+          !$acc kernels
+          !$acc loop independent
+          do k = 1, nk-1
+            !$acc loop independent
+            do j = 1, nj-1
+              !$acc loop independent
+              do i = 1, ni-1
+                qice(i,j,k,1) = max(qice(i,j,k,1), 0.e0)
+                qice(i,j,k,2) = max(qice(i,j,k,2), 0.e0)
+                qice(i,j,k,3) = max(qice(i,j,k,3), 0.e0)
+                qice(i,j,k,4) = max(qice(i,j,k,4), 0.e0)
+              end do
+            end do
+          end do
+          !$acc end kernels
+        end if
+      end if
+
+    end if
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1
@@ -273,6 +352,7 @@ end if
       end if
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_adjstq == DUMP_TARGET_adjstq .and. .not. dump_done_adjstq) then

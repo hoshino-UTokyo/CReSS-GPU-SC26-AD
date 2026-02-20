@@ -163,6 +163,36 @@ end if
 
 call profile_start(prof_id1)
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_362)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    ! Bottom boundary
+    !$acc kernels
+    !$acc loop independent
+    do j = 1, nj
+      !$acc loop independent
+      do i = 1, ni-1
+        vf(i,j,1) = vf(i,j,2)
+      end do
+    end do
+    !$acc end kernels
+
+    ! Top boundary
+    !$acc kernels
+    !$acc loop independent
+    do j = 1, nj
+      !$acc loop independent
+      do i = 1, ni-1
+        vf(i,j,nkm1) = vf(i,j,nkm2)
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Set the bottom boundary conditions.
@@ -194,6 +224,8 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
+
+#endif
 
 call profile_stop(prof_id1, loop_len)
 

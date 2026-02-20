@@ -252,6 +252,327 @@ end if
 
 call profile_start(prof_id1)
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_363)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if((bbc.eq.2.or.tbc.eq.2).and.(mfcopt.eq.1 &
+         .and.(mpopt.ne.0.and.mpopt.ne.5.and.mpopt.ne.10))) then
+
+      !$acc kernels
+      !$acc loop independent
+      do j=1,nj-1
+        !$acc loop independent
+        do i=1,ni-1
+          mf25(i,j)=.25e0*mf(i,j)
+        end do
+      end do
+      !$acc end kernels
+
+    end if
+
+    ! Set the bottom boundary conditions.
+    if(bbc.eq.2) then
+
+      !$acc kernels
+      !$acc loop independent
+      do j=1,nj-1
+        !$acc loop independent
+        do i=1,ni
+          j31u2(i,j)=(uf(i,j,2)+uf(i,j,3))*j31(i,j,3)
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      !$acc loop independent
+      do j=1,nj
+        !$acc loop independent
+        do i=1,ni-1
+          j32v2(i,j)=(vf(i,j,2)+vf(i,j,3))*j32(i,j,3)
+        end do
+      end do
+      !$acc end kernels
+
+      if(mfcopt.eq.0) then
+
+        !$acc kernels
+        !$acc loop independent
+        do j=1,nj-1
+          !$acc loop independent
+          do i=1,ni-1
+            wf(i,j,1)=.25e0 &
+                 *((j31u2(i,j)+j31u2(i+1,j))+(j32v2(i,j)+j32v2(i,j+1)))
+          end do
+        end do
+        !$acc end kernels
+
+      else
+
+        if(mpopt.eq.0.or.mpopt.eq.10) then
+
+          !$acc kernels
+          !$acc loop independent
+          do j=1,nj-1
+            !$acc loop independent
+            do i=1,ni-1
+              wf(i,j,1)=.25e0*(mf(i,j)*(j31u2(i,j)+j31u2(i+1,j)) &
+                   +(j32v2(i,j)+j32v2(i,j+1)))
+            end do
+          end do
+          !$acc end kernels
+
+        else if(mpopt.eq.5) then
+
+          !$acc kernels
+          !$acc loop independent
+          do j=1,nj-1
+            !$acc loop independent
+            do i=1,ni-1
+              wf(i,j,1)=.25e0*((j31u2(i,j)+j31u2(i+1,j)) &
+                   +mf(i,j)*(j32v2(i,j)+j32v2(i,j+1)))
+            end do
+          end do
+          !$acc end kernels
+
+        else
+
+          !$acc kernels
+          !$acc loop independent
+          do j=1,nj-1
+            !$acc loop independent
+            do i=1,ni-1
+              wf(i,j,1)=mf25(i,j) &
+                   *((j31u2(i,j)+j31u2(i+1,j))+(j32v2(i,j)+j32v2(i,j+1)))
+            end do
+          end do
+          !$acc end kernels
+
+        end if
+
+      end if
+
+      !$acc kernels
+      !$acc loop independent
+      do j=1,nj-1
+        !$acc loop independent
+        do i=1,ni-1
+          wf(i,j,1)=-jcb8w(i,j,3)*wc(i,j,3)-wf(i,j,1)
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      !$acc loop independent
+      do j=1,nj-1
+        !$acc loop independent
+        do i=1,ni
+          j31u2(i,j)=(uf(i,j,1)+uf(i,j,2))*j31(i,j,2)
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      !$acc loop independent
+      do j=1,nj
+        !$acc loop independent
+        do i=1,ni-1
+          j32v2(i,j)=(vf(i,j,1)+vf(i,j,2))*j32(i,j,2)
+        end do
+      end do
+      !$acc end kernels
+
+      if(mfcopt.eq.0) then
+
+        !$acc kernels
+        !$acc loop independent
+        do j=1,nj-1
+          !$acc loop independent
+          do i=1,ni-1
+            wf(i,j,2)=-.25e0 &
+                 *((j31u2(i,j)+j31u2(i+1,j))+(j32v2(i,j)+j32v2(i,j+1)))
+          end do
+        end do
+        !$acc end kernels
+
+      else
+
+        if(mpopt.eq.0.or.mpopt.eq.10) then
+
+          !$acc kernels
+          !$acc loop independent
+          do j=1,nj-1
+            !$acc loop independent
+            do i=1,ni-1
+              wf(i,j,2)=-.25e0*(mf(i,j)*(j31u2(i,j)+j31u2(i+1,j)) &
+                   +(j32v2(i,j)+j32v2(i,j+1)))
+            end do
+          end do
+          !$acc end kernels
+
+        else if(mpopt.eq.5) then
+
+          !$acc kernels
+          !$acc loop independent
+          do j=1,nj-1
+            !$acc loop independent
+            do i=1,ni-1
+              wf(i,j,2)=-.25e0*((j31u2(i,j)+j31u2(i+1,j)) &
+                   +mf(i,j)*(j32v2(i,j)+j32v2(i,j+1)))
+            end do
+          end do
+          !$acc end kernels
+
+        else
+
+          !$acc kernels
+          !$acc loop independent
+          do j=1,nj-1
+            !$acc loop independent
+            do i=1,ni-1
+              wf(i,j,2)=-mf25(i,j) &
+                   *((j31u2(i,j)+j31u2(i+1,j))+(j32v2(i,j)+j32v2(i,j+1)))
+            end do
+          end do
+          !$acc end kernels
+
+        end if
+
+      end if
+
+    else if(bbc.eq.3) then
+
+      !$acc kernels
+      !$acc loop independent
+      do j=1,nj-1
+        !$acc loop independent
+        do i=1,ni-1
+          wf(i,j,1)=wf(i,j,2)
+        end do
+      end do
+      !$acc end kernels
+
+    end if
+
+    ! Set the top boundary conditions.
+    if(tbc.eq.2) then
+
+      !$acc kernels
+      !$acc loop independent
+      do j=1,nj-1
+        !$acc loop independent
+        do i=1,ni
+          j31u2(i,j)=(uf(i,j,nkm3)+uf(i,j,nkm2))*j31(i,j,nkm2)
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      !$acc loop independent
+      do j=1,nj
+        !$acc loop independent
+        do i=1,ni-1
+          j32v2(i,j)=(vf(i,j,nkm3)+vf(i,j,nkm2))*j32(i,j,nkm2)
+        end do
+      end do
+      !$acc end kernels
+
+      if(mfcopt.eq.0) then
+
+        !$acc kernels
+        !$acc loop independent
+        do j=1,nj-1
+          !$acc loop independent
+          do i=1,ni-1
+            wf(i,j,nk)=.25e0 &
+                 *((j31u2(i,j)+j31u2(i+1,j))+(j32v2(i,j)+j32v2(i,j+1)))
+          end do
+        end do
+        !$acc end kernels
+
+      else
+
+        if(mpopt.eq.0.or.mpopt.eq.10) then
+
+          !$acc kernels
+          !$acc loop independent
+          do j=1,nj-1
+            !$acc loop independent
+            do i=1,ni-1
+              wf(i,j,nk)=.25e0*(mf(i,j)*(j31u2(i,j)+j31u2(i+1,j)) &
+                   +(j32v2(i,j)+j32v2(i,j+1)))
+            end do
+          end do
+          !$acc end kernels
+
+        else if(mpopt.eq.5) then
+
+          !$acc kernels
+          !$acc loop independent
+          do j=1,nj-1
+            !$acc loop independent
+            do i=1,ni-1
+              wf(i,j,nk)=.25e0*((j31u2(i,j)+j31u2(i+1,j)) &
+                   +mf(i,j)*(j32v2(i,j)+j32v2(i,j+1)))
+            end do
+          end do
+          !$acc end kernels
+
+        else
+
+          !$acc kernels
+          !$acc loop independent
+          do j=1,nj-1
+            !$acc loop independent
+            do i=1,ni-1
+              wf(i,j,nk)=mf25(i,j) &
+                   *((j31u2(i,j)+j31u2(i+1,j))+(j32v2(i,j)+j32v2(i,j+1)))
+            end do
+          end do
+          !$acc end kernels
+
+        end if
+
+      end if
+
+      !$acc kernels
+      !$acc loop independent
+      do j=1,nj-1
+        !$acc loop independent
+        do i=1,ni-1
+          wf(i,j,nk)=-jcb8w(i,j,nkm2)*wc(i,j,nkm2)-wf(i,j,nk)
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      !$acc loop independent
+      do j=1,nj-1
+        !$acc loop independent
+        do i=1,ni-1
+          wf(i,j,nkm1)=0.e0
+        end do
+      end do
+      !$acc end kernels
+
+    else if(tbc.eq.3) then
+
+      !$acc kernels
+      !$acc loop independent
+      do j=1,nj-1
+        !$acc loop independent
+        do i=1,ni-1
+          wf(i,j,nk)=wf(i,j,nkm1)
+        end do
+      end do
+      !$acc end kernels
+
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Set the common used variable.
@@ -578,6 +899,8 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
+
+#endif
 
 call profile_stop(prof_id1, loop_len)
 

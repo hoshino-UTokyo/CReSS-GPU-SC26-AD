@@ -222,6 +222,47 @@ if (dump_call_count_vsps == DUMP_TARGET_vsps .and. .not. dump_done_vsps) then
   ! ! FIXME: ksp0 is array - call dump_scalar_i('ksp0', ksp0)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_383)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if(vspopt.eq.1.and.gpvvar(apg:apg).eq.'o') then
+
+      !$acc kernels
+      do k = ksp0(1)-1, nk-2
+        !$acc loop independent
+        do j = 2, nj-2
+          !$acc loop independent
+          do i = 2, ni-2
+            sfrc(i,j,k) = sfrc(i,j,k) - 0.5e0 * (rbct(i,j,k,1) + rbct(i,j,k+1,1)) &
+                 * rst(i,j,k) * (sp(i,j,k) - (sgpv(i,j,k) + std(i,j,k) * gtinc))
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+    ! Damp to the base state value.
+    else
+
+      !$acc kernels
+      do k = ksp0(2)-1, nk-2
+        !$acc loop independent
+        do j = 2, nj-2
+          !$acc loop independent
+          do i = 2, ni-2
+            sfrc(i,j,k) = sfrc(i,j,k) &
+                 - 0.5e0 * (rbct(i,j,k,2) + rbct(i,j,k+1,2)) * rst(i,j,k) * sp(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Damp to the GPV data.
@@ -269,6 +310,8 @@ end if
 ! -----
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_vsps == DUMP_TARGET_vsps .and. .not. dump_done_vsps) then

@@ -201,6 +201,60 @@ if (dump_call_count_upwnp == DUMP_TARGET_upwnp .and. .not. dump_done_upwnp) then
   call dump_scalar_i('nkm2', nkm2)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_347)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    ! Calculate flux
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 2, nkm1
+      do j = 1, nj-1
+        do i = 1, ni-1
+          ncflx(i,j,k) = rbr(i,j,k) * un(i,j,k) * ncf(i,j,k)
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    ! Set boundary flux
+    !$acc kernels
+    !$acc loop independent collapse(2)
+    do j = 1, nj-1
+      do i = 1, ni-1
+        ncflx(i,j,1) = 0.0e0
+        ncflx(i,j,nk) = ncflx(i,j,nkm1)
+      end do
+    end do
+    !$acc end kernels
+
+    ! Update concentration
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 1, nkm2
+      do j = 1, nj-1
+        do i = 1, ni-1
+          ncf(i,j,k) = max(ncf(i,j,k) &
+               + (ncflx(i,j,k+1) - ncflx(i,j,k)) * dzvdt / rst(i,j,k), 0.0e0)
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    ! Copy boundary
+    !$acc kernels
+    !$acc loop independent collapse(2)
+    do j = 1, nj-1
+      do i = 1, ni-1
+        ncf(i,j,nkm1) = ncf(i,j,nkm2)
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1
@@ -243,6 +297,8 @@ end if
 !$omp end do
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_upwnp == DUMP_TARGET_upwnp .and. .not. dump_done_upwnp) then

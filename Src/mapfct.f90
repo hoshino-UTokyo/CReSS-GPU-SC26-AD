@@ -281,6 +281,151 @@ if (dump_call_count_mapfct == DUMP_TARGET_mapfct .and. .not. dump_done_mapfct) t
   call dump_array_1d('x.bin', x, 0, ni+1)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_200)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    ! Calculate map scale factor at scalar points (mpopt=0: spherical)
+    if (mpopt == 0 .or. mpopt == 10) then
+      !$acc kernels
+      !$acc loop independent
+      do j = 0, nj
+        !$acc loop independent
+        do i = 0, ni
+          mf(i,j) = 1.0e0 / (cos(lat(i,j) * d2r) + eps)
+        end do
+      end do
+      !$acc end kernels
+    else if (mpopt == 4) then
+      !$acc kernels
+      !$acc loop independent
+      do j = 0, nj
+        !$acc loop independent
+        do i = 0, ni
+          mf(i,j) = 1.0e0
+        end do
+      end do
+      !$acc end kernels
+    else if (mpopt == 5) then
+      !$acc kernels
+      !$acc loop independent
+      do j = 0, nj
+        !$acc loop independent
+        do i = 0, ni
+          mf(i,j) = 1.0e0 / (x(i) + disr)
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+    ! Calculate map scale factors at u points
+    !$acc kernels
+    !$acc loop independent
+    do j = 0, nj
+      !$acc loop independent
+      do i = 1, ni
+        mf8u(i,j) = 0.5e0 * (mf(i-1,j) + mf(i,j))
+      end do
+    end do
+    !$acc end kernels
+
+    ! Calculate map scale factors at v points
+    !$acc kernels
+    !$acc loop independent
+    do j = 1, nj
+      !$acc loop independent
+      do i = 0, ni
+        mf8v(i,j) = 0.5e0 * (mf(i,j-1) + mf(i,j))
+      end do
+    end do
+    !$acc end kernels
+
+    ! Calculate rmf
+    !$acc kernels
+    !$acc loop independent
+    do j = 0, nj
+      !$acc loop independent
+      do i = 0, ni
+        rmf(i,j,1) = mf(i,j) * mf(i,j)
+        rmf(i,j,2) = 1.0e0 / mf(i,j)
+        rmf(i,j,3) = rmf(i,j,2) * rmf(i,j,2)
+        rmf(i,j,4) = sqrt(rmf(i,j,2))
+      end do
+    end do
+    !$acc end kernels
+
+    ! Calculate rmf8u (components 1,2)
+    !$acc kernels
+    !$acc loop independent
+    do j = 0, nj
+      !$acc loop independent
+      do i = 1, ni
+        rmf8u(i,j,1) = mf8u(i,j) * mf8u(i,j)
+        rmf8u(i,j,2) = 1.0e0 / mf8u(i,j)
+      end do
+    end do
+    !$acc end kernels
+
+    ! Calculate rmf8v (components 1,2)
+    !$acc kernels
+    !$acc loop independent
+    do j = 1, nj
+      !$acc loop independent
+      do i = 0, ni
+        rmf8v(i,j,1) = mf8v(i,j) * mf8v(i,j)
+        rmf8v(i,j,2) = 1.0e0 / mf8v(i,j)
+      end do
+    end do
+    !$acc end kernels
+
+    ! Calculate differential of map scale factor x 0.0625 (x direction)
+    !$acc kernels
+    !$acc loop independent
+    do j = 0, nj
+      !$acc loop independent
+      do i = 1, ni
+        tmp1(i,j) = (mf(i,j) - mf(i-1,j)) * dxv625
+      end do
+    end do
+    !$acc end kernels
+
+    ! Calculate rmf8u component 3
+    !$acc kernels
+    !$acc loop independent
+    do j = 0, nj
+      !$acc loop independent
+      do i = 1, ni-1
+        rmf8u(i,j,3) = tmp1(i,j) + tmp1(i+1,j)
+      end do
+    end do
+    !$acc end kernels
+
+    ! Calculate differential of map scale factor x 0.0625 (y direction)
+    !$acc kernels
+    !$acc loop independent
+    do j = 1, nj
+      !$acc loop independent
+      do i = 0, ni
+        tmp1(i,j) = (mf(i,j) - mf(i,j-1)) * dyv625
+      end do
+    end do
+    !$acc end kernels
+
+    ! Calculate rmf8v component 3
+    !$acc kernels
+    !$acc loop independent
+    do j = 1, nj-1
+      !$acc loop independent
+      do i = 0, ni
+        rmf8v(i,j,3) = tmp1(i,j) + tmp1(i,j+1)
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 !! Calculate the map scale factor at scalar points.
@@ -498,6 +643,7 @@ end if
 ! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_mapfct == DUMP_TARGET_mapfct .and. .not. dump_done_mapfct) then

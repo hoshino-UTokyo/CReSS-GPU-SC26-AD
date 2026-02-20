@@ -314,6 +314,85 @@ if (dump_call_count_swadjst == DUMP_TARGET_swadjst .and. .not. dump_done_swadjst
   call dump_scalar_r('k1p2iv', k1p2iv)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_320)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (abs(cphopt) <= 3) then
+
+      !$acc kernels
+      !$acc loop independent
+      do k = 1, nk-1
+        !$acc loop independent
+        do j = 1, nj-1
+          !$acc loop independent
+          do i = 1, ni-1
+            t = (ptbr(i,j,k) + ptp(i,j,k)) * pi(i,j,k)
+
+            a = 1.0e0 / (t - 35.86e0)
+            b = a * (t - t0)
+
+            esw = es0 * exp(17.269e0 * b)
+            qvsw = epsva * esw / (p(i,j,k) - esw)
+
+            if (qc(i,j,k) > thresq .or. qv(i,j,k) > qvsw) then
+
+              lvcpi = lv0 * exp((0.167e0 + 3.67e-4*t) * log(t0/t)) / (cp * pi(i,j,k))
+
+              dqc = (qvsw - qv(i,j,k)) &
+                   / (1.0e0 + 17.269e0*a*(1.0e0-b)*qvsw*lvcpi*pi(i,j,k))
+
+              if (qc(i,j,k) > dqc) then
+                ptp(i,j,k) = ptp(i,j,k) - dqc * lvcpi
+                qv(i,j,k) = qv(i,j,k) + dqc
+                qc(i,j,k) = qc(i,j,k) - dqc
+              else
+                ptp(i,j,k) = ptp(i,j,k) - qc(i,j,k) * lvcpi
+                qv(i,j,k) = qv(i,j,k) + qc(i,j,k)
+                qc(i,j,k) = 0.0e0
+              end if
+
+              ! Second iteration
+              t = (ptbr(i,j,k) + ptp(i,j,k)) * pi(i,j,k)
+
+              a = 1.0e0 / (t - 35.86e0)
+              b = a * (t - t0)
+
+              esw = es0 * exp(17.269e0 * b)
+              qvsw = epsva * esw / (p(i,j,k) - esw)
+
+              if (qc(i,j,k) > thresq .or. qv(i,j,k) > qvsw) then
+
+                lvcpi = lv0 * exp((0.167e0 + 3.67e-4*t) * log(t0/t)) / (cp * pi(i,j,k))
+
+                dqc = (qvsw - qv(i,j,k)) &
+                     / (1.0e0 + 17.269e0*a*(1.0e0-b)*qvsw*lvcpi*pi(i,j,k))
+
+                if (qc(i,j,k) > dqc) then
+                  ptp(i,j,k) = ptp(i,j,k) - dqc * lvcpi
+                  qv(i,j,k) = qv(i,j,k) + dqc
+                  qc(i,j,k) = qc(i,j,k) - dqc
+                else
+                  ptp(i,j,k) = ptp(i,j,k) - qc(i,j,k) * lvcpi
+                  qv(i,j,k) = qv(i,j,k) + qc(i,j,k)
+                  qc(i,j,k) = 0.0e0
+                end if
+
+              end if
+
+            end if
+
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Perform calculating in the case the option abs(cphopt) is less than 3.
@@ -624,6 +703,8 @@ end if
 ! -----
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_swadjst == DUMP_TARGET_swadjst .and. .not. dump_done_swadjst) then

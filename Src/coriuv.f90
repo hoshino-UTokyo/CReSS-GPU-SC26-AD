@@ -182,6 +182,67 @@ if (dump_call_count_coriuv == DUMP_TARGET_coriuv .and. .not. dump_done_coriuv) t
   call dump_array_3d('tmp1_in.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_069)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+! Calculate the Coriolis force in the x components of velocity equation.
+
+    !$acc kernels
+    do k = 2, nk-2
+      !$acc loop independent
+      do j = 2, nj-2
+        !$acc loop independent
+        do i = 1, ni-1
+          tmp1(i,j,k) = fc(i,j,1) * rst(i,j,k) * (v(i,j,k) + v(i,j+1,k))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    !$acc kernels
+    do k = 2, nk-2
+      !$acc loop independent
+      do j = 2, nj-2
+        !$acc loop independent
+        do i = 2, ni-1
+          ufrc(i,j,k) = ufrc(i,j,k) + (tmp1(i-1,j,k) + tmp1(i,j,k))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+! Calculate the Coriolis force in the y components of velocity equation.
+
+    !$acc kernels
+    do k = 2, nk-2
+      !$acc loop independent
+      do j = 1, nj-1
+        !$acc loop independent
+        do i = 2, ni-2
+          tmp1(i,j,k) = -fc(i,j,1) * rst(i,j,k) * (u(i,j,k) + u(i+1,j,k))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    !$acc kernels
+    do k = 2, nk-2
+      !$acc loop independent
+      do j = 2, nj-1
+        !$acc loop independent
+        do i = 2, ni-2
+          vfrc(i,j,k) = vfrc(i,j,k) + (tmp1(i,j-1,k) + tmp1(i,j,k))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Calculate the Coriolis force in the x components of velocity equation.
@@ -249,6 +310,7 @@ end if
 ! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_coriuv == DUMP_TARGET_coriuv .and. .not. dump_done_coriuv) then

@@ -274,6 +274,177 @@ if (dump_call_count_aggregat == DUMP_TARGET_aggregat .and. .not. dump_done_aggre
   call dump_scalar_r('expo2', expo2)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_017)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (nk == 1) then
+      ! Case nk = 1
+      if (abs(cphopt) == 2) then
+        !$acc kernels
+        !$acc loop independent collapse(2)
+        do j = 1, nj-1
+          do i = 1, ni-1
+            if (qi(i,j,1) > thresq) then
+              agin(i,j,1) = rbr(i,j,1) * nci(i,j,1) &
+                   * qi(i,j,1) * exp(oned3 * log(cagin * rbv(i,j,1)))
+            else
+              agin(i,j,1) = 0.0e0
+            end if
+          end do
+        end do
+        !$acc end kernels
+
+      else if (abs(cphopt) == 3) then
+        !$acc kernels
+        !$acc loop independent collapse(2)
+        do j = 1, nj-1
+          do i = 1, ni-1
+            if (qi(i,j,1) > thresq) then
+              agin(i,j,1) = rbr(i,j,1) * nci(i,j,1) &
+                   * qi(i,j,1) * exp(oned3 * log(cagin * rbv(i,j,1)))
+            else
+              agin(i,j,1) = 0.0e0
+            end if
+            if (qs(i,j,1) > thresq) then
+              agsn(i,j,1) = cagsn * rbr(i,j,1) &
+                   * exp(expo1 * log(qs(i,j,1))) * exp(expo2 * log(ncs(i,j,1)))
+            else
+              agsn(i,j,1) = 0.0e0
+            end if
+          end do
+        end do
+        !$acc end kernels
+
+      else if (abs(cphopt) == 4) then
+        !$acc kernels
+        !$acc loop independent collapse(2) private(diaqc3, ercol)
+        do j = 1, nj-1
+          do i = 1, ni-1
+            if (qc(i,j,1) > thresq) then
+              diaqc3 = diaqc(i,j,1) * diaqc(i,j,1) * diaqc(i,j,1)
+              agcn(i,j,1) = cagcn * diaqc3 * diaqc3 * ncc(i,j,1) * ncc(i,j,1) * rbr(i,j,1)
+            else
+              agcn(i,j,1) = 0.0e0
+            end if
+            if (qr(i,j,1) > thresq) then
+              if (diaqr(i,j,1) < 6.0e-4) then
+                ercol = 1.0e0
+              else if (diaqr(i,j,1) >= 6.0e-4 .and. diaqr(i,j,1) < 2.0e-3) then
+                ercol = exp(-2.5e3 * (diaqr(i,j,1) - 6.0e-4))
+              else
+                ercol = 0.0e0
+              end if
+              agrn(i,j,1) = cagrn2 * diaqr(i,j,1)**3 * ercol * ncr(i,j,1)**2 * rbr(i,j,1)
+            else
+              agrn(i,j,1) = 0.0e0
+            end if
+            if (qi(i,j,1) > thresq) then
+              agin(i,j,1) = rbr(i,j,1) * nci(i,j,1) &
+                   * qi(i,j,1) * exp(oned3 * log(cagin * rbv(i,j,1)))
+            else
+              agin(i,j,1) = 0.0e0
+            end if
+            if (qs(i,j,1) > thresq) then
+              agsn(i,j,1) = cagsn * rbr(i,j,1) &
+                   * exp(expo1 * log(qs(i,j,1))) * exp(expo2 * log(ncs(i,j,1)))
+            else
+              agsn(i,j,1) = 0.0e0
+            end if
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+    else
+      ! Case nk > 1
+      if (abs(cphopt) == 2) then
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 1, nk-1
+          do j = 1, nj-1
+            do i = 1, ni-1
+              if (qi(i,j,k) > thresq) then
+                agin(i,j,k) = rbr(i,j,k) * nci(i,j,k) &
+                     * qi(i,j,k) * exp(oned3 * log(cagin * rbv(i,j,k)))
+              else
+                agin(i,j,k) = 0.0e0
+              end if
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+      else if (abs(cphopt) == 3) then
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 1, nk-1
+          do j = 1, nj-1
+            do i = 1, ni-1
+              if (qi(i,j,k) > thresq) then
+                agin(i,j,k) = rbr(i,j,k) * nci(i,j,k) &
+                     * qi(i,j,k) * exp(oned3 * log(cagin * rbv(i,j,k)))
+              else
+                agin(i,j,k) = 0.0e0
+              end if
+              if (qs(i,j,k) > thresq) then
+                agsn(i,j,k) = cagsn * rbr(i,j,k) &
+                     * exp(expo1 * log(qs(i,j,k))) * exp(expo2 * log(ncs(i,j,k)))
+              else
+                agsn(i,j,k) = 0.0e0
+              end if
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+      else if (abs(cphopt) == 4) then
+        !$acc kernels
+        !$acc loop independent collapse(3) private(diaqc3, ercol)
+        do k = 1, nk-1
+          do j = 1, nj-1
+            do i = 1, ni-1
+              if (qc(i,j,k) > thresq) then
+                diaqc3 = diaqc(i,j,k) * diaqc(i,j,k) * diaqc(i,j,k)
+                agcn(i,j,k) = cagcn * diaqc3 * diaqc3 * ncc(i,j,k) * ncc(i,j,k) * rbr(i,j,k)
+              else
+                agcn(i,j,k) = 0.0e0
+              end if
+              if (qr(i,j,k) > thresq) then
+                if (diaqr(i,j,k) < 6.0e-4) then
+                  ercol = 1.0e0
+                else if (diaqr(i,j,k) >= 6.0e-4 .and. diaqr(i,j,k) < 2.0e-3) then
+                  ercol = exp(-2.5e3 * (diaqr(i,j,k) - 6.0e-4))
+                else
+                  ercol = 0.0e0
+                end if
+                agrn(i,j,k) = cagrn2 * diaqr(i,j,k)**3 * ercol * ncr(i,j,k)**2 * rbr(i,j,k)
+              else
+                agrn(i,j,k) = 0.0e0
+              end if
+              if (qi(i,j,k) > thresq) then
+                agin(i,j,k) = rbr(i,j,k) * nci(i,j,k) &
+                     * qi(i,j,k) * exp(oned3 * log(cagin * rbv(i,j,k)))
+              else
+                agin(i,j,k) = 0.0e0
+              end if
+              if (qs(i,j,k) > thresq) then
+                agsn(i,j,k) = cagsn * rbr(i,j,k) &
+                     * exp(expo1 * log(qs(i,j,k))) * exp(expo2 * log(ncs(i,j,k)))
+              else
+                agsn(i,j,k) = 0.0e0
+              end if
+            end do
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !!! In the case nk = 1.
@@ -679,6 +850,7 @@ end if
       end if
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_aggregat == DUMP_TARGET_aggregat .and. .not. dump_done_aggregat) then

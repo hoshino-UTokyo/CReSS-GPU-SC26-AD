@@ -235,6 +235,195 @@ if (dump_call_count_gaussel == DUMP_TARGET_gaussel .and. .not. dump_done_gaussel
   call dump_scalar_i('kem2', kem2)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_115)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    ! Solve the tridiagonal equation with the Gauss elimination.
+    if (impopt == 1) then
+
+      ! Perform the forward eliminations.
+      if (kstr == kend) then
+
+        !$acc kernels
+        !$acc loop independent
+        do j = jstr, jend
+          !$acc loop independent private(aa)
+          do i = istr, iend
+            ff(i,j,kstr) = ff(i,j,kstr) / ss(i,j,kstr)
+          end do
+        end do
+        !$acc end kernels
+
+      else
+
+        ! First k level (kstr)
+        !$acc kernels
+        !$acc loop independent
+        do j = jstr, jend
+          !$acc loop independent private(aa)
+          do i = istr, iend
+            aa = 1.0e0 / ss(i,j,kstr)
+            ss(i,j,kstr) = tt(i,j,kstr) * aa
+            ff(i,j,kstr) = ff(i,j,kstr) * aa
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+      ! Forward elimination: k = kstr+1 to kend-1
+      ! Keep k loop sequential due to k-dependency (uses k-1 values)
+      if (kstr + 2 <= kend) then
+        do k = kstr + 1, kend - 1
+          !$acc kernels
+          !$acc loop independent
+          do j = jstr, jend
+            !$acc loop independent private(aa)
+            do i = istr, iend
+              aa = 1.0e0 / (ss(i,j,k) - rr(i,j,k) * ss(i,j,k-1))
+              ss(i,j,k) = tt(i,j,k) * aa
+              ff(i,j,k) = (ff(i,j,k) - rr(i,j,k) * ff(i,j,k-1)) * aa
+            end do
+          end do
+          !$acc end kernels
+          !$acc wait
+        end do
+      end if
+
+      ! Final k level (kend)
+      if (kstr + 1 <= kend) then
+        !$acc kernels
+        !$acc loop independent
+        do j = jstr, jend
+          !$acc loop independent private(aa)
+          do i = istr, iend
+            aa = 1.0e0 / (ss(i,j,kend) - rr(i,j,kend) * ss(i,j,kem1))
+            ff(i,j,kend) = (ff(i,j,kend) - rr(i,j,kend) * ff(i,j,kem1)) * aa
+          end do
+        end do
+        !$acc end kernels
+        !$acc wait
+      end if
+
+      ! Perform the back substitutions.
+      ! Keep k loop sequential due to k-dependency (uses k+1 values)
+      if (kstr + 1 <= kend) then
+        do k = kend - 1, kstr, -1
+          !$acc kernels
+          !$acc loop independent
+          do j = jstr, jend
+            !$acc loop independent
+            do i = istr, iend
+              ff(i,j,k) = ff(i,j,k) - ss(i,j,k) * ff(i,j,k+1)
+            end do
+          end do
+          !$acc end kernels
+          !$acc wait
+        end do
+      end if
+
+    ! Solve with partial pivoting Gauss elimination
+    else if (impopt == 2) then
+
+      ! Perform the forward eliminations.
+      !$acc kernels
+      !$acc loop independent
+      do j = 2, nj - 2
+        !$acc loop independent private(aa)
+        do i = 2, ni - 2
+          aa = 1.0e0 / ss(i,j,kstr)
+          ss(i,j,kstr) = tt(i,j,kstr) * aa
+          ff(i,j,kstr) = ff(i,j,kstr) * aa
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      !$acc loop independent
+      do k = kstr, kend
+        pv(0,0,k) = real(k) + 0.1e0
+      end do
+      !$acc end kernels
+      !$acc wait
+
+      do k = kstr, kend
+        !$acc kernels
+        !$acc loop independent
+        do j = 2, nj - 2
+          !$acc loop independent
+          do i = 2, ni - 2
+            pv(i,j,k) = pv(0,0,k)
+          end do
+        end do
+        !$acc end kernels
+        !$acc wait
+      end do
+
+      do k = kstr + 1, kend - 2
+        !$acc kernels
+        !$acc loop independent
+        do j = 2, nj - 2
+          !$acc loop independent private(kp, kpm1, aa)
+          do i = 2, ni - 2
+            if (abs(ss(i,j,int(pv(i,j,k)))) < abs(rr(i,j,k+1))) then
+              aa = pv(i,j,k)
+              pv(i,j,k) = pv(i,j,k+1)
+              pv(i,j,k+1) = aa
+            end if
+
+            kp = int(pv(i,j,k))
+            kpm1 = int(pv(i,j,k-1))
+
+            aa = 1.0e0 / (ss(i,j,kp) - rr(i,j,kp) * ss(i,j,kpm1))
+            ss(i,j,kp) = tt(i,j,kp) * aa
+            ff(i,j,kp) = (ff(i,j,kp) - rr(i,j,kp) * ff(i,j,kpm1)) * aa
+          end do
+        end do
+        !$acc end kernels
+        !$acc wait
+      end do
+
+      !$acc kernels
+      !$acc loop independent
+      do j = 2, nj - 2
+        !$acc loop independent private(kpm1, aa)
+        do i = 2, ni - 2
+          kpm1 = int(pv(i,j,kem2))
+
+          aa = 1.0e0 / (ss(i,j,kem1) - rr(i,j,kem1) * ss(i,j,kpm1))
+          ss(i,j,kem1) = tt(i,j,kem1) * aa
+          ff(i,j,kem1) = (ff(i,j,kem1) - rr(i,j,kem1) * ff(i,j,kpm1)) * aa
+
+          aa = 1.0e0 / (ss(i,j,kend) - rr(i,j,kend) * ss(i,j,kem1))
+          ff(i,j,kend) = (ff(i,j,kend) - rr(i,j,kend) * ff(i,j,kem1)) * aa
+        end do
+      end do
+      !$acc end kernels
+      !$acc wait
+
+      ! Perform the back substitutions.
+      do k = kend - 1, kstr, -1
+        !$acc kernels
+        !$acc loop independent
+        do j = 2, nj - 2
+          !$acc loop independent private(kp, kpp1)
+          do i = 2, ni - 2
+            kp = int(pv(i,j,k))
+            kpp1 = int(pv(i,j,k+1))
+            ff(i,j,kp) = ff(i,j,kp) - ss(i,j,kp) * ff(i,j,kpp1)
+          end do
+        end do
+        !$acc end kernels
+        !$acc wait
+      end do
+
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !! Solve the tridiagonal equation with the Gauss elimination.
@@ -462,6 +651,8 @@ end if
 !! -----
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_gaussel == DUMP_TARGET_gaussel .and. .not. dump_done_gaussel) then

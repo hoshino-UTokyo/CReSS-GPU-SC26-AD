@@ -287,6 +287,135 @@ if (dump_call_count_exbcv == DUMP_TARGET_exbcv .and. .not. dump_done_exbcv) then
   call dump_scalar_r('tpdt', tpdt)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_106)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+    ! Force south boundary
+    if (ebs == 1 .and. jsub == 0) then
+      if (exbvar(2:2) == '-') then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent private(vb1,vb2)
+          do i = 1, ni-1
+            vb1 = vgpv(i,1,k) + vtd(i,1,k)*tpdt
+            vb2 = vgpv(i,2,k) + vtd(i,2,k)*tpdt
+            v(i,1,k) = v(i,1,k) + vtd(i,1,k)*dts &
+              - vcpy(i,k,1)*((v(i,2,k)-v(i,1,k))-(vb2-vb1)) &
+              - ndmpdt*(v(i,1,k)-vb1)
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 2, ni-2
+            v(i,1,k) = v(i,1,k) + vtd(i,1,k)*dts
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+    ! Force north boundary
+    if (ebn == 1 .and. jsub == njsub-1) then
+      if (exbvar(2:2) == '-') then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent private(vb1,vb2)
+          do i = 1, ni-1
+            vb1 = vgpv(i,nj,k) + vtd(i,nj,k)*tpdt
+            vb2 = vgpv(i,njm1,k) + vtd(i,njm1,k)*tpdt
+            v(i,nj,k) = v(i,nj,k) + vtd(i,nj,k)*dts &
+              + vcpy(i,k,2)*((v(i,njm1,k)-v(i,nj,k))-(vb2-vb1)) &
+              - ndmpdt*(v(i,nj,k)-vb1)
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 2, ni-2
+            v(i,nj,k) = v(i,nj,k) + vtd(i,nj,k)*dts
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+    ! Force west boundary
+    if (ebw == 1 .and. isub == 0) then
+      if (abs(wbc) /= 1) then
+        if (exbvar(2:2) == '-' .or. exbvar(2:2) == '+') then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent private(vb1,vb2)
+            do j = 2, nj-1
+              vb1 = vgpv(1,j,k) + vtd(1,j,k)*tpdt
+              vb2 = vgpv(2,j,k) + vtd(2,j,k)*tpdt
+              v(1,j,k) = v(1,j,k) + vtd(1,j,k)*dts &
+                - vcpx(j,k,1)*((v(2,j,k)-v(1,j,k))-(vb2-vb1)) &
+                - tdmpdt*(v(1,j,k)-vb1)
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 1, nj
+              v(1,j,k) = v(1,j,k) + vtd(1,j,k)*dts
+            end do
+          end do
+          !$acc end kernels
+        end if
+      end if
+    end if
+
+    ! Force east boundary
+    if (ebe == 1 .and. isub == nisub-1) then
+      if (abs(ebc) /= 1) then
+        if (exbvar(2:2) == '-' .or. exbvar(2:2) == '+') then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent private(vb1,vb2)
+            do j = 2, nj-1
+              vb1 = vgpv(nim1,j,k) + vtd(nim1,j,k)*tpdt
+              vb2 = vgpv(nim2,j,k) + vtd(nim2,j,k)*tpdt
+              v(nim1,j,k) = v(nim1,j,k) + vtd(nim1,j,k)*dts &
+                + vcpx(j,k,2)*((v(nim2,j,k)-v(nim1,j,k))-(vb2-vb1)) &
+                - tdmpdt*(v(nim1,j,k)-vb1)
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 1, nj
+              v(nim1,j,k) = v(nim1,j,k) + vtd(nim1,j,k)*dts
+            end do
+          end do
+          !$acc end kernels
+        end if
+      end if
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Force the south boundary value to the external boundary value.
@@ -458,6 +587,8 @@ end if
 ! -----
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_exbcv == DUMP_TARGET_exbcv .and. .not. dump_done_exbcv) then

@@ -176,6 +176,63 @@ if (dump_call_count_bcten == DUMP_TARGET_bcten .and. .not. dump_done_bcten) then
   call dump_scalar_i('nkm2', nkm2)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_037)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (bbc == 2) then
+      !$acc kernels
+      !$acc loop independent
+      do j = 0, nj+1
+        !$acc loop independent
+        do i = 0, ni+1
+          ten(i,j,1) = -ten(i,j,3)
+        end do
+      end do
+      !$acc end kernels
+
+    else if (bbc >= 3) then
+      !$acc kernels
+      !$acc loop independent
+      do j = 0, nj+1
+        !$acc loop independent
+        do i = 0, ni+1
+          ten(i,j,1) = ten(i,j,3)
+        end do
+      end do
+      !$acc end kernels
+
+    end if
+
+    ! Set the top boundary conditions
+    if (tbc == 2) then
+      !$acc kernels
+      !$acc loop independent
+      do j = 0, nj+1
+        !$acc loop independent
+        do i = 0, ni+1
+          ten(i,j,nk) = -ten(i,j,nkm2)
+        end do
+      end do
+      !$acc end kernels
+
+    else if (tbc >= 3) then
+      !$acc kernels
+      !$acc loop independent
+      do j = 0, nj+1
+        !$acc loop independent
+        do i = 0, ni+1
+          ten(i,j,nk) = ten(i,j,nkm2)
+        end do
+      end do
+      !$acc end kernels
+
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Set the bottom boundary conditions.
@@ -239,6 +296,7 @@ end if
 ! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_bcten == DUMP_TARGET_bcten .and. .not. dump_done_bcten) then

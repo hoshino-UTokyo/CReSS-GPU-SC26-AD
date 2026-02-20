@@ -318,6 +318,251 @@ if (dump_call_count_setsfc == DUMP_TARGET_setsfc .and. .not. dump_done_setsfc) t
   call dump_scalar_r('rddvcp', rddvcp)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_291)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+! Get the pressure, potential temperature and air temperature.
+
+    !$acc kernels
+    !$acc loop independent
+    do k=1,nk-1
+      !$acc loop independent
+      do j=1,nj-1
+        !$acc loop independent
+        do i=1,ni-1
+          p(i,j,k)=pbr(i,j,k)+pp(i,j,k)
+          pt(i,j,k)=ptbr(i,j,k)+ptp(i,j,k)
+          t(i,j,k)=pt(i,j,k)*exp(rddvcp*log(p0iv*p(i,j,k)))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+! -----
+
+! Get the surface pressure and ice surface temperature.
+
+    !$acc kernels
+    !$acc loop independent
+    do j=1,nj-1
+      !$acc loop independent
+      do i=1,ni-1
+        ps(i,j)=.5e0*(p(i,j,1)+p(i,j,2))
+        if(land(i,j).eq.1) then
+          tice(i,j)=min(.5e0*(t(i,j,1)+t(i,j,2)),t0)
+        else
+          tice(i,j)=lim35n
+        end if
+      end do
+    end do
+    !$acc end kernels
+
+! -----
+
+! Calculate the water vapor mixing ratio on the surface.
+
+      if(fmois(1:3).eq.'dry') then
+
+    !$acc kernels
+    !$acc loop independent
+    do j=1,nj-1
+      !$acc loop independent
+      do i=1,ni-1
+        qvsfc(i,j)=0.e0
+      end do
+    end do
+    !$acc end kernels
+
+      else if(fmois(1:5).eq.'moist') then
+
+    !$acc kernels
+    !$acc loop independent
+    do j=1,nj-1
+      !$acc loop independent
+      do i=1,ni-1
+        if(land(i,j).lt.0) then
+          ests=es0*exp(17.269e0*(tund(i,j,1)-t0)/(tund(i,j,1)-35.86e0))
+          qvsts(i,j)=epsva*ests/(ps(i,j)-ests)
+        else if(land(i,j).eq.1) then
+          if(tice(i,j).gt.tlow) then
+            ests=es0*exp(17.269e0*(tund(i,j,1)-t0)/(tund(i,j,1)-35.86e0))
+            esice=es0*exp(17.269e0*(tice(i,j)-t0)/(tice(i,j)-35.86e0))
+            qvsts(i,j)=epsva*ests/(ps(i,j)-ests)
+            qvsice(i,j)=epsva*esice/(ps(i,j)-esice)
+          else
+            ests=es0*exp(17.269e0*(tund(i,j,1)-t0)/(tund(i,j,1)-35.86e0))
+            esice=es0*exp(21.875e0*(tice(i,j)-t0)/(tice(i,j)-7.66e0))
+            qvsts(i,j)=epsva*ests/(ps(i,j)-ests)
+            qvsice(i,j)=epsva*esice/(ps(i,j)-esice)
+          end if
+        else
+          if(tund(i,j,1).gt.tlow) then
+            ests=es0*exp(17.269e0*(tund(i,j,1)-t0)/(tund(i,j,1)-35.86e0))
+            qvsts(i,j)=epsva*ests/(ps(i,j)-ests)
+          else
+            ests=es0*exp(21.875e0*(tund(i,j,1)-t0)/(tund(i,j,1)-7.66e0))
+            qvsts(i,j)=epsva*ests/(ps(i,j)-ests)
+          end if
+        end if
+      end do
+    end do
+    !$acc end kernels
+
+        if(abs(cphopt).eq.0) then
+
+    !$acc kernels
+    !$acc loop independent
+    do j=1,nj-1
+      !$acc loop independent
+      do i=1,ni-1
+        if(land(i,j).eq.1) then
+          qvsfc(i,j)=qv(i,j,2)+icbeta*kai(i,j)*(qvsice(i,j)-qv(i,j,2)) &
+               +beta(i,j)*(1.e0-kai(i,j))*(qvsts(i,j)-qv(i,j,2))
+        else
+          qvsfc(i,j)=beta(i,j)*(qvsts(i,j)-qv(i,j,2))+qv(i,j,2)
+        end if
+      end do
+    end do
+    !$acc end kernels
+
+        else
+
+    !$acc kernels
+    !$acc loop independent
+    do j=1,nj-1
+      !$acc loop independent
+      do i=1,ni-1
+        if(land(i,j).eq.1) then
+          if(fall(i,j).gt.0.e0) then
+            qvsfc(i,j)=kai(i,j)*qvsice(i,j)+(1.e0-kai(i,j))*qvsts(i,j)
+          else
+            qvsfc(i,j)=qv(i,j,2)+icbeta*kai(i,j)*(qvsice(i,j)-qv(i,j,2)) &
+                 +beta(i,j)*(1.e0-kai(i,j))*(qvsts(i,j)-qv(i,j,2))
+          end if
+        else
+          if(fall(i,j).gt.0.e0) then
+            qvsfc(i,j)=beta(i,j)*(qvsts(i,j)-qv(i,j,2))+qv(i,j,2)
+          else
+            qvsfc(i,j)=beta(i,j)*(qvsts(i,j)-qv(i,j,2))+qv(i,j,2)
+          end if
+        end if
+      end do
+    end do
+    !$acc end kernels
+
+        end if
+
+      end if
+
+! -----
+
+! Calculate the virtual potential temperature.
+
+      if(fmois(1:3).eq.'dry') then
+
+    !$acc kernels
+    !$acc loop independent
+    do j=1,nj-1
+      !$acc loop independent
+      do i=1,ni-1
+        if(land(i,j).eq.1) then
+          ptv(i,j,1)=exp(rddvcp*log(p0/ps(i,j))) &
+               *(kai(i,j)*tice(i,j)+(1.e0-kai(i,j))*tund(i,j,1))
+        else
+          ptv(i,j,1)=exp(rddvcp*log(p0/ps(i,j)))*tund(i,j,1)
+        end if
+      end do
+    end do
+    !$acc end kernels
+
+    !$acc kernels
+    !$acc loop independent
+    do k=2,levpbl+1
+      !$acc loop independent
+      do j=1,nj-1
+        !$acc loop independent
+        do i=1,ni-1
+          ptv(i,j,k)=pt(i,j,k)
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+      else if(fmois(1:5).eq.'moist') then
+
+    !$acc kernels
+    !$acc loop independent
+    do j=1,nj-1
+      !$acc loop independent
+      do i=1,ni-1
+        if(land(i,j).eq.1) then
+          ptv(i,j,1)=exp(rddvcp*log(p0/ps(i,j))) &
+               *(1.e0+epsav*qvsfc(i,j))/(1.e0+qvsfc(i,j)) &
+               *(kai(i,j)*tice(i,j)+(1.e0-kai(i,j))*tund(i,j,1))
+        else
+          ptv(i,j,1)=exp(rddvcp*log(p0/ps(i,j))) &
+               *tund(i,j,1)*(1.e0+epsav*qvsfc(i,j))/(1.e0+qvsfc(i,j))
+        end if
+      end do
+    end do
+    !$acc end kernels
+
+    !$acc kernels
+    !$acc loop independent
+    do k=2,levpbl+1
+      !$acc loop independent
+      do j=1,nj-1
+        !$acc loop independent
+        do i=1,ni-1
+          ptv(i,j,k)=pt(i,j,k)*(1.e0+epsav*qv(i,j,k))/(1.e0+qv(i,j,k))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+      end if
+
+! -----
+
+! Calculate the magnitude of velocity.
+
+      if(tubopt.eq.0) then
+
+    !$acc kernels
+    !$acc loop independent
+    do j=1,nj-1
+      !$acc loop independent
+      do i=1,ni-1
+        u8s=u(i,j,2)+u(i+1,j,2)
+        v8s=v(i,j,2)+v(i,j+1,2)
+        va(i,j)=max(.5e0*sqrt(u8s*u8s+v8s*v8s),vamin)
+      end do
+    end do
+    !$acc end kernels
+
+      else
+
+    !$acc kernels
+    !$acc loop independent
+    do j=1,nj-1
+      !$acc loop independent
+      do i=1,ni-1
+        u8s=u(i,j,2)+u(i+1,j,2)
+        v8s=v(i,j,2)+v(i,j+1,2)
+        w8s=w(i,j,2)+w(i,j,3)
+        va(i,j)=max(.5e0*sqrt(u8s*u8s+v8s*v8s+w8s*w8s),vamin)
+      end do
+    end do
+    !$acc end kernels
+
+      end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Get the pressure, potential temperature and air temperature.
@@ -643,6 +888,7 @@ end if
 ! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_setsfc == DUMP_TARGET_setsfc .and. .not. dump_done_setsfc) then

@@ -187,6 +187,40 @@ if (dump_call_count_diagnw == DUMP_TARGET_diagnw .and. .not. dump_done_diagnw) t
   call dump_scalar_r('mrmiv2', mrmiv2)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_085)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+    ! Set the common used variables
+    mrmiv2 = 1.0e-2 / mrmax
+    mr0iv2 = 1.0e2 / mr0
+    cdiaqr = nr0 * nr0 * nr0 / (cc * rhow)
+
+    !$acc kernels
+    !$acc loop independent collapse(3) private(rbv)
+    do k = 1, nk-1
+      do j = 1, nj-1
+        do i = 1, ni-1
+          ! Calculate the inverse of base state density
+          rbv = 1.0 / rbr(i,j,k)
+
+          ! Get the diagnostic concentrations of cloud water
+          nwdia(i,j,k,1) = nclcst * rbv
+
+          ! Get the diagnostic concentrations of rain water
+          nwdia(i,j,k,2) = sqrt(sqrt(cdiaqr * rbr(i,j,k) * qwtr(i,j,k,2))) * rbv
+          nwdia(i,j,k,2) = min(max(nwdia(i,j,k,2), mrmiv2*qwtr(i,j,k,2)), &
+                               mr0iv2*qwtr(i,j,k,2))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1
@@ -226,6 +260,7 @@ end if
       end do
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_diagnw == DUMP_TARGET_diagnw .and. .not. dump_done_diagnw) then

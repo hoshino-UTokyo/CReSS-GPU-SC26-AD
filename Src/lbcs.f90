@@ -223,6 +223,130 @@ if (dump_call_count_lbcs == DUMP_TARGET_lbcs .and. .not. dump_done_lbcs) then
   call dump_scalar_i('njsub', njsub)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_183)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    ! West boundary
+    if (ebw == 1 .and. isub == 0) then
+      if (advopt <= 3) then
+        if (wbc == 2 .or. wbc == 3) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 1, nj-1
+              sf(1,j,k) = sf(2,j,k)
+            end do
+          end do
+          !$acc end kernels
+        end if
+      else
+        if (wbc >= 2) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 1, nj-1
+              sf(1,j,k) = sf(2,j,k)
+            end do
+          end do
+          !$acc end kernels
+        end if
+      end if
+    end if
+
+    ! East boundary
+    if (ebe == 1 .and. isub == nisub-1) then
+      if (advopt <= 3) then
+        if (ebc == 2 .or. ebc == 3) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 1, nj-1
+              sf(nim1,j,k) = sf(nim2,j,k)
+            end do
+          end do
+          !$acc end kernels
+        end if
+      else
+        if (ebc >= 2) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 1, nj-1
+              sf(nim1,j,k) = sf(nim2,j,k)
+            end do
+          end do
+          !$acc end kernels
+        end if
+      end if
+    end if
+
+    ! South boundary
+    if (ebs == 1 .and. jsub == 0) then
+      if (advopt <= 3) then
+        if (sbc == 2 .or. sbc == 3) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do i = 1, ni-1
+              sf(i,1,k) = sf(i,2,k)
+            end do
+          end do
+          !$acc end kernels
+        end if
+      else
+        if (sbc >= 2) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do i = 1, ni-1
+              sf(i,1,k) = sf(i,2,k)
+            end do
+          end do
+          !$acc end kernels
+        end if
+      end if
+    end if
+
+    ! North boundary
+    if (ebn == 1 .and. jsub == njsub-1) then
+      if (advopt <= 3) then
+        if (nbc == 2 .or. nbc == 3) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do i = 1, ni-1
+              sf(i,njm1,k) = sf(i,njm2,k)
+            end do
+          end do
+          !$acc end kernels
+        end if
+      else
+        if (nbc >= 2) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do i = 1, ni-1
+              sf(i,njm1,k) = sf(i,njm2,k)
+            end do
+          end do
+          !$acc end kernels
+        end if
+      end if
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the west boundary conditions.
@@ -522,6 +646,8 @@ end if
 ! -----
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_lbcs == DUMP_TARGET_lbcs .and. .not. dump_done_lbcs) then

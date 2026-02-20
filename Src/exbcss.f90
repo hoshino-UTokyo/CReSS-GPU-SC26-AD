@@ -289,6 +289,201 @@ if (dump_call_count_exbcss == DUMP_TARGET_exbcss .and. .not. dump_done_exbcss) t
   call dump_scalar_r('tpdt', tpdt)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_104)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+    ! Force boundary at four corners
+    if (abs(wbc) /= 1 .and. abs(ebc) /= 1) then
+      if (exbvar(ape:ape) == '-') then
+        if (ebs == 1 .and. jsub == 0) then
+          if (ebw == 1 .and. isub == 0) then
+            !$acc kernels
+            !$acc loop independent private(sb1,sb2i,sb2j,radwe,radsn)
+            do k = 2, nk-2
+              sb1 = sgpv(1,1,k) + std(1,1,k)*tpdt
+              sb2i = sgpv(2,1,k) + std(2,1,k)*tpdt
+              sb2j = sgpv(1,2,k) + std(1,2,k)*tpdt
+              radwe = scpx(1,k,1)*((s(2,1,k)-s(1,1,k))-(sb2i-sb1))
+              radsn = scpy(1,k,1)*((s(1,2,k)-s(1,1,k))-(sb2j-sb1))
+              s(1,1,k) = s(1,1,k) + std(1,1,k)*dts &
+                - (radwe+radsn) - dmpdt*(s(1,1,k)-sb1)
+            end do
+            !$acc end kernels
+          end if
+          if (ebe == 1 .and. isub == nisub-1) then
+            !$acc kernels
+            !$acc loop independent private(sb1,sb2i,sb2j,radwe,radsn)
+            do k = 2, nk-2
+              sb1 = sgpv(nim1,1,k) + std(nim1,1,k)*tpdt
+              sb2i = sgpv(nim2,1,k) + std(nim2,1,k)*tpdt
+              sb2j = sgpv(nim1,2,k) + std(nim1,2,k)*tpdt
+              radwe = scpx(1,k,2)*((s(nim2,1,k)-s(nim1,1,k))-(sb2i-sb1))
+              radsn = scpy(nim1,k,1)*((s(nim1,2,k)-s(nim1,1,k))-(sb2j-sb1))
+              s(nim1,1,k) = s(nim1,1,k) + std(nim1,1,k)*dts &
+                + (radwe-radsn) - dmpdt*(s(nim1,1,k)-sb1)
+            end do
+            !$acc end kernels
+          end if
+        end if
+        if (ebn == 1 .and. jsub == njsub-1) then
+          if (ebw == 1 .and. isub == 0) then
+            !$acc kernels
+            !$acc loop independent private(sb1,sb2i,sb2j,radwe,radsn)
+            do k = 2, nk-2
+              sb1 = sgpv(1,njm1,k) + std(1,njm1,k)*tpdt
+              sb2i = sgpv(2,njm1,k) + std(2,njm1,k)*tpdt
+              sb2j = sgpv(1,njm2,k) + std(1,njm2,k)*tpdt
+              radwe = scpx(njm1,k,1)*((s(2,njm1,k)-s(1,njm1,k))-(sb2i-sb1))
+              radsn = scpy(1,k,2)*((s(1,njm2,k)-s(1,njm1,k))-(sb2j-sb1))
+              s(1,njm1,k) = s(1,njm1,k) + std(1,njm1,k)*dts &
+                - (radwe-radsn) - dmpdt*(s(1,njm1,k)-sb1)
+            end do
+            !$acc end kernels
+          end if
+          if (ebe == 1 .and. isub == nisub-1) then
+            !$acc kernels
+            !$acc loop independent private(sb1,sb2i,sb2j,radwe,radsn)
+            do k = 2, nk-2
+              sb1 = sgpv(nim1,njm1,k) + std(nim1,njm1,k)*tpdt
+              sb2i = sgpv(nim2,njm1,k) + std(nim2,njm1,k)*tpdt
+              sb2j = sgpv(nim1,njm2,k) + std(nim1,njm2,k)*tpdt
+              radwe = scpx(njm1,k,2)*((s(nim2,njm1,k)-s(nim1,njm1,k))-(sb2i-sb1))
+              radsn = scpy(nim1,k,2)*((s(nim1,njm2,k)-s(nim1,njm1,k))-(sb2j-sb1))
+              s(nim1,njm1,k) = s(nim1,njm1,k) + std(nim1,njm1,k)*dts &
+                + (radwe+radsn) - dmpdt*(s(nim1,njm1,k)-sb1)
+            end do
+            !$acc end kernels
+          end if
+        end if
+      end if
+    end if
+
+    ! Force west boundary
+    if (ebw == 1 .and. isub == 0) then
+      if (abs(wbc) /= 1) then
+        if (exbvar(ape:ape) == '-') then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent private(sb1,sb2)
+            do j = 2, nj-2
+              sb1 = sgpv(1,j,k) + std(1,j,k)*tpdt
+              sb2 = sgpv(2,j,k) + std(2,j,k)*tpdt
+              s(1,j,k) = s(1,j,k) + std(1,j,k)*dts &
+                - scpx(j,k,1)*((s(2,j,k)-s(1,j,k))-(sb2-sb1)) &
+                - dmpdt*(s(1,j,k)-sb1)
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 2, nj-2
+              s(1,j,k) = s(1,j,k) + std(1,j,k)*dts
+            end do
+          end do
+          !$acc end kernels
+        end if
+      end if
+    end if
+
+    ! Force east boundary
+    if (ebe == 1 .and. isub == nisub-1) then
+      if (abs(ebc) /= 1) then
+        if (exbvar(ape:ape) == '-') then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent private(sb1,sb2)
+            do j = 2, nj-2
+              sb1 = sgpv(nim1,j,k) + std(nim1,j,k)*tpdt
+              sb2 = sgpv(nim2,j,k) + std(nim2,j,k)*tpdt
+              s(nim1,j,k) = s(nim1,j,k) + std(nim1,j,k)*dts &
+                + scpx(j,k,2)*((s(nim2,j,k)-s(nim1,j,k))-(sb2-sb1)) &
+                - dmpdt*(s(nim1,j,k)-sb1)
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 2, nj-2
+              s(nim1,j,k) = s(nim1,j,k) + std(nim1,j,k)*dts
+            end do
+          end do
+          !$acc end kernels
+        end if
+      end if
+    end if
+
+    ! Force south boundary
+    if (ebs == 1 .and. jsub == 0) then
+      if (exbvar(ape:ape) == '-') then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent private(sb1,sb2)
+          do i = 2, ni-2
+            sb1 = sgpv(i,1,k) + std(i,1,k)*tpdt
+            sb2 = sgpv(i,2,k) + std(i,2,k)*tpdt
+            s(i,1,k) = s(i,1,k) + std(i,1,k)*dts &
+              - scpy(i,k,1)*((s(i,2,k)-s(i,1,k))-(sb2-sb1)) &
+              - dmpdt*(s(i,1,k)-sb1)
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 1, ni-1
+            s(i,1,k) = s(i,1,k) + std(i,1,k)*dts
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+    ! Force north boundary
+    if (ebn == 1 .and. jsub == njsub-1) then
+      if (exbvar(ape:ape) == '-') then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent private(sb1,sb2)
+          do i = 2, ni-2
+            sb1 = sgpv(i,njm1,k) + std(i,njm1,k)*tpdt
+            sb2 = sgpv(i,njm2,k) + std(i,njm2,k)*tpdt
+            s(i,njm1,k) = s(i,njm1,k) + std(i,njm1,k)*dts &
+              + scpy(i,k,2)*((s(i,njm2,k)-s(i,njm1,k))-(sb2-sb1)) &
+              - dmpdt*(s(i,njm1,k)-sb1)
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 1, ni-1
+            s(i,njm1,k) = s(i,njm1,k) + std(i,njm1,k)*dts
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Force the boundary value to the external boundary value at the four
@@ -574,6 +769,8 @@ end if
 ! -----
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_exbcss == DUMP_TARGET_exbcss .and. .not. dump_done_exbcss) then

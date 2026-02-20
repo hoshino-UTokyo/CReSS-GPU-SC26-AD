@@ -220,6 +220,150 @@ if (dump_call_count_eddydif == DUMP_TARGET_eddydif .and. .not. dump_done_eddydif
   call dump_scalar_r('cpriv', cpriv)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_095)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+    ! Set the common used variables
+    cpriv = 1.e0 / prnum
+    if (cpriv > 3.e0) then
+      cpriv = 3.e0
+    end if
+
+    ! Calculate the eddy diffusivity
+    if (tubopt .eq. 1) then
+      ! Smagorinsky formulation
+      if (isoopt .eq. 1) then
+        ! Isotropic case
+        if (mfcopt .eq. 0) then
+          !$acc kernels
+          !$acc loop independent collapse(3)
+          do k = 1, nk-1
+            do j = 1, nj-1
+              do i = 1, ni-1
+                rkv8s(i,j,k) = priv(i,j,k) * rkv8w(i,j,k) / jcb(i,j,k)
+                rkh(i,j,k) = rkv8s(i,j,k)
+              end do
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent collapse(3)
+          do k = 1, nk-1
+            do j = 1, nj-1
+              do i = 1, ni-1
+                rkv8s(i,j,k) = priv(i,j,k) * rkv8w(i,j,k) / jcb(i,j,k)
+                rkh(i,j,k) = mf(i,j) * rkv8s(i,j,k)
+              end do
+            end do
+          end do
+          !$acc end kernels
+        end if
+      else if (isoopt .eq. 2) then
+        ! Anisotropic case
+        if (mfcopt .eq. 0) then
+          !$acc kernels
+          !$acc loop independent collapse(3) private(jcbiv)
+          do k = 1, nk-1
+            do j = 1, nj-1
+              do i = 1, ni-1
+                jcbiv = 1.e0 / jcb(i,j,k)
+                rkh(i,j,k) = jcbiv * cpriv * rkh(i,j,k)
+                rkv8s(i,j,k) = jcbiv * priv(i,j,k) * rkv8w(i,j,k)
+              end do
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent collapse(3) private(jcbiv)
+          do k = 1, nk-1
+            do j = 1, nj-1
+              do i = 1, ni-1
+                jcbiv = 1.e0 / jcb(i,j,k)
+                rkh(i,j,k) = jcbiv * cpriv * mf(i,j) * rkh(i,j,k)
+                rkv8s(i,j,k) = jcbiv * priv(i,j,k) * rkv8w(i,j,k)
+              end do
+            end do
+          end do
+          !$acc end kernels
+        end if
+      end if
+
+    else if (tubopt .ge. 2) then
+      ! Deardorff formulation
+      if (isoopt .eq. 1) then
+        ! Isotropic case
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 1, nk-1
+          do j = 1, nj-1
+            do i = 1, ni-1
+              rkv8s(i,j,k) = priv(i,j,k) * rkv8w(i,j,k)
+              rkh(i,j,k) = rkv8s(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+      else if (isoopt .eq. 2) then
+        ! Anisotropic case
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 1, nk-1
+          do j = 1, nj-1
+            do i = 1, ni-1
+              rkh(i,j,k) = cpriv * rkh(i,j,k)
+              rkv8s(i,j,k) = priv(i,j,k) * rkv8w(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+    ! Get the vertical eddy diffusivity at the w and scalar points
+    if (tubopt .eq. 1) then
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 2, nk-1
+        do j = 1, nj-1
+          do i = 1, ni-1
+            rkv8w(i,j,k) = .5e0 * (rkv8s(i,j,k-1) + rkv8s(i,j,k))
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+    else if (tubopt .ge. 2) then
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 2, nk-1
+        do j = 1, nj-1
+          do i = 1, ni-1
+            rkv8w(i,j,k) = .5e0 * (rkv8s(i,j,k-1) + rkv8s(i,j,k))
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 1, nk-1
+        do j = 1, nj-1
+          do i = 1, ni-1
+            rkv8s(i,j,k) = .5e0 * jcb(i,j,k) * rkv8s(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !! Calculate the eddy diffusivity in the case the Smagorinsky
@@ -427,6 +571,7 @@ end if
 ! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_eddydif == DUMP_TARGET_eddydif .and. .not. dump_done_eddydif) then

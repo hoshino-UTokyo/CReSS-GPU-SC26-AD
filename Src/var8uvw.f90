@@ -217,6 +217,54 @@ if (dump_call_count_var8uvw == DUMP_TARGET_var8uvw .and. .not. dump_done_var8uvw
   call dump_array_3d('var.bin', var, 0, ni+1, 0, nj+1, 1, nk)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_353)
+! GPU version (OpenACC)
+
+      ! Compute var8u
+      !$acc kernels
+      !$acc loop independent
+      do k=1,nk-1
+        !$acc loop independent
+        do j=0,nj
+          !$acc loop independent
+          do i=1,ni
+            var8u(i,j,k)=.5e0*(var(i-1,j,k)+var(i,j,k))
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      ! Compute var8v
+      !$acc kernels
+      !$acc loop independent
+      do k=1,nk-1
+        !$acc loop independent
+        do j=1,nj
+          !$acc loop independent
+          do i=0,ni
+            var8v(i,j,k)=.5e0*(var(i,j-1,k)+var(i,j,k))
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      ! Compute var8w
+      !$acc kernels
+      !$acc loop independent
+      do k=2,nk-1
+        !$acc loop independent
+        do j=0,nj
+          !$acc loop independent
+          do i=0,ni
+            var8w(i,j,k)=.5e0*(var(i,j,k-1)+var(i,j,k))
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+#else
+! CPU version (OpenMP) - Original code preserved
+
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1
@@ -258,6 +306,7 @@ end if
       end do
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_var8uvw == DUMP_TARGET_var8uvw .and. .not. dump_done_var8uvw) then

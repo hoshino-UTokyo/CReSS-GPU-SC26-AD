@@ -148,6 +148,24 @@ if (dump_call_count_getzlow == DUMP_TARGET_getzlow .and. .not. dump_done_getzlow
   call dump_array_3d('zph.bin', zph, 0, ni+1, 0, nj+1, 1, nk)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_146)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    !$acc kernels
+    !$acc loop independent
+    do j = 1, nj-1
+      !$acc loop independent
+      do i = 1, ni-1
+        za(i,j) = 0.5e0 * (zph(i,j,3) - zph(i,j,2))
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j)
@@ -161,6 +179,8 @@ end if
 !$omp end do
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_getzlow == DUMP_TARGET_getzlow .and. .not. dump_done_getzlow) then

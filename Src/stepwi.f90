@@ -389,6 +389,102 @@ end if
 
 call profile_start(prof_id1)
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_315)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    ! Step 1: Update wf
+    !$acc kernels
+    !$acc loop independent
+    do k = 3, nk-2
+      !$acc loop independent
+      do j = 2, nj-2
+        !$acc loop independent
+        do i = 2, ni-2
+          wf(i,j,k) = wf(i,j,k) + dts * fw(i,j,k) / rst8w(i,j,k)
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    ! Step 2: Compute intermediate values
+    !$acc kernels
+    !$acc loop independent
+    do k = 2, nk-2
+      !$acc loop independent
+      do j = 2, nj-2
+        !$acc loop independent
+        do i = 2, ni-2
+          tmp1(i,j,k) = g05 * rbr(i,j,k) / rcsq(i,j,k)
+          tmp2(i,j,k) = dziv / jcb(i,j,k)
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    !$acc kernels
+    !$acc loop independent
+    do k = 2, nk-2
+      !$acc loop independent
+      do j = 2, nj-2
+        !$acc loop independent
+        do i = 2, ni-2
+          fw(i,j,k) = tmp1(i,j,k) + tmp2(i,j,k)
+          wc(i,j,k) = tmp1(i,j,k) - tmp2(i,j,k)
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    ! Step 3: Compute tridiagonal matrix coefficients
+    if (buyopt == 0) then
+
+      !$acc kernels
+      !$acc loop independent
+      do k = 3, nk-2
+        !$acc loop independent
+        do j = 2, nj-2
+          !$acc loop independent
+          do i = 2, ni-2
+            a = sbsqzi / rst8w(i,j,k)
+            mm = a * rcsq(i,j,k-1)
+            nn = a * rcsq(i,j,k)
+            tmp1(i,j,k) = -mm * fw(i,j,k-1)
+            tmp2(i,j,k) = 1.0 + (nn * fw(i,j,k) - mm * wc(i,j,k-1))
+            tmp3(i,j,k) = nn * wc(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+    else if (buyopt == 1) then
+
+      !$acc kernels
+      !$acc loop independent
+      do k = 3, nk-2
+        !$acc loop independent
+        do j = 2, nj-2
+          !$acc loop independent
+          do i = 2, ni-2
+            rstiv = 1.0 / rst8w(i,j,k)
+            a = rstiv * sbsqzi
+            b = rstiv * sbsqg5
+            mm = b * rst(i,j,k-1) - a * rcsq(i,j,k-1)
+            nn = b * rst(i,j,k) + a * rcsq(i,j,k)
+            tmp1(i,j,k) = mm * fw(i,j,k-1)
+            tmp2(i,j,k) = 1.0 + (mm * wc(i,j,k-1) + nn * fw(i,j,k))
+            tmp3(i,j,k) = nn * wc(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=3,nk-2
@@ -493,6 +589,8 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
+
+#endif
 
 call profile_stop(prof_id1, loop_len)
 

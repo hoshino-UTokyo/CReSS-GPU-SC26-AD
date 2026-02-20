@@ -424,6 +424,1687 @@ if (dump_call_count_collect == DUMP_TARGET_collect .and. .not. dump_done_collect
   call dump_scalar_r('rwdv9', rwdv9)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_061)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+!!!! In the case nk = 1.
+
+      if(nk.eq.1) then
+
+!!! Perform calculating in the case the option abs(cphopt) is equal
+!!! to 2.
+
+        if(abs(cphopt).eq.2) then
+
+        !$acc kernels
+        !$acc loop independent collapse(2) &
+        !$acc& private(i,j,cstk,r0rsq,qr2b,qs2b,qg2b) &
+        !$acc& private(diaqr2,diaqs2,diaqg2,diaqr3,diaqs3,sink,a,b,c)
+
+          do j=1,nj-1
+          do i=1,ni-1
+
+! Set the common used variables.
+
+            r0rsq=sqrt(r0*rbr(i,j,1))
+
+            if(qr(i,j,1).gt.thresq) then
+
+              diaqr2=diaqr(i,j,1)*diaqr(i,j,1)
+              diaqr3=diaqr(i,j,1)*diaqr2
+
+              qr2b=r0rsq*exp(bur2*log(diaqr(i,j,1)))
+
+            else
+
+              diaqr2=0.e0
+              diaqr3=0.e0
+
+              qr2b=0.e0
+
+            end if
+
+            if(qs(i,j,1).gt.thresq) then
+
+              diaqs2=diaqs(i,j,1)*diaqs(i,j,1)
+              diaqs3=diaqs(i,j,1)*diaqs2
+
+              qs2b=r0rsq*exp(bus2*log(diaqs(i,j,1)))
+
+            else
+
+              diaqs2=0.e0
+              diaqs3=0.e0
+
+              qs2b=0.e0
+
+            end if
+
+            if(qg(i,j,1).gt.thresq) then
+
+              diaqg2=diaqg(i,j,1)*diaqg(i,j,1)
+
+              qg2b=r0rsq*exp(bug2*log(diaqg(i,j,1)))
+
+            else
+
+              diaqg2=0.e0
+
+              qg2b=0.e0
+
+            end if
+
+! -----
+
+!! Calculate the collection rate between the cloud water and the rain
+!! water, snow and graupel and between the rain water and the cloud ice,
+!! the snow and the graupel.
+
+            if(t(i,j,1).gt.tlow) then
+
+! Calculate the collection rate between the cloud water and the rain
+! water, snow and graupel.
+
+              if(qc(i,j,1).gt.thresq) then
+
+                cstk=rwdv9*diaqc(i,j,1)*diaqc(i,j,1)
+
+                if(qr(i,j,1).gt.thresq) then
+
+                  a=cstk*urq(i,j,1)/(diaqr(i,j,1)*mu(i,j,1))
+
+                  b=a+.5e0
+
+                  a=a*a/(b*b)
+
+                  clcr(i,j,1)=cclcr*a*qr2b*ncr(i,j,1)*qc(i,j,1)
+
+                else
+
+                  clcr(i,j,1)=0.e0
+
+                end if
+
+                if(qs(i,j,1).gt.thresq) then
+
+                  a=cstk*usq(i,j,1)/(diaqs(i,j,1)*mu(i,j,1))
+
+                  b=a+.5e0
+
+                  ecs(i,j,1)=a*a/(b*b)
+
+                  clcs(i,j,1)=cclcs*qs2b*ecs(i,j,1)*ncs(i,j,1)*qc(i,j,1)
+
+                else
+
+                  clcs(i,j,1)=0.e0
+
+                  ecs(i,j,1)=0.e0
+
+                end if
+
+                if(qg(i,j,1).gt.thresq) then
+
+                  a=cstk*ugq(i,j,1)/(diaqg(i,j,1)*mu(i,j,1))
+
+                  b=a+.5e0
+
+                  a=a*a/(b*b)
+
+                  clcg(i,j,1)=cclcg*a*qg2b*ncg(i,j,1)*qc(i,j,1)
+
+                else
+
+                  clcg(i,j,1)=0.e0
+
+                end if
+
+                sink=clcr(i,j,1)+clcs(i,j,1)+clcg(i,j,1)
+
+                if(qc(i,j,1).lt.sink) then
+
+                  a=qc(i,j,1)/sink
+
+                  clcr(i,j,1)=clcr(i,j,1)*a
+                  clcs(i,j,1)=clcs(i,j,1)*a
+                  clcg(i,j,1)=clcg(i,j,1)*a
+
+                end if
+
+              else
+
+                clcr(i,j,1)=0.e0
+                clcs(i,j,1)=0.e0
+                clcg(i,j,1)=0.e0
+
+                ecs(i,j,1)=0.e0
+
+              end if
+
+! -----
+
+! Calculate the collection rate between the rain water and the cloud
+! ice, the snow and the graupel.
+
+              if(qr(i,j,1).gt.thresq) then
+
+                if(qi(i,j,1).gt.thresq) then
+
+                  if(t(i,j,1).lt.t0) then
+
+                    clri(i,j,1)=cclri*qr2b*ncr(i,j,1)*qi(i,j,1)
+                    clir(i,j,1)=clri(i,j,1)
+
+                  else
+
+                    clri(i,j,1)=0.e0
+                    clir(i,j,1)=0.e0
+
+                  end if
+
+                else
+
+                  clri(i,j,1)=0.e0
+                  clir(i,j,1)=0.e0
+
+                end if
+
+                if(qs(i,j,1).gt.thresq) then
+
+                  a=2.e0*diaqr(i,j,1)*diaqs(i,j,1)
+
+                  b=urq(i,j,1)-usq(i,j,1)
+
+                  b=ncr(i,j,1)*ncs(i,j,1)*rbr(i,j,1)                    &
+     &              *sqrt(b*b+.04e0*urq(i,j,1)*usq(i,j,1))
+
+                  clrs(i,j,1)=b*cclrs*(5.e0*diaqr2+a+.5e0*diaqs2)*diaqr3
+                  clsr(i,j,1)=b*cclsr*(5.e0*diaqs2+a+.5e0*diaqr2)*diaqs3
+
+                else
+
+                  clrs(i,j,1)=0.e0
+                  clsr(i,j,1)=0.e0
+
+                end if
+
+                if(qg(i,j,1).gt.thresq) then
+
+                  a=5.e0*diaqr2                                         &
+     &              +2.e0*diaqr(i,j,1)*diaqg(i,j,1)+.5e0*diaqg2
+
+                  b=urq(i,j,1)-ugq(i,j,1)
+
+                  clrg(i,j,1)=a*cclrg*diaqr3*ncr(i,j,1)*ncg(i,j,1)      &
+     &              *rbr(i,j,1)*sqrt(b*b+.04e0*urq(i,j,1)*ugq(i,j,1))
+
+                else
+
+                  clrg(i,j,1)=0.e0
+
+                end if
+
+                sink=clri(i,j,1)+clrs(i,j,1)+clrg(i,j,1)
+
+                if(qr(i,j,1).lt.sink) then
+
+                  a=qr(i,j,1)/sink
+
+                  clri(i,j,1)=clri(i,j,1)*a
+                  clrs(i,j,1)=clrs(i,j,1)*a
+                  clrg(i,j,1)=clrg(i,j,1)*a
+
+                end if
+
+              else
+
+                clri(i,j,1)=0.e0
+                clrs(i,j,1)=0.e0
+                clrg(i,j,1)=0.e0
+
+                clir(i,j,1)=0.e0
+
+                clsr(i,j,1)=0.e0
+
+              end if
+
+! -----
+
+!! -----
+
+! Fill in the array with 0 in the case the air temperature is lower than
+! lowest super cooled point.
+
+            else
+
+              clcr(i,j,1)=0.e0
+              clcs(i,j,1)=0.e0
+              clcg(i,j,1)=0.e0
+
+              clri(i,j,1)=0.e0
+              clrs(i,j,1)=0.e0
+              clrg(i,j,1)=0.e0
+
+              clir(i,j,1)=0.e0
+
+              clsr(i,j,1)=0.e0
+
+              ecs(i,j,1)=0.e0
+
+            end if
+
+! -----
+
+! Calculate the collection rate between the cloud ice and snow and
+! graupel.
+
+            if(qi(i,j,1).gt.thresq) then
+
+              if(t(i,j,1).lt.t0) then
+
+                if(qs(i,j,1).gt.thresq) then
+
+                  clis(i,j,1)=cclis*qs2b*ncs(i,j,1)*qi(i,j,1)
+
+                else
+
+                  clis(i,j,1)=0.e0
+
+                end if
+
+                if(qg(i,j,1).gt.thresq) then
+
+                  clig(i,j,1)=cclig*qg2b*ncg(i,j,1)*qi(i,j,1)
+
+                else
+
+                  clig(i,j,1)=0.e0
+
+                end if
+
+                sink=clir(i,j,1)+clis(i,j,1)+clig(i,j,1)
+
+                if(qi(i,j,1).lt.sink) then
+
+                  a=qi(i,j,1)/sink
+
+                  clir(i,j,1)=clir(i,j,1)*a
+                  clis(i,j,1)=clis(i,j,1)*a
+                  clig(i,j,1)=clig(i,j,1)*a
+
+                end if
+
+              else
+
+                clis(i,j,1)=0.e0
+                clig(i,j,1)=0.e0
+
+              end if
+
+            else
+
+              clis(i,j,1)=0.e0
+              clig(i,j,1)=0.e0
+
+            end if
+
+! -----
+
+! Calculate the collection rate between the snow and the graupel.
+
+            if(qs(i,j,1).gt.thresq) then
+
+              if(qg(i,j,1).gt.thresq) then
+
+                if(t(i,j,1).lt.t0) then
+
+                  a=5.e0*diaqs2                                         &
+     &              +2.e0*diaqs(i,j,1)*diaqg(i,j,1)+.5e0*diaqg2
+
+                  b=usq(i,j,1)-ugq(i,j,1)
+
+                  clsg(i,j,1)=a*cclsg*diaqs3*ncs(i,j,1)*ncg(i,j,1)      &
+     &              *rbr(i,j,1)*sqrt(b*b+.04e0*usq(i,j,1)*ugq(i,j,1))
+
+                else
+
+                  a=5.e0*diaqs2                                         &
+     &              +2.e0*diaqs(i,j,1)*diaqg(i,j,1)+.5e0*diaqg2
+
+                  b=usq(i,j,1)-ugq(i,j,1)
+
+                  clsg(i,j,1)=a*cclsg3*diaqs3*ncs(i,j,1)*ncg(i,j,1)     &
+     &              *rbr(i,j,1)*sqrt(b*b+.04e0*usq(i,j,1)*ugq(i,j,1))
+
+                end if
+
+              else
+
+                clsg(i,j,1)=0.e0
+
+              end if
+
+              sink=clsr(i,j,1)+clsg(i,j,1)
+
+              if(qs(i,j,1).lt.sink) then
+
+                a=qs(i,j,1)/sink
+
+                clsr(i,j,1)=clsr(i,j,1)*a
+                clsg(i,j,1)=clsg(i,j,1)*a
+
+              end if
+
+            else
+
+              clsg(i,j,1)=0.e0
+
+            end if
+
+! -----
+
+          end do
+          end do
+        !$acc end kernels
+
+!!! -----
+
+!!! Perform calculating in the case the option abs(cphopt) is greater
+!!! than 2.
+
+        else if(abs(cphopt).ge.3) then
+
+        !$acc kernels
+        !$acc loop independent collapse(2) &
+        !$acc& private(i,j,cstk,r0rsq,qr2b,qs2b,qg2b) &
+        !$acc& private(diaqr2,diaqs2,diaqg2,diaqr3,diaqs3,sink,a,b,c)
+
+          do j=1,nj-1
+          do i=1,ni-1
+
+! Set the common used variables.
+
+            r0rsq=sqrt(r0*rbr(i,j,1))
+
+            if(qr(i,j,1).gt.thresq) then
+
+              diaqr2=diaqr(i,j,1)*diaqr(i,j,1)
+              diaqr3=diaqr(i,j,1)*diaqr2
+
+              qr2b=r0rsq*exp(bur2*log(diaqr(i,j,1)))
+
+            else
+
+              diaqr2=0.e0
+              diaqr3=0.e0
+
+              qr2b=0.e0
+
+            end if
+
+            if(qs(i,j,1).gt.thresq) then
+
+              diaqs2=diaqs(i,j,1)*diaqs(i,j,1)
+              diaqs3=diaqs(i,j,1)*diaqs2
+
+              qs2b=r0rsq*exp(bus2*log(diaqs(i,j,1)))
+
+            else
+
+              diaqs2=0.e0
+              diaqs3=0.e0
+
+              qs2b=0.e0
+
+            end if
+
+            if(qg(i,j,1).gt.thresq) then
+
+              diaqg2=diaqg(i,j,1)*diaqg(i,j,1)
+
+              qg2b=r0rsq*exp(bug2*log(diaqg(i,j,1)))
+
+            else
+
+              diaqg2=0.e0
+
+              qg2b=0.e0
+
+            end if
+
+! -----
+
+!! Calculate the collection rate between the cloud water and the rain
+!! water, snow and graupel and between the rain water and the cloud ice,
+!! the snow and the graupel.
+
+            if(t(i,j,1).gt.tlow) then
+
+! Calculate the collection rate between the cloud water and the rain
+! water, snow and graupel.
+
+              if(qc(i,j,1).gt.thresq) then
+
+                cstk=rwdv9*diaqc(i,j,1)*diaqc(i,j,1)
+
+                if(qr(i,j,1).gt.thresq) then
+
+                  a=cstk*urq(i,j,1)/(diaqr(i,j,1)*mu(i,j,1))
+
+                  b=a+.5e0
+
+                  a=a*a/(b*b)
+
+                  clcr(i,j,1)=cclcr*a*qr2b*ncr(i,j,1)*qc(i,j,1)
+
+                else
+
+                  clcr(i,j,1)=0.e0
+
+                end if
+
+                if(qs(i,j,1).gt.thresq) then
+
+                  a=cstk*usq(i,j,1)/(diaqs(i,j,1)*mu(i,j,1))
+
+                  b=a+.5e0
+
+                  ecs(i,j,1)=a*a/(b*b)
+
+                  clcs(i,j,1)=cclcs*qs2b*ecs(i,j,1)*ncs(i,j,1)*qc(i,j,1)
+
+                else
+
+                  clcs(i,j,1)=0.e0
+
+                  ecs(i,j,1)=0.e0
+
+                end if
+
+                if(qg(i,j,1).gt.thresq) then
+
+                  a=cstk*ugq(i,j,1)/(diaqg(i,j,1)*mu(i,j,1))
+
+                  b=a+.5e0
+
+                  a=a*a/(b*b)
+
+                  clcg(i,j,1)=cclcg*a*qg2b*ncg(i,j,1)*qc(i,j,1)
+
+                else
+
+                  clcg(i,j,1)=0.e0
+
+                end if
+
+                sink=clcr(i,j,1)+clcs(i,j,1)+clcg(i,j,1)
+
+                if(qc(i,j,1).lt.sink) then
+
+                  a=qc(i,j,1)/sink
+
+                  clcr(i,j,1)=clcr(i,j,1)*a
+                  clcs(i,j,1)=clcs(i,j,1)*a
+                  clcg(i,j,1)=clcg(i,j,1)*a
+
+                end if
+
+              else
+
+                clcr(i,j,1)=0.e0
+                clcs(i,j,1)=0.e0
+                clcg(i,j,1)=0.e0
+
+                ecs(i,j,1)=0.e0
+
+              end if
+
+! -----
+
+! Calculate the collection rate between the rain water and the cloud
+! ice, the snow and the graupel.
+
+              if(qr(i,j,1).gt.thresq) then
+
+                if(qi(i,j,1).gt.thresq) then
+
+                  if(t(i,j,1).lt.t0) then
+
+                    clri(i,j,1)=cclri*qr2b*ncr(i,j,1)*qi(i,j,1)
+                    clir(i,j,1)=clri(i,j,1)
+
+                    clrin(i,j,1)=clri(i,j,1)/mi(i,j,1)
+
+                  else
+
+                    clri(i,j,1)=0.e0
+                    clir(i,j,1)=0.e0
+
+                    clrin(i,j,1)=0.e0
+
+                  end if
+
+                else
+
+                  clri(i,j,1)=0.e0
+                  clir(i,j,1)=0.e0
+
+                  clrin(i,j,1)=0.e0
+
+                end if
+
+                if(qs(i,j,1).gt.thresq) then
+
+                  a=2.e0*diaqr(i,j,1)*diaqs(i,j,1)
+
+                  b=ncr(i,j,1)*ncs(i,j,1)*rbr(i,j,1)
+
+                  c=urq(i,j,1)-usq(i,j,1)
+
+                  c=sqrt(c*c+.04e0*urq(i,j,1)*usq(i,j,1))
+
+                  clrs(i,j,1)=b*c                                       &
+     &              *cclrs*(5.e0*diaqr2+a+.5e0*diaqs2)*diaqr3
+
+                  clsr(i,j,1)=b*c                                       &
+     &              *cclsr*(5.e0*diaqs2+a+.5e0*diaqr2)*diaqs3
+
+                  c=urn(i,j,1)-usn(i,j,1)
+
+                  clrsn(i,j,1)=b*cclrsn*(diaqr2+.5e0*a+diaqs2)          &
+     &              *sqrt(c*c+.04e0*urn(i,j,1)*usn(i,j,1))
+
+                  clsrn(i,j,1)=clrsn(i,j,1)
+
+                else
+
+                  clrs(i,j,1)=0.e0
+                  clsr(i,j,1)=0.e0
+
+                  clrsn(i,j,1)=0.e0
+                  clsrn(i,j,1)=0.e0
+
+                end if
+
+                if(qg(i,j,1).gt.thresq) then
+
+                  a=5.e0*diaqr2                                         &
+     &              +2.e0*diaqr(i,j,1)*diaqg(i,j,1)+.5e0*diaqg2
+
+                  b=urq(i,j,1)-ugq(i,j,1)
+
+                  clrg(i,j,1)=a*cclrg*diaqr3*ncr(i,j,1)*ncg(i,j,1)      &
+     &              *rbr(i,j,1)*sqrt(b*b+.04e0*urq(i,j,1)*ugq(i,j,1))
+
+                else
+
+                  clrg(i,j,1)=0.e0
+
+                end if
+
+                sink=clri(i,j,1)+clrs(i,j,1)+clrg(i,j,1)
+
+                if(qr(i,j,1).lt.sink) then
+
+                  a=qr(i,j,1)/sink
+
+                  clri(i,j,1)=clri(i,j,1)*a
+                  clrs(i,j,1)=clrs(i,j,1)*a
+                  clrg(i,j,1)=clrg(i,j,1)*a
+
+                end if
+
+                sink=clrin(i,j,1)+clrsn(i,j,1)
+
+                if(ncr(i,j,1).lt.sink) then
+
+                  a=ncr(i,j,1)/sink
+
+                  clrin(i,j,1)=clrin(i,j,1)*a
+                  clrsn(i,j,1)=clrsn(i,j,1)*a
+
+                end if
+
+              else
+
+                clri(i,j,1)=0.e0
+                clrs(i,j,1)=0.e0
+                clrg(i,j,1)=0.e0
+
+                clir(i,j,1)=0.e0
+
+                clsr(i,j,1)=0.e0
+
+                clrin(i,j,1)=0.e0
+                clrsn(i,j,1)=0.e0
+                clsrn(i,j,1)=0.e0
+
+              end if
+
+! -----
+
+!! -----
+
+! Fill in the array with 0 in the case the air temperature is lower than
+! lowest super cooled point.
+
+            else
+
+              clcr(i,j,1)=0.e0
+              clcs(i,j,1)=0.e0
+              clcg(i,j,1)=0.e0
+
+              clri(i,j,1)=0.e0
+              clrs(i,j,1)=0.e0
+              clrg(i,j,1)=0.e0
+
+              clir(i,j,1)=0.e0
+
+              clsr(i,j,1)=0.e0
+
+              clrin(i,j,1)=0.e0
+              clrsn(i,j,1)=0.e0
+              clsrn(i,j,1)=0.e0
+
+              ecs(i,j,1)=0.e0
+
+            end if
+
+! -----
+
+! Calculate the collection rate between the cloud ice and snow and
+! graupel.
+
+            if(qi(i,j,1).gt.thresq) then
+
+              if(t(i,j,1).lt.t0) then
+
+                if(qs(i,j,1).gt.thresq) then
+
+                  clis(i,j,1)=cclis*qs2b*ncs(i,j,1)*qi(i,j,1)
+
+                else
+
+                  clis(i,j,1)=0.e0
+
+                end if
+
+                if(qg(i,j,1).gt.thresq) then
+
+                  clig(i,j,1)=cclig*qg2b*ncg(i,j,1)*qi(i,j,1)
+
+                else
+
+                  clig(i,j,1)=0.e0
+
+                end if
+
+                sink=clir(i,j,1)+clis(i,j,1)+clig(i,j,1)
+
+                if(qi(i,j,1).lt.sink) then
+
+                  a=qi(i,j,1)/sink
+
+                  clir(i,j,1)=clir(i,j,1)*a
+                  clis(i,j,1)=clis(i,j,1)*a
+                  clig(i,j,1)=clig(i,j,1)*a
+
+                end if
+
+              else
+
+                clis(i,j,1)=0.e0
+                clig(i,j,1)=0.e0
+
+              end if
+
+            else
+
+              clis(i,j,1)=0.e0
+              clig(i,j,1)=0.e0
+
+            end if
+
+! -----
+
+! Calculate the collection rate between the snow and the graupel.
+
+            if(qs(i,j,1).gt.thresq) then
+
+              if(qg(i,j,1).gt.thresq) then
+
+                if(t(i,j,1).lt.t0) then
+
+                  a=diaqs(i,j,1)*diaqg(i,j,1)
+
+                  b=ncs(i,j,1)*ncg(i,j,1)*rbr(i,j,1)
+
+                  c=usq(i,j,1)-ugq(i,j,1)
+
+                  clsg(i,j,1)=b*cclsg*(5.e0*diaqs2+2.e0*a+.5e0*diaqg2)  &
+     &              *diaqs3*sqrt(c*c+.04e0*usq(i,j,1)*ugq(i,j,1))
+
+                  c=usn(i,j,1)-ugn(i,j,1)
+
+                  clsgn(i,j,1)=b*cclsgn*(diaqs2+a+diaqg2)               &
+     &              *sqrt(c*c+.04e0*usn(i,j,1)*ugn(i,j,1))
+
+                else
+
+                  a=diaqs(i,j,1)*diaqg(i,j,1)
+
+                  b=esgiv*ncs(i,j,1)*ncg(i,j,1)*rbr(i,j,1)
+
+                  c=usq(i,j,1)-ugq(i,j,1)
+
+                  clsg(i,j,1)=b*cclsg*(5.e0*diaqs2+2.e0*a+.5e0*diaqg2)  &
+     &              *diaqs3*sqrt(c*c+.04e0*usq(i,j,1)*ugq(i,j,1))
+
+                  c=usn(i,j,1)-ugn(i,j,1)
+
+                  clsgn(i,j,1)=b*cclsgn*(diaqs2+a+diaqg2)               &
+     &              *sqrt(c*c+.04e0*usn(i,j,1)*ugn(i,j,1))
+
+                end if
+
+              else
+
+                clsg(i,j,1)=0.e0
+                clsgn(i,j,1)=0.e0
+
+              end if
+
+              sink=clsr(i,j,1)+clsg(i,j,1)
+
+              if(qs(i,j,1).lt.sink) then
+
+                a=qs(i,j,1)/sink
+
+                clsr(i,j,1)=clsr(i,j,1)*a
+                clsg(i,j,1)=clsg(i,j,1)*a
+
+              end if
+
+              sink=clsrn(i,j,1)+clsgn(i,j,1)
+
+              if(ncs(i,j,1).lt.sink) then
+
+                a=ncs(i,j,1)/sink
+
+                clsrn(i,j,1)=clsrn(i,j,1)*a
+                clsgn(i,j,1)=clsgn(i,j,1)*a
+
+              end if
+
+            else
+
+              clsg(i,j,1)=0.e0
+              clsgn(i,j,1)=0.e0
+
+            end if
+
+! -----
+
+          end do
+          end do
+        !$acc end kernels
+
+        end if
+
+!!! -----
+
+!!!! -----
+
+!!!! In the case nk > 1.
+
+      else
+
+!!! Perform calculating in the case the option abs(cphopt) is equal
+!!! to 2.
+
+        if(abs(cphopt).eq.2) then
+
+        !$acc kernels
+        !$acc loop independent collapse(3) &
+        !$acc& private(i,j,k,cstk,r0rsq,qr2b,qs2b,qg2b) &
+        !$acc& private(diaqr2,diaqs2,diaqg2,diaqr3,diaqs3,sink,a,b,c)
+
+          do k=1,nk-1
+
+            do j=1,nj-1
+            do i=1,ni-1
+
+! Set the common used variables.
+
+              r0rsq=sqrt(r0*rbr(i,j,k))
+
+              if(qr(i,j,k).gt.thresq) then
+
+                diaqr2=diaqr(i,j,k)*diaqr(i,j,k)
+                diaqr3=diaqr(i,j,k)*diaqr2
+
+                qr2b=r0rsq*exp(bur2*log(diaqr(i,j,k)))
+
+              else
+
+                diaqr2=0.e0
+                diaqr3=0.e0
+
+                qr2b=0.e0
+
+              end if
+
+              if(qs(i,j,k).gt.thresq) then
+
+                diaqs2=diaqs(i,j,k)*diaqs(i,j,k)
+                diaqs3=diaqs(i,j,k)*diaqs2
+
+                qs2b=r0rsq*exp(bus2*log(diaqs(i,j,k)))
+
+              else
+
+                diaqs2=0.e0
+                diaqs3=0.e0
+
+                qs2b=0.e0
+
+              end if
+
+              if(qg(i,j,k).gt.thresq) then
+
+                diaqg2=diaqg(i,j,k)*diaqg(i,j,k)
+
+                qg2b=r0rsq*exp(bug2*log(diaqg(i,j,k)))
+
+              else
+
+                diaqg2=0.e0
+
+                qg2b=0.e0
+
+              end if
+
+! -----
+
+!! Calculate the collection rate between the cloud water and the rain
+!! water, snow and graupel and between the rain water and the cloud ice,
+!! the snow and the graupel.
+
+              if(t(i,j,k).gt.tlow) then
+
+! Calculate the collection rate between the cloud water and the rain
+! water, snow and graupel.
+
+                if(qc(i,j,k).gt.thresq) then
+
+                  cstk=rwdv9*diaqc(i,j,k)*diaqc(i,j,k)
+
+                  if(qr(i,j,k).gt.thresq) then
+
+                    a=cstk*urq(i,j,k)/(diaqr(i,j,k)*mu(i,j,k))
+
+                    b=a+.5e0
+
+                    a=a*a/(b*b)
+
+                    clcr(i,j,k)=cclcr*a*qr2b*ncr(i,j,k)*qc(i,j,k)
+
+                  else
+
+                    clcr(i,j,k)=0.e0
+
+                  end if
+
+                  if(qs(i,j,k).gt.thresq) then
+
+                    a=cstk*usq(i,j,k)/(diaqs(i,j,k)*mu(i,j,k))
+
+                    b=a+.5e0
+
+                    ecs(i,j,k)=a*a/(b*b)
+
+                    clcs(i,j,k)=cclcs                                   &
+     &                *qs2b*ecs(i,j,k)*ncs(i,j,k)*qc(i,j,k)
+
+                  else
+
+                    clcs(i,j,k)=0.e0
+
+                    ecs(i,j,k)=0.e0
+
+                  end if
+
+                  if(qg(i,j,k).gt.thresq) then
+
+                    a=cstk*ugq(i,j,k)/(diaqg(i,j,k)*mu(i,j,k))
+
+                    b=a+.5e0
+
+                    a=a*a/(b*b)
+
+                    clcg(i,j,k)=cclcg*a*qg2b*ncg(i,j,k)*qc(i,j,k)
+
+                  else
+
+                    clcg(i,j,k)=0.e0
+
+                  end if
+
+                  sink=clcr(i,j,k)+clcs(i,j,k)+clcg(i,j,k)
+
+                  if(qc(i,j,k).lt.sink) then
+
+                    a=qc(i,j,k)/sink
+
+                    clcr(i,j,k)=clcr(i,j,k)*a
+                    clcs(i,j,k)=clcs(i,j,k)*a
+                    clcg(i,j,k)=clcg(i,j,k)*a
+
+                  end if
+
+                else
+
+                  clcr(i,j,k)=0.e0
+                  clcs(i,j,k)=0.e0
+                  clcg(i,j,k)=0.e0
+
+                  ecs(i,j,k)=0.e0
+
+                end if
+
+! -----
+
+! Calculate the collection rate between the rain water and the cloud
+! ice, the snow and the graupel.
+
+                if(qr(i,j,k).gt.thresq) then
+
+                  if(qi(i,j,k).gt.thresq) then
+
+                    if(t(i,j,k).lt.t0) then
+
+                      clri(i,j,k)=cclri*qr2b*ncr(i,j,k)*qi(i,j,k)
+                      clir(i,j,k)=clri(i,j,k)
+
+                    else
+
+                      clri(i,j,k)=0.e0
+                      clir(i,j,k)=0.e0
+
+                    end if
+
+                  else
+
+                    clri(i,j,k)=0.e0
+                    clir(i,j,k)=0.e0
+
+                  end if
+
+                  if(qs(i,j,k).gt.thresq) then
+
+                    a=2.e0*diaqr(i,j,k)*diaqs(i,j,k)
+
+                    b=urq(i,j,k)-usq(i,j,k)
+
+                    b=ncr(i,j,k)*ncs(i,j,k)*rbr(i,j,k)                  &
+     &                *sqrt(b*b+.04e0*urq(i,j,k)*usq(i,j,k))
+
+                    clrs(i,j,k)=b*cclrs                                 &
+     &                *(5.e0*diaqr2+a+.5e0*diaqs2)*diaqr3
+
+                    clsr(i,j,k)=b*cclsr                                 &
+     &                *(5.e0*diaqs2+a+.5e0*diaqr2)*diaqs3
+
+                  else
+
+                    clrs(i,j,k)=0.e0
+                    clsr(i,j,k)=0.e0
+
+                  end if
+
+                  if(qg(i,j,k).gt.thresq) then
+
+                    a=5.e0*diaqr2                                       &
+     &                +2.e0*diaqr(i,j,k)*diaqg(i,j,k)+.5e0*diaqg2
+
+                    b=urq(i,j,k)-ugq(i,j,k)
+
+                    clrg(i,j,k)=a*cclrg*diaqr3*ncr(i,j,k)*ncg(i,j,k)    &
+     &                *rbr(i,j,k)*sqrt(b*b+.04e0*urq(i,j,k)*ugq(i,j,k))
+
+                  else
+
+                    clrg(i,j,k)=0.e0
+
+                  end if
+
+                  sink=clri(i,j,k)+clrs(i,j,k)+clrg(i,j,k)
+
+                  if(qr(i,j,k).lt.sink) then
+
+                    a=qr(i,j,k)/sink
+
+                    clri(i,j,k)=clri(i,j,k)*a
+                    clrs(i,j,k)=clrs(i,j,k)*a
+                    clrg(i,j,k)=clrg(i,j,k)*a
+
+                  end if
+
+                else
+
+                  clri(i,j,k)=0.e0
+                  clrs(i,j,k)=0.e0
+                  clrg(i,j,k)=0.e0
+
+                  clir(i,j,k)=0.e0
+
+                  clsr(i,j,k)=0.e0
+
+                end if
+
+! -----
+
+!! -----
+
+! Fill in the array with 0 in the case the air temperature is lower than
+! lowest super cooled point.
+
+              else
+
+                clcr(i,j,k)=0.e0
+                clcs(i,j,k)=0.e0
+                clcg(i,j,k)=0.e0
+
+                clri(i,j,k)=0.e0
+                clrs(i,j,k)=0.e0
+                clrg(i,j,k)=0.e0
+
+                clir(i,j,k)=0.e0
+
+                clsr(i,j,k)=0.e0
+
+                ecs(i,j,k)=0.e0
+
+              end if
+
+! -----
+
+! Calculate the collection rate between the cloud ice and snow and
+! graupel.
+
+              if(qi(i,j,k).gt.thresq) then
+
+                if(t(i,j,k).lt.t0) then
+
+                  if(qs(i,j,k).gt.thresq) then
+
+                    clis(i,j,k)=cclis*qs2b*ncs(i,j,k)*qi(i,j,k)
+
+                  else
+
+                    clis(i,j,k)=0.e0
+
+                  end if
+
+                  if(qg(i,j,k).gt.thresq) then
+
+                    clig(i,j,k)=cclig*qg2b*ncg(i,j,k)*qi(i,j,k)
+
+                  else
+
+                    clig(i,j,k)=0.e0
+
+                  end if
+
+                  sink=clir(i,j,k)+clis(i,j,k)+clig(i,j,k)
+
+                  if(qi(i,j,k).lt.sink) then
+
+                    a=qi(i,j,k)/sink
+
+                    clir(i,j,k)=clir(i,j,k)*a
+                    clis(i,j,k)=clis(i,j,k)*a
+                    clig(i,j,k)=clig(i,j,k)*a
+
+                  end if
+
+                else
+
+                  clis(i,j,k)=0.e0
+                  clig(i,j,k)=0.e0
+
+                end if
+
+              else
+
+                clis(i,j,k)=0.e0
+                clig(i,j,k)=0.e0
+
+              end if
+
+! -----
+
+! Calculate the collection rate between the snow and the graupel.
+
+              if(qs(i,j,k).gt.thresq) then
+
+                if(qg(i,j,k).gt.thresq) then
+
+                  if(t(i,j,k).lt.t0) then
+
+                    a=5.e0*diaqs2                                       &
+     &                +2.e0*diaqs(i,j,k)*diaqg(i,j,k)+.5e0*diaqg2
+
+                    b=usq(i,j,k)-ugq(i,j,k)
+
+                    clsg(i,j,k)=a*cclsg*diaqs3*ncs(i,j,k)*ncg(i,j,k)    &
+     &                *rbr(i,j,k)*sqrt(b*b+.04e0*usq(i,j,k)*ugq(i,j,k))
+
+                  else
+
+                    a=5.e0*diaqs2                                       &
+     &                +2.e0*diaqs(i,j,k)*diaqg(i,j,k)+.5e0*diaqg2
+
+                    b=usq(i,j,k)-ugq(i,j,k)
+
+                    clsg(i,j,k)=a*cclsg3*diaqs3*ncs(i,j,k)*ncg(i,j,k)   &
+     &                *rbr(i,j,k)*sqrt(b*b+.04e0*usq(i,j,k)*ugq(i,j,k))
+
+                  end if
+
+                else
+
+                  clsg(i,j,k)=0.e0
+
+                end if
+
+                sink=clsr(i,j,k)+clsg(i,j,k)
+
+                if(qs(i,j,k).lt.sink) then
+
+                  a=qs(i,j,k)/sink
+
+                  clsr(i,j,k)=clsr(i,j,k)*a
+                  clsg(i,j,k)=clsg(i,j,k)*a
+
+                end if
+
+              else
+
+                clsg(i,j,k)=0.e0
+
+              end if
+
+! -----
+
+            end do
+            end do
+
+          end do
+        !$acc end kernels
+
+!!! -----
+
+!!! Perform calculating in the case the option abs(cphopt) is greater
+!!! than 2.
+
+        else if(abs(cphopt).ge.3) then
+
+        !$acc kernels
+        !$acc loop independent collapse(3) &
+        !$acc& private(i,j,k,cstk,r0rsq,qr2b,qs2b,qg2b) &
+        !$acc& private(diaqr2,diaqs2,diaqg2,diaqr3,diaqs3,sink,a,b,c)
+
+          do k=1,nk-1
+
+            do j=1,nj-1
+            do i=1,ni-1
+
+! Set the common used variables.
+
+              r0rsq=sqrt(r0*rbr(i,j,k))
+
+              if(qr(i,j,k).gt.thresq) then
+
+                diaqr2=diaqr(i,j,k)*diaqr(i,j,k)
+                diaqr3=diaqr(i,j,k)*diaqr2
+
+                qr2b=r0rsq*exp(bur2*log(diaqr(i,j,k)))
+
+              else
+
+                diaqr2=0.e0
+                diaqr3=0.e0
+
+                qr2b=0.e0
+
+              end if
+
+              if(qs(i,j,k).gt.thresq) then
+
+                diaqs2=diaqs(i,j,k)*diaqs(i,j,k)
+                diaqs3=diaqs(i,j,k)*diaqs2
+
+                qs2b=r0rsq*exp(bus2*log(diaqs(i,j,k)))
+
+              else
+
+                diaqs2=0.e0
+                diaqs3=0.e0
+
+                qs2b=0.e0
+
+              end if
+
+              if(qg(i,j,k).gt.thresq) then
+
+                diaqg2=diaqg(i,j,k)*diaqg(i,j,k)
+
+                qg2b=r0rsq*exp(bug2*log(diaqg(i,j,k)))
+
+              else
+
+                diaqg2=0.e0
+
+                qg2b=0.e0
+
+              end if
+
+! -----
+
+!! Calculate the collection rate between the cloud water and the rain
+!! water, snow and graupel and between the rain water and the cloud ice,
+!! the snow and the graupel.
+
+              if(t(i,j,k).gt.tlow) then
+
+! Calculate the collection rate between the cloud water and the rain
+! water, snow and graupel.
+
+                if(qc(i,j,k).gt.thresq) then
+
+                  cstk=rwdv9*diaqc(i,j,k)*diaqc(i,j,k)
+
+                  if(qr(i,j,k).gt.thresq) then
+
+                    a=cstk*urq(i,j,k)/(diaqr(i,j,k)*mu(i,j,k))
+
+                    b=a+.5e0
+
+                    a=a*a/(b*b)
+
+                    clcr(i,j,k)=cclcr*a*qr2b*ncr(i,j,k)*qc(i,j,k)
+
+                  else
+
+                    clcr(i,j,k)=0.e0
+
+                  end if
+
+                  if(qs(i,j,k).gt.thresq) then
+
+                    a=cstk*usq(i,j,k)/(diaqs(i,j,k)*mu(i,j,k))
+
+                    b=a+.5e0
+
+                    ecs(i,j,k)=a*a/(b*b)
+
+                    clcs(i,j,k)=cclcs                                   &
+     &                *qs2b*ecs(i,j,k)*ncs(i,j,k)*qc(i,j,k)
+
+                  else
+
+                    clcs(i,j,k)=0.e0
+
+                    ecs(i,j,k)=0.e0
+
+                  end if
+
+                  if(qg(i,j,k).gt.thresq) then
+
+                    a=cstk*ugq(i,j,k)/(diaqg(i,j,k)*mu(i,j,k))
+
+                    b=a+.5e0
+
+                    a=a*a/(b*b)
+
+                    clcg(i,j,k)=cclcg*a*qg2b*ncg(i,j,k)*qc(i,j,k)
+
+                  else
+
+                    clcg(i,j,k)=0.e0
+
+                  end if
+
+                  sink=clcr(i,j,k)+clcs(i,j,k)+clcg(i,j,k)
+
+                  if(qc(i,j,k).lt.sink) then
+
+                    a=qc(i,j,k)/sink
+
+                    clcr(i,j,k)=clcr(i,j,k)*a
+                    clcs(i,j,k)=clcs(i,j,k)*a
+                    clcg(i,j,k)=clcg(i,j,k)*a
+
+                  end if
+
+                else
+
+                  clcr(i,j,k)=0.e0
+                  clcs(i,j,k)=0.e0
+                  clcg(i,j,k)=0.e0
+
+                  ecs(i,j,k)=0.e0
+
+                end if
+
+! -----
+
+! Calculate the collection rate between the rain water and the cloud
+! ice, the snow and the graupel.
+
+                if(qr(i,j,k).gt.thresq) then
+
+                  if(qi(i,j,k).gt.thresq) then
+
+                    if(t(i,j,k).lt.t0) then
+
+                      clri(i,j,k)=cclri*qr2b*ncr(i,j,k)*qi(i,j,k)
+                      clir(i,j,k)=clri(i,j,k)
+
+                      clrin(i,j,k)=clri(i,j,k)/mi(i,j,k)
+
+                    else
+
+                      clri(i,j,k)=0.e0
+                      clir(i,j,k)=0.e0
+
+                      clrin(i,j,k)=0.e0
+
+                    end if
+
+                  else
+
+                    clri(i,j,k)=0.e0
+                    clir(i,j,k)=0.e0
+
+                    clrin(i,j,k)=0.e0
+
+                  end if
+
+                  if(qs(i,j,k).gt.thresq) then
+
+                    a=2.e0*diaqr(i,j,k)*diaqs(i,j,k)
+
+                    b=ncr(i,j,k)*ncs(i,j,k)*rbr(i,j,k)
+
+                    c=urq(i,j,k)-usq(i,j,k)
+
+                    c=sqrt(c*c+.04e0*urq(i,j,k)*usq(i,j,k))
+
+                    clrs(i,j,k)=b*c                                     &
+     &                *cclrs*(5.e0*diaqr2+a+.5e0*diaqs2)*diaqr3
+
+                    clsr(i,j,k)=b*c                                     &
+     &                *cclsr*(5.e0*diaqs2+a+.5e0*diaqr2)*diaqs3
+
+                    c=urn(i,j,k)-usn(i,j,k)
+
+                    clrsn(i,j,k)=b*cclrsn*(diaqr2+.5e0*a+diaqs2)        &
+     &                *sqrt(c*c+.04e0*urn(i,j,k)*usn(i,j,k))
+
+                    clsrn(i,j,k)=clrsn(i,j,k)
+
+                  else
+
+                    clrs(i,j,k)=0.e0
+                    clsr(i,j,k)=0.e0
+
+                    clrsn(i,j,k)=0.e0
+                    clsrn(i,j,k)=0.e0
+
+                  end if
+
+                  if(qg(i,j,k).gt.thresq) then
+
+                    a=5.e0*diaqr2                                       &
+     &                +2.e0*diaqr(i,j,k)*diaqg(i,j,k)+.5e0*diaqg2
+
+                    b=urq(i,j,k)-ugq(i,j,k)
+
+                    clrg(i,j,k)=a*cclrg*diaqr3*ncr(i,j,k)*ncg(i,j,k)    &
+     &                *rbr(i,j,k)*sqrt(b*b+.04e0*urq(i,j,k)*ugq(i,j,k))
+
+                  else
+
+                    clrg(i,j,k)=0.e0
+
+                  end if
+
+                  sink=clri(i,j,k)+clrs(i,j,k)+clrg(i,j,k)
+
+                  if(qr(i,j,k).lt.sink) then
+
+                    a=qr(i,j,k)/sink
+
+                    clri(i,j,k)=clri(i,j,k)*a
+                    clrs(i,j,k)=clrs(i,j,k)*a
+                    clrg(i,j,k)=clrg(i,j,k)*a
+
+                  end if
+
+                  sink=clrin(i,j,k)+clrsn(i,j,k)
+
+                  if(ncr(i,j,k).lt.sink) then
+
+                    a=ncr(i,j,k)/sink
+
+                    clrin(i,j,k)=clrin(i,j,k)*a
+                    clrsn(i,j,k)=clrsn(i,j,k)*a
+
+                  end if
+
+                else
+
+                  clri(i,j,k)=0.e0
+                  clrs(i,j,k)=0.e0
+                  clrg(i,j,k)=0.e0
+
+                  clir(i,j,k)=0.e0
+
+                  clsr(i,j,k)=0.e0
+
+                  clrin(i,j,k)=0.e0
+                  clrsn(i,j,k)=0.e0
+                  clsrn(i,j,k)=0.e0
+
+                end if
+
+! -----
+
+!! -----
+
+! Fill in the array with 0 in the case the air temperature is lower than
+! lowest super cooled point.
+
+              else
+
+                clcr(i,j,k)=0.e0
+                clcs(i,j,k)=0.e0
+                clcg(i,j,k)=0.e0
+
+                clri(i,j,k)=0.e0
+                clrs(i,j,k)=0.e0
+                clrg(i,j,k)=0.e0
+
+                clir(i,j,k)=0.e0
+
+                clsr(i,j,k)=0.e0
+
+                clrin(i,j,k)=0.e0
+                clrsn(i,j,k)=0.e0
+                clsrn(i,j,k)=0.e0
+
+                ecs(i,j,k)=0.e0
+
+              end if
+
+! -----
+
+! Calculate the collection rate between the cloud ice and snow and
+! graupel.
+
+              if(qi(i,j,k).gt.thresq) then
+
+                if(t(i,j,k).lt.t0) then
+
+                  if(qs(i,j,k).gt.thresq) then
+
+                    clis(i,j,k)=cclis*qs2b*ncs(i,j,k)*qi(i,j,k)
+
+                  else
+
+                    clis(i,j,k)=0.e0
+
+                  end if
+
+                  if(qg(i,j,k).gt.thresq) then
+
+                    clig(i,j,k)=cclig*qg2b*ncg(i,j,k)*qi(i,j,k)
+
+                  else
+
+                    clig(i,j,k)=0.e0
+
+                  end if
+
+                  sink=clir(i,j,k)+clis(i,j,k)+clig(i,j,k)
+
+                  if(qi(i,j,k).lt.sink) then
+
+                    a=qi(i,j,k)/sink
+
+                    clir(i,j,k)=clir(i,j,k)*a
+                    clis(i,j,k)=clis(i,j,k)*a
+                    clig(i,j,k)=clig(i,j,k)*a
+
+                  end if
+
+                else
+
+                  clis(i,j,k)=0.e0
+                  clig(i,j,k)=0.e0
+
+                end if
+
+              else
+
+                clis(i,j,k)=0.e0
+                clig(i,j,k)=0.e0
+
+              end if
+
+! -----
+
+! Calculate the collection rate between the snow and the graupel.
+
+              if(qs(i,j,k).gt.thresq) then
+
+                if(qg(i,j,k).gt.thresq) then
+
+                  if(t(i,j,k).lt.t0) then
+
+                    a=diaqs(i,j,k)*diaqg(i,j,k)
+
+                    b=ncs(i,j,k)*ncg(i,j,k)*rbr(i,j,k)
+
+                    c=usq(i,j,k)-ugq(i,j,k)
+
+                    clsg(i,j,k)=b*cclsg*(5.e0*diaqs2+2.e0*a+.5e0*diaqg2)&
+     &                *diaqs3*sqrt(c*c+.04e0*usq(i,j,k)*ugq(i,j,k))
+
+                    c=usn(i,j,k)-ugn(i,j,k)
+
+                    clsgn(i,j,k)=b*cclsgn*(diaqs2+a+diaqg2)             &
+     &                *sqrt(c*c+.04e0*usn(i,j,k)*ugn(i,j,k))
+
+                  else
+
+                    a=diaqs(i,j,k)*diaqg(i,j,k)
+
+                    b=esgiv*ncs(i,j,k)*ncg(i,j,k)*rbr(i,j,k)
+
+                    c=usq(i,j,k)-ugq(i,j,k)
+
+                    clsg(i,j,k)=b*cclsg*(5.e0*diaqs2+2.e0*a+.5e0*diaqg2)&
+     &                *diaqs3*sqrt(c*c+.04e0*usq(i,j,k)*ugq(i,j,k))
+
+                    c=usn(i,j,k)-ugn(i,j,k)
+
+                    clsgn(i,j,k)=b*cclsgn*(diaqs2+a+diaqg2)             &
+     &                *sqrt(c*c+.04e0*usn(i,j,k)*ugn(i,j,k))
+
+                  end if
+
+                else
+
+                  clsg(i,j,k)=0.e0
+                  clsgn(i,j,k)=0.e0
+
+                end if
+
+                sink=clsr(i,j,k)+clsg(i,j,k)
+
+                if(qs(i,j,k).lt.sink) then
+
+                  a=qs(i,j,k)/sink
+
+                  clsr(i,j,k)=clsr(i,j,k)*a
+                  clsg(i,j,k)=clsg(i,j,k)*a
+
+                end if
+
+                sink=clsrn(i,j,k)+clsgn(i,j,k)
+
+                if(ncs(i,j,k).lt.sink) then
+
+                  a=ncs(i,j,k)/sink
+
+                  clsrn(i,j,k)=clsrn(i,j,k)*a
+                  clsgn(i,j,k)=clsgn(i,j,k)*a
+
+                end if
+
+              else
+
+                clsg(i,j,k)=0.e0
+                clsgn(i,j,k)=0.e0
+
+              end if
+
+! -----
+
+            end do
+            end do
+
+          end do
+        !$acc end kernels
+
+        end if
+
+!!! -----
+
+      end if
+
+!!!! -----
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
+
 !$omp parallel default(shared) private(k)
 
 !!!! In the case nk = 1.
@@ -2098,6 +3779,8 @@ end if
 !!!! -----
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_collect == DUMP_TARGET_collect .and. .not. dump_done_collect) then

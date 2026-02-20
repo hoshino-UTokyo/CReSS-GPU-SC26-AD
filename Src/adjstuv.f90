@@ -392,6 +392,177 @@ if (dump_call_count_adjstuv == DUMP_TARGET_adjstuv .and. .not. dump_done_adjstuv
   call dump_scalar_r('tpdt', tpdt)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_009)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (mfcopt == 0) then
+
+      !$acc kernels
+      !$acc loop independent collapse(2) reduction(+: dpsp2,dpsf2)
+      do j = jstr, jend
+        do i = istr, iend
+          dpsp2 = dpsp2 + dxdy * ((ppp(i,j,1)+ppp(i,j,2)) - (ppp(i,j,nkm1)+ppp(i,j,nkm2)))
+          dpsf2 = dpsf2 + dxdy * ((ppf(i,j,1)+ppf(i,j,2)) - (ppf(i,j,nkm1)+ppf(i,j,nkm2)))
+        end do
+      end do
+      !$acc end kernels
+
+    else
+
+      if (mpopt == 0 .or. mpopt == 5 .or. mpopt == 10) then
+
+        !$acc kernels
+        !$acc loop independent collapse(2) private(a) reduction(+: dpsp2,dpsf2)
+        do j = jstr, jend
+          do i = istr, iend
+            a = dxdy * rmf(i,j,2)
+            dpsp2 = dpsp2 + a * ((ppp(i,j,1)+ppp(i,j,2)) - (ppp(i,j,nkm1)+ppp(i,j,nkm2)))
+            dpsf2 = dpsf2 + a * ((ppf(i,j,1)+ppf(i,j,2)) - (ppf(i,j,nkm1)+ppf(i,j,nkm2)))
+          end do
+        end do
+        !$acc end kernels
+
+      else
+
+        !$acc kernels
+        !$acc loop independent collapse(2) private(a) reduction(+: dpsp2,dpsf2)
+        do j = jstr, jend
+          do i = istr, iend
+            a = dxdy * rmf(i,j,3)
+            dpsp2 = dpsp2 + a * ((ppp(i,j,1)+ppp(i,j,2)) - (ppp(i,j,nkm1)+ppp(i,j,nkm2)))
+            dpsf2 = dpsf2 + a * ((ppf(i,j,1)+ppf(i,j,2)) - (ppf(i,j,nkm1)+ppf(i,j,nkm2)))
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+    end if
+
+    if (ebw == 1 .and. isub == 0 .and. abs(wbc) /= 1) then
+
+      if (mfcopt == 1 .and. (mpopt /= 0 .and. mpopt /= 10)) then
+
+        !$acc kernels
+        !$acc loop independent collapse(2) reduction(+: dflw)
+        do k = 2, nk-2
+          do j = jstr, jend
+            dflw = dflw + dydz * rmf8u(1,j,2) * rst8u(1,j,k) &
+                 * (uf(1,j,k) - (ugpv(1,j,k) + utd(1,j,k) * tpdt))
+          end do
+        end do
+        !$acc end kernels
+
+      else
+
+        !$acc kernels
+        !$acc loop independent collapse(2) reduction(+: dflw)
+        do k = 2, nk-2
+          do j = jstr, jend
+            dflw = dflw + dydz * rst8u(1,j,k) &
+                 * (uf(1,j,k) - (ugpv(1,j,k) + utd(1,j,k) * tpdt))
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+    end if
+
+    if (ebe == 1 .and. isub == nisub-1 .and. abs(ebc) /= 1) then
+
+      if (mfcopt == 1 .and. (mpopt /= 0 .and. mpopt /= 10)) then
+
+        !$acc kernels
+        !$acc loop independent collapse(2) reduction(+: dfle)
+        do k = 2, nk-2
+          do j = jstr, jend
+            dfle = dfle + dydz * rmf8u(ni,j,2) * rst8u(ni,j,k) &
+                 * (uf(ni,j,k) - (ugpv(ni,j,k) + utd(ni,j,k) * tpdt))
+          end do
+        end do
+        !$acc end kernels
+
+      else
+
+        !$acc kernels
+        !$acc loop independent collapse(2) reduction(+: dfle)
+        do k = 2, nk-2
+          do j = jstr, jend
+            dfle = dfle + dydz * rst8u(ni,j,k) &
+                 * (uf(ni,j,k) - (ugpv(ni,j,k) + utd(ni,j,k) * tpdt))
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+    end if
+
+    if (ebs == 1 .and. jsub == 0) then
+
+      if (mfcopt == 1 .and. mpopt /= 5) then
+
+        !$acc kernels
+        !$acc loop independent collapse(2) reduction(+: dfls)
+        do k = 2, nk-2
+          do i = istr, iend
+            dfls = dfls + dxdz * rmf8v(i,1,2) * rst8v(i,1,k) &
+                 * (vf(i,1,k) - (vgpv(i,1,k) + vtd(i,1,k) * tpdt))
+          end do
+        end do
+        !$acc end kernels
+
+      else
+
+        !$acc kernels
+        !$acc loop independent collapse(2) reduction(+: dfls)
+        do k = 2, nk-2
+          do i = istr, iend
+            dfls = dfls + dxdz * rst8v(i,1,k) &
+                 * (vf(i,1,k) - (vgpv(i,1,k) + vtd(i,1,k) * tpdt))
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+    end if
+
+    if (ebn == 1 .and. jsub == njsub-1) then
+
+      if (mfcopt == 1 .and. mpopt /= 5) then
+
+        !$acc kernels
+        !$acc loop independent collapse(2) reduction(+: dfln)
+        do k = 2, nk-2
+          do i = istr, iend
+            dfln = dfln + dxdz * rmf8v(i,nj,2) * rst8v(i,nj,k) &
+                 * (vf(i,nj,k) - (vgpv(i,nj,k) + vtd(i,nj,k) * tpdt))
+          end do
+        end do
+        !$acc end kernels
+
+      else
+
+        !$acc kernels
+        !$acc loop independent collapse(2) reduction(+: dfln)
+        do k = 2, nk-2
+          do i = istr, iend
+            dfln = dfln + dxdz * rst8v(i,nj,k) &
+                 * (vf(i,nj,k) - (vgpv(i,nj,k) + vtd(i,nj,k) * tpdt))
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+    end if
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
       if(mfcopt.eq.0) then
@@ -587,6 +758,7 @@ end if
       end if
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_adjstuv == DUMP_TARGET_adjstuv .and. .not. dump_done_adjstuv) then
@@ -640,6 +812,65 @@ call profile_stop(prof_id1, loop_len)
 !   - May be more efficient to keep on CPU due to small extent.
 !@llm end meta_info ------------------------------------------------------
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_010)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (ebw == 1 .and. isub == 0 .and. abs(wbc) /= 1) then
+
+      !$acc kernels
+      !$acc loop independent collapse(2)
+      do k = 1, nk-1
+        do j = jstr, jend
+          uf(1,j,k) = uf(1,j,k) + adj / rst8u(1,j,k)
+        end do
+      end do
+      !$acc end kernels
+
+    end if
+
+    if (ebe == 1 .and. isub == nisub-1 .and. abs(ebc) /= 1) then
+
+      !$acc kernels
+      !$acc loop independent collapse(2)
+      do k = 1, nk-1
+        do j = jstr, jend
+          uf(ni,j,k) = uf(ni,j,k) - adj / rst8u(ni,j,k)
+        end do
+      end do
+      !$acc end kernels
+
+    end if
+
+    if (ebs == 1 .and. jsub == 0) then
+
+      !$acc kernels
+      !$acc loop independent collapse(2)
+      do k = 1, nk-1
+        do i = istr, iend
+          vf(i,1,k) = vf(i,1,k) + adj / rst8v(i,1,k)
+        end do
+      end do
+      !$acc end kernels
+
+    end if
+
+    if (ebn == 1 .and. jsub == njsub-1) then
+
+      !$acc kernels
+      !$acc loop independent collapse(2)
+      do k = 1, nk-1
+        do i = istr, iend
+          vf(i,nj,k) = vf(i,nj,k) - adj / rst8v(i,nj,k)
+        end do
+      end do
+      !$acc end kernels
+
+    end if
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
       if(ebw.eq.1.and.isub.eq.0.and.abs(wbc).ne.1) then
@@ -699,6 +930,7 @@ call profile_stop(prof_id1, loop_len)
       end if
 
 !$omp end parallel
+#endif
 
 ! -----
 

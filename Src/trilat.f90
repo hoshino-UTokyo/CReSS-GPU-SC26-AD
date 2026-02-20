@@ -176,6 +176,38 @@ if (dump_call_count_trilat == DUMP_TARGET_trilat .and. .not. dump_done_trilat) t
   call dump_scalar_r('omega5', omega5)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_333)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (coropt == 1) then
+      !$acc kernels
+      !$acc loop independent collapse(2) private(sinlat)
+      do j = 1, nj-1
+        do i = 1, ni-1
+          sinlat = sin(lat(i,j) * d2r)
+          fc(i,j,1) = omega5 * sinlat
+          fc(i,j,2) = 0.e0
+        end do
+      end do
+      !$acc end kernels
+    else if (coropt == 2) then
+      !$acc kernels
+      !$acc loop independent collapse(2) private(sinlat)
+      do j = 1, nj-1
+        do i = 1, ni-1
+          sinlat = sin(lat(i,j) * d2r)
+          fc(i,j,1) = omega5 * sinlat
+          fc(i,j,2) = omega5 * sqrt(1.e0 - sinlat * sinlat)
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
       if(coropt.eq.1) then
@@ -213,6 +245,8 @@ end if
       end if
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_trilat == DUMP_TARGET_trilat .and. .not. dump_done_trilat) then

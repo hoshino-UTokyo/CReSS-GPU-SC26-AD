@@ -355,6 +355,311 @@ end if
 
 call profile_start(prof_id1)
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_230)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+    ! Add divergence damping to pressure perturbation
+    if(divopt.eq.0) then
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k=1,nk-1
+        do j=1,nj-1
+          do i=1,ni-1
+            tmp3(i,j,k)=pp(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+    else
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k=1,nk-1
+        do j=1,nj-1
+          do i=1,ni-1
+            tmp3(i,j,k)=pp(i,j,k)+divcv*jcb(i,j,k)*tmp1(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+    ! Vertical pressure gradient
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k=2,nk-1
+      do j=2,nj-2
+        do i=2,ni-2
+          wpg(i,j,k)=(tmp3(i,j,k-1)-tmp3(i,j,k))*dziv
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    ! Reset for anisotropic case
+    if(divopt.eq.2) then
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k=1,nk-1
+        do j=1,nj-1
+          do i=1,ni-1
+            tmp3(i,j,k)=pp(i,j,k)+divch*tmp1(i,j,k)/jcb(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+    ! Horizontal pressure gradient
+    if(trnopt.eq.0) then
+
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k=2,nk-2
+        do j=1,nj-1
+          do i=1,ni-1
+            tmp3(i,j,k)=jcb(i,j,k)*tmp3(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      if(mfcopt.eq.0) then
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k=2,nk-2
+          do j=2,nj-2
+            do i=2,ni-1
+              upg(i,j,k)=(tmp3(i-1,j,k)-tmp3(i,j,k))*dxiv
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k=2,nk-2
+          do j=2,nj-1
+            do i=2,ni-2
+              vpg(i,j,k)=(tmp3(i,j-1,k)-tmp3(i,j,k))*dyiv
+            end do
+          end do
+        end do
+        !$acc end kernels
+      else
+        if(mpopt.eq.0.or.mpopt.eq.10) then
+          !$acc kernels
+          !$acc loop independent collapse(3)
+          do k=2,nk-2
+            do j=2,nj-2
+              do i=2,ni-1
+                upg(i,j,k)=mf8u(i,j)*(tmp3(i-1,j,k)-tmp3(i,j,k))*dxiv
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+          !$acc kernels
+          !$acc loop independent collapse(3)
+          do k=2,nk-2
+            do j=2,nj-1
+              do i=2,ni-2
+                vpg(i,j,k)=(tmp3(i,j-1,k)-tmp3(i,j,k))*dyiv
+              end do
+            end do
+          end do
+          !$acc end kernels
+        else if(mpopt.eq.5) then
+          !$acc kernels
+          !$acc loop independent collapse(3)
+          do k=2,nk-2
+            do j=2,nj-2
+              do i=2,ni-1
+                upg(i,j,k)=(tmp3(i-1,j,k)-tmp3(i,j,k))*dxiv
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+          !$acc kernels
+          !$acc loop independent collapse(3)
+          do k=2,nk-2
+            do j=2,nj-1
+              do i=2,ni-2
+                vpg(i,j,k)=mf8v(i,j)*(tmp3(i,j-1,k)-tmp3(i,j,k))*dyiv
+              end do
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent collapse(3)
+          do k=2,nk-2
+            do j=2,nj-2
+              do i=2,ni-1
+                upg(i,j,k)=mf8u(i,j)*(tmp3(i-1,j,k)-tmp3(i,j,k))*dxiv
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+          !$acc kernels
+          !$acc loop independent collapse(3)
+          do k=2,nk-2
+            do j=2,nj-1
+              do i=2,ni-2
+                vpg(i,j,k)=mf8v(i,j)*(tmp3(i,j-1,k)-tmp3(i,j,k))*dyiv
+              end do
+            end do
+          end do
+          !$acc end kernels
+        end if
+      end if
+
+    else if(trnopt.ge.1) then
+
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k=2,nk-1
+        do j=2,nj-2
+          do i=2,ni-1
+            tmp1(i,j,k)=((tmp3(i-1,j,k-1)+tmp3(i,j,k-1)) &
+                 +(tmp3(i-1,j,k)+tmp3(i,j,k)))*j31(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k=2,nk-1
+        do j=2,nj-1
+          do i=2,ni-2
+            tmp2(i,j,k)=((tmp3(i,j-1,k-1)+tmp3(i,j,k-1)) &
+                 +(tmp3(i,j-1,k)+tmp3(i,j,k)))*j32(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k=2,nk-2
+        do j=1,nj-1
+          do i=1,ni-1
+            tmp3(i,j,k)=jcb(i,j,k)*tmp3(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      if(mfcopt.eq.0) then
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k=2,nk-2
+          do j=2,nj-2
+            do i=2,ni-1
+              upg(i,j,k)=(tmp3(i-1,j,k)-tmp3(i,j,k))*dxiv &
+                   -(tmp1(i,j,k+1)-tmp1(i,j,k))*dziv25
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k=2,nk-2
+          do j=2,nj-1
+            do i=2,ni-2
+              vpg(i,j,k)=(tmp3(i,j-1,k)-tmp3(i,j,k))*dyiv &
+                   -(tmp2(i,j,k+1)-tmp2(i,j,k))*dziv25
+            end do
+          end do
+        end do
+        !$acc end kernels
+      else
+        if(mpopt.eq.0.or.mpopt.eq.10) then
+          !$acc kernels
+          !$acc loop independent collapse(3)
+          do k=2,nk-2
+            do j=2,nj-2
+              do i=2,ni-1
+                upg(i,j,k)=mf8u(i,j)*((tmp3(i-1,j,k)-tmp3(i,j,k))*dxiv &
+                     -(tmp1(i,j,k+1)-tmp1(i,j,k))*dziv25)
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+          !$acc kernels
+          !$acc loop independent collapse(3)
+          do k=2,nk-2
+            do j=2,nj-1
+              do i=2,ni-2
+                vpg(i,j,k)=(tmp3(i,j-1,k)-tmp3(i,j,k))*dyiv &
+                     -(tmp2(i,j,k+1)-tmp2(i,j,k))*dziv25
+              end do
+            end do
+          end do
+          !$acc end kernels
+        else if(mpopt.eq.5) then
+          !$acc kernels
+          !$acc loop independent collapse(3)
+          do k=2,nk-2
+            do j=2,nj-2
+              do i=2,ni-1
+                upg(i,j,k)=(tmp3(i-1,j,k)-tmp3(i,j,k))*dxiv &
+                     -(tmp1(i,j,k+1)-tmp1(i,j,k))*dziv25
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+          !$acc kernels
+          !$acc loop independent collapse(3)
+          do k=2,nk-2
+            do j=2,nj-1
+              do i=2,ni-2
+                vpg(i,j,k)=mf8v(i,j)*((tmp3(i,j-1,k)-tmp3(i,j,k))*dyiv &
+                     -(tmp2(i,j,k+1)-tmp2(i,j,k))*dziv25)
+              end do
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent collapse(3)
+          do k=2,nk-2
+            do j=2,nj-2
+              do i=2,ni-1
+                upg(i,j,k)=mf8u(i,j)*((tmp3(i-1,j,k)-tmp3(i,j,k))*dxiv &
+                     -(tmp1(i,j,k+1)-tmp1(i,j,k))*dziv25)
+              end do
+            end do
+          end do
+          !$acc end kernels
+
+          !$acc kernels
+          !$acc loop independent collapse(3)
+          do k=2,nk-2
+            do j=2,nj-1
+              do i=2,ni-2
+                vpg(i,j,k)=mf8v(i,j)*((tmp3(i,j-1,k)-tmp3(i,j,k))*dyiv &
+                     -(tmp2(i,j,k+1)-tmp2(i,j,k))*dziv25)
+              end do
+            end do
+          end do
+          !$acc end kernels
+        end if
+      end if
+
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Add the divergence damping to the pressure perturbation.
@@ -729,6 +1034,7 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
+#endif
 
 call profile_stop(prof_id1, loop_len)
 

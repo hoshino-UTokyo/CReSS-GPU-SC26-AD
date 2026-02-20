@@ -152,6 +152,22 @@ if (dump_call_count_setcst2d == DUMP_TARGET_setcst2d .and. .not. dump_done_setcs
   ! FIXME: invar is array - call dump_scalar_r('invar', invar)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_283)
+! GPU version (OpenACC)
+
+      !$acc kernels
+      !$acc loop independent
+      do j=jmin,jmax
+        !$acc loop independent
+        do i=imin,imax
+          outvar(i,j)=invar
+        end do
+      end do
+      !$acc end kernels
+
+#else
+! CPU version (OpenMP) - Original code preserved
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j)
@@ -165,6 +181,7 @@ end if
 !$omp end do
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_setcst2d == DUMP_TARGET_setcst2d .and. .not. dump_done_setcst2d) then

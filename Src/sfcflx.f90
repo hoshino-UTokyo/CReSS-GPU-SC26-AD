@@ -218,6 +218,33 @@ if (dump_call_count_sfcflx == DUMP_TARGET_sfcflx .and. .not. dump_done_sfcflx) t
   call dump_scalar_r('rddwkp', rddwkp)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_293)
+! GPU version (OpenACC)
+
+      !$acc kernels
+      !$acc loop independent
+      do j=1,nj-1
+        !$acc loop independent
+        do i=1,ni-1
+
+          a=rbr(i,j,2)*cm(i,j)*va(i,j)
+
+          ce(i,j)=a*cm(i,j)
+          ct(i,j)=a*ch(i,j)
+
+          if(land(i,j).lt.0) then
+            cq(i,j)=ct(i,j)/(1.e0+rddwkp*ch(i,j))
+          else
+            cq(i,j)=ct(i,j)
+          end if
+
+        end do
+      end do
+      !$acc end kernels
+
+#else
+! CPU version (OpenMP) - Original code preserved
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j,a)
@@ -246,6 +273,7 @@ end if
 !$omp end do
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_sfcflx == DUMP_TARGET_sfcflx .and. .not. dump_done_sfcflx) then

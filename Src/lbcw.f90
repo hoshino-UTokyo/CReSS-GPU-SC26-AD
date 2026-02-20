@@ -224,6 +224,183 @@ if (dump_call_count_lbcw == DUMP_TARGET_lbcw .and. .not. dump_done_lbcw) then
   call dump_scalar_i('njsub', njsub)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_190)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+! Set the west boundary conditions.
+
+      if(ebw.eq.1.and.isub.eq.0) then
+
+        if(advopt.le.3) then
+
+          if(wbc.eq.2.or.wbc.eq.3) then
+
+            !$acc kernels
+            !$acc loop independent
+            do k=2,nk-2
+              !$acc loop independent
+              do j=1,nj-1
+                wf(1,j,k)=wf(2,j,k)
+              end do
+            end do
+            !$acc end kernels
+
+          end if
+
+        else
+
+          if(wbc.ge.2) then
+
+            !$acc kernels
+            !$acc loop independent
+            do k=2,nk-2
+              !$acc loop independent
+              do j=1,nj-1
+                wf(1,j,k)=wf(2,j,k)
+              end do
+            end do
+            !$acc end kernels
+
+          end if
+
+        end if
+
+      end if
+
+! -----
+
+! Set the east boundary conditions.
+
+      if(ebe.eq.1.and.isub.eq.nisub-1) then
+
+        if(advopt.le.3) then
+
+          if(ebc.eq.2.or.ebc.eq.3) then
+
+            !$acc kernels
+            !$acc loop independent
+            do k=2,nk-2
+              !$acc loop independent
+              do j=1,nj-1
+                wf(nim1,j,k)=wf(nim2,j,k)
+              end do
+            end do
+            !$acc end kernels
+
+          end if
+
+        else
+
+          if(ebc.ge.2) then
+
+            !$acc kernels
+            !$acc loop independent
+            do k=2,nk-2
+              !$acc loop independent
+              do j=1,nj-1
+                wf(nim1,j,k)=wf(nim2,j,k)
+              end do
+            end do
+            !$acc end kernels
+
+          end if
+
+        end if
+
+      end if
+
+! -----
+
+! Set the south boundary conditions.
+
+      if(ebs.eq.1.and.jsub.eq.0) then
+
+        if(advopt.le.3) then
+
+          if(sbc.eq.2.or.sbc.eq.3) then
+
+            !$acc kernels
+            !$acc loop independent
+            do k=2,nk-2
+              !$acc loop independent
+              do i=1,ni-1
+                wf(i,1,k)=wf(i,2,k)
+              end do
+            end do
+            !$acc end kernels
+
+          end if
+
+        else
+
+          if(sbc.ge.2) then
+
+            !$acc kernels
+            !$acc loop independent
+            do k=2,nk-2
+              !$acc loop independent
+              do i=1,ni-1
+                wf(i,1,k)=wf(i,2,k)
+              end do
+            end do
+            !$acc end kernels
+
+          end if
+
+        end if
+
+      end if
+
+! -----
+
+! Set the north boundary conditions.
+
+      if(ebn.eq.1.and.jsub.eq.njsub-1) then
+
+        if(advopt.le.3) then
+
+          if(nbc.eq.2.or.nbc.eq.3) then
+
+            !$acc kernels
+            !$acc loop independent
+            do k=2,nk-2
+              !$acc loop independent
+              do i=1,ni-1
+                wf(i,njm1,k)=wf(i,njm2,k)
+              end do
+            end do
+            !$acc end kernels
+
+          end if
+
+        else
+
+          if(nbc.ge.2) then
+
+            !$acc kernels
+            !$acc loop independent
+            do k=2,nk-2
+              !$acc loop independent
+              do i=1,ni-1
+                wf(i,njm1,k)=wf(i,njm2,k)
+              end do
+            end do
+            !$acc end kernels
+
+          end if
+
+        end if
+
+      end if
+
+! -----
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the west boundary conditions.
@@ -523,6 +700,7 @@ end if
 ! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_lbcw == DUMP_TARGET_lbcw .and. .not. dump_done_lbcw) then

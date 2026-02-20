@@ -185,6 +185,40 @@ if (dump_call_count_bcyclex == DUMP_TARGET_bcyclex .and. .not. dump_done_bcyclex
   call dump_scalar_i('nisub', nisub)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_039)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (nisub == 1) then
+      if (wbc == -1 .and. ebc == -1) then
+        ! West boundary receives from east interior
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, kmax
+          !$acc loop independent
+          do j = 0, nj+1
+            var(iwrcv,j,k) = var(iesnd,j,k)
+          end do
+        end do
+        !$acc end kernels
+
+        ! East boundary receives from west interior
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, kmax
+          !$acc loop independent
+          do j = 0, nj+1
+            var(iercv,j,k) = var(iwsnd,j,k)
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       if(nisub.eq.1) then
@@ -220,6 +254,7 @@ end if
       end if
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_bcyclex == DUMP_TARGET_bcyclex .and. .not. dump_done_bcyclex) then

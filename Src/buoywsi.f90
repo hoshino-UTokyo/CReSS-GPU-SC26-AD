@@ -231,6 +231,62 @@ end if
 
 call profile_start(prof_id1)
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_046)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+    if (gwmopt == 0) then
+
+      !$acc kernels
+      !$acc loop independent
+      do k = 2, nk-2
+        !$acc loop independent
+        do j = 2, nj-2
+          !$acc loop independent
+          do i = 2, ni-2
+            wb8s(i,j,k) = (pp(i,j,k) * rst(i,j,k) + fp(i,j,k) * rbr(i,j,k) * dtw) &
+                 / rcsq(i,j,k) * g05n
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+    else
+
+      !$acc kernels
+      !$acc loop independent
+      do k = 2, nk-2
+        !$acc loop independent
+        do j = 2, nj-2
+          !$acc loop independent
+          do i = 2, ni-2
+            wb8s(i,j,k) = ((pp(i,j,k) * rst(i,j,k) + fp(i,j,k) * rbr(i,j,k) * dtw) &
+                 / rcsq(i,j,k) - ptp(i,j,k) * rst(i,j,k) / ptbr(i,j,k)) * g05n
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+    end if
+
+    !$acc kernels
+    !$acc loop independent
+    do k = 3, nk-2
+      !$acc loop independent
+      do j = 2, nj-2
+        !$acc loop independent
+        do i = 2, ni-2
+          fw(i,j,k) = fw(i,j,k) + (wb8s(i,j,k-1) + wb8s(i,j,k))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       if(gwmopt.eq.0) then
@@ -284,6 +340,7 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
+#endif
 
 call profile_stop(prof_id1, loop_len)
 

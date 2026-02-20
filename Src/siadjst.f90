@@ -229,6 +229,113 @@ if (dump_call_count_siadjst == DUMP_TARGET_siadjst .and. .not. dump_done_siadjst
   call dump_scalar_r('mi0iv', mi0iv)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_296)
+! GPU version (OpenACC)
+
+      !$acc parallel loop collapse(3) private(t,tcel,esi,qvsi,lscpi,dqi,a,b)
+      do k=1,nk-1
+        do j=1,nj-1
+          do i=1,ni-1
+            t=(ptbr(i,j,k)+ptp(i,j,k))*pi(i,j,k)
+
+            if(t.le.tlow) then
+
+              tcel=t-t0
+
+              a=1.e0/(t-7.66e0)
+              b=a*tcel
+
+              esi=es0*exp(21.875e0*b)
+
+              qvsi=epsva*esi/(p(i,j,k)-esi)
+
+              if(qi(i,j,k).gt.thresq.or.qv(i,j,k).gt.qvsi) then
+
+                lscpi=(lv0*exp((.167e0+3.67e-4*t)*log(t0/t))            &
+     &            +(lf0+cwmci*tcel))/(cp*pi(i,j,k))
+
+                dqi=(qvsi-qv(i,j,k))                                    &
+     &            /(1.e0+21.875e0*a*(1.e0-b)*qvsi*lscpi*pi(i,j,k))
+
+                if(qi(i,j,k).gt.dqi) then
+
+                  if(qi(i,j,k).gt.thresq) then
+                    nci(i,j,k)=nci(i,j,k)-dqi*nci(i,j,k)/qi(i,j,k)
+                  else
+                    nci(i,j,k)=nci(i,j,k)-dqi*mi0iv
+                  end if
+
+                  ptp(i,j,k)=ptp(i,j,k)-dqi*lscpi
+                  qv(i,j,k)=qv(i,j,k)+dqi
+                  qi(i,j,k)=qi(i,j,k)-dqi
+
+                else
+
+                  nci(i,j,k)=0.e0
+                  ptp(i,j,k)=ptp(i,j,k)-qi(i,j,k)*lscpi
+                  qv(i,j,k)=qv(i,j,k)+qi(i,j,k)
+                  qi(i,j,k)=0.e0
+
+                end if
+
+              end if
+
+              t=(ptbr(i,j,k)+ptp(i,j,k))*pi(i,j,k)
+
+              if(t.le.tlow) then
+
+                tcel=t-t0
+
+                a=1.e0/(t-7.66e0)
+                b=a*tcel
+
+                esi=es0*exp(21.875e0*b)
+
+                qvsi=epsva*esi/(p(i,j,k)-esi)
+
+                if(qi(i,j,k).gt.thresq.or.qv(i,j,k).gt.qvsi) then
+
+                  lscpi=(lv0*exp((.167e0+3.67e-4*t)*log(t0/t))          &
+     &              +(lf0+cwmci*tcel))/(cp*pi(i,j,k))
+
+                  dqi=(qvsi-qv(i,j,k))                                  &
+     &              /(1.e0+21.875e0*a*(1.e0-b)*qvsi*lscpi*pi(i,j,k))
+
+                  if(qi(i,j,k).gt.dqi) then
+
+                    if(qi(i,j,k).gt.thresq) then
+                      nci(i,j,k)=nci(i,j,k)-dqi*nci(i,j,k)/qi(i,j,k)
+                    else
+                      nci(i,j,k)=nci(i,j,k)-dqi*mi0iv
+                    end if
+
+                    ptp(i,j,k)=ptp(i,j,k)-dqi*lscpi
+                    qv(i,j,k)=qv(i,j,k)+dqi
+                    qi(i,j,k)=qi(i,j,k)-dqi
+
+                  else
+
+                    nci(i,j,k)=0.e0
+                    ptp(i,j,k)=ptp(i,j,k)-qi(i,j,k)*lscpi
+                    qv(i,j,k)=qv(i,j,k)+qi(i,j,k)
+                    qi(i,j,k)=0.e0
+
+                  end if
+
+                end if
+
+              end if
+
+            end if
+
+          end do
+        end do
+      end do
+      !$acc end parallel loop
+
+#else
+! CPU version (OpenMP) - Original code preserved
+
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1
@@ -351,6 +458,7 @@ end if
       end do
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_siadjst == DUMP_TARGET_siadjst .and. .not. dump_done_siadjst) then

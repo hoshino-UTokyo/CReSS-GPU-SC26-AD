@@ -188,6 +188,158 @@ if (dump_call_count_totalqwi == DUMP_TARGET_totalqwi .and. .not. dump_done_total
   call dump_array_4d('qice.bin', qice, 0, ni+1, 0, nj+1, 1, nk, 1, nqi)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_331)
+! GPU version (OpenACC)
+      if(abs(cphopt).ge.1) then
+
+! For the bulk categories.
+
+        if(abs(cphopt).lt.10) then
+
+          if(abs(cphopt).eq.1) then
+
+!$acc kernels
+!$acc loop independent
+            do k=1,nk-1
+!$acc loop independent
+              do j=1,nj-1
+!$acc loop independent
+              do i=1,ni-1
+                qall(i,j,k)=qwtr(i,j,k,1)+qwtr(i,j,k,2)
+              end do
+              end do
+            end do
+!$acc end kernels
+
+          else if(abs(cphopt).ge.2) then
+
+            if(haiopt.eq.0) then
+
+!$acc kernels
+!$acc loop independent
+              do k=1,nk-1
+!$acc loop independent
+                do j=1,nj-1
+!$acc loop independent
+                do i=1,ni-1
+                  qall(i,j,k)=qwtr(i,j,k,1)+qwtr(i,j,k,2)               &
+     &              +qice(i,j,k,1)+qice(i,j,k,2)+qice(i,j,k,3)
+                end do
+                end do
+              end do
+!$acc end kernels
+
+            else
+
+!$acc kernels
+!$acc loop independent
+              do k=1,nk-1
+!$acc loop independent
+                do j=1,nj-1
+!$acc loop independent
+                do i=1,ni-1
+                  qall(i,j,k)=qwtr(i,j,k,1)+qwtr(i,j,k,2)+qice(i,j,k,1) &
+     &              +qice(i,j,k,2)+qice(i,j,k,3)+qice(i,j,k,4)
+                end do
+                end do
+              end do
+!$acc end kernels
+
+            end if
+
+          end if
+
+! -----
+
+! For the bin categories.
+
+        else if(abs(cphopt).gt.10.and.abs(cphopt).lt.20) then
+
+          if(abs(cphopt).eq.11) then
+
+!$acc kernels
+!$acc loop independent
+            do k=1,nk-1
+!$acc loop independent
+              do j=1,nj-1
+!$acc loop independent
+              do i=1,ni-1
+                qall(i,j,k)=qwtr(i,j,k,1)
+              end do
+              end do
+            end do
+!$acc end kernels
+
+            do n=2,nqw
+!$acc kernels
+!$acc loop independent
+              do k=1,nk-1
+!$acc loop independent
+                do j=1,nj-1
+!$acc loop independent
+                do i=1,ni-1
+                  qall(i,j,k)=qall(i,j,k)+qwtr(i,j,k,n)
+                end do
+                end do
+              end do
+!$acc end kernels
+            end do
+
+          else if(abs(cphopt).eq.12) then
+
+!$acc kernels
+!$acc loop independent
+            do k=1,nk-1
+!$acc loop independent
+              do j=1,nj-1
+!$acc loop independent
+              do i=1,ni-1
+                qall(i,j,k)=qwtr(i,j,k,1)
+              end do
+              end do
+            end do
+!$acc end kernels
+
+            do n=2,nqw
+!$acc kernels
+!$acc loop independent
+              do k=1,nk-1
+!$acc loop independent
+                do j=1,nj-1
+!$acc loop independent
+                do i=1,ni-1
+                  qall(i,j,k)=qall(i,j,k)+qwtr(i,j,k,n)
+                end do
+                end do
+              end do
+!$acc end kernels
+            end do
+
+            do n=2,nqi
+!$acc kernels
+!$acc loop independent
+              do k=1,nk-1
+!$acc loop independent
+                do j=1,nj-1
+!$acc loop independent
+                do i=1,ni-1
+                  qall(i,j,k)=qall(i,j,k)+qice(i,j,k,n)
+                end do
+                end do
+              end do
+!$acc end kernels
+            end do
+
+          end if
+
+        end if
+
+! -----
+
+      end if
+
+#else
+! CPU version (OpenMP) - Original code preserved
 !$omp parallel default(shared) private(k,n)
 
       if(abs(cphopt).ge.1) then
@@ -353,6 +505,7 @@ end if
       end if
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_totalqwi == DUMP_TARGET_totalqwi .and. .not. dump_done_totalqwi) then

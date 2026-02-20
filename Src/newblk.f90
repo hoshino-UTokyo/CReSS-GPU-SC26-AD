@@ -504,6 +504,128 @@ if (dump_call_count_newblk == DUMP_TARGET_newblk .and. .not. dump_done_newblk) t
   call dump_scalar_r('ms0iv', ms0iv)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_206)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    !$acc kernels
+    !$acc loop independent
+    do j = 1, nj-1
+      !$acc loop independent private(cppiv,clix,spxi,cxcr,cxsg,nmci,mssr,msgr,nuvdvx,clnmci,cfmsxr,qvsink,qxsink,dqv)
+      do i = 1, ni-1
+        cppiv = 1.0e0 / (cp * pi(i,j,1))
+        clix = clir(i,j,1) + clis(i,j,1) + clig(i,j,1)
+        spxi = spsi(i,j,1) + spgi(i,j,1)
+        cxcr = clcr(i,j,1) + cncr(i,j,1)
+        cxsg = clsr(i,j,1) + clsg(i,j,1) + cnsg(i,j,1)
+        nmci = nuci(i,j,1) - mlic(i,j,1)
+        mssr = mlsr(i,j,1) + shsr(i,j,1)
+        msgr = mlgr(i,j,1) + shgr(i,j,1)
+        nuvdvx = vdvi(i,j,1) + vdvs(i,j,1) + vdvg(i,j,1) + nuvi(i,j,1)
+        clnmci = clcs(i,j,1) + clcg(i,j,1) + nmci
+        cfmsxr = clri(i,j,1) + clrs(i,j,1) + clrg(i,j,1) + clrsg(i,j,1) &
+               + frrg(i,j,1) - mssr - msgr
+
+        ! New potential temperature
+        ptpf(i,j,1) = ptpf(i,j,1) + (vdvr(i,j,1)*lv(i,j,1) &
+                    + (clnmci + cfmsxr)*lf(i,j,1) + nuvdvx*ls(i,j,1)) * cppiv
+
+        ! Mixing ratios
+        qvsink = nuvdvx + vdvr(i,j,1)
+        qxsink = cfmsxr - cxcr - vdvr(i,j,1)
+
+        if (qrf(i,j,1) < qxsink) then
+          qxsink = cxcr + clnmci + (qxsink - qrf(i,j,1))
+          qrf(i,j,1) = 0.0e0
+        else
+          qrf(i,j,1) = qrf(i,j,1) - qxsink
+          qxsink = cxcr + clnmci
+        end if
+
+        if (qcf(i,j,1) < qxsink) then
+          dqv = qxsink - qcf(i,j,1)
+          ptpf(i,j,1) = ptpf(i,j,1) + cppiv * dqv * lv(i,j,1)
+          qvsink = qvsink + dqv
+          qcf(i,j,1) = 0.0e0
+        else
+          qcf(i,j,1) = qcf(i,j,1) - qxsink
+        end if
+
+        qxsink = clix - spxi - nmci + cnis(i,j,1) - vdvi(i,j,1) - nuvi(i,j,1)
+
+        if (qif(i,j,1) < qxsink) then
+          dqv = qxsink - qif(i,j,1)
+          ptpf(i,j,1) = ptpf(i,j,1) + cppiv * dqv * ls(i,j,1)
+          qvsink = qvsink + dqv
+          qif(i,j,1) = 0.0e0
+        else
+          qif(i,j,1) = qif(i,j,1) - qxsink
+        end if
+
+        qvf(i,j,1) = max(qvf(i,j,1) - qvsink, 0.0e0)
+
+        ! Snow and graupel
+        qsf(i,j,1) = max(qsf(i,j,1) - (cxsg + mssr + spsi(i,j,1) - vdvs(i,j,1) &
+                   - clcs(i,j,1) - clrs(i,j,1) - clis(i,j,1) - cnis(i,j,1)), 0.0e0)
+
+        qgf(i,j,1) = max(qgf(i,j,1) + (cxsg - msgr - spgi(i,j,1) + vdvg(i,j,1) &
+                   + clri(i,j,1) + clir(i,j,1) + clcg(i,j,1) &
+                   + clrg(i,j,1) + clig(i,j,1) + clrsg(i,j,1) + frrg(i,j,1)), 0.0e0)
+
+        ! Cloud ice concentrations
+        if (qcp(i,j,1) > thresq) then
+          ncif(i,j,1) = ncif(i,j,1) + nuci(i,j,1) * nccp(i,j,1) / qcp(i,j,1)
+        end if
+
+        if (qip(i,j,1) > thresq) then
+          if (vdvi(i,j,1) < 0.0e0) then
+            ncif(i,j,1) = ncif(i,j,1) - (agin(i,j,1) &
+                        + (clix + mlic(i,j,1) - vdvi(i,j,1)) / mi(i,j,1) &
+                        - (spxi + nuvi(i,j,1)) * mi0iv + cnis(i,j,1) * ms0iv)
+          else
+            ncif(i,j,1) = ncif(i,j,1) - (agin(i,j,1) &
+                        + (clix + mlic(i,j,1)) / mi(i,j,1) &
+                        - (spxi + nuvi(i,j,1)) * mi0iv + cnis(i,j,1) * ms0iv)
+          end if
+        else
+          ncif(i,j,1) = ncif(i,j,1) + (spxi + nuvi(i,j,1)) * mi0iv
+        end if
+
+        ! Snow concentrations
+        if (qsp(i,j,1) > thresq) then
+          if (vdvs(i,j,1) < 0.0e0) then
+            ncsf(i,j,1) = ncsf(i,j,1) - (agsn(i,j,1) - cnis(i,j,1) * ms0iv &
+                        + clsrn(i,j,1) + clsgn(i,j,1) + cnsgn(i,j,1) &
+                        + (mlsr(i,j,1) - vdvs(i,j,1)) * ncsp(i,j,1) / qsp(i,j,1))
+          else
+            ncsf(i,j,1) = ncsf(i,j,1) - (agsn(i,j,1) - cnis(i,j,1) * ms0iv &
+                        + clsrn(i,j,1) + clsgn(i,j,1) + cnsgn(i,j,1) &
+                        + mlsr(i,j,1) * ncsp(i,j,1) / qsp(i,j,1))
+          end if
+        else
+          ncsf(i,j,1) = ncsf(i,j,1) + cnis(i,j,1) * ms0iv
+        end if
+
+        ! Graupel concentrations
+        if (qgp(i,j,1) > thresq) then
+          if (vdvg(i,j,1) < 0.0e0) then
+            ncgf(i,j,1) = ncgf(i,j,1) + ((vdvg(i,j,1) - mlgr(i,j,1)) * ncgp(i,j,1) / qgp(i,j,1) &
+                        + clrsn(i,j,1) + clrin(i,j,1) + cnsgn(i,j,1) + frrgn(i,j,1))
+          else
+            ncgf(i,j,1) = ncgf(i,j,1) - (mlgr(i,j,1) * ncgp(i,j,1) / qgp(i,j,1) &
+                        - clrsn(i,j,1) - clrin(i,j,1) - cnsgn(i,j,1) - frrgn(i,j,1))
+          end if
+        else
+          ncgf(i,j,1) = ncgf(i,j,1) + (clrsn(i,j,1) + clrin(i,j,1) + cnsgn(i,j,1) + frrgn(i,j,1))
+        end if
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !!! In the case nk = 1.
@@ -1734,6 +1856,7 @@ end if
 !!! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_newblk == DUMP_TARGET_newblk .and. .not. dump_done_newblk) then

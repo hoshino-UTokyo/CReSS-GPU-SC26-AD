@@ -319,6 +319,170 @@ if (dump_call_count_steptund == DUMP_TARGET_steptund .and. .not. dump_done_stept
   call dump_scalar_r('tks', tks)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_311)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+! Set the ice and snow surface temperature.
+
+    !$acc kernels
+    !$acc loop independent collapse(2)
+    do j=1,nj-1
+      do i=1,ni-1
+        if(land(i,j).ge.3.and.land(i,j).lt.10) then
+          tundp(i,j,1)=min(.5e0*(t(i,j,1)+t(i,j,2)),t0)
+        end if
+      end do
+    end do
+    !$acc end kernels
+
+    do k=2,nund
+      !$acc kernels
+      !$acc loop independent collapse(2)
+      do j=1,nj-1
+        do i=1,ni-1
+          if(land(i,j).ge.3.and.land(i,j).lt.10) then
+            tundp(i,j,k)=tundp(i,j,1)
+          end if
+        end do
+      end do
+      !$acc end kernels
+    end do
+
+! Copy the past value to future and convert the unit from Kelvin to
+! Celsius degrees.
+
+    do k=1,nund
+      !$acc kernels
+      !$acc loop independent collapse(2)
+      do j=1,nj-1
+        do i=1,ni-1
+          tundf(i,j,k)=tundp(i,j,k)-t0
+        end do
+      end do
+      !$acc end kernels
+    end do
+
+! Set the top and bottom boundary conditions.
+
+    if(sfcopt.eq.1.or.sfcopt.eq.11) then
+      !$acc kernels
+      !$acc loop independent collapse(2)
+      do j=1,nj-1
+        do i=1,ni-1
+          if(land(i,j).lt.3) then
+            tundf(i,j,1)=tundf(i,j,1)                                    &
+     &       +cts1*(rsd(i,j)+rld(i,j)-rlu(i,j)-hs(i,j)-le(i,j))/cap(i,j)
+            tundf(i,j,nundm1)=(1.e0+ctsm1*nuu(i,j))*tundf(i,j,nundm1)
+          end if
+          if(land(i,j).ge.10) then
+            tundf(i,j,1)=tundf(i,j,1)                                    &
+     &       +ctg1*(rsd(i,j)+rld(i,j)-rlu(i,j)-hs(i,j)-le(i,j))/cap(i,j)
+            tundf(i,j,nundm1)                                            &
+     &       =tundf(i,j,nundm1)+ctgm1*nuu(i,j)*tundf(i,j,nund)
+          end if
+        end do
+      end do
+      !$acc end kernels
+
+    else if(sfcopt.eq.2.or.sfcopt.eq.12) then
+      !$acc kernels
+      !$acc loop independent collapse(2)
+      do j=1,nj-1
+        do i=1,ni-1
+          if(land(i,j).ge.10) then
+            tundf(i,j,1)=tundf(i,j,1)                                    &
+     &       +ctg1*(rsd(i,j)+rld(i,j)-rlu(i,j)-hs(i,j)-le(i,j))/cap(i,j)
+            tundf(i,j,nundm1)                                            &
+     &       =tundf(i,j,nundm1)+ctgm1*nuu(i,j)*tundf(i,j,nund)
+          end if
+        end do
+      end do
+      !$acc end kernels
+
+    else if(sfcopt.eq.3.or.sfcopt.eq.13) then
+      !$acc kernels
+      !$acc loop independent collapse(2)
+      do j=1,nj-1
+        do i=1,ni-1
+          if(land(i,j).lt.3) then
+            tundf(i,j,1)=(sst(i,j)+sstd(i,j)*stinc)-t0
+          end if
+          if(land(i,j).ge.10) then
+            tundf(i,j,1)=tundf(i,j,1)                                    &
+     &       +ctg1*(rsd(i,j)+rld(i,j)-rlu(i,j)-hs(i,j)-le(i,j))/cap(i,j)
+            tundf(i,j,nundm1)                                            &
+     &       =tundf(i,j,nundm1)+ctgm1*nuu(i,j)*tundf(i,j,nund)
+          end if
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+! Set the constant sea temperature.
+
+    if(sfcopt.eq.3.or.sfcopt.eq.13) then
+      do k=2,nund
+        !$acc kernels
+        !$acc loop independent collapse(2)
+        do j=1,nj-1
+          do i=1,ni-1
+            if(land(i,j).lt.3) then
+              tundf(i,j,k)=tundf(i,j,1)
+            end if
+          end do
+        end do
+        !$acc end kernels
+      end do
+    end if
+
+! Set the coefficient matrix.
+
+    if(sfcopt.eq.1.or.sfcopt.eq.11) then
+      do k=1,nund-1
+        !$acc kernels
+        !$acc loop independent collapse(2)
+        do j=1,nj-1
+          do i=1,ni-1
+            if(land(i,j).lt.3) then
+              rr(i,j,k)=rks*nuu(i,j)
+              tt(i,j,k)=tks*nuu(i,j)
+            else if(land(i,j).ge.10) then
+              rr(i,j,k)=rkg*nuu(i,j)
+              tt(i,j,k)=tkg*nuu(i,j)
+            else
+              rr(i,j,k)=0.e0
+              tt(i,j,k)=0.e0
+            end if
+          end do
+        end do
+        !$acc end kernels
+      end do
+
+    else if(sfcopt.eq.2.or.sfcopt.eq.3.or.sfcopt.ge.12) then
+      do k=1,nund-1
+        !$acc kernels
+        !$acc loop independent collapse(2)
+        do j=1,nj-1
+          do i=1,ni-1
+            if(land(i,j).ge.10) then
+              rr(i,j,k)=rkg*nuu(i,j)
+              tt(i,j,k)=tkg*nuu(i,j)
+            else
+              rr(i,j,k)=0.e0
+              tt(i,j,k)=0.e0
+            end if
+          end do
+        end do
+        !$acc end kernels
+      end do
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the ice and snow surface temperature.
@@ -612,6 +776,7 @@ end if
 ! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_steptund == DUMP_TARGET_steptund .and. .not. dump_done_steptund) then
@@ -652,6 +817,43 @@ call profile_stop(prof_id1, loop_len)
 !   - Collapse loops for GPU parallelization
 !   - Keep tundf array resident on GPU from previous kernel
 !@llm end meta_info ------------------------------------------------------
+#if defined(USE_GPU) && !defined(DISABLE_GPU_312)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+! Set the bottom boundary condition.
+
+    if(sfcopt.eq.1.or.sfcopt.eq.11) then
+      !$acc kernels
+      !$acc loop independent collapse(2)
+      do j=1,nj-1
+        do i=1,ni-1
+          if(land(i,j).lt.3) then
+            tundf(i,j,nund)=tundf(i,j,nundm1)
+          end if
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+! Convert the unit from Celsius to Kelvin degrees.
+
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k=1,nund
+      do j=1,nj-1
+        do i=1,ni-1
+          tundf(i,j,k)=tundf(i,j,k)+t0
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the bottom boundary condition.
@@ -697,6 +899,7 @@ call profile_stop(prof_id1, loop_len)
 ! -----
 
 !$omp end parallel
+#endif
 
 !! -----
 

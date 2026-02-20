@@ -226,6 +226,107 @@ if (dump_call_count_buoywb == DUMP_TARGET_buoywb .and. .not. dump_done_buoywb) t
   call dump_scalar_r('g05', g05)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_044)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+    ! For moist air case - compute qvd first
+    !$acc kernels
+    do k = 2, nk-2
+      !$acc loop independent
+      do j = 2, nj-2
+        !$acc loop independent
+        do i = 2, ni-2
+          qvd(i,j,k) = qv(i,j,k) - qvbr(i,j,k)
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    ! Compute wb8s based on cphopt and gwmopt
+    if (abs(cphopt) == 0) then
+      ! No cloud microphysics
+      if (gwmopt == 0) then
+        !$acc kernels
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 2, nj-2
+            !$acc loop independent
+            do i = 2, ni-2
+              wb8s(i,j,k) = g05 * rst(i,j,k) &
+                * (qvd(i,j,k)/(epsva + qvbr(i,j,k)) &
+                - qvd(i,j,k)/(1.0 + qvbr(i,j,k)) + ptp(i,j,k)/ptbr(i,j,k))
+            end do
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 2, nj-2
+            !$acc loop independent
+            do i = 2, ni-2
+              wb8s(i,j,k) = g05 * rst(i,j,k) &
+                * (qvd(i,j,k)/(epsva + qvbr(i,j,k)) &
+                - qvd(i,j,k)/(1.0 + qvbr(i,j,k)))
+            end do
+          end do
+        end do
+        !$acc end kernels
+      end if
+    else
+      ! With cloud microphysics
+      if (gwmopt == 0) then
+        !$acc kernels
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 2, nj-2
+            !$acc loop independent
+            do i = 2, ni-2
+              wb8s(i,j,k) = g05 * rst(i,j,k) &
+                * (qvd(i,j,k)/(epsva + qvbr(i,j,k)) &
+                - (qvd(i,j,k) + qall(i,j,k))/(1.0 + qvbr(i,j,k)) &
+                + ptp(i,j,k)/ptbr(i,j,k))
+            end do
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 2, nj-2
+            !$acc loop independent
+            do i = 2, ni-2
+              wb8s(i,j,k) = g05 * rst(i,j,k) &
+                * (qvd(i,j,k)/(epsva + qvbr(i,j,k)) &
+                - (qvd(i,j,k) + qall(i,j,k))/(1.0 + qvbr(i,j,k)))
+            end do
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+    ! Finally be averaged vertically
+    !$acc kernels
+    do k = 3, nk-2
+      !$acc loop independent
+      do j = 2, nj-2
+        !$acc loop independent
+        do i = 2, ni-2
+          wfrc(i,j,k) = wfrc(i,j,k) + (wb8s(i,j,k-1) + wb8s(i,j,k))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! For dry air case.
@@ -392,6 +493,7 @@ end if
 ! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_buoywb == DUMP_TARGET_buoywb .and. .not. dump_done_buoywb) then

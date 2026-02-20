@@ -185,6 +185,40 @@ if (dump_call_count_bcycley == DUMP_TARGET_bcycley .and. .not. dump_done_bcycley
   call dump_scalar_i('njsub', njsub)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_040)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (njsub == 1) then
+      if (sbc == -1 .and. nbc == -1) then
+        ! South boundary receives from north interior
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, kmax
+          !$acc loop independent
+          do i = 0, ni+1
+            var(i,jsrcv,k) = var(i,jnsnd,k)
+          end do
+        end do
+        !$acc end kernels
+
+        ! North boundary receives from south interior
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, kmax
+          !$acc loop independent
+          do i = 0, ni+1
+            var(i,jnrcv,k) = var(i,jssnd,k)
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       if(njsub.eq.1) then
@@ -220,6 +254,7 @@ end if
       end if
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_bcycley == DUMP_TARGET_bcycley .and. .not. dump_done_bcycley) then

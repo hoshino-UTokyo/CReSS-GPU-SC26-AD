@@ -191,6 +191,91 @@ if (dump_call_count_nuc2nd == DUMP_TARGET_nuc2nd .and. .not. dump_done_nuc2nd) t
   call dump_scalar_r('mi0353', mi0353)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_214)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (nk == 1) then
+      !$acc kernels
+      !$acc loop independent collapse(2) private(a)
+      do j = 1, nj-1
+        do i = 1, ni-1
+          if (pgwet(i,j,1) > 0.0) then
+            if (t(i,j,1) > 270.16) then
+              spsi(i,j,1) = 0.0
+            else if (t(i,j,1) > 268.16 .and. t(i,j,1) <= 270.16) then
+              spsi(i,j,1) = (270.16 - t(i,j,1)) * mi0352 * rbv(i,j,1) * clcs(i,j,1)
+            else if (t(i,j,1) > 265.16 .and. t(i,j,1) <= 268.16) then
+              spsi(i,j,1) = (t(i,j,1) - 265.16) * mi0353 * rbv(i,j,1) * clcs(i,j,1)
+            else
+              spsi(i,j,1) = 0.0
+            end if
+            spgi(i,j,1) = 0.0
+          else
+            if (t(i,j,1) > 270.16) then
+              spsi(i,j,1) = 0.0
+              spgi(i,j,1) = 0.0
+            else if (t(i,j,1) > 268.16 .and. t(i,j,1) <= 270.16) then
+              a = (270.16 - t(i,j,1)) * mi0352 * rbv(i,j,1)
+              spsi(i,j,1) = a * clcs(i,j,1)
+              spgi(i,j,1) = a * clcg(i,j,1)
+            else if (t(i,j,1) > 265.16 .and. t(i,j,1) <= 268.16) then
+              a = (t(i,j,1) - 265.16) * mi0353 * rbv(i,j,1)
+              spsi(i,j,1) = a * clcs(i,j,1)
+              spgi(i,j,1) = a * clcg(i,j,1)
+            else
+              spsi(i,j,1) = 0.0
+              spgi(i,j,1) = 0.0
+            end if
+          end if
+        end do
+      end do
+      !$acc end kernels
+
+    else
+      !$acc kernels
+      !$acc loop independent collapse(3) private(a)
+      do k = 1, nk-1
+        do j = 1, nj-1
+          do i = 1, ni-1
+            if (pgwet(i,j,k) > 0.0) then
+              if (t(i,j,k) > 270.16) then
+                spsi(i,j,k) = 0.0
+              else if (t(i,j,k) > 268.16 .and. t(i,j,k) <= 270.16) then
+                spsi(i,j,k) = (270.16 - t(i,j,k)) * mi0352 * rbv(i,j,k) * clcs(i,j,k)
+              else if (t(i,j,k) > 265.16 .and. t(i,j,k) <= 268.16) then
+                spsi(i,j,k) = (t(i,j,k) - 265.16) * mi0353 * rbv(i,j,k) * clcs(i,j,k)
+              else
+                spsi(i,j,k) = 0.0
+              end if
+              spgi(i,j,k) = 0.0
+            else
+              if (t(i,j,k) > 270.16) then
+                spsi(i,j,k) = 0.0
+                spgi(i,j,k) = 0.0
+              else if (t(i,j,k) > 268.16 .and. t(i,j,k) <= 270.16) then
+                a = (270.16 - t(i,j,k)) * mi0352 * rbv(i,j,k)
+                spsi(i,j,k) = a * clcs(i,j,k)
+                spgi(i,j,k) = a * clcg(i,j,k)
+              else if (t(i,j,k) > 265.16 .and. t(i,j,k) <= 268.16) then
+                a = (t(i,j,k) - 265.16) * mi0353 * rbv(i,j,k)
+                spsi(i,j,k) = a * clcs(i,j,k)
+                spgi(i,j,k) = a * clcg(i,j,k)
+              else
+                spsi(i,j,k) = 0.0
+                spgi(i,j,k) = 0.0
+              end if
+            end if
+          end do
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! In the case nk = 1.
@@ -344,6 +429,7 @@ end if
 ! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_nuc2nd == DUMP_TARGET_nuc2nd .and. .not. dump_done_nuc2nd) then

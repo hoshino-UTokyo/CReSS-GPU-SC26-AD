@@ -250,6 +250,208 @@ end if
 
 call profile_start(prof_id1)
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_091)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    !-------------------------------------------------------------------
+    ! Phase 1: Multiply velocities by optional variables and map factors
+    !-------------------------------------------------------------------
+    if (mfcopt == 0) then
+
+      !$acc kernels
+      !$acc loop independent
+      do k = 1, nk-1
+        !$acc loop independent
+        do j = 1, nj-1
+          !$acc loop independent
+          do i = 1, ni
+            tmp1(i,j,k) = var8u(i,j,k) * u(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      !$acc kernels
+      !$acc loop independent
+      do k = 1, nk-1
+        !$acc loop independent
+        do j = 1, nj
+          !$acc loop independent
+          do i = 1, ni-1
+            tmp2(i,j,k) = var8v(i,j,k) * v(i,j,k)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+    else
+
+      if (mpopt == 0 .or. mpopt == 10) then
+
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, nk-1
+          !$acc loop independent
+          do j = 1, nj-1
+            !$acc loop independent
+            do i = 1, ni
+              tmp1(i,j,k) = var8u(i,j,k) * u(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, nk-1
+          !$acc loop independent
+          do j = 1, nj
+            !$acc loop independent
+            do i = 1, ni-1
+              tmp2(i,j,k) = rmf8v(i,j,2) * var8v(i,j,k) * v(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+      else if (mpopt == 5) then
+
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, nk-1
+          !$acc loop independent
+          do j = 1, nj-1
+            !$acc loop independent
+            do i = 1, ni
+              tmp1(i,j,k) = rmf8u(i,j,2) * var8u(i,j,k) * u(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, nk-1
+          !$acc loop independent
+          do j = 1, nj
+            !$acc loop independent
+            do i = 1, ni-1
+              tmp2(i,j,k) = var8v(i,j,k) * v(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+      else
+
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, nk-1
+          !$acc loop independent
+          do j = 1, nj-1
+            !$acc loop independent
+            do i = 1, ni
+              tmp1(i,j,k) = rmf8u(i,j,2) * var8u(i,j,k) * u(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, nk-1
+          !$acc loop independent
+          do j = 1, nj
+            !$acc loop independent
+            do i = 1, ni-1
+              tmp2(i,j,k) = rmf8v(i,j,2) * var8v(i,j,k) * v(i,j,k)
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+    end if
+
+    !$acc kernels
+    !$acc loop independent
+    do k = 1, nk
+      !$acc loop independent
+      do j = 1, nj-1
+        !$acc loop independent
+        do i = 1, ni-1
+          tmp3(i,j,k) = var8w(i,j,k) * wc(i,j,k)
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    !-------------------------------------------------------------------
+    ! Phase 2: Calculate divergence
+    !-------------------------------------------------------------------
+    if (mfcopt == 0) then
+
+      !$acc kernels
+      !$acc loop independent
+      do k = 1, nk-1
+        !$acc loop independent
+        do j = 1, nj-1
+          !$acc loop independent
+          do i = 1, ni-1
+            div3d(i,j,k) = (tmp3(i,j,k) - tmp3(i,j,k+1)) * dziv &
+                 + ((tmp1(i,j,k) - tmp1(i+1,j,k)) * dxiv &
+                 + (tmp2(i,j,k) - tmp2(i,j+1,k)) * dyiv)
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+    else
+
+      if (mpopt == 0 .or. mpopt == 5 .or. mpopt == 10) then
+
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, nk-1
+          !$acc loop independent
+          do j = 1, nj-1
+            !$acc loop independent
+            do i = 1, ni-1
+              div3d(i,j,k) = mf(i,j) * ((tmp1(i,j,k) - tmp1(i+1,j,k)) * dxiv &
+                   + (tmp2(i,j,k) - tmp2(i,j+1,k)) * dyiv) &
+                   + (tmp3(i,j,k) - tmp3(i,j,k+1)) * dziv
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+      else
+
+        !$acc kernels
+        !$acc loop independent
+        do k = 1, nk-1
+          !$acc loop independent
+          do j = 1, nj-1
+            !$acc loop independent
+            do i = 1, ni-1
+              div3d(i,j,k) = rmf(i,j,1) * ((tmp1(i,j,k) - tmp1(i+1,j,k)) * dxiv &
+                   + (tmp2(i,j,k) - tmp2(i,j+1,k)) * dyiv) &
+                   + (tmp3(i,j,k) - tmp3(i,j,k+1)) * dziv
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Optional variables at u, v and w points are multiplyed by u, v and wc.
@@ -445,6 +647,7 @@ call profile_start(prof_id1)
 ! -----
 
 !$omp end parallel
+#endif
 
 call profile_stop(prof_id1, loop_len)
 

@@ -247,6 +247,25 @@ if (dump_call_count_gettrn == DUMP_TARGET_gettrn .and. .not. dump_done_gettrn) t
   ! ! FIXME: ys is array - call dump_scalar_r('ys', ys)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_140)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+    !$acc kernels
+    !$acc loop independent
+    do j = 0, nj
+      !$acc loop independent
+      do i = 0, ni
+        ht(i,j) = max(mnthgh(1)+mnthgh(2),zsfc)
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j)
@@ -260,6 +279,8 @@ end if
 !$omp end do
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_gettrn == DUMP_TARGET_gettrn .and. .not. dump_done_gettrn) then
@@ -316,6 +337,30 @@ call profile_stop(prof_id1, loop_len)
 !   - Direct translation to OpenACC with teams distribute
 !   - Ensure xs and ys arrays are mapped to device
 !@llm end meta_info ------------------------------------------------------
+#if defined(USE_GPU) && !defined(DISABLE_GPU_141)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+    ! NOTE: gettrn_sec2 benchmark uses max reduction for htmax,
+    ! but the actual section 2 in source is the bell-shaped mountain computation.
+    ! We use acc kernels for the bell-shaped terrain calculation.
+    !$acc kernels
+    !$acc loop independent
+    do j = 0, nj
+      !$acc loop independent private(a,b)
+      do i = 0, ni
+        a = wxiv*(xs(i)-mntcx)
+        b = wyiv*(ys(j)-mntcy)
+        ht(i,j) = max(mnthgh(1)/(1.e0+(a*a+b*b))+mnthgh(2),zsfc)
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j,a,b)
@@ -333,6 +378,8 @@ call profile_stop(prof_id1, loop_len)
 !$omp end do
 
 !$omp end parallel
+
+#endif
 
 ! -----
 

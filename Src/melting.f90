@@ -252,6 +252,123 @@ if (dump_call_count_melting == DUMP_TARGET_melting .and. .not. dump_done_melting
   call dump_scalar_r('cc2dt', cc2dt)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_202)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+    ! In the case nk = 1.
+    if (nk == 1) then
+
+      !$acc kernels
+      !$acc loop independent collapse(2) private(cmlxr1,cmlxr2)
+      do j = 1, nj-1
+        do i = 1, ni-1
+
+          ! Set the common used variables.
+          cmlxr1 = cc2dt * rbv(i,j,1) * (kp(i,j,1) * tcel(i,j,1) &
+               + lv(i,j,1) * dv(i,j,1) * rbr(i,j,1) * qvsst0(i,j,1))
+          cmlxr2 = cw * tcel(i,j,1)
+
+          ! Calculate the melting rate from the cloud ice to the cloud water.
+          if (qi(i,j,1) > thresq) then
+            if (tcel(i,j,1) >= t0cel) then
+              mlic(i,j,1) = qi(i,j,1)
+            else
+              mlic(i,j,1) = 0.0e0
+            end if
+          else
+            mlic(i,j,1) = 0.0e0
+          end if
+
+          ! Calculate the melting rate from the snow to the rain water.
+          if (qs(i,j,1) > thresq) then
+            if (tcel(i,j,1) >= t0cel) then
+              mlsr(i,j,1) = max((cmlxr1 * vnts(i,j,1) &
+                   + cmlxr2 * (clcs(i,j,1) + clrs(i,j,1))) / lf(i,j,1), 0.0e0)
+            else
+              mlsr(i,j,1) = 0.0e0
+            end if
+          else
+            mlsr(i,j,1) = 0.0e0
+          end if
+
+          ! Calculate the melting rate from the graupel to the rain water.
+          if (qg(i,j,1) > thresq) then
+            if (tcel(i,j,1) >= t0cel) then
+              mlgr(i,j,1) = max((cmlxr1 * vntg(i,j,1) &
+                   + cmlxr2 * (clcg(i,j,1) + clrg(i,j,1))) / lf(i,j,1), 0.0e0)
+            else
+              mlgr(i,j,1) = 0.0e0
+            end if
+          else
+            mlgr(i,j,1) = 0.0e0
+          end if
+
+        end do
+      end do
+      !$acc end kernels
+
+    ! In the case nk > 1.
+    else
+
+      !$acc kernels
+      !$acc loop independent collapse(3) private(cmlxr1,cmlxr2)
+      do k = 1, nk-1
+        do j = 1, nj-1
+          do i = 1, ni-1
+
+            ! Set the common used variables.
+            cmlxr1 = cc2dt * rbv(i,j,k) * (kp(i,j,k) * tcel(i,j,k) &
+                 + lv(i,j,k) * dv(i,j,k) * rbr(i,j,k) * qvsst0(i,j,k))
+            cmlxr2 = cw * tcel(i,j,k)
+
+            ! Calculate the melting rate from the cloud ice to the cloud water.
+            if (qi(i,j,k) > thresq) then
+              if (tcel(i,j,k) >= t0cel) then
+                mlic(i,j,k) = qi(i,j,k)
+              else
+                mlic(i,j,k) = 0.0e0
+              end if
+            else
+              mlic(i,j,k) = 0.0e0
+            end if
+
+            ! Calculate the melting rate from the snow to the rain water.
+            if (qs(i,j,k) > thresq) then
+              if (tcel(i,j,k) >= t0cel) then
+                mlsr(i,j,k) = max((cmlxr1 * vnts(i,j,k) &
+                     + cmlxr2 * (clcs(i,j,k) + clrs(i,j,k))) / lf(i,j,k), 0.0e0)
+              else
+                mlsr(i,j,k) = 0.0e0
+              end if
+            else
+              mlsr(i,j,k) = 0.0e0
+            end if
+
+            ! Calculate the melting rate from the graupel to the rain water.
+            if (qg(i,j,k) > thresq) then
+              if (tcel(i,j,k) >= t0cel) then
+                mlgr(i,j,k) = max((cmlxr1 * vntg(i,j,k) &
+                     + cmlxr2 * (clcg(i,j,k) + clrg(i,j,k))) / lf(i,j,k), 0.0e0)
+              else
+                mlgr(i,j,k) = 0.0e0
+              end if
+            else
+              mlgr(i,j,k) = 0.0e0
+            end if
+
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !! In the case nk = 1.
@@ -447,6 +564,7 @@ end if
 !! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_melting == DUMP_TARGET_melting .and. .not. dump_done_melting) then

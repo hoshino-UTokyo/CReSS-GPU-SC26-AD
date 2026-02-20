@@ -181,6 +181,40 @@ if (dump_call_count_buoytke == DUMP_TARGET_buoytke .and. .not. dump_done_buoytke
   call dump_array_3d('tmp1_in.bin', tmp1, 0, ni+1, 0, nj+1, 1, nk)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_043)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    !$acc kernels
+    do k = 2, nk-1
+      !$acc loop independent
+      do j = 2, nj-2
+        !$acc loop independent
+        do i = 2, ni-2
+          tmp1(i,j,k) = jcb8w(i,j,k) * nsq8w(i,j,k) &
+                        * (rkv8s(i,j,k-1) + rkv8s(i,j,k))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    ! Second pass: update tkefrc using tmp1
+    !$acc kernels
+    do k = 2, nk-2
+      !$acc loop independent
+      do j = 2, nj-2
+        !$acc loop independent
+        do i = 2, ni-2
+          tkefrc(i,j,k) = tkefrc(i,j,k) - (tmp1(i,j,k) + tmp1(i,j,k+1))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
         do k=2,nk-1
@@ -213,6 +247,7 @@ end if
         end do
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_buoytke == DUMP_TARGET_buoytke .and. .not. dump_done_buoytke) then

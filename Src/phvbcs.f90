@@ -402,6 +402,438 @@ if (dump_call_count_phvbcs == DUMP_TARGET_phvbcs .and. .not. dump_done_phvbcs) t
   call dump_scalar_r('nkm3v', nkm3v)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_094)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    ! West boundary (wbc)
+    if (ebw == 1 .and. isub == 0) then
+      if (wbc == 4 .or. wbc == 5) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent private(bc0, bc1, bc2)
+          do j = 1, nj-1
+            bc0 = sp(2,j,k) - (sgpv(2,j,k) + std(2,j,k)*gtinc0)
+            bc1 = s(3,j,k) - (sgpv(3,j,k) + std(3,j,k)*gtinc1)
+            bc2 = sf(2,j,k) - (sgpv(2,j,k) + std(2,j,k)*gtinc2)
+            scpx(j,k,1) = bc2 + bc0 - 2.0*bc1
+            if (abs(scpx(j,k,1)) < eps) then
+              scpx(j,k,1) = sign(eps, scpx(j,k,1))
+            end if
+            scpx(j,k,1) = min((bc2-bc0)/scpx(j,k,1), gdxdtn)
+          end do
+        end do
+        !$acc end kernels
+
+        if (wbc == 5) then
+          !$acc kernels
+          !$acc loop independent
+          do j = 1, nj-1
+            cpavex(j) = 0.0
+          end do
+          !$acc end kernels
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 1, nj-1
+              !$acc atomic
+              cpavex(j) = cpavex(j) + scpx(j,k,1)*nkm3v
+            end do
+          end do
+          !$acc end kernels
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 1, nj-1
+              scpx(j,k,1) = cpavex(j)
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+      else if (wbc == 6) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 1, nj-1
+            scpx(j,k,1) = min(u(2,j,k)*dxdt, gdxdtn)
+          end do
+        end do
+        !$acc end kernels
+
+      else if (wbc >= 7) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 1, nj-1
+            scpx(j,k,1) = gdxdtn
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+      if (mfcopt == 1 .and. mpopt /= 5) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 1, nj-1
+            scpx(j,k,1) = max(scpx(j,k,1), -rmf(2,j,2))
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 1, nj-1
+            scpx(j,k,1) = max(scpx(j,k,1), -1.0)
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+      if (advopt >= 4) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 1, nj-1
+            scpx(j,k,1) = scpx(j,k,1)*dtdvb
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+    ! East boundary (ebc)
+    if (ebe == 1 .and. isub == nisub-1) then
+      if (ebc == 4 .or. ebc == 5) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent private(bc0, bc1, bc2)
+          do j = 1, nj-1
+            bc0 = sp(nim2,j,k) - (sgpv(nim2,j,k) + std(nim2,j,k)*gtinc0)
+            bc1 = s(nim3,j,k) - (sgpv(nim3,j,k) + std(nim3,j,k)*gtinc1)
+            bc2 = sf(nim2,j,k) - (sgpv(nim2,j,k) + std(nim2,j,k)*gtinc2)
+            scpx(j,k,2) = 2.0*bc1 - bc2 - bc0
+            if (abs(scpx(j,k,2)) < eps) then
+              scpx(j,k,2) = sign(eps, scpx(j,k,2))
+            end if
+            scpx(j,k,2) = max((bc2-bc0)/scpx(j,k,2), gdxdt)
+          end do
+        end do
+        !$acc end kernels
+
+        if (ebc == 5) then
+          !$acc kernels
+          !$acc loop independent
+          do j = 1, nj-1
+            cpavex(j) = 0.0
+          end do
+          !$acc end kernels
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 1, nj-1
+              !$acc atomic
+              cpavex(j) = cpavex(j) + scpx(j,k,2)*nkm3v
+            end do
+          end do
+          !$acc end kernels
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 1, nj-1
+              scpx(j,k,2) = cpavex(j)
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+      else if (ebc == 6) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 1, nj-1
+            scpx(j,k,2) = max(u(nim1,j,k)*dxdt, gdxdt)
+          end do
+        end do
+        !$acc end kernels
+
+      else if (ebc >= 7) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 1, nj-1
+            scpx(j,k,2) = gdxdt
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+      if (mfcopt == 1 .and. mpopt /= 5) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 1, nj-1
+            scpx(j,k,2) = min(scpx(j,k,2), rmf(nim2,j,2))
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 1, nj-1
+            scpx(j,k,2) = min(scpx(j,k,2), 1.0)
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+      if (advopt >= 4) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 1, nj-1
+            scpx(j,k,2) = scpx(j,k,2)*dtdvb
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+    ! South boundary (sbc)
+    if (ebs == 1 .and. jsub == 0) then
+      if (sbc == 4 .or. sbc == 5) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent private(bc0, bc1, bc2)
+          do i = 1, ni-1
+            bc0 = sp(i,2,k) - (sgpv(i,2,k) + std(i,2,k)*gtinc0)
+            bc1 = s(i,3,k) - (sgpv(i,3,k) + std(i,3,k)*gtinc1)
+            bc2 = sf(i,2,k) - (sgpv(i,2,k) + std(i,2,k)*gtinc2)
+            scpy(i,k,1) = bc2 + bc0 - 2.0*bc1
+            if (abs(scpy(i,k,1)) < eps) then
+              scpy(i,k,1) = sign(eps, scpy(i,k,1))
+            end if
+            scpy(i,k,1) = min((bc2-bc0)/scpy(i,k,1), gdydtn)
+          end do
+        end do
+        !$acc end kernels
+
+        if (sbc == 5) then
+          !$acc kernels
+          !$acc loop independent
+          do i = 1, ni-1
+            cpavey(i) = 0.0
+          end do
+          !$acc end kernels
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do i = 1, ni-1
+              !$acc atomic
+              cpavey(i) = cpavey(i) + scpy(i,k,1)*nkm3v
+            end do
+          end do
+          !$acc end kernels
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do i = 1, ni-1
+              scpy(i,k,1) = cpavey(i)
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+      else if (sbc == 6) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 1, ni-1
+            scpy(i,k,1) = min(v(i,2,k)*dydt, gdydtn)
+          end do
+        end do
+        !$acc end kernels
+
+      else if (sbc >= 7) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 1, ni-1
+            scpy(i,k,1) = gdydtn
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+      if (mfcopt == 1 .and. (mpopt /= 0 .and. mpopt /= 10)) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 1, ni-1
+            scpy(i,k,1) = max(scpy(i,k,1), -rmf(i,2,2))
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 1, ni-1
+            scpy(i,k,1) = max(scpy(i,k,1), -1.0)
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+      if (advopt >= 4) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 1, ni-1
+            scpy(i,k,1) = scpy(i,k,1)*dtdvb
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+    ! North boundary (nbc)
+    if (ebn == 1 .and. jsub == njsub-1) then
+      if (nbc == 4 .or. nbc == 5) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent private(bc0, bc1, bc2)
+          do i = 1, ni-1
+            bc0 = sp(i,njm2,k) - (sgpv(i,njm2,k) + std(i,njm2,k)*gtinc0)
+            bc1 = s(i,njm3,k) - (sgpv(i,njm3,k) + std(i,njm3,k)*gtinc1)
+            bc2 = sf(i,njm2,k) - (sgpv(i,njm2,k) + std(i,njm2,k)*gtinc2)
+            scpy(i,k,2) = 2.0*bc1 - bc2 - bc0
+            if (abs(scpy(i,k,2)) < eps) then
+              scpy(i,k,2) = sign(eps, scpy(i,k,2))
+            end if
+            scpy(i,k,2) = max((bc2-bc0)/scpy(i,k,2), gdydt)
+          end do
+        end do
+        !$acc end kernels
+
+        if (nbc == 5) then
+          !$acc kernels
+          !$acc loop independent
+          do i = 1, ni-1
+            cpavey(i) = 0.0
+          end do
+          !$acc end kernels
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do i = 1, ni-1
+              !$acc atomic
+              cpavey(i) = cpavey(i) + scpy(i,k,2)*nkm3v
+            end do
+          end do
+          !$acc end kernels
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do i = 1, ni-1
+              scpy(i,k,2) = cpavey(i)
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+      else if (nbc == 6) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 1, ni-1
+            scpy(i,k,2) = max(v(i,njm1,k)*dydt, gdydt)
+          end do
+        end do
+        !$acc end kernels
+
+      else if (nbc >= 7) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 1, ni-1
+            scpy(i,k,2) = gdydt
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+      if (mfcopt == 1 .and. (mpopt /= 0 .and. mpopt /= 10)) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 1, ni-1
+            scpy(i,k,2) = min(scpy(i,k,2), rmf(i,njm2,2))
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 1, ni-1
+            scpy(i,k,2) = min(scpy(i,k,2), 1.0)
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+      if (advopt >= 4) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 1, ni-1
+            scpy(i,k,2) = scpy(i,k,2)*dtdvb
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Calculate the differential phase speed term for optional scalar
@@ -1069,6 +1501,7 @@ end if
 ! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_phvbcs == DUMP_TARGET_phvbcs .and. .not. dump_done_phvbcs) then

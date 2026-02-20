@@ -206,6 +206,27 @@ if (dump_call_count_baserho == DUMP_TARGET_baserho .and. .not. dump_done_baserho
   call dump_array_3d('rbr.bin', rbr, 0, ni+1, 0, nj+1, 1, nk)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_024)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    !$acc kernels
+    !$acc loop independent
+    do k = 1, nk-1
+      !$acc loop independent
+      do j = 0, nj
+        !$acc loop independent
+        do i = 0, ni
+          rst(i,j,k) = abs(jcb(i,j,k)) * rbr(i,j,k)
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1
@@ -223,6 +244,7 @@ end if
       end do
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_baserho == DUMP_TARGET_baserho .and. .not. dump_done_baserho) then

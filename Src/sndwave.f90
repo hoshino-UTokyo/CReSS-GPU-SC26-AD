@@ -165,6 +165,24 @@ if (dump_call_count_sndwave == DUMP_TARGET_sndwave .and. .not. dump_done_sndwave
   call dump_scalar_r('cpdvcv', cpdvcv)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_305)
+! GPU version (OpenACC)
+
+    !$acc kernels
+    do k = 1, nk-1
+      !$acc loop independent
+      do j = 1, nj-1
+        !$acc loop independent
+        do i = 1, ni-1
+          rcsq(i,j,k) = cpdvcv * pbr(i,j,k)
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+#else
+! CPU version (OpenMP) - Original code preserved
+
 !$omp parallel default(shared) private(k)
 
       do k=1,nk-1
@@ -182,6 +200,7 @@ end if
       end do
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_sndwave == DUMP_TARGET_sndwave .and. .not. dump_done_sndwave) then

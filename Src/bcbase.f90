@@ -241,6 +241,88 @@ if (dump_call_count_bcbase == DUMP_TARGET_bcbase .and. .not. dump_done_bcbase) t
   call dump_array_3d('ptvbr_in.bin', ptvbr, 0, ni+1, 0, nj+1, 1, nk)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_031)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    !$acc kernels
+    !$acc loop independent collapse(2)
+    do j = 0, nj
+      do i = 1, ni
+        ubr(i,j,1) = ubr(i,j,2)
+        ubr(i,j,nkm1) = ubr(i,j,nkm2)
+      end do
+    end do
+    !$acc end kernels
+
+    !$acc kernels
+    !$acc loop independent collapse(2)
+    do j = 1, nj
+      do i = 0, ni
+        vbr(i,j,1) = vbr(i,j,2)
+        vbr(i,j,nkm1) = vbr(i,j,nkm2)
+      end do
+    end do
+    !$acc end kernels
+
+    ! Set the bottom and the top boundary conditions for the base state
+    ! potential temperature and water vapor mixing ratio.
+    !$acc kernels
+    !$acc loop independent collapse(2)
+    do j = 0, nj
+      do i = 0, ni
+        ptbr(i,j,1) = ptbr(i,j,2)
+        ptbr(i,j,nkm1) = ptbr(i,j,nkm2)
+        qvbr(i,j,1) = qvbr(i,j,2)
+        qvbr(i,j,nkm1) = qvbr(i,j,nkm2)
+      end do
+    end do
+    !$acc end kernels
+
+    ! Set the bottom and the top boundary conditions for the base state
+    ! virtual potential temperature.
+    !$acc kernels
+    !$acc loop independent collapse(2)
+    do j = 0, nj
+      do i = 0, ni
+        ptvbr(i,j,1) = ptvbr(i,j,2)
+        ptvbr(i,j,nkm1) = ptvbr(i,j,nkm2)
+      end do
+    end do
+    !$acc end kernels
+
+    ! Set the bottom and the top boundary conditions for the base state
+    ! Exner function.
+    !$acc kernels
+    !$acc loop independent collapse(2)
+    do j = 0, nj
+      do i = 0, ni
+        pibr(i,j,1) = pibr(i,j,2) &
+          + gdvcp2 * (zph8s(i,j,2) - zph8s(i,j,1)) / (ptvbr(i,j,1) + ptvbr(i,j,2))
+        pibr(i,j,nkm1) = pibr(i,j,nkm2) &
+          - gdvcp2 * (zph8s(i,j,nkm1) - zph8s(i,j,nkm2)) / (ptvbr(i,j,nkm2) + ptvbr(i,j,nkm1))
+      end do
+    end do
+    !$acc end kernels
+
+    ! Set the bottom and the top boundary conditions for the base state
+    ! pressure and the base state density.
+    !$acc kernels
+    !$acc loop independent collapse(2)
+    do j = 0, nj
+      do i = 0, ni
+        pbr(i,j,1) = p0 * exp(cpdvrd * log(pibr(i,j,1)))
+        pbr(i,j,nkm1) = p0 * exp(cpdvrd * log(pibr(i,j,nkm1)))
+        rbr(i,j,1) = pbr(i,j,1) / (rd * ptvbr(i,j,1) * pibr(i,j,1))
+        rbr(i,j,nkm1) = pbr(i,j,nkm1) / (rd * ptvbr(i,j,nkm1) * pibr(i,j,nkm1))
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Set the bottom and the top boundary conditions for the base state
@@ -347,6 +429,7 @@ end if
 ! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_bcbase == DUMP_TARGET_bcbase .and. .not. dump_done_bcbase) then

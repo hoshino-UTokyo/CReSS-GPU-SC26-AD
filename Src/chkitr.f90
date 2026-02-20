@@ -198,6 +198,28 @@ if (dump_call_count_chkitr == DUMP_TARGET_chkitr .and. .not. dump_done_chkitr) t
   call dump_array_3d('dvar.bin', dvar, 0, ni+1, 0, nj+1, 1, nk)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_050)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+    !$acc kernels
+    !$acc loop reduction(max: intitc)
+    do k = kstr, kend
+      !$acc loop reduction(max: intitc)
+      do j = jstr, jend
+        !$acc loop reduction(max: intitc)
+        do i = istr, iend
+          intitc = max(abs(dvar(i,j,k)), intitc)
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j,k) reduction(max: intitc)
@@ -213,6 +235,7 @@ end if
 !$omp end do
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_chkitr == DUMP_TARGET_chkitr .and. .not. dump_done_chkitr) then

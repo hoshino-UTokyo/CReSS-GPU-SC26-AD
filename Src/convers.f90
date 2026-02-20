@@ -303,6 +303,439 @@ if (dump_call_count_convers == DUMP_TARGET_convers .and. .not. dump_done_convers
   call dump_scalar_r('qccm', qccm)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_063)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+!!!! In the case nk = 1.
+
+      if(nk.eq.1) then
+
+!!! Perform calculating in the case the option abs(cphopt) is equal
+!!! to 2.
+
+        if(abs(cphopt).eq.2) then
+
+        !$acc kernels
+        !$acc loop independent
+          do j=1,nj-1
+          !$acc loop independent private(qcm)
+          do i=1,ni-1
+
+            if(qc(i,j,1).gt.thresq) then
+
+              qcm=qccm*ncc(i,j,1)
+
+              if(t(i,j,1).gt.tlow.and.qc(i,j,1).ge.qcm) then
+
+                cncr(i,j,1)=ccncr*rbr(i,j,1)*exp(-oned3*log(ncc(i,j,1)))&
+     &            *exp(sevnd3*log(qc(i,j,1)))/mu(i,j,1)
+
+              else
+
+                cncr(i,j,1)=0.e0
+
+              end if
+
+            else
+
+              cncr(i,j,1)=0.e0
+
+            end if
+
+            if(t(i,j,1).lt.t0) then
+
+              if(qi(i,j,1).gt.thresq) then
+
+                cnis(i,j,1)=rbr(i,j,1)*exp(oned3*log(cagin*rbv(i,j,1))) &
+     &            *qi(i,j,1)*qi(i,j,1)/log(diaqs0/diaqi(i,j,1))
+
+                if(vdvi(i,j,1).ge.0.e0) then
+
+                  if(mi(i,j,1).lt.ms05) then
+
+                    cnis(i,j,1)=cnis(i,j,1)                             &
+     &                +mi(i,j,1)/(ms0-mi(i,j,1))*vdvi(i,j,1)
+
+                  else
+
+                    cnis(i,j,1)=cnis(i,j,1)                             &
+     &                +(vdvi(i,j,1)+(1.e0-ms05/mi(i,j,1))*qi(i,j,1))
+
+                  end if
+
+                end if
+
+                cnis(i,j,1)=min(cnis(i,j,1),qi(i,j,1))
+
+              else
+
+                cnis(i,j,1)=0.e0
+
+              end if
+
+              if(qs(i,j,1).gt.thresq) then
+
+                if(vdvs(i,j,1).gt.0.e0                                  &
+     &            .and.vdvs(i,j,1).lt.clcs(i,j,1)) then
+
+                  cnsg(i,j,1)=min(ccnsg*clcs(i,j,1),qs(i,j,1))
+
+                else
+
+                  cnsg(i,j,1)=0.e0
+
+                end if
+
+              else
+
+                cnsg(i,j,1)=0.e0
+
+              end if
+
+            else
+
+              cnis(i,j,1)=0.e0
+              cnsg(i,j,1)=0.e0
+
+            end if
+
+          end do
+          end do
+        !$acc end kernels
+
+!!! -----
+
+!!! Perform calculating in the case the option abs(cphopt) is greater
+!!! than 2.
+
+        else if(abs(cphopt).ge.3) then
+
+        !$acc kernels
+        !$acc loop independent
+          do j=1,nj-1
+          !$acc loop independent private(qcm)
+          do i=1,ni-1
+
+            if(qc(i,j,1).gt.thresq) then
+
+              qcm=qccm*ncc(i,j,1)
+
+              if(t(i,j,1).gt.tlow.and.qc(i,j,1).ge.qcm) then
+
+                cncr(i,j,1)=ccncr*rbr(i,j,1)*exp(-oned3*log(ncc(i,j,1)))&
+     &            *exp(sevnd3*log(qc(i,j,1)))/mu(i,j,1)
+
+              else
+
+                cncr(i,j,1)=0.e0
+
+              end if
+
+            else
+
+              cncr(i,j,1)=0.e0
+
+            end if
+
+            if(t(i,j,1).lt.t0) then
+
+              if(qi(i,j,1).gt.thresq) then
+
+                cnis(i,j,1)=rbr(i,j,1)*exp(oned3*log(cagin*rbv(i,j,1))) &
+     &            *qi(i,j,1)*qi(i,j,1)/log(diaqs0/diaqi(i,j,1))
+
+                if(vdvi(i,j,1).ge.0.e0) then
+
+                  if(mi(i,j,1).lt.ms05) then
+
+                    cnis(i,j,1)=cnis(i,j,1)                             &
+     &                +mi(i,j,1)/(ms0-mi(i,j,1))*vdvi(i,j,1)
+
+                  else
+
+                    cnis(i,j,1)=cnis(i,j,1)                             &
+     &                +(vdvi(i,j,1)+(1.e0-ms05/mi(i,j,1))*qi(i,j,1))
+
+                  end if
+
+                end if
+
+                cnis(i,j,1)=min(cnis(i,j,1),qi(i,j,1))
+
+              else
+
+                cnis(i,j,1)=0.e0
+
+              end if
+
+              if(qs(i,j,1).gt.thresq) then
+
+                if(vdvs(i,j,1).gt.0.e0                                  &
+     &            .and.vdvs(i,j,1).lt.clcs(i,j,1)) then
+
+                  cnsg(i,j,1)=min(ccnsg*clcs(i,j,1),qs(i,j,1))
+
+                  cnsgn(i,j,1)=min(ccnsgn*ecs(i,j,1)                    &
+     &              *qc(i,j,1)*ncs(i,j,1)*sqrt(rbr(i,j,1))              &
+     &              *exp(busm1*log(diaqs(i,j,1))),ncs(i,j,1))
+
+                else
+
+                  cnsg(i,j,1)=0.e0
+                  cnsgn(i,j,1)=0.e0
+
+                end if
+
+              else
+
+                cnsg(i,j,1)=0.e0
+                cnsgn(i,j,1)=0.e0
+
+              end if
+
+            else
+
+              cnis(i,j,1)=0.e0
+
+              cnsg(i,j,1)=0.e0
+              cnsgn(i,j,1)=0.e0
+
+            end if
+
+          end do
+          end do
+        !$acc end kernels
+
+        end if
+
+!!! -----
+
+!!!! -----
+
+!!!! In the case nk > 1.
+
+      else
+
+!!! Perform calculating in the case the option abs(cphopt) is equal
+!!! to 2.
+
+        if(abs(cphopt).eq.2) then
+
+        !$acc kernels
+        !$acc loop independent
+          do k=1,nk-1
+          !$acc loop independent
+            do j=1,nj-1
+            !$acc loop independent private(qcm)
+            do i=1,ni-1
+
+              if(qc(i,j,k).gt.thresq) then
+
+                qcm=qccm*ncc(i,j,k)
+
+                if(t(i,j,k).gt.tlow.and.qc(i,j,k).ge.qcm) then
+
+                  cncr(i,j,k)=ccncr*rbr(i,j,k)                          &
+     &              *exp(-oned3*log(ncc(i,j,k)))                        &
+     &              *exp(sevnd3*log(qc(i,j,k)))/mu(i,j,k)
+
+                else
+
+                  cncr(i,j,k)=0.e0
+
+                end if
+
+              else
+
+                cncr(i,j,k)=0.e0
+
+              end if
+
+              if(t(i,j,k).lt.t0) then
+
+                if(qi(i,j,k).gt.thresq) then
+
+                  cnis(i,j,k)=rbr(i,j,k)                                &
+     &              *exp(oned3*log(cagin*rbv(i,j,k)))                   &
+     &              *qi(i,j,k)*qi(i,j,k)/log(diaqs0/diaqi(i,j,k))
+
+                  if(vdvi(i,j,k).ge.0.e0) then
+
+                    if(mi(i,j,k).lt.ms05) then
+
+                      cnis(i,j,k)=cnis(i,j,k)                           &
+     &                  +mi(i,j,k)/(ms0-mi(i,j,k))*vdvi(i,j,k)
+
+                    else
+
+                      cnis(i,j,k)=cnis(i,j,k)                           &
+     &                  +(vdvi(i,j,k)+(1.e0-ms05/mi(i,j,k))*qi(i,j,k))
+
+                    end if
+
+                  end if
+
+                  cnis(i,j,k)=min(cnis(i,j,k),qi(i,j,k))
+
+                else
+
+                  cnis(i,j,k)=0.e0
+
+                end if
+
+                if(qs(i,j,k).gt.thresq) then
+
+                  if(vdvs(i,j,k).gt.0.e0                                &
+     &              .and.vdvs(i,j,k).lt.clcs(i,j,k)) then
+
+                    cnsg(i,j,k)=min(ccnsg*clcs(i,j,k),qs(i,j,k))
+
+                  else
+
+                    cnsg(i,j,k)=0.e0
+
+                  end if
+
+                else
+
+                  cnsg(i,j,k)=0.e0
+
+                end if
+
+              else
+
+                cnis(i,j,k)=0.e0
+                cnsg(i,j,k)=0.e0
+
+              end if
+
+            end do
+            end do
+          end do
+        !$acc end kernels
+
+!!! -----
+
+!!! Perform calculating in the case the option abs(cphopt) is greater
+!!! than 2.
+
+        else if(abs(cphopt).ge.3) then
+
+        !$acc kernels
+        !$acc loop independent
+          do k=1,nk-1
+          !$acc loop independent
+            do j=1,nj-1
+            !$acc loop independent private(qcm)
+            do i=1,ni-1
+
+              if(qc(i,j,k).gt.thresq) then
+
+                qcm=qccm*ncc(i,j,k)
+
+                if(t(i,j,k).gt.tlow.and.qc(i,j,k).ge.qcm) then
+
+                  cncr(i,j,k)=ccncr*rbr(i,j,k)                          &
+     &              *exp(-oned3*log(ncc(i,j,k)))                        &
+     &              *exp(sevnd3*log(qc(i,j,k)))/mu(i,j,k)
+
+                else
+
+                  cncr(i,j,k)=0.e0
+
+                end if
+
+              else
+
+                cncr(i,j,k)=0.e0
+
+              end if
+
+              if(t(i,j,k).lt.t0) then
+
+                if(qi(i,j,k).gt.thresq) then
+
+                  cnis(i,j,k)=rbr(i,j,k)                                &
+     &              *exp(oned3*log(cagin*rbv(i,j,k)))                   &
+     &              *qi(i,j,k)*qi(i,j,k)/log(diaqs0/diaqi(i,j,k))
+
+                  if(vdvi(i,j,k).ge.0.e0) then
+
+                    if(mi(i,j,k).lt.ms05) then
+
+                      cnis(i,j,k)=cnis(i,j,k)                           &
+     &                  +mi(i,j,k)/(ms0-mi(i,j,k))*vdvi(i,j,k)
+
+                    else
+
+                      cnis(i,j,k)=cnis(i,j,k)                           &
+     &                  +(vdvi(i,j,k)+(1.e0-ms05/mi(i,j,k))*qi(i,j,k))
+
+                    end if
+
+                  end if
+
+                  cnis(i,j,k)=min(cnis(i,j,k),qi(i,j,k))
+
+                else
+
+                  cnis(i,j,k)=0.e0
+
+                end if
+
+                if(qs(i,j,k).gt.thresq) then
+
+                  if(vdvs(i,j,k).gt.0.e0                                &
+     &              .and.vdvs(i,j,k).lt.clcs(i,j,k)) then
+
+                    cnsg(i,j,k)=min(ccnsg*clcs(i,j,k),qs(i,j,k))
+
+                    cnsgn(i,j,k)=min(ccnsgn*ecs(i,j,k)                  &
+     &                *qc(i,j,k)*ncs(i,j,k)*sqrt(rbr(i,j,k))            &
+     &                *exp(busm1*log(diaqs(i,j,k))),ncs(i,j,k))
+
+                  else
+
+                    cnsg(i,j,k)=0.e0
+                    cnsgn(i,j,k)=0.e0
+
+                  end if
+
+                else
+
+                  cnsg(i,j,k)=0.e0
+                  cnsgn(i,j,k)=0.e0
+
+                end if
+
+              else
+
+                cnis(i,j,k)=0.e0
+
+                cnsg(i,j,k)=0.e0
+                cnsgn(i,j,k)=0.e0
+
+              end if
+
+            end do
+            end do
+          end do
+        !$acc end kernels
+
+        end if
+
+!!! -----
+
+      end if
+
+!!!! -----
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !!!! In the case nk = 1.
@@ -820,6 +1253,7 @@ end if
 !!!! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_convers == DUMP_TARGET_convers .and. .not. dump_done_convers) then

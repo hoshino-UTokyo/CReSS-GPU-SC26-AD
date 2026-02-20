@@ -211,6 +211,43 @@ end if
 
 call profile_start(prof_id1)
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_012)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (fproc(1:4) == 'back') then
+
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 2, nk-2
+        do j = 2, nj-2
+          do i = 2, ni-2
+            fp(i,j,k) = pfrc(i,j,k) + phdiv(i,j,k) &
+                 + weic1m * (g05 * (w(i,j,k) + w(i,j,k+1)) * rst(i,j,k) + pvdiv(i,j,k))
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+    else if (fproc(1:4) == 'fore') then
+
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 2, nk-2
+        do j = 2, nj-2
+          do i = 2, ni-2
+            fp(i,j,k) = fp(i,j,k) &
+                 + weicoe * (g05 * (w(i,j,k) + w(i,j,k+1)) * rst(i,j,k) + pvdiv(i,j,k))
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+    end if
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       if(fproc(1:4).eq.'back') then
@@ -250,6 +287,7 @@ call profile_start(prof_id1)
       end if
 
 !$omp end parallel
+#endif
 
 call profile_stop(prof_id1, loop_len)
 

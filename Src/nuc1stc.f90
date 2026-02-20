@@ -258,6 +258,120 @@ if (dump_call_count_nuc1stc == DUMP_TARGET_nuc1stc .and. .not. dump_done_nuc1stc
   call dump_scalar_r('rwdt2', rwdt2)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_212)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (nk == 1) then
+      !$acc kernels
+      !$acc loop independent
+      do j = 1, nj-1
+        !$acc loop independent private(tc, piv, knd, dar, f1, f2, ft, nufci, nucci, nuhci)
+        do i = 1, ni-1
+          if (qc(i,j,1) > thresq) then
+            ! Condensation nucleation
+            if (t(i,j,1) > tlow .and. t(i,j,1) < t0) then
+              nufci = min(rwdt2 * (exp(-0.66 * tcel(i,j,1)) - 1.0) &
+                        * qc(i,j,1) * qc(i,j,1) / ncc(i,j,1), qc(i,j,1))
+            else
+              nufci = 0.0
+            end if
+
+            ! Contact nucleation
+            tc = t(i,j,1)
+            if (tc > tlow .and. tc < 270.16) then
+              piv = 1.0 / p(i,j,1)
+              knd = cknd * piv * t(i,j,1)
+              dar = cdar * tc * (1.0 + knd) / mu(i,j,1)
+              f1 = cc45 * exp(1.3 * log(270.16 - tc)) * diaqc(i,j,1)
+
+              if (tc < t(i,j,1)) then
+                f2 = kpa * piv * (t(i,j,1) - tc)
+                ft = (kp(i,j,1) + kpa25 * knd) &
+                   * (0.4 + 0.58 * knd + 0.16 * exp(-1.0 / knd)) &
+                   / ((1.0 + 3.0 * knd) * (2.0 * kp(i,j,1) + kpa50 * knd + kpa))
+                nucci = f1 * f2 * (rv * t(i,j,1) / lv(i,j,1) + ft)
+              else
+                nucci = 0.0
+              end if
+              nucci = (nucci + f1 * dar) * qc(i,j,1) * dtb
+            else
+              nucci = 0.0
+            end if
+
+            ! Homogeneous nucleation
+            if (t(i,j,1) <= tlow) then
+              nuhci = qc(i,j,1)
+            else
+              nuhci = 0.0
+            end if
+
+            ! Total nucleation rate
+            nuci(i,j,1) = nufci + nucci + nuhci
+          else
+            nuci(i,j,1) = 0.0
+          end if
+        end do
+      end do
+      !$acc end kernels
+
+    else
+      !$acc kernels
+      !$acc loop independent
+      do k = 1, nk-1
+        !$acc loop independent
+        do j = 1, nj-1
+          !$acc loop independent private(tc, piv, knd, dar, f1, f2, ft, nufci, nucci, nuhci)
+          do i = 1, ni-1
+            if (qc(i,j,k) > thresq) then
+              if (t(i,j,k) > tlow .and. t(i,j,k) < t0) then
+                nufci = min(rwdt2 * (exp(-0.66 * tcel(i,j,k)) - 1.0) &
+                          * qc(i,j,k) * qc(i,j,k) / ncc(i,j,k), qc(i,j,k))
+              else
+                nufci = 0.0
+              end if
+
+              tc = t(i,j,k)
+              if (tc > tlow .and. tc < 270.16) then
+                piv = 1.0 / p(i,j,k)
+                knd = cknd * piv * t(i,j,k)
+                dar = cdar * tc * (1.0 + knd) / mu(i,j,k)
+                f1 = cc45 * exp(1.3 * log(270.16 - tc)) * diaqc(i,j,k)
+
+                if (tc < t(i,j,k)) then
+                  f2 = kpa * piv * (t(i,j,k) - tc)
+                  ft = (kp(i,j,k) + kpa25 * knd) &
+                     * (0.4 + 0.58 * knd + 0.16 * exp(-1.0 / knd)) &
+                     / ((1.0 + 3.0 * knd) * (2.0 * kp(i,j,k) + kpa50 * knd + kpa))
+                  nucci = f1 * f2 * (rv * t(i,j,k) / lv(i,j,k) + ft)
+                else
+                  nucci = 0.0
+                end if
+                nucci = (nucci + f1 * dar) * qc(i,j,k) * dtb
+              else
+                nucci = 0.0
+              end if
+
+              if (t(i,j,k) <= tlow) then
+                nuhci = qc(i,j,k)
+              else
+                nuhci = 0.0
+              end if
+
+              nuci(i,j,k) = nufci + nucci + nuhci
+            else
+              nuci(i,j,k) = 0.0
+            end if
+          end do
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !!! In the case nk = 1.
@@ -487,6 +601,7 @@ end if
 !!! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_nuc1stc == DUMP_TARGET_nuc1stc .and. .not. dump_done_nuc1stc) then

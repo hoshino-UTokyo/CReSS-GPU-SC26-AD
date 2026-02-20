@@ -200,6 +200,86 @@ if (dump_call_count_bbcw == DUMP_TARGET_bbcw .and. .not. dump_done_bbcw) then
   call dump_array_2d('j32v2_in.bin', j32v2, 0, ni+1, 0, nj+1)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_025)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    !$acc kernels
+    !$acc loop independent
+    do j = 1, nj-1
+      !$acc loop independent
+      do i = 1, ni
+        j31u2(i,j) = (uf(i,j,1) + uf(i,j,2)) * j31(i,j,2)
+      end do
+    end do
+    !$acc end kernels
+
+    ! Compute j32v2
+    !$acc kernels
+    !$acc loop independent
+    do j = 1, nj
+      !$acc loop independent
+      do i = 1, ni-1
+        j32v2(i,j) = (vf(i,j,1) + vf(i,j,2)) * j32(i,j,2)
+      end do
+    end do
+    !$acc end kernels
+
+    ! Compute wf based on mfcopt and mpopt
+    if (mfcopt == 0) then
+      !$acc kernels
+      !$acc loop independent
+      do j = 2, nj-2
+        !$acc loop independent
+        do i = 2, ni-2
+          wf(i,j,3) = wf(i,j,3) + 0.25e0 * aa(i,j,3) &
+               * ((j31u2(i,j) + j31u2(i+1,j)) + (j32v2(i,j) + j32v2(i,j+1)))
+        end do
+      end do
+      !$acc end kernels
+    else
+      if (mpopt == 0 .or. mpopt == 10) then
+        !$acc kernels
+        !$acc loop independent
+        do j = 2, nj-2
+          !$acc loop independent
+          do i = 2, ni-2
+            wf(i,j,3) = wf(i,j,3) &
+                 + 0.25e0 * aa(i,j,3) * (mf(i,j) * (j31u2(i,j) + j31u2(i+1,j)) &
+                 + (j32v2(i,j) + j32v2(i,j+1)))
+          end do
+        end do
+        !$acc end kernels
+      else if (mpopt == 5) then
+        !$acc kernels
+        !$acc loop independent
+        do j = 2, nj-2
+          !$acc loop independent
+          do i = 2, ni-2
+            wf(i,j,3) = wf(i,j,3) &
+                 + 0.25e0 * aa(i,j,3) * ((j31u2(i,j) + j31u2(i+1,j)) &
+                 + mf(i,j) * (j32v2(i,j) + j32v2(i,j+1)))
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        !$acc loop independent
+        do j = 2, nj-2
+          !$acc loop independent
+          do i = 2, ni-2
+            wf(i,j,3) = wf(i,j,3) + 0.25e0 * mf(i,j) * aa(i,j,3) &
+                 * ((j31u2(i,j) + j31u2(i+1,j)) + (j32v2(i,j) + j32v2(i,j+1)))
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j)
@@ -283,6 +363,7 @@ end if
       end if
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_bbcw == DUMP_TARGET_bbcw .and. .not. dump_done_bbcw) then

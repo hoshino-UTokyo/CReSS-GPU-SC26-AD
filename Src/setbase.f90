@@ -213,6 +213,42 @@ if (dump_call_count_setbase == DUMP_TARGET_setbase .and. .not. dump_done_setbase
   call dump_scalar_r('rddvcp', rddvcp)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_278)
+! GPU version (OpenACC)
+
+    ! Calculate z physical coordinates at scalar points
+    !$acc kernels
+    !$acc loop independent
+    do k = 1, nk-1
+      !$acc loop independent
+      do j = 0, nj
+        !$acc loop independent
+        do i = 0, ni
+          zph8s(i,j,k) = 0.5e0 * (zph(i,j,k+1) + zph(i,j,k))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    ! Get base state Exner function and density
+    !$acc kernels
+    !$acc loop independent
+    do k = 2, nk-2
+      !$acc loop independent
+      do j = 0, nj
+        !$acc loop independent
+        do i = 0, ni
+          ptvbr(i,j,k) = ptbr(i,j,k) * (1.e0 + epsav * qvbr(i,j,k)) / (1.e0 + qvbr(i,j,k))
+          pibr(i,j,k) = exp(rddvcp * log(p0iv * pbr(i,j,k)))
+          rbr(i,j,k) = pbr(i,j,k) / (rd * ptvbr(i,j,k) * pibr(i,j,k))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+#else
+! CPU version (OpenMP) - Original code preserved
+
 !$omp parallel default(shared) private(k)
 
 ! Calculate the z physical coordinates at the scalar, u and v points.
@@ -258,6 +294,7 @@ end if
 ! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_setbase == DUMP_TARGET_setbase .and. .not. dump_done_setbase) then

@@ -283,6 +283,39 @@ if (dump_call_count_outmxn == DUMP_TARGET_outmxn .and. .not. dump_done_outmxn) t
   call dump_scalar_r('mineps', mineps)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_218)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+    ! Initialize reduction variables
+    maxvl = lim36n
+    minvl = lim36
+    maxeps = lim36n
+    mineps = lim36
+
+    !$acc kernels
+    !$acc loop reduction(max:maxvl,maxeps) reduction(min:minvl,mineps)
+    do k = kstr, kend
+      !$acc loop reduction(max:maxvl,maxeps) reduction(min:minvl,mineps)
+      do j = jstr, jend
+        !$acc loop reduction(max:maxvl,maxeps) reduction(min:minvl,mineps)
+        do i = istr, iend
+          cvl = var(i,j,k) + sign(eps, var(i,j,k))
+
+          maxvl = max(var(i,j,k), maxvl)
+          minvl = min(var(i,j,k), minvl)
+
+          maxeps = max(cvl, maxeps)
+          mineps = min(cvl, mineps)
+        end do
+      end do
+    end do
+    !$acc end kernels
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j,k,cvl)                           &
@@ -307,6 +340,7 @@ end if
 !$omp end do
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_outmxn == DUMP_TARGET_outmxn .and. .not. dump_done_outmxn) then

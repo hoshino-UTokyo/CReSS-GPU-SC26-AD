@@ -365,6 +365,224 @@ if (dump_call_count_rbcq == DUMP_TARGET_rbcq .and. .not. dump_done_rbcq) then
   call dump_scalar_r('tpdt', tpdt)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_249)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+    ! Set the boundary conditions at the four corners
+    if (ebs == 1 .and. jsub == 0) then
+      if (advopt <= 3) then
+        if (ebw == 1 .and. isub == 0 .and. wbc >= 4 .and. sbc >= 4) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            radwe = (q(2,1,k) - qp(1,1,k)) * qcpx(1,k,1) / (1.0e0 - qcpx(1,k,1))
+            radsn = (q(1,2,k) - qp(1,1,k)) * qcpy(1,k,1) / (1.0e0 - qcpy(1,k,1))
+            qf(1,1,k) = qp(1,1,k) - 2.0e0 * (radwe + radsn) - dmpdt * qp(1,1,k)
+          end do
+          !$acc end kernels
+        end if
+
+        if (ebe == 1 .and. isub == nisub-1 .and. ebc >= 4 .and. sbc >= 4) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            radwe = (q(nim2,1,k) - qp(nim1,1,k)) * qcpx(1,k,2) / (1.0e0 + qcpx(1,k,2))
+            radsn = (q(nim1,2,k) - qp(nim1,1,k)) * qcpy(nim1,k,1) / (1.0e0 - qcpy(nim1,k,1))
+            qf(nim1,1,k) = qp(nim1,1,k) + 2.0e0 * (radwe - radsn) - dmpdt * qp(nim1,1,k)
+          end do
+          !$acc end kernels
+        end if
+      else
+        if (ebw == 1 .and. isub == 0 .and. wbc >= 4 .and. sbc >= 4) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            radwe = (qp(2,1,k) - qp(1,1,k)) * qcpx(1,k,1)
+            radsn = (qp(1,2,k) - qp(1,1,k)) * qcpy(1,k,1)
+            qf(1,1,k) = qp(1,1,k) - (radwe + radsn) - dmpdt * qp(1,1,k)
+          end do
+          !$acc end kernels
+        end if
+
+        if (ebe == 1 .and. isub == nisub-1 .and. ebc >= 4 .and. sbc >= 4) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            radwe = (qp(nim2,1,k) - qp(nim1,1,k)) * qcpx(1,k,2)
+            radsn = (qp(nim1,2,k) - qp(nim1,1,k)) * qcpy(nim1,k,1)
+            qf(nim1,1,k) = qp(nim1,1,k) + (radwe - radsn) - dmpdt * qp(nim1,1,k)
+          end do
+          !$acc end kernels
+        end if
+      end if
+    end if
+
+    if (ebn == 1 .and. jsub == njsub-1) then
+      if (advopt <= 3) then
+        if (ebw == 1 .and. isub == 0 .and. wbc >= 4 .and. nbc >= 4) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            radwe = (q(2,njm1,k) - qp(1,njm1,k)) * qcpx(njm1,k,1) / (1.0e0 - qcpx(njm1,k,1))
+            radsn = (q(1,njm2,k) - qp(1,njm1,k)) * qcpy(1,k,2) / (1.0e0 + qcpy(1,k,2))
+            qf(1,njm1,k) = qp(1,njm1,k) - 2.0e0 * (radwe - radsn) - dmpdt * qp(1,njm1,k)
+          end do
+          !$acc end kernels
+        end if
+
+        if (ebe == 1 .and. isub == nisub-1 .and. ebc >= 4 .and. nbc >= 4) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            radwe = (q(nim2,njm1,k) - qp(nim1,njm1,k)) * qcpx(njm1,k,2) / (1.0e0 + qcpx(njm1,k,2))
+            radsn = (q(nim1,njm2,k) - qp(nim1,njm1,k)) * qcpy(nim1,k,2) / (1.0e0 + qcpy(nim1,k,2))
+            qf(nim1,njm1,k) = qp(nim1,njm1,k) + 2.0e0 * (radwe + radsn) - dmpdt * qp(nim1,njm1,k)
+          end do
+          !$acc end kernels
+        end if
+      else
+        if (ebw == 1 .and. isub == 0 .and. wbc >= 4 .and. nbc >= 4) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            radwe = (qp(2,njm1,k) - qp(1,njm1,k)) * qcpx(njm1,k,1)
+            radsn = (qp(1,njm2,k) - qp(1,njm1,k)) * qcpy(1,k,2)
+            qf(1,njm1,k) = qp(1,njm1,k) - (radwe - radsn) - dmpdt * qp(1,njm1,k)
+          end do
+          !$acc end kernels
+        end if
+
+        if (ebe == 1 .and. isub == nisub-1 .and. ebc >= 4 .and. nbc >= 4) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            radwe = (qp(nim2,njm1,k) - qp(nim1,njm1,k)) * qcpx(njm1,k,2)
+            radsn = (qp(nim1,njm2,k) - qp(nim1,njm1,k)) * qcpy(nim1,k,2)
+            qf(nim1,njm1,k) = qp(nim1,njm1,k) + (radwe + radsn) - dmpdt * qp(nim1,njm1,k)
+          end do
+          !$acc end kernels
+        end if
+      end if
+    end if
+
+    ! Set the west boundary conditions
+    if (ebw == 1 .and. isub == 0) then
+      if (wbc >= 4) then
+        if (advopt <= 3) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 2, nj-2
+              gamma = 2.0e0 * qcpx(j,k,1) / (1.0e0 - qcpx(j,k,1))
+              qf(1,j,k) = qp(1,j,k) - gamma * (q(2,j,k) - qp(1,j,k)) - dmpdt * qp(1,j,k)
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 2, nj-2
+              qf(1,j,k) = qp(1,j,k) - qcpx(j,k,1) * (qp(2,j,k) - qp(1,j,k)) - dmpdt * qp(1,j,k)
+            end do
+          end do
+          !$acc end kernels
+        end if
+      end if
+    end if
+
+    ! Set the east boundary conditions
+    if (ebe == 1 .and. isub == nisub-1) then
+      if (ebc >= 4) then
+        if (advopt <= 3) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 2, nj-2
+              gamma = 2.0e0 * qcpx(j,k,2) / (1.0e0 + qcpx(j,k,2))
+              qf(nim1,j,k) = qp(nim1,j,k) + gamma * (q(nim2,j,k) - qp(nim1,j,k)) - dmpdt * qp(nim1,j,k)
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 2, nj-2
+              qf(nim1,j,k) = qp(nim1,j,k) + qcpx(j,k,2) * (qp(nim2,j,k) - qp(nim1,j,k)) - dmpdt * qp(nim1,j,k)
+            end do
+          end do
+          !$acc end kernels
+        end if
+      end if
+    end if
+
+    ! Set the south boundary conditions
+    if (ebs == 1 .and. jsub == 0) then
+      if (sbc >= 4) then
+        if (advopt <= 3) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do i = 2, ni-2
+              gamma = 2.0e0 * qcpy(i,k,1) / (1.0e0 - qcpy(i,k,1))
+              qf(i,1,k) = qp(i,1,k) - gamma * (q(i,2,k) - qp(i,1,k)) - dmpdt * qp(i,1,k)
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do i = 2, ni-2
+              qf(i,1,k) = qp(i,1,k) - qcpy(i,k,1) * (qp(i,2,k) - qp(i,1,k)) - dmpdt * qp(i,1,k)
+            end do
+          end do
+          !$acc end kernels
+        end if
+      end if
+    end if
+
+    ! Set the north boundary conditions
+    if (ebn == 1 .and. jsub == njsub-1) then
+      if (nbc >= 4) then
+        if (advopt <= 3) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do i = 2, ni-2
+              gamma = 2.0e0 * qcpy(i,k,2) / (1.0e0 + qcpy(i,k,2))
+              qf(i,njm1,k) = qp(i,njm1,k) + gamma * (q(i,njm2,k) - qp(i,njm1,k)) - dmpdt * qp(i,njm1,k)
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do i = 2, ni-2
+              qf(i,njm1,k) = qp(i,njm1,k) + qcpy(i,k,2) * (qp(i,njm2,k) - qp(i,njm1,k)) - dmpdt * qp(i,njm1,k)
+            end do
+          end do
+          !$acc end kernels
+        end if
+      end if
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 ! Set the boundary conditions at the four corners.
@@ -1052,6 +1270,7 @@ end if
 ! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_rbcq == DUMP_TARGET_rbcq .and. .not. dump_done_rbcq) then

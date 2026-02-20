@@ -467,6 +467,164 @@ if (dump_call_count_phvuvw == DUMP_TARGET_phvuvw .and. .not. dump_done_phvuvw) t
   call dump_scalar_r('nkm3v', nkm3v)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_235)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    ! For wbc=7, set ucpx to constant gdxdtn on west boundary
+    if (wbc == 7) then
+      !$acc kernels
+      !$acc loop independent
+      do k = 2, nk-1
+        !$acc loop independent
+        do j = 1, nj-1
+          ucpx(j, k, 1) = gdxdtn
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+    ! For ebc=7, set ucpx to constant gdxdt on east boundary
+    if (ebc == 7) then
+      !$acc kernels
+      !$acc loop independent
+      do k = 2, nk-1
+        !$acc loop independent
+        do j = 1, nj-1
+          ucpx(j, k, 2) = gdxdt
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+    ! For sbc=7, set ucpy to constant gdydtn on south boundary
+    if (sbc == 7) then
+      !$acc kernels
+      !$acc loop independent
+      do k = 2, nk-1
+        !$acc loop independent
+        do i = 1, ni-1
+          ucpy(i, k, 1) = gdydtn
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+    ! For nbc=7, set ucpy to constant gdydt on north boundary
+    if (nbc == 7) then
+      !$acc kernels
+      !$acc loop independent
+      do k = 2, nk-1
+        !$acc loop independent
+        do i = 1, ni-1
+          ucpy(i, k, 2) = gdydt
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+    ! v component phase speeds
+    if (wbc == 7) then
+      !$acc kernels
+      !$acc loop independent
+      do k = 2, nk-1
+        !$acc loop independent
+        do j = 1, nj
+          vcpx(j, k, 1) = gdxdtn
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+    if (ebc == 7) then
+      !$acc kernels
+      !$acc loop independent
+      do k = 2, nk-1
+        !$acc loop independent
+        do j = 1, nj
+          vcpx(j, k, 2) = gdxdt
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+    if (sbc == 7) then
+      !$acc kernels
+      !$acc loop independent
+      do k = 2, nk-1
+        !$acc loop independent
+        do i = 1, ni-1
+          vcpy(i, k, 1) = gdydtn
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+    if (nbc == 7) then
+      !$acc kernels
+      !$acc loop independent
+      do k = 2, nk-1
+        !$acc loop independent
+        do i = 1, ni-1
+          vcpy(i, k, 2) = gdydt
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+    ! w component phase speeds
+    if (wbc == 7) then
+      !$acc kernels
+      !$acc loop independent
+      do k = 2, nk-1
+        !$acc loop independent
+        do j = 1, nj-1
+          wcpx(j, k, 1) = gdxdtn
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+    if (ebc == 7) then
+      !$acc kernels
+      !$acc loop independent
+      do k = 2, nk-1
+        !$acc loop independent
+        do j = 1, nj-1
+          wcpx(j, k, 2) = gdxdt
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+    if (sbc == 7) then
+      !$acc kernels
+      !$acc loop independent
+      do k = 2, nk-1
+        !$acc loop independent
+        do i = 1, ni-1
+          wcpy(i, k, 1) = gdydtn
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+    if (nbc == 7) then
+      !$acc kernels
+      !$acc loop independent
+      do k = 2, nk-1
+        !$acc loop independent
+        do i = 1, ni-1
+          wcpy(i, k, 2) = gdydt
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 !! Calculate the u phase speed.
@@ -2304,6 +2462,7 @@ end if
 !! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_phvuvw == DUMP_TARGET_phvuvw .and. .not. dump_done_phvuvw) then

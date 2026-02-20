@@ -396,6 +396,379 @@ if (dump_call_count_phvs == DUMP_TARGET_phvs .and. .not. dump_done_phvs) then
   call dump_scalar_r('nkm3v', nkm3v)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_234)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    ! Initialize output
+    !$acc kernels
+    !$acc loop independent
+    do k = 1, nk
+      !$acc loop independent
+      do j = 1, nj
+        scpx(j,k,1) = 0.e0
+        scpx(j,k,2) = 0.e0
+      end do
+    end do
+    !$acc end kernels
+
+    !$acc kernels
+    !$acc loop independent
+    do k = 1, nk
+      !$acc loop independent
+      do i = 1, ni
+        scpy(i,k,1) = 0.e0
+        scpy(i,k,2) = 0.e0
+      end do
+    end do
+    !$acc end kernels
+
+    !$acc kernels
+    !$acc loop independent
+    do j = 1, nj
+      cpavex(j) = 0.e0
+    end do
+    !$acc end kernels
+
+    !$acc kernels
+    !$acc loop independent
+    do i = 1, ni
+      cpavey(i) = 0.e0
+    end do
+    !$acc end kernels
+
+    ! Calculate the scalar phase speed on the west boundary
+    if ((ebw == 1 .and. isub == 0) .and. (wbc >= 4)) then
+
+      if (wbc == 4 .or. wbc == 5) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 1, nj-1
+            scpx(j,k,1) = sf(2,j,k) + sp(2,j,k) - 2.e0 * s(3,j,k)
+            if (abs(scpx(j,k,1)) < eps) then
+              scpx(j,k,1) = sign(eps, scpx(j,k,1))
+            end if
+            scpx(j,k,1) = min((sf(2,j,k) - sp(2,j,k)) / scpx(j,k,1), gdxdtn)
+          end do
+        end do
+        !$acc end kernels
+
+        if (wbc == 5) then
+          !$acc kernels
+          !$acc loop independent
+          do j = 1, nj-1
+            cpavex(j) = 0.e0
+          end do
+          !$acc end kernels
+
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 1, nj-1
+              !$acc atomic
+              cpavex(j) = cpavex(j) + scpx(j,k,1) * nkm3v
+            end do
+          end do
+          !$acc end kernels
+
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 1, nj-1
+              scpx(j,k,1) = cpavex(j)
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+      else if (wbc == 6) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 1, nj-1
+            scpx(j,k,1) = min(u(2,j,k) * dxdt, gdxdtn)
+          end do
+        end do
+        !$acc end kernels
+
+      else if (wbc >= 7) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 1, nj-1
+            scpx(j,k,1) = gdxdtn
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+      if (mfcopt == 1 .and. mpopt /= 5) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 1, nj-1
+            scpx(j,k,1) = max(scpx(j,k,1), -rmf(2,j,2))
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 1, nj-1
+            scpx(j,k,1) = max(scpx(j,k,1), -1.e0)
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+      if (advopt >= 4) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 1, nj-1
+            scpx(j,k,1) = scpx(j,k,1) * dtdvb
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+    ! Calculate the scalar phase speed on the east boundary
+    if ((ebe == 1 .and. isub == nisub-1) .and. (ebc >= 4)) then
+
+      if (ebc == 4 .or. ebc == 5) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 1, nj-1
+            scpx(j,k,2) = 2.e0 * s(nim3,j,k) - sf(nim2,j,k) - sp(nim2,j,k)
+            if (abs(scpx(j,k,2)) < eps) then
+              scpx(j,k,2) = sign(eps, scpx(j,k,2))
+            end if
+            scpx(j,k,2) = max((sf(nim2,j,k) - sp(nim2,j,k)) / scpx(j,k,2), gdxdt)
+          end do
+        end do
+        !$acc end kernels
+      else if (ebc == 6) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 1, nj-1
+            scpx(j,k,2) = max(u(nim1,j,k) * dxdt, gdxdt)
+          end do
+        end do
+        !$acc end kernels
+      else if (ebc >= 7) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 1, nj-1
+            scpx(j,k,2) = gdxdt
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+      if (mfcopt == 1 .and. mpopt /= 5) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 1, nj-1
+            scpx(j,k,2) = min(scpx(j,k,2), rmf(nim2,j,2))
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 1, nj-1
+            scpx(j,k,2) = min(scpx(j,k,2), 1.e0)
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+      if (advopt >= 4) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do j = 1, nj-1
+            scpx(j,k,2) = scpx(j,k,2) * dtdvb
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+    ! Calculate the scalar phase speed on the south boundary
+    if ((ebs == 1 .and. jsub == 0) .and. (sbc >= 4)) then
+
+      if (sbc == 4 .or. sbc == 5) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 1, ni-1
+            scpy(i,k,1) = sf(i,2,k) + sp(i,2,k) - 2.e0 * s(i,3,k)
+            if (abs(scpy(i,k,1)) < eps) then
+              scpy(i,k,1) = sign(eps, scpy(i,k,1))
+            end if
+            scpy(i,k,1) = min((sf(i,2,k) - sp(i,2,k)) / scpy(i,k,1), gdydtn)
+          end do
+        end do
+        !$acc end kernels
+      else if (sbc == 6) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 1, ni-1
+            scpy(i,k,1) = min(v(i,2,k) * dydt, gdydtn)
+          end do
+        end do
+        !$acc end kernels
+      else if (sbc >= 7) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 1, ni-1
+            scpy(i,k,1) = gdydtn
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+      if (mfcopt == 1 .and. mpopt /= 5) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 1, ni-1
+            scpy(i,k,1) = max(scpy(i,k,1), -rmf(i,2,3))
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 1, ni-1
+            scpy(i,k,1) = max(scpy(i,k,1), -1.e0)
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+      if (advopt >= 4) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 1, ni-1
+            scpy(i,k,1) = scpy(i,k,1) * dtdvb
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+    ! Calculate the scalar phase speed on the north boundary
+    if ((ebn == 1 .and. jsub == njsub-1) .and. (nbc >= 4)) then
+
+      if (nbc == 4 .or. nbc == 5) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 1, ni-1
+            scpy(i,k,2) = 2.e0 * s(i,njm3,k) - sf(i,njm2,k) - sp(i,njm2,k)
+            if (abs(scpy(i,k,2)) < eps) then
+              scpy(i,k,2) = sign(eps, scpy(i,k,2))
+            end if
+            scpy(i,k,2) = max((sf(i,njm2,k) - sp(i,njm2,k)) / scpy(i,k,2), gdydt)
+          end do
+        end do
+        !$acc end kernels
+      else if (nbc == 6) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 1, ni-1
+            scpy(i,k,2) = max(v(i,njm1,k) * dydt, gdydt)
+          end do
+        end do
+        !$acc end kernels
+      else if (nbc >= 7) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 1, ni-1
+            scpy(i,k,2) = gdydt
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+      if (mfcopt == 1 .and. mpopt /= 5) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 1, ni-1
+            scpy(i,k,2) = min(scpy(i,k,2), rmf(i,njm2,3))
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 1, ni-1
+            scpy(i,k,2) = min(scpy(i,k,2), 1.e0)
+          end do
+        end do
+        !$acc end kernels
+      end if
+
+      if (advopt >= 4) then
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-2
+          !$acc loop independent
+          do i = 1, ni-1
+            scpy(i,k,2) = scpy(i,k,2) * dtdvb
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Calculate the scalar phase speed on the west boundary.
@@ -1049,6 +1422,7 @@ end if
 ! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_phvs == DUMP_TARGET_phvs .and. .not. dump_done_phvs) then

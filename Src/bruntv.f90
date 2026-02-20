@@ -170,7 +170,7 @@
       integer k        ! Array index in z direction
 
       real lhcpt       ! Latent heat / (cp x t)
-
+      real t_loc       ! Local temperature for GPU
 
       ! Profiling variables
       integer, save :: prof_id1 = -1
@@ -289,6 +289,145 @@ if (dump_call_count_bruntv == DUMP_TARGET_bruntv .and. .not. dump_done_bruntv) t
   call dump_scalar_r('rddvcp', rddvcp)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_041)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    !$acc kernels
+    !$acc loop independent
+    do k = 1, nk-1
+      !$acc loop independent
+      do j = 1, nj-1
+        !$acc loop independent
+        do i = 1, ni-1
+          pt(i,j,k) = ptbr(i,j,k) + ptp(i,j,k)
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    ! Calculate the air stability for the dry air
+    if (fmois(1:3) == 'dry') then
+
+      !$acc kernels
+      !$acc loop independent
+      do k = 2, nk-1
+        !$acc loop independent
+        do j = 1, nj-1
+          !$acc loop independent
+          do i = 1, ni-1
+            nsq8w(i,j,k) = gdzv * (pt(i,j,k) - pt(i,j,k-1)) &
+              / (jcb8w(i,j,k) * (ptbr(i,j,k-1) + ptbr(i,j,k)))
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+    ! Calculate the air stability for the moist air
+    else if (fmois(1:5) == 'moist') then
+
+      ! Get the virtual potential temperature
+      !$acc kernels
+      !$acc loop independent
+      do k = 1, nk-1
+        !$acc loop independent
+        do j = 1, nj-1
+          !$acc loop independent
+          do i = 1, ni-1
+            ptv(i,j,k) = pt(i,j,k) * (1.0e0 + epsav * qv(i,j,k)) / (1.0e0 + qv(i,j,k))
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+      ! In the case of no cloud micro physics
+      if (abs(cphopt) == 0) then
+
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-1
+          !$acc loop independent
+          do j = 1, nj-1
+            !$acc loop independent
+            do i = 1, ni-1
+              nsq8w(i,j,k) = gdzv * (ptv(i,j,k) - ptv(i,j,k-1)) &
+                / (jcb8w(i,j,k) * (ptbr(i,j,k-1) + ptbr(i,j,k)))
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+      ! In the case of performing cloud micro physics
+      else
+
+        ! Compute temperature, a, apply tlow correction, and update pt/a
+        !$acc parallel loop collapse(3) private(lhcpt, t_loc)
+        do k = 1, nk-1
+          do j = 1, nj-1
+            do i = 1, ni-1
+              ! Compute temperature
+              t_loc = pt(i,j,k) &
+                * exp(rddvcp * log(p0iv * (pbr(i,j,k) + pp(i,j,k))))
+
+              ! Compute initial a
+              a(i,j,k) = lv0 &
+                * exp((0.167e0 + 3.67e-4 * t_loc) * log(t0 / t_loc))
+
+              ! Apply low temperature correction
+              if (t_loc <= tlow) then
+                a(i,j,k) = a(i,j,k) + (lf0 + cwmci * (t_loc - t0))
+              end if
+
+              ! Compute lhcpt and update pt and a
+              lhcpt = a(i,j,k) / (cp * t_loc)
+              pt(i,j,k) = pt(i,j,k) * exp(lhcpt * qv(i,j,k))
+              a(i,j,k) = a(i,j,k) * qv(i,j,k) / (rd * t_loc)
+              a(i,j,k) = (1.0e0 + a(i,j,k)) / (1.0e0 + epsva * lhcpt * a(i,j,k))
+            end do
+          end do
+        end do
+        !$acc end parallel loop
+
+        !$acc kernels
+        !$acc loop independent
+        do k = 2, nk-1
+          !$acc loop independent
+          do j = 1, nj-1
+            !$acc loop independent
+            do i = 1, ni-1
+              if (qall(i,j,k) > thresq) then
+                nsq8w(i,j,k) = gdzv05 * ((qall(i,j,k-1) - qall(i,j,k)) &
+                  + (pt(i,j,k) - pt(i,j,k-1)) * (a(i,j,k-1) + a(i,j,k)) &
+                  / (ptbr(i,j,k-1) + ptbr(i,j,k))) / jcb8w(i,j,k)
+              else
+                nsq8w(i,j,k) = gdzv * (ptv(i,j,k) - ptv(i,j,k-1)) &
+                  / (jcb8w(i,j,k) * (ptbr(i,j,k-1) + ptbr(i,j,k)))
+              end if
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+    end if
+
+    ! Set the bottom and top boundary conditions
+    !$acc kernels
+    !$acc loop independent
+    do j = 1, nj-1
+      !$acc loop independent
+      do i = 1, ni-1
+        nsq8w(i,j,1) = nsq8w(i,j,2)
+        nsq8w(i,j,nk) = nsq8w(i,j,nkm1)
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Get the potential temperature.
@@ -476,6 +615,7 @@ end if
 ! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_bruntv == DUMP_TARGET_bruntv .and. .not. dump_done_bruntv) then

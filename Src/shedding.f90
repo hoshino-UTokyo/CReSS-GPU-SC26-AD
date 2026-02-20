@@ -200,6 +200,82 @@ if (dump_call_count_shedding == DUMP_TARGET_shedding .and. .not. dump_done_shedd
   call dump_array_3d('pgwet.bin', pgwet, 0, ni+1, 0, nj+1, 1, nk)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_295)
+! GPU version (OpenACC)
+
+      if(nk.eq.1) then
+
+        !$acc kernels
+        !$acc loop independent collapse(2)
+        do j=1,nj-1
+          do i=1,ni-1
+            if(qs(i,j,1).gt.thresq) then
+              if(t(i,j,1).ge.t0) then
+                shsr(i,j,1)=clcs(i,j,1)+clrs(i,j,1)
+              else
+                shsr(i,j,1)=0.e0
+              end if
+            else
+              shsr(i,j,1)=0.e0
+            end if
+            if(qg(i,j,1).gt.thresq) then
+              if(t(i,j,1).ge.t0) then
+                shgr(i,j,1)=clcg(i,j,1)+clrg(i,j,1)
+              else
+                if(pgwet(i,j,1).gt.0.e0) then
+                  shgr(i,j,1)=(clcg(i,j,1)+clrg(i,j,1)                  &
+     &              +clig(i,j,1)+clsg(i,j,1))-pgwet(i,j,1)
+                else
+                  shgr(i,j,1)=0.e0
+                end if
+              end if
+            else
+              shgr(i,j,1)=0.e0
+            end if
+          end do
+        end do
+        !$acc end kernels
+
+      else
+
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k=1,nk-1
+          do j=1,nj-1
+            do i=1,ni-1
+              if(qs(i,j,k).gt.thresq) then
+                if(t(i,j,k).ge.t0) then
+                  shsr(i,j,k)=clcs(i,j,k)+clrs(i,j,k)
+                else
+                  shsr(i,j,k)=0.e0
+                end if
+              else
+                shsr(i,j,k)=0.e0
+              end if
+              if(qg(i,j,k).gt.thresq) then
+                if(t(i,j,k).ge.t0) then
+                  shgr(i,j,k)=clcg(i,j,k)+clrg(i,j,k)
+                else
+                  if(pgwet(i,j,k).gt.0.e0) then
+                    shgr(i,j,k)=(clcg(i,j,k)+clrg(i,j,k)                &
+     &                +clig(i,j,k)+clsg(i,j,k))-pgwet(i,j,k)
+                  else
+                    shgr(i,j,k)=0.e0
+                  end if
+                end if
+              else
+                shgr(i,j,k)=0.e0
+              end if
+            end do
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+#else
+! CPU version (OpenMP) - Original code preserved
+
 !$omp parallel default(shared) private(k)
 
 !! In the case nk = 1.
@@ -347,6 +423,7 @@ end if
 !! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_shedding == DUMP_TARGET_shedding .and. .not. dump_done_shedding) then

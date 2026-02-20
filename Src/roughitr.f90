@@ -241,6 +241,34 @@ if (dump_call_count_roughitr == DUMP_TARGET_roughitr .and. .not. dump_done_rough
   call dump_array_2d('dz0m_in.bin', dz0m, 0, ni+1, 0, nj+1)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_264)
+! GPU version (OpenACC)
+
+    !$acc kernels
+    !$acc loop independent
+    do j = 1, nj-1
+      !$acc loop independent private(ust, z0itr)
+      do i = 1, ni-1
+        if (land(i,j) .lt. 3) then
+          ust = cm(i,j) * va(i,j)
+          if (ust .lt. 1.08e0) then
+            z0itr = max(-34.7e-6 + 8.28e-4*ust, z0min)
+          else
+            z0itr = max(-.277e-2 + 3.39e-3*ust, z0min)
+          end if
+          dz0m(i,j) = abs(z0m(i,j)/z0itr - 1.e0)
+          z0m(i,j) = z0itr
+          z0h(i,j) = z0m(i,j)
+        else
+          dz0m(i,j) = 0.e0
+        end if
+      end do
+    end do
+    !$acc end kernels
+
+#else
+! CPU version (OpenMP) - Original code preserved
+
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j,ust,z0itr)
@@ -279,6 +307,7 @@ end if
 !$omp end do
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_roughitr == DUMP_TARGET_roughitr .and. .not. dump_done_roughitr) then

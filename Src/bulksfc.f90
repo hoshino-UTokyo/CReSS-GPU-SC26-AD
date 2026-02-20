@@ -303,6 +303,210 @@ if (dump_call_count_bulksfc == DUMP_TARGET_bulksfc .and. .not. dump_done_bulksfc
   call dump_scalar_r('wkprw3', wkprw3)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_042)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    !$acc data copyin(za, land, kai, z0m, z0h, rch) copyout(cm, ch)
+    !$acc kernels
+    !$acc loop independent collapse(2) private(dz0m, dz0h, cmice, chice, a, b, c, d, e, f)
+    do j = 1, nj-1
+      do i = 1, ni-1
+
+        ! Set common used variables
+        dz0m = za(i,j) - z0m(i,j)
+        dz0h = za(i,j) - z0h(i,j)
+
+        a = max(za(i,j) / z0m(i,j), 1.01e0)
+        b = max(za(i,j) / z0h(i,j), 1.01e0)
+
+        ! For the unstable case
+        if (rch(i,j) .lt. 0.e0) then
+
+          if (land(i,j) .lt. 3) then
+            a = log(a)
+            b = log(b)
+
+            c = rch(i,j) * prwiv
+            c = c * c
+
+            d = cqs1 + cqs2 * c
+            e = cps1 + cps2 * c
+
+            f = e * e - d * d * d
+
+            c = (za(i,j) * dz0h * a * a) / (dz0m * dz0m * b)
+
+            if (f .gt. 0.e0) then
+              f = exp(oned3 * log(sqrt(f) + abs(e)))
+              f = rms * c * (rms3v - (f + d/f))
+            else
+              f = sqrt(d)
+              e = max(min(e / (d * f), 1.e0), -1.e0)
+              f = rms * c * (rms3v - 2.e0 * f * cos(oned3 * acos(e)))
+            end if
+
+            f = sqrt(1.e0 - min(f, 1.e0))
+            e = sqrt(f)
+
+            c = 2.e0 * log(.5e0 * (1.e0 + e)) &
+                + log(.5e0 * (1.e0 + f)) - 2.e0 * atan(e) + cc05
+            d = 2.e0 * log(.5e0 * (1.e0 + f))
+
+            if (c .lt. .5e0 * a) then
+              cm(i,j) = wkappa / (a - c)
+            else
+              cm(i,j) = wkp2 / a
+            end if
+
+            if (d .lt. .7e0 * b) then
+              ch(i,j) = wkprw / (b - d)
+            else
+              ch(i,j) = wkprw3 / b
+            end if
+
+          else
+            a = log(a)
+            b = log(b)
+
+            c = rch(i,j) * prgiv
+            c = c * c
+
+            d = cqg1 + cqg2 * c
+            e = cpg1 + cpg2 * c
+
+            f = e * e - d * d * d
+
+            c = (za(i,j) * dz0h * a * a) / (dz0m * dz0m * b)
+
+            if (f .gt. 0.e0) then
+              f = exp(oned3 * log(sqrt(f) + abs(e)))
+              f = rmg * c * (rmg3v - (f + d/f))
+            else
+              f = sqrt(d)
+              e = max(min(e / (d * f), 1.e0), -1.e0)
+              f = rmg * c * (rmg3v - 2.e0 * f * cos(oned3 * acos(e)))
+            end if
+
+            f = min(f, 1.e0)
+            e = sqrt(sqrt(1.e0 - f))
+
+            c = 2.e0 * log(.5e0 * (1.e0 + e)) &
+                + log(.5e0 * (1.e0 + e * e)) - 2.e0 * atan(e) + cc05
+            f = sqrt(1.e0 - .6e0 * f)
+            d = 2.e0 * log(.5e0 * (1.e0 + f))
+
+            if (c .lt. .5e0 * a) then
+              cm(i,j) = kappa / (a - c)
+            else
+              cm(i,j) = kp2 / a
+            end if
+
+            if (d .lt. .7e0 * b) then
+              ch(i,j) = kprg / (b - d)
+            else
+              ch(i,j) = kprg3 / b
+            end if
+          end if
+
+        ! For the stable case
+        else
+          if (land(i,j) .lt. 3) then
+            a = wkappa / log(a)
+            b = wkappa / log(b)
+
+            c = sqrt(1.e0 + 5.e0 * rch(i,j))
+            d = sqrt(1.e0 + 10.e0 * rch(i,j) * c)
+
+            cm(i,j) = a / d
+            ch(i,j) = b * d / (prnumw * (1.e0 + 15.e0 * rch(i,j) * c))
+          else
+            a = kappa / log(a)
+            b = kappa / log(b)
+
+            c = sqrt(1.e0 + 5.e0 * rch(i,j))
+            d = sqrt(1.e0 + 10.e0 * rch(i,j) * c)
+
+            cm(i,j) = a / d
+            ch(i,j) = b * d / (prnumg * (1.e0 + 15.e0 * rch(i,j) * c))
+          end if
+        end if
+
+        ! Mix bulk coefficients for weighted average ice surface
+        if (land(i,j) .eq. 1) then
+          dz0m = za(i,j) - icz0m
+          dz0h = za(i,j) - icz0h
+
+          a = max(za(i,j) * icz0mv, 1.01e0)
+          b = max(za(i,j) * icz0hv, 1.01e0)
+
+          if (rch(i,j) .lt. 0.e0) then
+            a = log(a)
+            b = log(b)
+
+            c = rch(i,j) * prgiv
+            c = c * c
+
+            d = cqg1 + cqg2 * c
+            e = cpg1 + cpg2 * c
+
+            f = e * e - d * d * d
+
+            c = (za(i,j) * dz0h * a * a) / (dz0m * dz0m * b)
+
+            if (f .gt. 0.e0) then
+              f = exp(oned3 * log(sqrt(f) + abs(e)))
+              f = rmg * c * (rmg3v - (f + d/f))
+            else
+              f = sqrt(d)
+              e = max(min(e / (d * f), 1.e0), -1.e0)
+              f = rmg * c * (rmg3v - 2.e0 * f * cos(oned3 * acos(e)))
+            end if
+
+            f = min(f, 1.e0)
+            e = sqrt(sqrt(1.e0 - f))
+
+            c = 2.e0 * log(.5e0 * (1.e0 + e)) &
+                + log(.5e0 * (1.e0 + e * e)) - 2.e0 * atan(e) + cc05
+            f = sqrt(1.e0 - .6e0 * f)
+            d = 2.e0 * log(.5e0 * (1.e0 + f))
+
+            if (c .lt. .5e0 * a) then
+              cmice = kappa / (a - c)
+            else
+              cmice = kp2 / a
+            end if
+
+            if (d .lt. .7e0 * b) then
+              chice = kprg / (b - d)
+            else
+              chice = kprg3 / b
+            end if
+          else
+            a = kappa / log(a)
+            b = kappa / log(b)
+
+            c = sqrt(1.e0 + 5.e0 * rch(i,j))
+            d = sqrt(1.e0 + 10.e0 * rch(i,j) * c)
+
+            cmice = a / d
+            chice = b * d / (prnumg * (1.e0 + 15.e0 * rch(i,j) * c))
+          end if
+
+          a = 1.e0 - kai(i,j)
+          cm(i,j) = kai(i,j) * cmice + a * cm(i,j)
+          ch(i,j) = kai(i,j) * chice + a * ch(i,j)
+        end if
+
+      end do
+    end do
+    !$acc end kernels
+    !$acc end data
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime)                                              &
@@ -566,6 +770,7 @@ end if
 !$omp end do
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_bulksfc == DUMP_TARGET_bulksfc .and. .not. dump_done_bulksfc) then

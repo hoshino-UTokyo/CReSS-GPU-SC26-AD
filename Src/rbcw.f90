@@ -326,6 +326,231 @@ if (dump_call_count_rbcw == DUMP_TARGET_rbcw .and. .not. dump_done_rbcw) then
   call dump_scalar_r('tpdt', tpdt)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_256)
+! GPU version (OpenACC)
+
+! Set the boundary conditions at the four corners.
+
+      if(ebs.eq.1.and.jsub.eq.0) then
+        if(ebw.eq.1.and.isub.eq.0.and.wbc.ge.4.and.sbc.ge.4) then
+          if(gpvvar(1:1).eq.'o'.and.                                    &
+     &      (nggopt.eq.1.or.mod(lspopt,10).eq.1.or.vspopt.eq.1)) then
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-1
+              radwe = (w(2,1,k) - w(1,1,k)) * wcpx(1,k,1)
+              radsn = (w(1,2,k) - w(1,1,k)) * wcpy(1,k,1)
+              w(1,1,k) = w(1,1,k) - (radwe+radsn)                       &
+     &          - dmpdt * (w(1,1,k) - (wgpv(1,1,k) + wtd(1,1,k)*tpdt))
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-1
+              radwe = (w(2,1,k) - w(1,1,k)) * wcpx(1,k,1)
+              radsn = (w(1,2,k) - w(1,1,k)) * wcpy(1,k,1)
+              w(1,1,k) = w(1,1,k) - (radwe+radsn) - dmpdt*w(1,1,k)
+            end do
+            !$acc end kernels
+          end if
+        end if
+        if(ebe.eq.1.and.isub.eq.nisub-1.and.ebc.ge.4.and.sbc.ge.4) then
+          if(gpvvar(1:1).eq.'o'.and.                                    &
+     &      (nggopt.eq.1.or.mod(lspopt,10).eq.1.or.vspopt.eq.1)) then
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-1
+              radwe = (w(nim2,1,k) - w(nim1,1,k)) * wcpx(1,k,2)
+              radsn = (w(nim1,2,k) - w(nim1,1,k)) * wcpy(nim1,k,1)
+              w(nim1,1,k) = w(nim1,1,k) + (radwe-radsn)                 &
+     &          - dmpdt * (w(nim1,1,k) - (wgpv(nim1,1,k) + wtd(nim1,1,k)*tpdt))
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-1
+              radwe = (w(nim2,1,k) - w(nim1,1,k)) * wcpx(1,k,2)
+              radsn = (w(nim1,2,k) - w(nim1,1,k)) * wcpy(nim1,k,1)
+              w(nim1,1,k) = w(nim1,1,k) + (radwe-radsn) - dmpdt*w(nim1,1,k)
+            end do
+            !$acc end kernels
+          end if
+        end if
+      end if
+
+      if(ebn.eq.1.and.jsub.eq.njsub-1) then
+        if(ebw.eq.1.and.isub.eq.0.and.wbc.ge.4.and.nbc.ge.4) then
+          if(gpvvar(1:1).eq.'o'.and.                                    &
+     &      (nggopt.eq.1.or.mod(lspopt,10).eq.1.or.vspopt.eq.1)) then
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-1
+              radwe = (w(2,njm1,k) - w(1,njm1,k)) * wcpx(njm1,k,1)
+              radsn = (w(1,njm2,k) - w(1,njm1,k)) * wcpy(1,k,2)
+              w(1,njm1,k) = w(1,njm1,k) - (radwe-radsn)                 &
+     &          - dmpdt * (w(1,njm1,k) - (wgpv(1,njm1,k) + wtd(1,njm1,k)*tpdt))
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-1
+              radwe = (w(2,njm1,k) - w(1,njm1,k)) * wcpx(njm1,k,1)
+              radsn = (w(1,njm2,k) - w(1,njm1,k)) * wcpy(1,k,2)
+              w(1,njm1,k) = w(1,njm1,k) - (radwe-radsn) - dmpdt*w(1,njm1,k)
+            end do
+            !$acc end kernels
+          end if
+        end if
+        if(ebe.eq.1.and.isub.eq.nisub-1.and.ebc.ge.4.and.nbc.ge.4) then
+          if(gpvvar(1:1).eq.'o'.and.                                    &
+     &      (nggopt.eq.1.or.mod(lspopt,10).eq.1.or.vspopt.eq.1)) then
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-1
+              radwe = (w(nim2,njm1,k) - w(nim1,njm1,k)) * wcpx(njm1,k,2)
+              radsn = (w(nim1,njm2,k) - w(nim1,njm1,k)) * wcpy(nim1,k,2)
+              w(nim1,njm1,k) = w(nim1,njm1,k)                           &
+     &          + (radwe+radsn) - dmpdt * (w(nim1,njm1,k)               &
+     &          - (wgpv(nim1,njm1,k) + wtd(nim1,njm1,k)*tpdt))
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent
+            do k = 2, nk-1
+              radwe = (w(nim2,njm1,k) - w(nim1,njm1,k)) * wcpx(njm1,k,2)
+              radsn = (w(nim1,njm2,k) - w(nim1,njm1,k)) * wcpy(nim1,k,2)
+              w(nim1,njm1,k) = w(nim1,njm1,k) + (radwe+radsn) - dmpdt*w(nim1,njm1,k)
+            end do
+            !$acc end kernels
+          end if
+        end if
+      end if
+
+! Set the west boundary conditions.
+
+      if(ebw.eq.1.and.isub.eq.0.and.wbc.ge.4) then
+        if(gpvvar(1:1).eq.'o'.and.                                      &
+     &    (nggopt.eq.1.or.mod(lspopt,10).eq.1.or.vspopt.eq.1)) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-1
+            !$acc loop independent
+            do j = 2, nj-2
+              w(1,j,k) = w(1,j,k) - wcpx(j,k,1)*(w(2,j,k)-w(1,j,k))   &
+     &          - dmpdt * (w(1,j,k) - (wgpv(1,j,k) + wtd(1,j,k)*tpdt))
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-1
+            !$acc loop independent
+            do j = 2, nj-2
+              w(1,j,k) = w(1,j,k)                                       &
+     &          - wcpx(j,k,1)*(w(2,j,k)-w(1,j,k)) - dmpdt*w(1,j,k)
+            end do
+          end do
+          !$acc end kernels
+        end if
+      end if
+
+! Set the east boundary conditions.
+
+      if(ebe.eq.1.and.isub.eq.nisub-1.and.ebc.ge.4) then
+        if(gpvvar(1:1).eq.'o'.and.                                      &
+     &    (nggopt.eq.1.or.mod(lspopt,10).eq.1.or.vspopt.eq.1)) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-1
+            !$acc loop independent
+            do j = 2, nj-2
+              w(nim1,j,k) = w(nim1,j,k)                                 &
+     &          + wcpx(j,k,2)*(w(nim2,j,k)-w(nim1,j,k))                &
+     &          - dmpdt * (w(nim1,j,k) - (wgpv(nim1,j,k) + wtd(nim1,j,k)*tpdt))
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-1
+            !$acc loop independent
+            do j = 2, nj-2
+              w(nim1,j,k) = w(nim1,j,k)                                 &
+     &          + wcpx(j,k,2)*(w(nim2,j,k)-w(nim1,j,k)) - dmpdt*w(nim1,j,k)
+            end do
+          end do
+          !$acc end kernels
+        end if
+      end if
+
+! Set the south boundary conditions.
+
+      if(ebs.eq.1.and.jsub.eq.0.and.sbc.ge.4) then
+        if(gpvvar(1:1).eq.'o'.and.                                      &
+     &    (nggopt.eq.1.or.mod(lspopt,10).eq.1.or.vspopt.eq.1)) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-1
+            !$acc loop independent
+            do i = 2, ni-2
+              w(i,1,k) = w(i,1,k) - wcpy(i,k,1)*(w(i,2,k)-w(i,1,k))   &
+     &          - dmpdt * (w(i,1,k) - (wgpv(i,1,k) + wtd(i,1,k)*tpdt))
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-1
+            !$acc loop independent
+            do i = 2, ni-2
+              w(i,1,k) = w(i,1,k)                                       &
+     &          - wcpy(i,k,1)*(w(i,2,k)-w(i,1,k)) - dmpdt*w(i,1,k)
+            end do
+          end do
+          !$acc end kernels
+        end if
+      end if
+
+! Set the north boundary conditions.
+
+      if(ebn.eq.1.and.jsub.eq.njsub-1.and.nbc.ge.4) then
+        if(gpvvar(1:1).eq.'o'.and.                                      &
+     &    (nggopt.eq.1.or.mod(lspopt,10).eq.1.or.vspopt.eq.1)) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-1
+            !$acc loop independent
+            do i = 2, ni-2
+              w(i,njm1,k) = w(i,njm1,k)                                 &
+     &          + wcpy(i,k,2)*(w(i,njm2,k)-w(i,njm1,k))                &
+     &          - dmpdt * (w(i,njm1,k) - (wgpv(i,njm1,k) + wtd(i,njm1,k)*tpdt))
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-1
+            !$acc loop independent
+            do i = 2, ni-2
+              w(i,njm1,k) = w(i,njm1,k)                                 &
+     &          + wcpy(i,k,2)*(w(i,njm2,k)-w(i,njm1,k)) - dmpdt*w(i,njm1,k)
+            end do
+          end do
+          !$acc end kernels
+        end if
+      end if
+
+#else
+! CPU version (OpenMP) - Original code preserved
+
 !$omp parallel default(shared)
 
 ! Set the boundary conditions at the four corners.
@@ -653,6 +878,7 @@ end if
 ! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_rbcw == DUMP_TARGET_rbcw .and. .not. dump_done_rbcw) then

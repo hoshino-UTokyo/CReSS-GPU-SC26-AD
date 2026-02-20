@@ -395,6 +395,194 @@ if (dump_call_count_termblk == DUMP_TARGET_termblk .and. .not. dump_done_termblk
   call dump_scalar_r('cusq', cusq)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_323)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (flqcqi_opt == 1) then
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 1, nk-1
+        do j = 1, nj-1
+          do i = 1, ni-1
+            if (qc(i,j,k) > thresq) then
+              ucq(i,j,k) = ucqcst
+              ucn(i,j,k) = ucncst
+            else
+              ucq(i,j,k) = 0.e0
+              ucn(i,j,k) = 0.e0
+            end if
+
+            if (qi(i,j,k) > thresq) then
+              uiq(i,j,k) = uiqcst
+              uin(i,j,k) = uincst
+            else
+              uiq(i,j,k) = 0.e0
+              uin(i,j,k) = 0.e0
+            end if
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+    else if (flqcqi_opt == 2) then
+      if (abs(cphopt) <= 3) then
+        !$acc kernels
+        !$acc loop independent collapse(3) private(lnr0r)
+        do k = 1, nk-1
+          do j = 1, nj-1
+            do i = 1, ni-1
+              lnr0r = log(r0 * rbv(i,j,k))
+
+              if (qc(i,j,k) > thresq) then
+                ucq(i,j,k) = auc * exp(guc * lnr0r) &
+                     * exp(buc3 * log(ccrw6 * qc(i,j,k) / ncc(i,j,k)))
+                ucn(i,j,k) = ucq(i,j,k)
+              else
+                ucq(i,j,k) = 0.e0
+                ucn(i,j,k) = 0.e0
+              end if
+
+              if (qi(i,j,k) > thresq) then
+                uiq(i,j,k) = aui * exp(gui * lnr0r) &
+                     * exp(bui3 * log(ccri6 * qi(i,j,k) / nci(i,j,k)))
+                uin(i,j,k) = uiq(i,j,k)
+              else
+                uiq(i,j,k) = 0.e0
+                uin(i,j,k) = 0.e0
+              end if
+            end do
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        !$acc loop independent collapse(3) private(lnr0r)
+        do k = 1, nk-1
+          do j = 1, nj-1
+            do i = 1, ni-1
+              lnr0r = log(r0 * rbv(i,j,k))
+
+              if (qc(i,j,k) > thresq) then
+                ucq(i,j,k) = cucq * exp(guc * lnr0r) &
+                     * exp(buc3 * log(cdiaqc * qc(i,j,k) / ncc(i,j,k)))
+                ucn(i,j,k) = cucn * ucq(i,j,k)
+              else
+                ucq(i,j,k) = 0.e0
+                ucn(i,j,k) = 0.e0
+              end if
+
+              if (qi(i,j,k) > thresq) then
+                uiq(i,j,k) = aui * exp(gui * lnr0r) &
+                     * exp(bui3 * log(ccri6 * qi(i,j,k) / nci(i,j,k)))
+                uin(i,j,k) = uiq(i,j,k)
+              else
+                uiq(i,j,k) = 0.e0
+                uin(i,j,k) = 0.e0
+              end if
+            end do
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+    ! Calculate terminal velocity of rain, snow, graupel (and hail if haiopt /= 0)
+    if (haiopt == 0) then
+      !$acc kernels
+      !$acc loop independent collapse(3) private(lnr0r)
+      do k = 1, nk-1
+        do j = 1, nj-1
+          do i = 1, ni-1
+            lnr0r = log(r0 * rbv(i,j,k))
+
+            if (qr(i,j,k) > thresq) then
+              urq(i,j,k) = curq * exp(gur * lnr0r) &
+                   * exp(bur3 * log(cdiaqr * qr(i,j,k) / ncr(i,j,k)))
+              urn(i,j,k) = curn * urq(i,j,k)
+            else
+              urq(i,j,k) = 0.e0
+              urn(i,j,k) = 0.e0
+            end if
+
+            if (qs(i,j,k) > thresq) then
+              usq(i,j,k) = cusq * exp(gus * lnr0r) &
+                   * exp(bus3 * log(cdiaqs * qs(i,j,k) / ncs(i,j,k)))
+              usn(i,j,k) = cusn * usq(i,j,k)
+            else
+              usq(i,j,k) = 0.e0
+              usn(i,j,k) = 0.e0
+            end if
+
+            if (qg(i,j,k) > thresq) then
+              ugq(i,j,k) = cugq * exp(gug * lnr0r) &
+                   * exp(bug3 * log(cdiaqg * qg(i,j,k) / ncg(i,j,k)))
+              ugn(i,j,k) = cugn * ugq(i,j,k)
+            else
+              ugq(i,j,k) = 0.e0
+              ugn(i,j,k) = 0.e0
+            end if
+
+            ! No hail when haiopt == 0
+            uhq(i,j,k) = 0.e0
+            uhn(i,j,k) = 0.e0
+          end do
+        end do
+      end do
+      !$acc end kernels
+    else
+      !$acc kernels
+      !$acc loop independent collapse(3) private(lnr0r)
+      do k = 1, nk-1
+        do j = 1, nj-1
+          do i = 1, ni-1
+            lnr0r = log(r0 * rbv(i,j,k))
+
+            if (qr(i,j,k) > thresq) then
+              urq(i,j,k) = curq * exp(gur * lnr0r) &
+                   * exp(bur3 * log(cdiaqr * qr(i,j,k) / ncr(i,j,k)))
+              urn(i,j,k) = curn * urq(i,j,k)
+            else
+              urq(i,j,k) = 0.e0
+              urn(i,j,k) = 0.e0
+            end if
+
+            if (qs(i,j,k) > thresq) then
+              usq(i,j,k) = cusq * exp(gus * lnr0r) &
+                   * exp(bus3 * log(cdiaqs * qs(i,j,k) / ncs(i,j,k)))
+              usn(i,j,k) = cusn * usq(i,j,k)
+            else
+              usq(i,j,k) = 0.e0
+              usn(i,j,k) = 0.e0
+            end if
+
+            if (qg(i,j,k) > thresq) then
+              ugq(i,j,k) = cugq * exp(gug * lnr0r) &
+                   * exp(bug3 * log(cdiaqg * qg(i,j,k) / ncg(i,j,k)))
+              ugn(i,j,k) = cugn * ugq(i,j,k)
+            else
+              ugq(i,j,k) = 0.e0
+              ugn(i,j,k) = 0.e0
+            end if
+
+            if (qh(i,j,k) > thresq) then
+              uhq(i,j,k) = cuhq * exp(guh * lnr0r) &
+                   * exp(buh3 * log(cdiaqh * qh(i,j,k) / nch(i,j,k)))
+              uhn(i,j,k) = cuhn * uhq(i,j,k)
+            else
+              uhq(i,j,k) = 0.e0
+              uhn(i,j,k) = 0.e0
+            end if
+          end do
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the terminal velocity of the cloud water and cloud ice.
@@ -682,6 +870,8 @@ end if
 ! -----
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_termblk == DUMP_TARGET_termblk .and. .not. dump_done_termblk) then

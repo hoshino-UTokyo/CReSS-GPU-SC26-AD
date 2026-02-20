@@ -427,6 +427,99 @@ if (dump_call_count_outpbl == DUMP_TARGET_outpbl .and. .not. dump_done_outpbl) t
   call dump_scalar_r('rddwkp', rddwkp)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_220)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+        if(fmois(1:3).eq.'dry') then
+
+          !$acc kernels
+          !$acc loop independent
+          do j=1,nj-1
+            !$acc loop independent
+            do i=1,ni-1
+              a=.5e0*cm(i,j)/cm10(i,j)
+
+              u10(i,j)=a*(u(i,j,2)+u(i+1,j,2))
+              v10(i,j)=a*(v(i,j,2)+v(i,j+1,2))
+
+              a=ch(i,j)/ch15(i,j)
+
+              pt15(i,j)=ptv(i,j,1)+a*(ptv(i,j,2)-ptv(i,j,1))
+              qv15(i,j)=0.e0
+
+              p15(i,j)=.5e0*(p(i,j,1)*(za(i,j)-1.5e0)                   &
+     &          +p(i,j,2)*(za(i,j)+1.5e0))/za(i,j)
+
+              if(land(i,j).eq.1) then
+                tsfc(i,j)=kai(i,j)*tice(i,j)+(1.e0-kai(i,j))*tund(i,j,1)
+              else
+                tsfc(i,j)=tund(i,j,1)
+              end if
+
+              cdave(i,j)=0.e0
+
+              usflx(i,j)=-.5e0*(ufrc(i,j,1)+ufrc(i+1,j,1))
+              vsflx(i,j)=-.5e0*(vfrc(i,j,1)+vfrc(i,j+1,1))
+
+              ptsflx(i,j)=-ptfrc(i,j,1)
+
+              qvsflx(i,j)=0.e0
+            end do
+          end do
+          !$acc end kernels
+
+        else if(fmois(1:5).eq.'moist') then
+
+          !$acc kernels
+          !$acc loop independent
+          do j=1,nj-1
+            !$acc loop independent private(a)
+            do i=1,ni-1
+              a=.5e0*cm(i,j)/cm10(i,j)
+
+              u10(i,j)=a*(u(i,j,2)+u(i+1,j,2))
+              v10(i,j)=a*(v(i,j,2)+v(i,j+1,2))
+
+              a=ch(i,j)/ch15(i,j)
+
+              pt15(i,j)=ptv(i,j,1)+a*(ptv(i,j,2)-ptv(i,j,1))
+
+              if(land(i,j).lt.0) then
+                qv15(i,j)=qvsfc(i,j)+a*(qv(i,j,2)-qvsfc(i,j))          &
+     &            *((1.e0+rddwkp*ch15(i,j))/(1.e0+rddwkp*ch(i,j)))
+              else
+                qv15(i,j)=qvsfc(i,j)+a*(qv(i,j,2)-qvsfc(i,j))
+              end if
+
+              pt15(i,j)=pt15(i,j)*(1.e0+qv15(i,j))/(1.e0+epsav*qv15(i,j))
+
+              p15(i,j)=.5e0*(p(i,j,1)*(za(i,j)-1.5e0)                   &
+     &          +p(i,j,2)*(za(i,j)+1.5e0))/za(i,j)
+
+              if(land(i,j).eq.1) then
+                tsfc(i,j)=kai(i,j)*tice(i,j)+(1.e0-kai(i,j))*tund(i,j,1)
+              else
+                tsfc(i,j)=tund(i,j,1)
+              end if
+
+              cdave(i,j)                                                 &
+     &          =cdrat(1)*cdl(i,j)+cdrat(2)*cdm(i,j)+cdrat(3)*cdh(i,j)
+
+              usflx(i,j)=-.5e0*(ufrc(i,j,1)+ufrc(i+1,j,1))
+              vsflx(i,j)=-.5e0*(vfrc(i,j,1)+vfrc(i,j+1,1))
+
+              ptsflx(i,j)=-ptfrc(i,j,1)
+              qvsflx(i,j)=-qvfrc(i,j,1)
+            end do
+          end do
+          !$acc end kernels
+
+        end if
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
         if(fmois(1:3).eq.'dry') then
@@ -522,6 +615,7 @@ end if
         end if
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_outpbl == DUMP_TARGET_outpbl .and. .not. dump_done_outpbl) then

@@ -282,6 +282,350 @@ if (dump_call_count_cloudcov == DUMP_TARGET_cloudcov .and. .not. dump_done_cloud
   call dump_array_1d('rcdh.bin', rcdh, 0, 101)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_056)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+! Set the no cloud cover in the case of dry air.
+
+      if(fmois(1:3).eq.'dry') then
+
+      !$acc kernels
+      !$acc loop independent
+        do j=1,nj-1
+        !$acc loop independent
+        do i=1,ni-1
+          cdl(i,j)=0.e0
+          cdm(i,j)=0.e0
+          cdh(i,j)=0.e0
+        end do
+        end do
+      !$acc end kernels
+
+! -----
+
+!! Estimate the cloud cover in the case of moist air.
+
+      else if(fmois(1:5).eq.'moist') then
+
+! Get the z physical coordinates at scalar points.
+
+      !$acc kernels
+      !$acc loop independent
+        do k=1,nk-1
+        !$acc loop independent
+          do j=1,nj-1
+          !$acc loop independent
+          do i=1,ni-1
+            zph8s(i,j,k)=.5e0*(zph(i,j,k)+zph(i,j,k+1))
+          end do
+          end do
+        end do
+      !$acc end kernels
+
+! -----
+
+! Estimate the cloud cover from the relative humidity.
+
+        if(fproc(1:2).eq.'rh'.or.abs(cphopt).eq.0) then
+
+      !$acc kernels
+      !$acc loop independent
+          do j=1,nj-1
+          !$acc loop independent private(rhsfc)
+          do i=1,ni-1
+
+            if(t(i,j,2).gt.tlow) then
+
+              rhsfc=es0iv2*qv(i,j,2)*p(i,j,2)/(epsva+qv(i,j,2))         &
+     &          *exp(17.269e0*(t(i,j,2)-t0)/(35.86e0-t(i,j,2)))
+
+            else
+
+              rhsfc=es0iv2*qv(i,j,2)*p(i,j,2)/(epsva+qv(i,j,2))         &
+     &          *exp(21.875e0*(t(i,j,2)-t0)/(7.66e0-t(i,j,2)))
+
+            end if
+
+            rh24(i,j)=rhsfc
+            rh32(i,j)=rhsfc
+            rh48(i,j)=rhsfc
+            rh72(i,j)=rhsfc
+
+          end do
+          end do
+      !$acc end kernels
+
+          do k=2,nk-1
+
+      !$acc kernels
+      !$acc loop independent
+            do j=1,nj-1
+            !$acc loop independent private(rha,rhb,dk)
+            do i=1,ni-1
+
+              if(zph8s(i,j,k-1).lt.2400.e0                              &
+     &          .and.zph8s(i,j,k).ge.2400.e0) then
+
+                if(t(i,j,k).gt.tlow) then
+
+                  rha=es0iv2*qv(i,j,k)*p(i,j,k)/(epsva+qv(i,j,k))       &
+     &              *exp(17.269e0*(t(i,j,k)-t0)/(35.86e0-t(i,j,k)))
+
+                else
+
+                  rha=es0iv2*qv(i,j,k)*p(i,j,k)/(epsva+qv(i,j,k))       &
+     &              *exp(21.875e0*(t(i,j,k)-t0)/(7.66e0-t(i,j,k)))
+
+                end if
+
+                if(t(i,j,k-1).gt.tlow) then
+
+                  rhb=es0iv2*qv(i,j,k-1)*p(i,j,k-1)/(epsva+qv(i,j,k-1)) &
+     &              *exp(17.269e0*(t(i,j,k-1)-t0)/(35.86e0-t(i,j,k-1)))
+
+                else
+
+                  rhb=es0iv2*qv(i,j,k-1)*p(i,j,k-1)/(epsva+qv(i,j,k-1)) &
+     &              *exp(21.875e0*(t(i,j,k-1)-t0)/(7.66e0-t(i,j,k-1)))
+
+                end if
+
+                dk=(zph8s(i,j,k)-2400.e0)/(zph8s(i,j,k)-zph8s(i,j,k-1))
+
+                rh24(i,j)=rha*(1.e0-dk)+rhb*dk
+
+              end if
+
+              if(zph8s(i,j,k-1).lt.3200.e0                              &
+     &          .and.zph8s(i,j,k).ge.3200.e0) then
+
+                if(t(i,j,k).gt.tlow) then
+
+                  rha=es0iv2*qv(i,j,k)*p(i,j,k)/(epsva+qv(i,j,k))       &
+     &              *exp(17.269e0*(t(i,j,k)-t0)/(35.86e0-t(i,j,k)))
+
+                else
+
+                  rha=es0iv2*qv(i,j,k)*p(i,j,k)/(epsva+qv(i,j,k))       &
+     &              *exp(21.875e0*(t(i,j,k)-t0)/(7.66e0-t(i,j,k)))
+
+                end if
+
+                if(t(i,j,k-1).gt.tlow) then
+
+                  rhb=es0iv2*qv(i,j,k-1)*p(i,j,k-1)/(epsva+qv(i,j,k-1)) &
+     &              *exp(17.269e0*(t(i,j,k-1)-t0)/(35.86e0-t(i,j,k-1)))
+
+                else
+
+                  rhb=es0iv2*qv(i,j,k-1)*p(i,j,k-1)/(epsva+qv(i,j,k-1)) &
+     &              *exp(21.875e0*(t(i,j,k-1)-t0)/(7.66e0-t(i,j,k-1)))
+
+                end if
+
+                dk=(zph8s(i,j,k)-3200.e0)/(zph8s(i,j,k)-zph8s(i,j,k-1))
+
+                rh32(i,j)=rha*(1.e0-dk)+rhb*dk
+
+              end if
+
+              if(zph8s(i,j,k-1).lt.4800.e0                              &
+     &          .and.zph8s(i,j,k).ge.4800.e0) then
+
+                if(t(i,j,k).gt.tlow) then
+
+                  rha=es0iv2*qv(i,j,k)*p(i,j,k)/(epsva+qv(i,j,k))       &
+     &              *exp(17.269e0*(t(i,j,k)-t0)/(35.86e0-t(i,j,k)))
+
+                else
+
+                  rha=es0iv2*qv(i,j,k)*p(i,j,k)/(epsva+qv(i,j,k))       &
+     &              *exp(21.875e0*(t(i,j,k)-t0)/(7.66e0-t(i,j,k)))
+
+                end if
+
+                if(t(i,j,k-1).gt.tlow) then
+
+                  rhb=es0iv2*qv(i,j,k-1)*p(i,j,k-1)/(epsva+qv(i,j,k-1)) &
+     &              *exp(17.269e0*(t(i,j,k-1)-t0)/(35.86e0-t(i,j,k-1)))
+
+                else
+
+                  rhb=es0iv2*qv(i,j,k-1)*p(i,j,k-1)/(epsva+qv(i,j,k-1)) &
+     &              *exp(21.875e0*(t(i,j,k-1)-t0)/(7.66e0-t(i,j,k-1)))
+
+                end if
+
+                dk=(zph8s(i,j,k)-4800.e0)/(zph8s(i,j,k)-zph8s(i,j,k-1))
+
+                rh48(i,j)=rha*(1.e0-dk)+rhb*dk
+
+              end if
+
+              if(zph8s(i,j,k-1).lt.7200.e0                              &
+     &          .and.zph8s(i,j,k).ge.7200.e0) then
+
+                if(t(i,j,k).gt.tlow) then
+
+                  rha=es0iv2*qv(i,j,k)*p(i,j,k)/(epsva+qv(i,j,k))       &
+     &              *exp(17.269e0*(t(i,j,k)-t0)/(35.86e0-t(i,j,k)))
+
+                else
+
+                  rha=es0iv2*qv(i,j,k)*p(i,j,k)/(epsva+qv(i,j,k))       &
+     &              *exp(21.875e0*(t(i,j,k)-t0)/(7.66e0-t(i,j,k)))
+
+                end if
+
+                if(t(i,j,k-1).gt.tlow) then
+
+                  rhb=es0iv2*qv(i,j,k-1)*p(i,j,k-1)/(epsva+qv(i,j,k-1)) &
+     &              *exp(17.269e0*(t(i,j,k-1)-t0)/(35.86e0-t(i,j,k-1)))
+
+                else
+
+                  rhb=es0iv2*qv(i,j,k-1)*p(i,j,k-1)/(epsva+qv(i,j,k-1)) &
+     &              *exp(21.875e0*(t(i,j,k-1)-t0)/(7.66e0-t(i,j,k-1)))
+
+                end if
+
+                dk=(zph8s(i,j,k)-7200.e0)/(zph8s(i,j,k)-zph8s(i,j,k-1))
+
+                rh72(i,j)=rha*(1.e0-dk)+rhb*dk
+
+              end if
+
+            end do
+            end do
+      !$acc end kernels
+
+          end do
+
+      !$acc kernels
+      !$acc loop independent
+          do j=1,nj-1
+          !$acc loop independent private(irh,dk)
+          do i=1,ni-1
+
+            irh=min(int(rh24(i,j)),100)
+
+            dk=rh24(i,j)-aint(rh24(i,j))
+
+            cdl(i,j)=((1.e0-dk)*rcdl(irh)+dk*rcdl(irh+1))               &
+     &        *min(max(3200.e0-zph(i,j,2),0.e0),3200.e0)/3200.e0
+
+            irh=min(int(rh32(i,j)),100)
+
+            dk=rh32(i,j)-aint(rh32(i,j))
+
+            cdm(i,j)=((1.e0-dk)*rcdm(irh)+dk*rcdm(irh+1))               &
+     &        *min(max(4800.e0-zph(i,j,2),0.e0),1600.e0)/1600.e0
+
+            irh=min(int(rh48(i,j)),100)
+
+            dk=rh48(i,j)-aint(rh48(i,j))
+
+            cdh(i,j)=((1.e0-dk)*rcdm(irh)+dk*rcdm(irh+1))               &
+     &        *min(max(7200.e0-zph(i,j,2),0.e0),2400.e0)/2400.e0
+
+            cdm(i,j)=.5e0*(cdm(i,j)+cdh(i,j))
+
+            irh=min(int(rh72(i,j)),100)
+
+            dk=rh72(i,j)-aint(rh72(i,j))
+
+            cdh(i,j)=(1.e0-dk)*rcdh(irh)+dk*rcdh(irh+1)
+
+          end do
+          end do
+      !$acc end kernels
+
+! -----
+
+! Estimate the cloud cover from the hydrometeor mixing ratio.
+
+        else if(fproc(1:3).eq.'mix'.and.abs(cphopt).ne.0) then
+
+      !$acc kernels
+      !$acc loop independent
+          do k=2,nk-1
+          !$acc loop independent
+            do j=1,nj-1
+            !$acc loop independent
+            do i=1,ni-1
+              qsum(i,j,k)=rst(i,j,k)*qall(i,j,k)*dz
+            end do
+            end do
+          end do
+      !$acc end kernels
+
+      !$acc kernels
+      !$acc loop independent
+          do j=1,nj-1
+          !$acc loop independent
+          do i=1,ni-1
+            qsuml(i,j)=0.e0
+            qsumm(i,j)=0.e0
+            qsumh(i,j)=0.e0
+          end do
+          end do
+      !$acc end kernels
+
+          do k=2,nk-1
+
+      !$acc kernels
+      !$acc loop independent
+            do j=1,nj-1
+            !$acc loop independent
+            do i=1,ni-1
+
+              if(zph8s(i,j,k).lt.2800.e0) then
+
+                qsuml(i,j)=qsuml(i,j)+qsum(i,j,k)
+
+              else if(zph8s(i,j,k).ge.2800.e0                           &
+     &           .and.zph8s(i,j,k).lt.6000.e0) then
+
+                qsumm(i,j)=qsumm(i,j)+qsum(i,j,k)
+
+              else
+
+                qsumh(i,j)=qsumh(i,j)+qsum(i,j,k)
+
+              end if
+
+            end do
+            end do
+      !$acc end kernels
+
+          end do
+
+      !$acc kernels
+      !$acc loop independent
+          do j=1,nj-1
+          !$acc loop independent
+          do i=1,ni-1
+            cdl(i,j)=min(tend7*(1.e0-exp(-15.e0*qsuml(i,j))),1.e0)
+            cdm(i,j)=min(tend6*(1.e0-exp(-15.e0*qsumm(i,j))),1.e0)
+            cdh(i,j)=min(tend3*(1.e0-exp(-15.e0*qsumh(i,j))),1.e0)
+          end do
+          end do
+      !$acc end kernels
+
+        end if
+
+! -----
+
+      end if
+
+!! -----
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Set the no cloud cover in the case of dry air.
@@ -622,6 +966,7 @@ end if
 !! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_cloudcov == DUMP_TARGET_cloudcov .and. .not. dump_done_cloudcov) then

@@ -171,6 +171,28 @@ if (dump_call_count_chkmoist == DUMP_TARGET_chkmoist .and. .not. dump_done_chkmo
   call dump_array_3d('qv.bin', qv, 0, ni+1, 0, nj+1, 1, nk)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_051)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+    !$acc kernels
+    !$acc loop reduction(max: qvmax)
+    do k = 1, nk-1
+      !$acc loop reduction(max: qvmax)
+      do j = 1, nj-1
+        !$acc loop reduction(max: qvmax)
+        do i = 1, ni-1
+          qvmax = max(qv(i,j,k), qvmax)
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
 !$omp do schedule(runtime) private(i,j,k) reduction(max: qvmax)
@@ -186,6 +208,7 @@ end if
 !$omp end do
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_chkmoist == DUMP_TARGET_chkmoist .and. .not. dump_done_chkmoist) then

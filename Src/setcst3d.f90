@@ -164,6 +164,25 @@ if (dump_call_count_setcst3d == DUMP_TARGET_setcst3d .and. .not. dump_done_setcs
   ! FIXME: invar is array - call dump_scalar_r('invar', invar)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_285)
+! GPU version (OpenACC)
+
+      !$acc kernels
+      !$acc loop independent
+      do k=kmin,kmax
+        !$acc loop independent
+        do j=jmin,jmax
+          !$acc loop independent
+          do i=imin,imax
+            outvar(i,j,k)=invar
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+#else
+! CPU version (OpenMP) - Original code preserved
+
 !$omp parallel default(shared) private(k)
 
       do k=kmin,kmax
@@ -181,6 +200,7 @@ end if
       end do
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_setcst3d == DUMP_TARGET_setcst3d .and. .not. dump_done_setcst3d) then
@@ -270,6 +290,25 @@ loop_len = int((kmax)-(kmin)+1,8) &
      & * int((imax)-(imin)+1,8)
 call profile_start(prof_id1)
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_286)
+! GPU version (OpenACC)
+
+      !$acc kernels
+      !$acc loop independent
+      do k=kmin,kmax
+        !$acc loop independent
+        do j=jmin,jmax
+          !$acc loop independent
+          do i=imin,imax
+            outvar(i,j,k)=invar
+          end do
+        end do
+      end do
+      !$acc end kernels
+
+#else
+! CPU version (OpenMP) - Original code preserved
+
 !$omp parallel default(shared) private(k)
 
       do k=kmin,kmax
@@ -287,6 +326,7 @@ call profile_start(prof_id1)
       end do
 
 !$omp end parallel
+#endif
 
 call profile_stop(prof_id1, loop_len)
 

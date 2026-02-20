@@ -212,6 +212,126 @@ if (dump_call_count_strsten == DUMP_TARGET_strsten .and. .not. dump_done_strsten
   call dump_array_3d('t32_in.bin', t32, 0, ni+1, 0, nj+1, 1, nk)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_318)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    ! Calculate diagonal components (t11, t22, t33)
+    !$acc kernels
+    !$acc loop independent
+    do k = 1, nk-1
+      !$acc loop independent
+      do j = 1, nj-1
+        !$acc loop independent
+        do i = 1, ni-1
+          t11(i,j,k) = rkh(i,j,k) * t11(i,j,k)
+          t22(i,j,k) = rkh(i,j,k) * t22(i,j,k)
+          t33(i,j,k) = rkv(i,j,k) * t33(i,j,k)
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    ! Calculate t12 component (x-y shear)
+    !$acc kernels
+    !$acc loop independent
+    do k = 1, nk-1
+      !$acc loop independent
+      do j = 2, nj-1
+        !$acc loop independent
+        do i = 2, ni-1
+          t12(i,j,k) = 0.25e0 * t12(i,j,k) &
+               * ((rkh(i-1,j-1,k) + rkh(i,j,k)) + (rkh(i-1,j,k) + rkh(i,j-1,k)))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    ! Calculate t13 component (x-z shear)
+    !$acc kernels
+    !$acc loop independent
+    do k = 2, nk-1
+      !$acc loop independent
+      do j = 2, nj-2
+        !$acc loop independent
+        do i = 2, ni-1
+          t13(i,j,k) = 0.25e0 * t13(i,j,k) &
+               * ((rkv(i-1,j,k-1) + rkv(i,j,k)) + (rkv(i-1,j,k) + rkv(i,j,k-1)))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    ! Calculate t23 component (y-z shear)
+    !$acc kernels
+    !$acc loop independent
+    do k = 2, nk-1
+      !$acc loop independent
+      do j = 2, nj-1
+        !$acc loop independent
+        do i = 2, ni-2
+          t23(i,j,k) = 0.25e0 * t23(i,j,k) &
+               * ((rkv(i,j-1,k-1) + rkv(i,j,k)) + (rkv(i,j-1,k) + rkv(i,j,k-1)))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    ! Surface stress (sfcopt >= 1)
+    !$acc kernels
+    !$acc loop independent
+    do j = 2, nj-2
+      !$acc loop independent
+      do i = 2, ni-1
+        t13(i,j,2) = ufrc(i,j,1)
+      end do
+    end do
+    !$acc end kernels
+
+    !$acc kernels
+    !$acc loop independent
+    do j = 2, nj-1
+      !$acc loop independent
+      do i = 2, ni-2
+        t23(i,j,2) = vfrc(i,j,1)
+      end do
+    end do
+    !$acc end kernels
+
+    ! Calculate t31 component (z-x shear)
+    !$acc kernels
+    !$acc loop independent
+    do k = 2, nk-1
+      !$acc loop independent
+      do j = 2, nj-2
+        !$acc loop independent
+        do i = 2, ni-1
+          t31(i,j,k) = 0.25e0 * t31(i,j,k) &
+               * ((rkh(i-1,j,k-1) + rkh(i,j,k)) + (rkh(i-1,j,k) + rkh(i,j,k-1)))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    ! Calculate t32 component (z-y shear)
+    !$acc kernels
+    !$acc loop independent
+    do k = 2, nk-1
+      !$acc loop independent
+      do j = 2, nj-1
+        !$acc loop independent
+        do i = 2, ni-2
+          t32(i,j,k) = 0.25e0 * t32(i,j,k) &
+               * ((rkh(i,j-1,k-1) + rkh(i,j,k)) + (rkh(i,j-1,k) + rkh(i,j,k-1)))
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! Calculate the diagonal and the x-y components of the stress tensor.
@@ -330,6 +450,8 @@ end if
 ! -----
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_strsten == DUMP_TARGET_strsten .and. .not. dump_done_strsten) then

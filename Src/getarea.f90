@@ -304,6 +304,150 @@ if (dump_call_count_getarea == DUMP_TARGET_getarea .and. .not. dump_done_getarea
   call dump_scalar_i('njsub', njsub)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_119)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+
+    ! Compute interior area (area0)
+    if (mfcopt == 0) then
+      !$acc kernels
+      !$acc loop independent reduction(+:area0)
+      do j = jstr, jend
+        !$acc loop independent reduction(+:area0)
+        do i = istr, iend
+          area0 = area0 + dxdy
+        end do
+      end do
+      !$acc end kernels
+    else
+      if (mpopt == 0 .or. mpopt == 5 .or. mpopt == 10) then
+        !$acc kernels
+        !$acc loop independent reduction(+:area0)
+        do j = jstr, jend
+          !$acc loop independent reduction(+:area0)
+          do i = istr, iend
+            area0 = area0 + dxdy * rmf(i,j,2)
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        !$acc loop independent reduction(+:area0)
+        do j = jstr, jend
+          !$acc loop independent reduction(+:area0)
+          do i = istr, iend
+            area0 = area0 + dxdy * rmf(i,j,3)
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+    ! West boundary area
+    if (ebw == 1 .and. isub == 0 .and. abs(wbc) /= 1) then
+      if (mfcopt == 1 .and. (mpopt /= 0 .and. mpopt /= 10)) then
+        !$acc kernels
+        !$acc loop independent reduction(+:areaw)
+        do k = 2, nk-2
+          !$acc loop independent reduction(+:areaw)
+          do j = jstr, jend
+            areaw = areaw + dydz * rmf8u(1,j,2) * jcb8u(1,j,k)
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        !$acc loop independent reduction(+:areaw)
+        do k = 2, nk-2
+          !$acc loop independent reduction(+:areaw)
+          do j = jstr, jend
+            areaw = areaw + dydz * jcb8u(1,j,k)
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+    ! East boundary area
+    if (ebe == 1 .and. isub == nisub-1 .and. abs(ebc) /= 1) then
+      if (mfcopt == 1 .and. (mpopt /= 0 .and. mpopt /= 10)) then
+        !$acc kernels
+        !$acc loop independent reduction(+:areae)
+        do k = 2, nk-2
+          !$acc loop independent reduction(+:areae)
+          do j = jstr, jend
+            areae = areae + dydz * rmf8u(ni,j,2) * jcb8u(ni,j,k)
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        !$acc loop independent reduction(+:areae)
+        do k = 2, nk-2
+          !$acc loop independent reduction(+:areae)
+          do j = jstr, jend
+            areae = areae + dydz * jcb8u(ni,j,k)
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+    ! South boundary area
+    if (ebs == 1 .and. jsub == 0) then
+      if (mfcopt == 1 .and. mpopt /= 5) then
+        !$acc kernels
+        !$acc loop independent reduction(+:areas)
+        do k = 2, nk-2
+          !$acc loop independent reduction(+:areas)
+          do i = istr, iend
+            areas = areas + dxdz * rmf8v(i,1,2) * jcb8v(i,1,k)
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        !$acc loop independent reduction(+:areas)
+        do k = 2, nk-2
+          !$acc loop independent reduction(+:areas)
+          do i = istr, iend
+            areas = areas + dxdz * jcb8v(i,1,k)
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+    ! North boundary area
+    if (ebn == 1 .and. jsub == njsub-1) then
+      if (mfcopt == 1 .and. mpopt /= 5) then
+        !$acc kernels
+        !$acc loop independent reduction(+:arean)
+        do k = 2, nk-2
+          !$acc loop independent reduction(+:arean)
+          do i = istr, iend
+            arean = arean + dxdz * rmf8v(i,nj,2) * jcb8v(i,nj,k)
+          end do
+        end do
+        !$acc end kernels
+      else
+        !$acc kernels
+        !$acc loop independent reduction(+:arean)
+        do k = 2, nk-2
+          !$acc loop independent reduction(+:arean)
+          do i = istr, iend
+            arean = arean + dxdz * jcb8v(i,nj,k)
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared)
 
       if(mfcopt.eq.0) then
@@ -469,6 +613,8 @@ end if
       end if
 
 !$omp end parallel
+
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_getarea == DUMP_TARGET_getarea .and. .not. dump_done_getarea) then

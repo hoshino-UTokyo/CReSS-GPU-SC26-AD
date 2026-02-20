@@ -182,6 +182,68 @@ if (dump_call_count_nuc1stv == DUMP_TARGET_nuc1stv .and. .not. dump_done_nuc1stv
   call dump_array_3d('qvsi.bin', qvsi, 0, ni+1, 0, nj+1, 1, nk)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_213)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    if (nk == 1) then
+      !$acc kernels
+      !$acc loop independent
+      do j = 1, nj-1
+        !$acc loop independent private(qvssi, a)
+        do i = 1, ni-1
+          if (qv(i,j,1) > thresq) then
+            if (qv(i,j,1) > qvsi(i,j,1) .and. t(i,j,1) > tlow .and. t(i,j,1) < t0) then
+              qvssi = qv(i,j,1) - qvsi(i,j,1)
+              a = 15.25 * qv(i,j,1) / qvsi(i,j,1) - 10.08
+              if (a < 40.0) then
+                nuvi(i,j,1) = max(min(mi0 * exp(a) * rbv(i,j,1) - qi(i,j,1), qvssi), 0.0)
+              else
+                nuvi(i,j,1) = qvssi
+              end if
+            else
+              nuvi(i,j,1) = 0.0
+            end if
+          else
+            nuvi(i,j,1) = 0.0
+          end if
+        end do
+      end do
+      !$acc end kernels
+
+    else
+      !$acc kernels
+      !$acc loop independent
+      do k = 1, nk-1
+        !$acc loop independent
+        do j = 1, nj-1
+          !$acc loop independent private(qvssi, a)
+          do i = 1, ni-1
+            if (qv(i,j,k) > thresq) then
+              if (qv(i,j,k) > qvsi(i,j,k) .and. t(i,j,k) > tlow .and. t(i,j,k) < t0) then
+                qvssi = qv(i,j,k) - qvsi(i,j,k)
+                a = 15.25 * qv(i,j,k) / qvsi(i,j,k) - 10.08
+                if (a < 40.0) then
+                  nuvi(i,j,k) = max(min(mi0 * exp(a) * rbv(i,j,k) - qi(i,j,k), qvssi), 0.0)
+                else
+                  nuvi(i,j,k) = qvssi
+                end if
+              else
+                nuvi(i,j,k) = 0.0
+              end if
+            else
+              nuvi(i,j,k) = 0.0
+            end if
+          end do
+        end do
+      end do
+      !$acc end kernels
+    end if
+
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
 ! In the case nk = 1.
@@ -287,6 +349,7 @@ end if
 ! -----
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_nuc1stv == DUMP_TARGET_nuc1stv .and. .not. dump_done_nuc1stv) then

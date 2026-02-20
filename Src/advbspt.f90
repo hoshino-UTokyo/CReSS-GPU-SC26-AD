@@ -203,6 +203,49 @@ if (dump_call_count_advbspt == DUMP_TARGET_advbspt .and. .not. dump_done_advbspt
   call dump_scalar_r('dziv25', dziv25)
 end if
 
+#if defined(USE_GPU) && !defined(DISABLE_GPU_013)
+!----------------------------------------------------------------------
+! GPU version (OpenACC)
+!----------------------------------------------------------------------
+    !$acc kernels
+    !$acc loop independent collapse(3)
+    do k = 2, nk-1
+      do j = 2, nj-2
+        do i = 2, ni-2
+          pta8w(i,j,k) = (rbr(i,j,k-1) + rbr(i,j,k)) &
+               * w(i,j,k) * (ptbr(i,j,k-1) - ptbr(i,j,k)) * dziv25
+        end do
+      end do
+    end do
+    !$acc end kernels
+
+    if (gwmopt == 0) then
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 2, nk-2
+        do j = 2, nj-2
+          do i = 2, ni-2
+            ptadv(i,j,k) = ptadv(i,j,k) + (pta8w(i,j,k) + pta8w(i,j,k+1))
+          end do
+        end do
+      end do
+      !$acc end kernels
+    else
+      !$acc kernels
+      !$acc loop independent collapse(3)
+      do k = 2, nk-2
+        do j = 2, nj-2
+          do i = 2, ni-2
+            ptadv(i,j,k) = pta8w(i,j,k) + pta8w(i,j,k+1)
+          end do
+        end do
+      end do
+      !$acc end kernels
+    end if
+#else
+!----------------------------------------------------------------------
+! CPU version (OpenMP) - Original code preserved
+!----------------------------------------------------------------------
 !$omp parallel default(shared) private(k)
 
       do k=2,nk-1
@@ -255,6 +298,7 @@ end if
       end if
 
 !$omp end parallel
+#endif
 
 ! Dump output data at target call
 if (dump_call_count_advbspt == DUMP_TARGET_advbspt .and. .not. dump_done_advbspt) then
