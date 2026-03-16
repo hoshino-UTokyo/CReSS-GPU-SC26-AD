@@ -365,18 +365,36 @@
           do i=1,ni-1
             if(land(i,j).lt.3) then
               rr(i,j,k)=rks*nuu(i,j)
+              ss(i,j,k)=sks*nuu(i,j)+1.e0
               tt(i,j,k)=tks*nuu(i,j)
             else if(land(i,j).ge.10) then
               rr(i,j,k)=rkg*nuu(i,j)
+              ss(i,j,k)=skg*nuu(i,j)+1.e0
               tt(i,j,k)=tkg*nuu(i,j)
             else
               rr(i,j,k)=0.e0
+              ss(i,j,k)=1.e0
               tt(i,j,k)=0.e0
             end if
           end do
         end do
         !$acc end kernels
       end do
+
+      !$acc kernels
+      !$acc loop independent collapse(2)
+      do j=1,nj-1
+        do i=1,ni-1
+          if(land(i,j).lt.3) then
+            ss(i,j,1)=s1s*nuu(i,j)+1.e0
+          else if(land(i,j).ge.10) then
+            ss(i,j,1)=s1g*nuu(i,j)+1.e0
+          else
+            ss(i,j,1)=1.e0
+          end if
+        end do
+      end do
+      !$acc end kernels
 
     else if(sfcopt.eq.2.or.sfcopt.eq.3.or.sfcopt.ge.12) then
       do k=1,nund-1
@@ -386,15 +404,30 @@
           do i=1,ni-1
             if(land(i,j).ge.10) then
               rr(i,j,k)=rkg*nuu(i,j)
+              ss(i,j,k)=skg*nuu(i,j)+1.e0
               tt(i,j,k)=tkg*nuu(i,j)
             else
               rr(i,j,k)=0.e0
+              ss(i,j,k)=1.e0
               tt(i,j,k)=0.e0
             end if
           end do
         end do
         !$acc end kernels
       end do
+
+      !$acc kernels
+      !$acc loop independent collapse(2)
+      do j=1,nj-1
+        do i=1,ni-1
+          if(land(i,j).ge.10) then
+            ss(i,j,1)=s1g*nuu(i,j)+1.e0
+          else
+            ss(i,j,1)=1.e0
+          end if
+        end do
+      end do
+      !$acc end kernels
     end if
 
 #else

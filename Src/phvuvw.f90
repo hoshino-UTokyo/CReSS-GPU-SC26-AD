@@ -361,155 +361,564 @@
 !----------------------------------------------------------------------
 ! GPU version (OpenACC)
 !----------------------------------------------------------------------
-    ! For wbc=7, set ucpx to constant gdxdtn on west boundary
-    if (wbc == 7) then
-      !$acc kernels
-      !$acc loop independent
-      do k = 2, nk-1
-        !$acc loop independent
-        do j = 1, nj-1
-          ucpx(j, k, 1) = gdxdtn
-        end do
-      end do
-      !$acc end kernels
-    end if
 
-    ! For ebc=7, set ucpx to constant gdxdt on east boundary
-    if (ebc == 7) then
-      !$acc kernels
-      !$acc loop independent
-      do k = 2, nk-1
-        !$acc loop independent
-        do j = 1, nj-1
-          ucpx(j, k, 2) = gdxdt
-        end do
-      end do
-      !$acc end kernels
-    end if
+!! Calculate the u phase speed.
 
-    ! For sbc=7, set ucpy to constant gdydtn on south boundary
-    if (sbc == 7) then
-      !$acc kernels
-      !$acc loop independent
-      do k = 2, nk-1
-        !$acc loop independent
-        do i = 1, ni-1
-          ucpy(i, k, 1) = gdydtn
-        end do
-      end do
-      !$acc end kernels
-    end if
+! u phase speed on west boundary
+      if((ebw.eq.1.and.isub.eq.0).and.((wbc.ge.4.and.exbopt.eq.0)     &
+     &  .or.(wbc.ge.4.and.exbopt.ge.1.and.exbvar(1:1).eq.'x'))) then
 
-    ! For nbc=7, set ucpy to constant gdydt on north boundary
-    if (nbc == 7) then
-      !$acc kernels
-      !$acc loop independent
-      do k = 2, nk-1
-        !$acc loop independent
-        do i = 1, ni-1
-          ucpy(i, k, 2) = gdydt
-        end do
-      end do
-      !$acc end kernels
-    end if
+        if(wbc.eq.7) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-1
+            do j=1,nj-1
+              ucpx(j,k,1)=gdxdtn
+            end do
+          end do
+          !$acc end kernels
+        end if
 
-    ! v component phase speeds
-    if (wbc == 7) then
-      !$acc kernels
-      !$acc loop independent
-      do k = 2, nk-1
-        !$acc loop independent
-        do j = 1, nj
-          vcpx(j, k, 1) = gdxdtn
-        end do
-      end do
-      !$acc end kernels
-    end if
+        if(mfcopt.eq.1.and.mpopt.ne.5) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-1
+            do j=1,nj-1
+              ucpx(j,k,1)=max(ucpx(j,k,1),-rmf8u(2,j,2))
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-1
+            do j=1,nj-1
+              ucpx(j,k,1)=max(ucpx(j,k,1),-1.e0)
+            end do
+          end do
+          !$acc end kernels
+        end if
 
-    if (ebc == 7) then
-      !$acc kernels
-      !$acc loop independent
-      do k = 2, nk-1
-        !$acc loop independent
-        do j = 1, nj
-          vcpx(j, k, 2) = gdxdt
+        !$acc kernels
+        !$acc loop independent collapse(2)
+        do k=2,nk-2
+          do j=1,nj-1
+            ucpx(j,k,1)=ucpx(j,k,1)*dtsdb
+          end do
         end do
-      end do
-      !$acc end kernels
-    end if
+        !$acc end kernels
 
-    if (sbc == 7) then
-      !$acc kernels
-      !$acc loop independent
-      do k = 2, nk-1
-        !$acc loop independent
-        do i = 1, ni-1
-          vcpy(i, k, 1) = gdydtn
-        end do
-      end do
-      !$acc end kernels
-    end if
+      end if
 
-    if (nbc == 7) then
-      !$acc kernels
-      !$acc loop independent
-      do k = 2, nk-1
-        !$acc loop independent
-        do i = 1, ni-1
-          vcpy(i, k, 2) = gdydt
-        end do
-      end do
-      !$acc end kernels
-    end if
+! u phase speed on east boundary
+      if((ebe.eq.1.and.isub.eq.nisub-1).and.((ebc.ge.4.and.exbopt.eq.0)&
+     &  .or.(ebc.ge.4.and.exbopt.ge.1.and.exbvar(1:1).eq.'x'))) then
 
-    ! w component phase speeds
-    if (wbc == 7) then
-      !$acc kernels
-      !$acc loop independent
-      do k = 2, nk-1
-        !$acc loop independent
-        do j = 1, nj-1
-          wcpx(j, k, 1) = gdxdtn
-        end do
-      end do
-      !$acc end kernels
-    end if
+        if(ebc.eq.7) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do j=1,nj-1
+              ucpx(j,k,2)=gdxdt
+            end do
+          end do
+          !$acc end kernels
+        end if
 
-    if (ebc == 7) then
-      !$acc kernels
-      !$acc loop independent
-      do k = 2, nk-1
-        !$acc loop independent
-        do j = 1, nj-1
-          wcpx(j, k, 2) = gdxdt
-        end do
-      end do
-      !$acc end kernels
-    end if
+        if(mfcopt.eq.1.and.mpopt.ne.5) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do j=1,nj-1
+              ucpx(j,k,2)=min(ucpx(j,k,2),rmf8u(nim1,j,2))
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do j=1,nj-1
+              ucpx(j,k,2)=min(ucpx(j,k,2),1.e0)
+            end do
+          end do
+          !$acc end kernels
+        end if
 
-    if (sbc == 7) then
-      !$acc kernels
-      !$acc loop independent
-      do k = 2, nk-1
-        !$acc loop independent
-        do i = 1, ni-1
-          wcpy(i, k, 1) = gdydtn
+        !$acc kernels
+        !$acc loop independent collapse(2)
+        do k=2,nk-2
+          do j=1,nj-1
+            ucpx(j,k,2)=ucpx(j,k,2)*dtsdb
+          end do
         end do
-      end do
-      !$acc end kernels
-    end if
+        !$acc end kernels
 
-    if (nbc == 7) then
-      !$acc kernels
-      !$acc loop independent
-      do k = 2, nk-1
-        !$acc loop independent
-        do i = 1, ni-1
-          wcpy(i, k, 2) = gdydt
+      end if
+
+! u phase speed on south boundary
+      if((ebs.eq.1.and.jsub.eq.0).and.((sbc.ge.4.and.exbopt.eq.0)     &
+     &  .or.(sbc.ge.4.and.exbopt.ge.1.and.exbvar(1:1).eq.'x'))) then
+
+        if(sbc.ge.7) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do i=1,ni
+              ucpy(i,k,1)=gdydtn
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+        if(mfcopt.eq.1.and.(mpopt.ne.0.and.mpopt.ne.10)) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do i=1,ni
+              ucpy(i,k,1)=max(ucpy(i,k,1),-rmf8u(i,2,2))
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do i=1,ni
+              ucpy(i,k,1)=max(ucpy(i,k,1),-1.e0)
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+        !$acc kernels
+        !$acc loop independent collapse(2)
+        do k=2,nk-2
+          do i=1,ni
+            ucpy(i,k,1)=ucpy(i,k,1)*dtsdb
+          end do
         end do
-      end do
-      !$acc end kernels
-    end if
+        !$acc end kernels
+
+      end if
+
+! u phase speed on north boundary
+      if((ebn.eq.1.and.jsub.eq.njsub-1).and.((nbc.ge.4.and.exbopt.eq.0)&
+     &  .or.(nbc.ge.4.and.exbopt.ge.1.and.exbvar(1:1).eq.'x'))) then
+
+        if(nbc.ge.7) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do i=1,ni
+              ucpy(i,k,2)=gdydt
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+        if(mfcopt.eq.1.and.(mpopt.ne.0.and.mpopt.ne.10)) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do i=1,ni
+              ucpy(i,k,2)=min(ucpy(i,k,2),rmf8u(i,njm2,2))
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do i=1,ni
+              ucpy(i,k,2)=min(ucpy(i,k,2),1.e0)
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+        !$acc kernels
+        !$acc loop independent collapse(2)
+        do k=2,nk-2
+          do i=1,ni
+            ucpy(i,k,2)=ucpy(i,k,2)*dtsdb
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+!! Calculate the v phase speed.
+
+! v phase speed on west boundary
+      if((ebw.eq.1.and.isub.eq.0).and.((wbc.ge.4.and.exbopt.eq.0)     &
+     &  .or.(wbc.ge.4.and.exbopt.ge.1.and.exbvar(2:2).eq.'x'))) then
+
+        if(wbc.eq.7) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do j=1,nj
+              vcpx(j,k,1)=gdxdtn
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+        if(mfcopt.eq.1.and.mpopt.ne.5) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do j=1,nj
+              vcpx(j,k,1)=max(vcpx(j,k,1),-rmf8v(2,j,2))
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do j=1,nj
+              vcpx(j,k,1)=max(vcpx(j,k,1),-1.e0)
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+        !$acc kernels
+        !$acc loop independent collapse(2)
+        do k=2,nk-2
+          do j=1,nj
+            vcpx(j,k,1)=vcpx(j,k,1)*dtsdb
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+! v phase speed on east boundary
+      if((ebe.eq.1.and.isub.eq.nisub-1).and.((ebc.ge.4.and.exbopt.eq.0)&
+     &  .or.(ebc.ge.4.and.exbopt.ge.1.and.exbvar(2:2).eq.'x'))) then
+
+        if(ebc.eq.7) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do j=1,nj
+              vcpx(j,k,2)=gdxdt
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+        if(mfcopt.eq.1.and.mpopt.ne.5) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do j=1,nj
+              vcpx(j,k,2)=min(vcpx(j,k,2),rmf8v(nim2,j,2))
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do j=1,nj
+              vcpx(j,k,2)=min(vcpx(j,k,2),1.e0)
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+        !$acc kernels
+        !$acc loop independent collapse(2)
+        do k=2,nk-2
+          do j=1,nj
+            vcpx(j,k,2)=vcpx(j,k,2)*dtsdb
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+! v phase speed on south boundary
+      if((ebs.eq.1.and.jsub.eq.0).and.((sbc.ge.4.and.exbopt.eq.0)     &
+     &  .or.(sbc.ge.4.and.exbopt.ge.1.and.exbvar(2:2).eq.'x'))) then
+
+        if(sbc.ge.7) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do i=1,ni-1
+              vcpy(i,k,1)=gdydtn
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+        if(mfcopt.eq.1.and.(mpopt.ne.0.and.mpopt.ne.10)) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do i=1,ni-1
+              vcpy(i,k,1)=max(vcpy(i,k,1),-rmf8v(i,2,2))
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do i=1,ni-1
+              vcpy(i,k,1)=max(vcpy(i,k,1),-1.e0)
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+        !$acc kernels
+        !$acc loop independent collapse(2)
+        do k=2,nk-2
+          do i=1,ni-1
+            vcpy(i,k,1)=vcpy(i,k,1)*dtsdb
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+! v phase speed on north boundary
+      if((ebn.eq.1.and.jsub.eq.njsub-1).and.((nbc.ge.4.and.exbopt.eq.0)&
+     &  .or.(nbc.ge.4.and.exbopt.ge.1.and.exbvar(2:2).eq.'x'))) then
+
+        if(nbc.ge.7) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do i=1,ni-1
+              vcpy(i,k,2)=gdydt
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+        if(mfcopt.eq.1.and.(mpopt.ne.0.and.mpopt.ne.10)) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do i=1,ni-1
+              vcpy(i,k,2)=min(vcpy(i,k,2),rmf8v(i,njm1,2))
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do i=1,ni-1
+              vcpy(i,k,2)=min(vcpy(i,k,2),1.e0)
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+        !$acc kernels
+        !$acc loop independent collapse(2)
+        do k=2,nk-2
+          do i=1,ni-1
+            vcpy(i,k,2)=vcpy(i,k,2)*dtsdb
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+!! Calculate the w phase speed.
+
+! w phase speed on west boundary
+      if((ebw.eq.1.and.isub.eq.0).and.((wbc.ge.4.and.exbopt.eq.0)     &
+     &  .or.(wbc.ge.4.and.exbopt.ge.1.and.exbvar(3:3).eq.'x'))) then
+
+        if(wbc.eq.7) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-1
+            do j=1,nj-1
+              wcpx(j,k,1)=gdxdtn
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+        if(mfcopt.eq.1.and.mpopt.ne.5) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-1
+            do j=1,nj-1
+              wcpx(j,k,1)=max(wcpx(j,k,1),-rmf(2,j,2))
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-1
+            do j=1,nj-1
+              wcpx(j,k,1)=max(wcpx(j,k,1),-1.e0)
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+        !$acc kernels
+        !$acc loop independent collapse(2)
+        do k=2,nk-1
+          do j=1,nj-1
+            wcpx(j,k,1)=wcpx(j,k,1)*dtsdb
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+! w phase speed on east boundary
+      if((ebe.eq.1.and.isub.eq.nisub-1).and.((ebc.ge.4.and.exbopt.eq.0)&
+     &  .or.(ebc.ge.4.and.exbopt.ge.1.and.exbvar(3:3).eq.'x'))) then
+
+        if(ebc.eq.7) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-1
+            do j=1,nj-1
+              wcpx(j,k,2)=gdxdt
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+        if(mfcopt.eq.1.and.mpopt.ne.5) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-1
+            do j=1,nj-1
+              wcpx(j,k,2)=min(wcpx(j,k,2),rmf(nim2,j,2))
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-1
+            do j=1,nj-1
+              wcpx(j,k,2)=min(wcpx(j,k,2),1.e0)
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+        !$acc kernels
+        !$acc loop independent collapse(2)
+        do k=2,nk-1
+          do j=1,nj-1
+            wcpx(j,k,2)=wcpx(j,k,2)*dtsdb
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+! w phase speed on south boundary
+      if((ebs.eq.1.and.jsub.eq.0).and.((sbc.ge.4.and.exbopt.eq.0)     &
+     &  .or.(sbc.ge.4.and.exbopt.ge.1.and.exbvar(3:3).eq.'x'))) then
+
+        if(sbc.ge.7) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-1
+            do i=1,ni-1
+              wcpy(i,k,1)=gdydtn
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+        if(mfcopt.eq.1.and.(mpopt.ne.0.and.mpopt.ne.10)) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-1
+            do i=1,ni-1
+              wcpy(i,k,1)=max(wcpy(i,k,1),-rmf(i,2,2))
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-1
+            do i=1,ni-1
+              wcpy(i,k,1)=max(wcpy(i,k,1),-1.e0)
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+        !$acc kernels
+        !$acc loop independent collapse(2)
+        do k=2,nk-1
+          do i=1,ni-1
+            wcpy(i,k,1)=wcpy(i,k,1)*dtsdb
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+! w phase speed on north boundary
+      if((ebn.eq.1.and.jsub.eq.njsub-1).and.((nbc.ge.4.and.exbopt.eq.0)&
+     &  .or.(nbc.ge.4.and.exbopt.ge.1.and.exbvar(3:3).eq.'x'))) then
+
+        if(nbc.ge.7) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-1
+            do i=1,ni-1
+              wcpy(i,k,2)=gdydt
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+        if(mfcopt.eq.1.and.(mpopt.ne.0.and.mpopt.ne.10)) then
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-1
+            do i=1,ni-1
+              wcpy(i,k,2)=min(wcpy(i,k,2),rmf(i,njm2,2))
+            end do
+          end do
+          !$acc end kernels
+        else
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-1
+            do i=1,ni-1
+              wcpy(i,k,2)=min(wcpy(i,k,2),1.e0)
+            end do
+          end do
+          !$acc end kernels
+        end if
+
+        !$acc kernels
+        !$acc loop independent collapse(2)
+        do k=2,nk-1
+          do i=1,ni-1
+            wcpy(i,k,2)=wcpy(i,k,2)*dtsdb
+          end do
+        end do
+        !$acc end kernels
+
+      end if
 
 #else
 !----------------------------------------------------------------------

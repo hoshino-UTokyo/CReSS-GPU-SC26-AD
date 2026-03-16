@@ -397,143 +397,580 @@
 !----------------------------------------------------------------------
 ! GPU version (OpenACC)
 !----------------------------------------------------------------------
-    ! For wbc=7, set ucpx to constant gdxdtn on west boundary
-    if (wbc == 7) then
-      !$acc kernels
-      !$acc loop independent collapse(2)
-      do k = 2, nk-1
-        do j = 1, nj-1
-          ucpx(j, k, 1) = gdxdtn
-        end do
-      end do
-      !$acc end kernels
-    end if
 
-    ! For ebc=7, set ucpx to constant gdxdt on east boundary
-    if (ebc == 7) then
-      !$acc kernels
-      !$acc loop independent collapse(2)
-      do k = 2, nk-1
-        do j = 1, nj-1
-          ucpx(j, k, 2) = gdxdt
-        end do
-      end do
-      !$acc end kernels
-    end if
+!!! Calculate the differential phase speed term for x components of
+!!! velocity.
 
-    ! For sbc=7, set ucpy to constant gdydtn on south boundary
-    if (sbc == 7) then
-      !$acc kernels
-      !$acc loop independent collapse(2)
-      do k = 2, nk-1
-        do i = 1, ni-1
-          ucpy(i, k, 1) = gdydtn
-        end do
-      end do
-      !$acc end kernels
-    end if
+!! u west/east boundary (exbvar(1:1)=='-')
+      if(exbvar(1:1).eq.'-') then
 
-    ! For nbc=7, set ucpy to constant gdydt on north boundary
-    if (nbc == 7) then
-      !$acc kernels
-      !$acc loop independent collapse(2)
-      do k = 2, nk-1
-        do i = 1, ni-1
-          ucpy(i, k, 2) = gdydt
-        end do
-      end do
-      !$acc end kernels
-    end if
+! u west boundary
+        if(ebw.eq.1.and.isub.eq.0) then
 
-    ! v component phase speeds
-    if (wbc == 7) then
-      !$acc kernels
-      !$acc loop independent collapse(2)
-      do k = 2, nk-1
-        do j = 1, nj
-          vcpx(j, k, 1) = gdxdtn
-        end do
-      end do
-      !$acc end kernels
-    end if
+          if(wbc.eq.7) then
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-1
+              do j=1,nj-1
+                ucpx(j,k,1)=gdxdtn
+              end do
+            end do
+            !$acc end kernels
+          end if
 
-    if (ebc == 7) then
-      !$acc kernels
-      !$acc loop independent collapse(2)
-      do k = 2, nk-1
-        do j = 1, nj
-          vcpx(j, k, 2) = gdxdt
-        end do
-      end do
-      !$acc end kernels
-    end if
+          if(mfcopt.eq.1.and.mpopt.ne.5) then
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-1
+              do j=1,nj-1
+                ucpx(j,k,1)=max(ucpx(j,k,1),-rmf8u(2,j,2))
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-1
+              do j=1,nj-1
+                ucpx(j,k,1)=max(ucpx(j,k,1),-1.e0)
+              end do
+            end do
+            !$acc end kernels
+          end if
 
-    if (sbc == 7) then
-      !$acc kernels
-      !$acc loop independent collapse(2)
-      do k = 2, nk-1
-        do i = 1, ni-1
-          vcpy(i, k, 1) = gdydtn
-        end do
-      end do
-      !$acc end kernels
-    end if
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do j=1,nj-1
+              ucpx(j,k,1)=ucpx(j,k,1)*dtsdb
+            end do
+          end do
+          !$acc end kernels
 
-    if (nbc == 7) then
-      !$acc kernels
-      !$acc loop independent collapse(2)
-      do k = 2, nk-1
-        do i = 1, ni-1
-          vcpy(i, k, 2) = gdydt
-        end do
-      end do
-      !$acc end kernels
-    end if
+        end if
 
-    ! w component phase speeds
-    if (wbc == 7) then
-      !$acc kernels
-      !$acc loop independent collapse(2)
-      do k = 2, nk-1
-        do j = 1, nj-1
-          wcpx(j, k, 1) = gdxdtn
-        end do
-      end do
-      !$acc end kernels
-    end if
+! u east boundary
+        if(ebe.eq.1.and.isub.eq.nisub-1) then
 
-    if (ebc == 7) then
-      !$acc kernels
-      !$acc loop independent collapse(2)
-      do k = 2, nk-1
-        do j = 1, nj-1
-          wcpx(j, k, 2) = gdxdt
-        end do
-      end do
-      !$acc end kernels
-    end if
+          if(ebc.eq.7) then
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-2
+              do j=1,nj-1
+                ucpx(j,k,2)=gdxdt
+              end do
+            end do
+            !$acc end kernels
+          end if
 
-    if (sbc == 7) then
-      !$acc kernels
-      !$acc loop independent collapse(2)
-      do k = 2, nk-1
-        do i = 1, ni-1
-          wcpy(i, k, 1) = gdydtn
-        end do
-      end do
-      !$acc end kernels
-    end if
+          if(mfcopt.eq.1.and.mpopt.ne.5) then
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-2
+              do j=1,nj-1
+                ucpx(j,k,2)=min(ucpx(j,k,2),rmf8u(nim1,j,2))
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-2
+              do j=1,nj-1
+                ucpx(j,k,2)=min(ucpx(j,k,2),1.e0)
+              end do
+            end do
+            !$acc end kernels
+          end if
 
-    if (nbc == 7) then
-      !$acc kernels
-      !$acc loop independent collapse(2)
-      do k = 2, nk-1
-        do i = 1, ni-1
-          wcpy(i, k, 2) = gdydt
-        end do
-      end do
-      !$acc end kernels
-    end if
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do j=1,nj-1
+              ucpx(j,k,2)=ucpx(j,k,2)*dtsdb
+            end do
+          end do
+          !$acc end kernels
+
+        end if
+
+      end if
+
+!! u south/north boundary (exbvar(1:1)=='-' or '+')
+      if(exbvar(1:1).eq.'-'.or.exbvar(1:1).eq.'+') then
+
+! u south boundary
+        if(ebs.eq.1.and.jsub.eq.0) then
+
+          if(sbc.ge.7) then
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-2
+              do i=1,ni
+                ucpy(i,k,1)=gdydtn
+              end do
+            end do
+            !$acc end kernels
+          end if
+
+          if(mfcopt.eq.1.and.(mpopt.ne.0.and.mpopt.ne.10)) then
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-2
+              do i=1,ni
+                ucpy(i,k,1)=max(ucpy(i,k,1),-rmf8u(i,2,2))
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-2
+              do i=1,ni
+                ucpy(i,k,1)=max(ucpy(i,k,1),-1.e0)
+              end do
+            end do
+            !$acc end kernels
+          end if
+
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do i=1,ni
+              ucpy(i,k,1)=ucpy(i,k,1)*dtsdb
+            end do
+          end do
+          !$acc end kernels
+
+        end if
+
+! u north boundary
+        if(ebn.eq.1.and.jsub.eq.njsub-1) then
+
+          if(nbc.ge.7) then
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-2
+              do i=1,ni
+                ucpy(i,k,2)=gdydt
+              end do
+            end do
+            !$acc end kernels
+          end if
+
+          if(mfcopt.eq.1.and.(mpopt.ne.0.and.mpopt.ne.10)) then
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-2
+              do i=1,ni
+                ucpy(i,k,2)=min(ucpy(i,k,2),rmf8u(i,njm2,2))
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-2
+              do i=1,ni
+                ucpy(i,k,2)=min(ucpy(i,k,2),1.e0)
+              end do
+            end do
+            !$acc end kernels
+          end if
+
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do i=1,ni
+              ucpy(i,k,2)=ucpy(i,k,2)*dtsdb
+            end do
+          end do
+          !$acc end kernels
+
+        end if
+
+      end if
+
+!!! Calculate the differential phase speed term for y components of
+!!! velocity.
+
+!! v west/east boundary (exbvar(2:2)=='-' or '+')
+      if(exbvar(2:2).eq.'-'.or.exbvar(2:2).eq.'+') then
+
+! v west boundary
+        if(ebw.eq.1.and.isub.eq.0) then
+
+          if(wbc.ge.7) then
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-2
+              do j=1,nj
+                vcpx(j,k,1)=gdxdtn
+              end do
+            end do
+            !$acc end kernels
+          end if
+
+          if(mfcopt.eq.1.and.mpopt.ne.5) then
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-2
+              do j=1,nj
+                vcpx(j,k,1)=max(vcpx(j,k,1),-rmf8v(2,j,2))
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-2
+              do j=1,nj
+                vcpx(j,k,1)=max(vcpx(j,k,1),-1.e0)
+              end do
+            end do
+            !$acc end kernels
+          end if
+
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do j=1,nj
+              vcpx(j,k,1)=vcpx(j,k,1)*dtsdb
+            end do
+          end do
+          !$acc end kernels
+
+        end if
+
+! v east boundary
+        if(ebe.eq.1.and.isub.eq.nisub-1) then
+
+          if(ebc.ge.7) then
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-2
+              do j=1,nj
+                vcpx(j,k,2)=gdxdt
+              end do
+            end do
+            !$acc end kernels
+          end if
+
+          if(mfcopt.eq.1.and.mpopt.ne.5) then
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-2
+              do j=1,nj
+                vcpx(j,k,2)=min(vcpx(j,k,2),rmf8v(nim2,j,2))
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-2
+              do j=1,nj
+                vcpx(j,k,2)=min(vcpx(j,k,2),1.e0)
+              end do
+            end do
+            !$acc end kernels
+          end if
+
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do j=1,nj
+              vcpx(j,k,2)=vcpx(j,k,2)*dtsdb
+            end do
+          end do
+          !$acc end kernels
+
+        end if
+
+      end if
+
+!! v south/north boundary (exbvar(2:2)=='-')
+      if(exbvar(2:2).eq.'-') then
+
+! v south boundary
+        if(ebs.eq.1.and.jsub.eq.0) then
+
+          if(sbc.eq.7) then
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-2
+              do i=1,ni-1
+                vcpy(i,k,1)=gdydtn
+              end do
+            end do
+            !$acc end kernels
+          end if
+
+          if(mfcopt.eq.1.and.(mpopt.ne.0.and.mpopt.ne.10)) then
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-2
+              do i=1,ni-1
+                vcpy(i,k,1)=max(vcpy(i,k,1),-rmf8v(i,2,2))
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-2
+              do i=1,ni-1
+                vcpy(i,k,1)=max(vcpy(i,k,1),-1.e0)
+              end do
+            end do
+            !$acc end kernels
+          end if
+
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do i=1,ni-1
+              vcpy(i,k,1)=vcpy(i,k,1)*dtsdb
+            end do
+          end do
+          !$acc end kernels
+
+        end if
+
+! v north boundary
+        if(ebn.eq.1.and.jsub.eq.njsub-1) then
+
+          if(nbc.eq.7) then
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-2
+              do i=1,ni-1
+                vcpy(i,k,2)=gdydt
+              end do
+            end do
+            !$acc end kernels
+          end if
+
+          if(mfcopt.eq.1.and.(mpopt.ne.0.and.mpopt.ne.10)) then
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-2
+              do i=1,ni-1
+                vcpy(i,k,2)=min(vcpy(i,k,2),rmf8v(i,njm1,2))
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-2
+              do i=1,ni-1
+                vcpy(i,k,2)=min(vcpy(i,k,2),1.e0)
+              end do
+            end do
+            !$acc end kernels
+          end if
+
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-2
+            do i=1,ni-1
+              vcpy(i,k,2)=vcpy(i,k,2)*dtsdb
+            end do
+          end do
+          !$acc end kernels
+
+        end if
+
+      end if
+
+!!! Calculate the differential phase speed term for z components of
+!!! velocity.
+
+!! w all boundaries (exbvar(3:3)=='-')
+      if(exbvar(3:3).eq.'-') then
+
+! w west boundary
+        if(ebw.eq.1.and.isub.eq.0) then
+
+          if(wbc.ge.7) then
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-1
+              do j=1,nj-1
+                wcpx(j,k,1)=gdxdtn
+              end do
+            end do
+            !$acc end kernels
+          end if
+
+          if(mfcopt.eq.1.and.mpopt.ne.5) then
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-1
+              do j=1,nj-1
+                wcpx(j,k,1)=max(wcpx(j,k,1),-rmf(2,j,2))
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-1
+              do j=1,nj-1
+                wcpx(j,k,1)=max(wcpx(j,k,1),-1.e0)
+              end do
+            end do
+            !$acc end kernels
+          end if
+
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-1
+            do j=1,nj-1
+              wcpx(j,k,1)=wcpx(j,k,1)*dtsdb
+            end do
+          end do
+          !$acc end kernels
+
+        end if
+
+! w east boundary
+        if(ebe.eq.1.and.isub.eq.nisub-1) then
+
+          if(ebc.ge.7) then
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-1
+              do j=1,nj-1
+                wcpx(j,k,2)=gdxdt
+              end do
+            end do
+            !$acc end kernels
+          end if
+
+          if(mfcopt.eq.1.and.mpopt.ne.5) then
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-1
+              do j=1,nj-1
+                wcpx(j,k,2)=min(wcpx(j,k,2),rmf(nim2,j,2))
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-1
+              do j=1,nj-1
+                wcpx(j,k,2)=min(wcpx(j,k,2),1.e0)
+              end do
+            end do
+            !$acc end kernels
+          end if
+
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-1
+            do j=1,nj-1
+              wcpx(j,k,2)=wcpx(j,k,2)*dtsdb
+            end do
+          end do
+          !$acc end kernels
+
+        end if
+
+! w south boundary
+        if(ebs.eq.1.and.jsub.eq.0) then
+
+          if(sbc.ge.7) then
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-1
+              do i=1,ni-1
+                wcpy(i,k,1)=gdydtn
+              end do
+            end do
+            !$acc end kernels
+          end if
+
+          if(mfcopt.eq.1.and.(mpopt.ne.0.and.mpopt.ne.10)) then
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-1
+              do i=1,ni-1
+                wcpy(i,k,1)=max(wcpy(i,k,1),-rmf(i,2,2))
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-1
+              do i=1,ni-1
+                wcpy(i,k,1)=max(wcpy(i,k,1),-1.e0)
+              end do
+            end do
+            !$acc end kernels
+          end if
+
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-1
+            do i=1,ni-1
+              wcpy(i,k,1)=wcpy(i,k,1)*dtsdb
+            end do
+          end do
+          !$acc end kernels
+
+        end if
+
+! w north boundary
+        if(ebn.eq.1.and.jsub.eq.njsub-1) then
+
+          if(nbc.ge.7) then
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-1
+              do i=1,ni-1
+                wcpy(i,k,2)=gdydt
+              end do
+            end do
+            !$acc end kernels
+          end if
+
+          if(mfcopt.eq.1.and.(mpopt.ne.0.and.mpopt.ne.10)) then
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-1
+              do i=1,ni-1
+                wcpy(i,k,2)=min(wcpy(i,k,2),rmf(i,njm2,2))
+              end do
+            end do
+            !$acc end kernels
+          else
+            !$acc kernels
+            !$acc loop independent collapse(2)
+            do k=2,nk-1
+              do i=1,ni-1
+                wcpy(i,k,2)=min(wcpy(i,k,2),1.e0)
+              end do
+            end do
+            !$acc end kernels
+          end if
+
+          !$acc kernels
+          !$acc loop independent collapse(2)
+          do k=2,nk-1
+            do i=1,ni-1
+              wcpy(i,k,2)=wcpy(i,k,2)*dtsdb
+            end do
+          end do
+          !$acc end kernels
+
+        end if
+
+      end if
 
 #else
 !----------------------------------------------------------------------

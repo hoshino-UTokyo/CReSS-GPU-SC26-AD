@@ -810,8 +810,7 @@
               do j=jsouth,nj-jnorth
 !$acc loop independent
               do i=iwest,ni-ieast
-                qaslp(i,j,k,n)=qasl(i,j,k,n)
-                qasl(i,j,k,n)=qaslf(i,j,k,n)
+                qaslp(i,j,k,n)=qaslf(i,j,k,n)
               end do
               end do
             end do
@@ -832,8 +831,7 @@
             do j=jsouth,nj-jnorth
 !$acc loop independent
             do i=iwest,ni-ieast
-              qtp(i,j,k)=qt(i,j,k)
-              qt(i,j,k)=qtf(i,j,k)
+              qtp(i,j,k)=qtf(i,j,k)
             end do
             end do
           end do
@@ -853,8 +851,7 @@
             do j=jsouth,nj-jnorth
 !$acc loop independent
             do i=iwest,ni-ieast
-              tkep(i,j,k)=tke(i,j,k)
-              tke(i,j,k)=tkef(i,j,k)
+              tkep(i,j,k)=tkef(i,j,k)
             end do
             end do
           end do
@@ -876,8 +873,7 @@
               do j=1,nj-1
 !$acc loop independent
               do i=1,ni-1
-                tundp(i,j,k)=tund(i,j,k)
-                tund(i,j,k)=tundf(i,j,k)
+                tundp(i,j,k)=tundf(i,j,k)
               end do
               end do
             end do

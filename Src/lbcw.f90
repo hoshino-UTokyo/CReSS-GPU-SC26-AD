@@ -173,7 +173,7 @@
 
             !$acc kernels
             !$acc loop independent
-            do k=2,nk-2
+            do k=2,nk-1
               !$acc loop independent
               do j=1,nj-1
                 wf(1,j,k)=wf(2,j,k)
@@ -189,7 +189,7 @@
 
             !$acc kernels
             !$acc loop independent
-            do k=2,nk-2
+            do k=2,nk-1
               !$acc loop independent
               do j=1,nj-1
                 wf(1,j,k)=wf(2,j,k)
@@ -214,7 +214,7 @@
 
             !$acc kernels
             !$acc loop independent
-            do k=2,nk-2
+            do k=2,nk-1
               !$acc loop independent
               do j=1,nj-1
                 wf(nim1,j,k)=wf(nim2,j,k)
@@ -230,7 +230,7 @@
 
             !$acc kernels
             !$acc loop independent
-            do k=2,nk-2
+            do k=2,nk-1
               !$acc loop independent
               do j=1,nj-1
                 wf(nim1,j,k)=wf(nim2,j,k)
@@ -255,7 +255,7 @@
 
             !$acc kernels
             !$acc loop independent
-            do k=2,nk-2
+            do k=2,nk-1
               !$acc loop independent
               do i=1,ni-1
                 wf(i,1,k)=wf(i,2,k)
@@ -271,7 +271,7 @@
 
             !$acc kernels
             !$acc loop independent
-            do k=2,nk-2
+            do k=2,nk-1
               !$acc loop independent
               do i=1,ni-1
                 wf(i,1,k)=wf(i,2,k)
@@ -296,7 +296,7 @@
 
             !$acc kernels
             !$acc loop independent
-            do k=2,nk-2
+            do k=2,nk-1
               !$acc loop independent
               do i=1,ni-1
                 wf(i,njm1,k)=wf(i,njm2,k)
@@ -312,7 +312,7 @@
 
             !$acc kernels
             !$acc loop independent
-            do k=2,nk-2
+            do k=2,nk-1
               !$acc loop independent
               do i=1,ni-1
                 wf(i,njm1,k)=wf(i,njm2,k)
