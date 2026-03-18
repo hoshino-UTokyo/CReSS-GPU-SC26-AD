@@ -247,128 +247,300 @@
 ! GPU version (OpenACC)
 !----------------------------------------------------------------------
 
-    ! First loop: evaporation rate adjustment
-    !$acc kernels
-    !$acc loop independent
-    do j = 1, nj-1
-      !$acc loop independent
-      do i = 1, ni-1
-        if (qrp(i,j,1) > thresq) then
-          vdvr(i,j,1) = max(vdvr(i,j,1), 0.0e0)
-        end if
-        if (qip(i,j,1) > thresq) then
-          vdvi(i,j,1) = max(vdvi(i,j,1), 0.0e0)
-        end if
-        if (qsp(i,j,1) > thresq) then
-          vdvs(i,j,1) = max(vdvs(i,j,1), 0.0e0)
-        end if
-        if (qgp(i,j,1) > thresq) then
-          vdvg(i,j,1) = max(vdvg(i,j,1), 0.0e0)
-        end if
+    ! In the case nk = 1.
+    if (nk == 1) then
+
+      ! Evaporation rate adjustment (only when evapor_opt == 0)
+      if (evapor_opt == 0) then
+
+        !$acc kernels
+        !$acc loop independent collapse(2)
+        do j = 1, nj-1
+          do i = 1, ni-1
+            if (qrp(i,j,1) > thresq) then
+              vdvr(i,j,1) = max(vdvr(i,j,1), 0.0e0)
+            end if
+            if (qip(i,j,1) > thresq) then
+              vdvi(i,j,1) = max(vdvi(i,j,1), 0.0e0)
+            end if
+            if (qsp(i,j,1) > thresq) then
+              vdvs(i,j,1) = max(vdvs(i,j,1), 0.0e0)
+            end if
+            if (qgp(i,j,1) > thresq) then
+              vdvg(i,j,1) = max(vdvg(i,j,1), 0.0e0)
+            end if
+          end do
+        end do
+        !$acc end kernels
+
+      end if
+
+      ! Microphysical rate scaling
+      !$acc kernels
+      !$acc loop independent collapse(2) private(sink, handle)
+      do j = 1, nj-1
+        do i = 1, ni-1
+
+          ! Cloud water
+          if (qcp(i,j,1) > thresq) then
+            sink = nuci(i,j,1) + clcr(i,j,1) + clcs(i,j,1)             &
+     &        + clcg(i,j,1) + cncr(i,j,1) - mlic(i,j,1)
+            if (qcf(i,j,1) < sink) then
+              handle = qcf(i,j,1) / sink
+              nuci(i,j,1) = nuci(i,j,1) * handle
+              clcr(i,j,1) = clcr(i,j,1) * handle
+              clcs(i,j,1) = clcs(i,j,1) * handle
+              clcg(i,j,1) = clcg(i,j,1) * handle
+              cncr(i,j,1) = cncr(i,j,1) * handle
+              mlic(i,j,1) = mlic(i,j,1) * handle
+            end if
+          end if
+
+          ! Cloud ice
+          if (qip(i,j,1) > thresq) then
+            sink = clir(i,j,1) + clis(i,j,1) + clig(i,j,1)             &
+     &        + cnis(i,j,1) + mlic(i,j,1) - vdvi(i,j,1)               &
+     &        - nuvi(i,j,1) - nuci(i,j,1) - spsi(i,j,1) - spgi(i,j,1)
+            if (qif(i,j,1) < sink) then
+              handle = qif(i,j,1) / sink
+              clir(i,j,1) = clir(i,j,1) * handle
+              clis(i,j,1) = clis(i,j,1) * handle
+              clig(i,j,1) = clig(i,j,1) * handle
+              cnis(i,j,1) = cnis(i,j,1) * handle
+              mlic(i,j,1) = mlic(i,j,1) * handle
+              vdvi(i,j,1) = vdvi(i,j,1) * handle
+              nuvi(i,j,1) = nuvi(i,j,1) * handle
+              nuci(i,j,1) = nuci(i,j,1) * handle
+              spsi(i,j,1) = spsi(i,j,1) * handle
+              spgi(i,j,1) = spgi(i,j,1) * handle
+            end if
+          end if
+
+          ! Rain water
+          if (qrp(i,j,1) > thresq) then
+            sink = clri(i,j,1) + clrs(i,j,1) + clrg(i,j,1)             &
+     &        + clrsg(i,j,1) + frrg(i,j,1) - vdvr(i,j,1)              &
+     &        - clcr(i,j,1) - cncr(i,j,1) - mlsr(i,j,1)               &
+     &        - mlgr(i,j,1) - shsr(i,j,1) - shgr(i,j,1)
+            if (qrf(i,j,1) < sink) then
+              handle = qrf(i,j,1) / sink
+              clri(i,j,1) = clri(i,j,1) * handle
+              clrs(i,j,1) = clrs(i,j,1) * handle
+              clrg(i,j,1) = clrg(i,j,1) * handle
+              clrsg(i,j,1) = clrsg(i,j,1) * handle
+              frrg(i,j,1) = frrg(i,j,1) * handle
+              vdvr(i,j,1) = vdvr(i,j,1) * handle
+              clcr(i,j,1) = clcr(i,j,1) * handle
+              cncr(i,j,1) = cncr(i,j,1) * handle
+              mlsr(i,j,1) = mlsr(i,j,1) * handle
+              mlgr(i,j,1) = mlgr(i,j,1) * handle
+              shsr(i,j,1) = shsr(i,j,1) * handle
+              shgr(i,j,1) = shgr(i,j,1) * handle
+            end if
+          end if
+
+          ! Snow
+          if (qsp(i,j,1) > thresq) then
+            sink = clsr(i,j,1) + clsg(i,j,1) + cnsg(i,j,1)             &
+     &        + spsi(i,j,1) + mlsr(i,j,1) + shsr(i,j,1)               &
+     &        - vdvs(i,j,1) - clcs(i,j,1) - clrs(i,j,1)               &
+     &        - clis(i,j,1) - cnis(i,j,1)
+            if (qsf(i,j,1) < sink) then
+              handle = qsf(i,j,1) / sink
+              clsr(i,j,1) = clsr(i,j,1) * handle
+              clsg(i,j,1) = clsg(i,j,1) * handle
+              cnsg(i,j,1) = cnsg(i,j,1) * handle
+              spsi(i,j,1) = spsi(i,j,1) * handle
+              mlsr(i,j,1) = mlsr(i,j,1) * handle
+              shsr(i,j,1) = shsr(i,j,1) * handle
+              vdvs(i,j,1) = vdvs(i,j,1) * handle
+              clcs(i,j,1) = clcs(i,j,1) * handle
+              clrs(i,j,1) = clrs(i,j,1) * handle
+              clis(i,j,1) = clis(i,j,1) * handle
+              cnis(i,j,1) = cnis(i,j,1) * handle
+            end if
+          end if
+
+          ! Graupel
+          if (qgp(i,j,1) > thresq) then
+            sink = spgi(i,j,1) + mlgr(i,j,1) + shgr(i,j,1)            &
+     &        - vdvg(i,j,1) - clri(i,j,1) - clir(i,j,1)               &
+     &        - clsr(i,j,1) - clcg(i,j,1) - clrg(i,j,1)               &
+     &        - clig(i,j,1) - clsg(i,j,1) - clrsg(i,j,1)              &
+     &        - cnsg(i,j,1) - frrg(i,j,1)
+            if (qgf(i,j,1) < sink) then
+              handle = qgf(i,j,1) / sink
+              spgi(i,j,1) = spgi(i,j,1) * handle
+              mlgr(i,j,1) = mlgr(i,j,1) * handle
+              shgr(i,j,1) = shgr(i,j,1) * handle
+              vdvg(i,j,1) = vdvg(i,j,1) * handle
+              clri(i,j,1) = clri(i,j,1) * handle
+              clir(i,j,1) = clir(i,j,1) * handle
+              clsr(i,j,1) = clsr(i,j,1) * handle
+              clcg(i,j,1) = clcg(i,j,1) * handle
+              clrg(i,j,1) = clrg(i,j,1) * handle
+              clig(i,j,1) = clig(i,j,1) * handle
+              clsg(i,j,1) = clsg(i,j,1) * handle
+              clrsg(i,j,1) = clrsg(i,j,1) * handle
+              cnsg(i,j,1) = cnsg(i,j,1) * handle
+              frrg(i,j,1) = frrg(i,j,1) * handle
+            end if
+          end if
+
+        end do
       end do
-    end do
-    !$acc end kernels
+      !$acc end kernels
 
-    ! Second loop: microphysical rate scaling
-    !$acc kernels
-    !$acc loop independent
-    do j = 1, nj-1
-      !$acc loop independent private(sink, handle)
-      do i = 1, ni-1
-        ! Cloud water
-        if (qcp(i,j,1) > thresq) then
-          sink = nuci(i,j,1) + clcr(i,j,1) + clcs(i,j,1) + clcg(i,j,1) &
-               + cncr(i,j,1) - mlic(i,j,1)
-          if (qcf(i,j,1) < sink) then
-            handle = qcf(i,j,1) / sink
-            nuci(i,j,1) = nuci(i,j,1) * handle
-            clcr(i,j,1) = clcr(i,j,1) * handle
-            clcs(i,j,1) = clcs(i,j,1) * handle
-            clcg(i,j,1) = clcg(i,j,1) * handle
-            cncr(i,j,1) = cncr(i,j,1) * handle
-            mlic(i,j,1) = mlic(i,j,1) * handle
-          end if
-        end if
+    ! In the case nk > 1.
+    else
 
-        ! Cloud ice
-        if (qip(i,j,1) > thresq) then
-          sink = clir(i,j,1) + clis(i,j,1) + clig(i,j,1) + cnis(i,j,1) &
-               + mlic(i,j,1) - vdvi(i,j,1) - nuvi(i,j,1) - nuci(i,j,1) &
-               - spsi(i,j,1) - spgi(i,j,1)
-          if (qif(i,j,1) < sink) then
-            handle = qif(i,j,1) / sink
-            clir(i,j,1) = clir(i,j,1) * handle
-            clis(i,j,1) = clis(i,j,1) * handle
-            clig(i,j,1) = clig(i,j,1) * handle
-            cnis(i,j,1) = cnis(i,j,1) * handle
-            mlic(i,j,1) = mlic(i,j,1) * handle
-            vdvi(i,j,1) = vdvi(i,j,1) * handle
-            nuvi(i,j,1) = nuvi(i,j,1) * handle
-            nuci(i,j,1) = nuci(i,j,1) * handle
-            spsi(i,j,1) = spsi(i,j,1) * handle
-            spgi(i,j,1) = spgi(i,j,1) * handle
-          end if
-        end if
+      ! Evaporation rate adjustment (only when evapor_opt == 0)
+      if (evapor_opt == 0) then
 
-        ! Rain water
-        if (qrp(i,j,1) > thresq) then
-          sink = clri(i,j,1) + clrs(i,j,1) + clrg(i,j,1) - clcr(i,j,1) &
-               - vdvr(i,j,1) - cncr(i,j,1) - mlsr(i,j,1) - mlgr(i,j,1)
-          if (qrf(i,j,1) < sink) then
-            handle = qrf(i,j,1) / sink
-            clri(i,j,1) = clri(i,j,1) * handle
-            clrs(i,j,1) = clrs(i,j,1) * handle
-            clrg(i,j,1) = clrg(i,j,1) * handle
-            clcr(i,j,1) = clcr(i,j,1) * handle
-            vdvr(i,j,1) = vdvr(i,j,1) * handle
-            cncr(i,j,1) = cncr(i,j,1) * handle
-            mlsr(i,j,1) = mlsr(i,j,1) * handle
-            mlgr(i,j,1) = mlgr(i,j,1) * handle
-          end if
-        end if
+        !$acc kernels
+        !$acc loop independent collapse(3)
+        do k = 1, nk-1
+          do j = 1, nj-1
+            do i = 1, ni-1
+              if (qrp(i,j,k) > thresq) then
+                vdvr(i,j,k) = max(vdvr(i,j,k), 0.0e0)
+              end if
+              if (qip(i,j,k) > thresq) then
+                vdvi(i,j,k) = max(vdvi(i,j,k), 0.0e0)
+              end if
+              if (qsp(i,j,k) > thresq) then
+                vdvs(i,j,k) = max(vdvs(i,j,k), 0.0e0)
+              end if
+              if (qgp(i,j,k) > thresq) then
+                vdvg(i,j,k) = max(vdvg(i,j,k), 0.0e0)
+              end if
+            end do
+          end do
+        end do
+        !$acc end kernels
 
-        ! Snow
-        if (qsp(i,j,1) > thresq) then
-          sink = clsr(i,j,1) + clsg(i,j,1) + cnsg(i,j,1) - clcs(i,j,1) &
-               - clis(i,j,1) - clrs(i,j,1) - vdvs(i,j,1) - cnis(i,j,1) &
-               - spsi(i,j,1) - shsr(i,j,1)
-          if (qsf(i,j,1) < sink) then
-            handle = qsf(i,j,1) / sink
-            clsr(i,j,1) = clsr(i,j,1) * handle
-            clsg(i,j,1) = clsg(i,j,1) * handle
-            cnsg(i,j,1) = cnsg(i,j,1) * handle
-            clcs(i,j,1) = clcs(i,j,1) * handle
-            clis(i,j,1) = clis(i,j,1) * handle
-            clrs(i,j,1) = clrs(i,j,1) * handle
-            vdvs(i,j,1) = vdvs(i,j,1) * handle
-            cnis(i,j,1) = cnis(i,j,1) * handle
-            spsi(i,j,1) = spsi(i,j,1) * handle
-            shsr(i,j,1) = shsr(i,j,1) * handle
-          end if
-        end if
+      end if
 
-        ! Graupel
-        if (qgp(i,j,1) > thresq) then
-          sink = -clcg(i,j,1) - clig(i,j,1) - clrg(i,j,1) - clsg(i,j,1) &
-               - clrsg(i,j,1) - vdvg(i,j,1) - cnsg(i,j,1) - spgi(i,j,1) &
-               - frrg(i,j,1) - shgr(i,j,1)
-          if (qgf(i,j,1) < sink) then
-            handle = qgf(i,j,1) / sink
-            clcg(i,j,1) = clcg(i,j,1) * handle
-            clig(i,j,1) = clig(i,j,1) * handle
-            clrg(i,j,1) = clrg(i,j,1) * handle
-            clsg(i,j,1) = clsg(i,j,1) * handle
-            clrsg(i,j,1) = clrsg(i,j,1) * handle
-            vdvg(i,j,1) = vdvg(i,j,1) * handle
-            cnsg(i,j,1) = cnsg(i,j,1) * handle
-            spgi(i,j,1) = spgi(i,j,1) * handle
-            frrg(i,j,1) = frrg(i,j,1) * handle
-            shgr(i,j,1) = shgr(i,j,1) * handle
-          end if
-        end if
+      ! Microphysical rate scaling
+      !$acc kernels
+      !$acc loop independent collapse(3) private(sink, handle)
+      do k = 1, nk-1
+        do j = 1, nj-1
+          do i = 1, ni-1
+
+            ! Cloud water
+            if (qcp(i,j,k) > thresq) then
+              sink = nuci(i,j,k) + clcr(i,j,k) + clcs(i,j,k)           &
+     &          + clcg(i,j,k) + cncr(i,j,k) - mlic(i,j,k)
+              if (qcf(i,j,k) < sink) then
+                handle = qcf(i,j,k) / sink
+                nuci(i,j,k) = nuci(i,j,k) * handle
+                clcr(i,j,k) = clcr(i,j,k) * handle
+                clcs(i,j,k) = clcs(i,j,k) * handle
+                clcg(i,j,k) = clcg(i,j,k) * handle
+                cncr(i,j,k) = cncr(i,j,k) * handle
+                mlic(i,j,k) = mlic(i,j,k) * handle
+              end if
+            end if
+
+            ! Cloud ice
+            if (qip(i,j,k) > thresq) then
+              sink = clir(i,j,k) + clis(i,j,k) + clig(i,j,k)           &
+     &          + cnis(i,j,k) + mlic(i,j,k) - vdvi(i,j,k)             &
+     &          - nuvi(i,j,k) - nuci(i,j,k) - spsi(i,j,k)             &
+     &          - spgi(i,j,k)
+              if (qif(i,j,k) < sink) then
+                handle = qif(i,j,k) / sink
+                clir(i,j,k) = clir(i,j,k) * handle
+                clis(i,j,k) = clis(i,j,k) * handle
+                clig(i,j,k) = clig(i,j,k) * handle
+                cnis(i,j,k) = cnis(i,j,k) * handle
+                mlic(i,j,k) = mlic(i,j,k) * handle
+                vdvi(i,j,k) = vdvi(i,j,k) * handle
+                nuvi(i,j,k) = nuvi(i,j,k) * handle
+                nuci(i,j,k) = nuci(i,j,k) * handle
+                spsi(i,j,k) = spsi(i,j,k) * handle
+                spgi(i,j,k) = spgi(i,j,k) * handle
+              end if
+            end if
+
+            ! Rain water
+            if (qrp(i,j,k) > thresq) then
+              sink = clri(i,j,k) + clrs(i,j,k) + clrg(i,j,k)           &
+     &          + clrsg(i,j,k) + frrg(i,j,k) - vdvr(i,j,k)            &
+     &          - clcr(i,j,k) - cncr(i,j,k) - mlsr(i,j,k)             &
+     &          - mlgr(i,j,k) - shsr(i,j,k) - shgr(i,j,k)
+              if (qrf(i,j,k) < sink) then
+                handle = qrf(i,j,k) / sink
+                clri(i,j,k) = clri(i,j,k) * handle
+                clrs(i,j,k) = clrs(i,j,k) * handle
+                clrg(i,j,k) = clrg(i,j,k) * handle
+                clrsg(i,j,k) = clrsg(i,j,k) * handle
+                frrg(i,j,k) = frrg(i,j,k) * handle
+                vdvr(i,j,k) = vdvr(i,j,k) * handle
+                clcr(i,j,k) = clcr(i,j,k) * handle
+                cncr(i,j,k) = cncr(i,j,k) * handle
+                mlsr(i,j,k) = mlsr(i,j,k) * handle
+                mlgr(i,j,k) = mlgr(i,j,k) * handle
+                shsr(i,j,k) = shsr(i,j,k) * handle
+                shgr(i,j,k) = shgr(i,j,k) * handle
+              end if
+            end if
+
+            ! Snow
+            if (qsp(i,j,k) > thresq) then
+              sink = clsr(i,j,k) + clsg(i,j,k) + cnsg(i,j,k)           &
+     &          + spsi(i,j,k) + mlsr(i,j,k) + shsr(i,j,k)             &
+     &          - vdvs(i,j,k) - clcs(i,j,k) - clrs(i,j,k)             &
+     &          - clis(i,j,k) - cnis(i,j,k)
+              if (qsf(i,j,k) < sink) then
+                handle = qsf(i,j,k) / sink
+                clsr(i,j,k) = clsr(i,j,k) * handle
+                clsg(i,j,k) = clsg(i,j,k) * handle
+                cnsg(i,j,k) = cnsg(i,j,k) * handle
+                spsi(i,j,k) = spsi(i,j,k) * handle
+                mlsr(i,j,k) = mlsr(i,j,k) * handle
+                shsr(i,j,k) = shsr(i,j,k) * handle
+                vdvs(i,j,k) = vdvs(i,j,k) * handle
+                clcs(i,j,k) = clcs(i,j,k) * handle
+                clrs(i,j,k) = clrs(i,j,k) * handle
+                clis(i,j,k) = clis(i,j,k) * handle
+                cnis(i,j,k) = cnis(i,j,k) * handle
+              end if
+            end if
+
+            ! Graupel
+            if (qgp(i,j,k) > thresq) then
+              sink = spgi(i,j,k) + mlgr(i,j,k) + shgr(i,j,k)          &
+     &          - vdvg(i,j,k) - clri(i,j,k) - clir(i,j,k)             &
+     &          - clsr(i,j,k) - clcg(i,j,k) - clrg(i,j,k)             &
+     &          - clig(i,j,k) - clsg(i,j,k) - clrsg(i,j,k)            &
+     &          - cnsg(i,j,k) - frrg(i,j,k)
+              if (qgf(i,j,k) < sink) then
+                handle = qgf(i,j,k) / sink
+                spgi(i,j,k) = spgi(i,j,k) * handle
+                mlgr(i,j,k) = mlgr(i,j,k) * handle
+                shgr(i,j,k) = shgr(i,j,k) * handle
+                vdvg(i,j,k) = vdvg(i,j,k) * handle
+                clri(i,j,k) = clri(i,j,k) * handle
+                clir(i,j,k) = clir(i,j,k) * handle
+                clsr(i,j,k) = clsr(i,j,k) * handle
+                clcg(i,j,k) = clcg(i,j,k) * handle
+                clrg(i,j,k) = clrg(i,j,k) * handle
+                clig(i,j,k) = clig(i,j,k) * handle
+                clsg(i,j,k) = clsg(i,j,k) * handle
+                clrsg(i,j,k) = clrsg(i,j,k) * handle
+                cnsg(i,j,k) = cnsg(i,j,k) * handle
+                frrg(i,j,k) = frrg(i,j,k) * handle
+              end if
+            end if
+
+          end do
+        end do
       end do
-    end do
-    !$acc end kernels
+      !$acc end kernels
+
+    end if
 
 #else
 !----------------------------------------------------------------------

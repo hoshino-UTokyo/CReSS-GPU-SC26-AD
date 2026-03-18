@@ -396,7 +396,7 @@
         !$acc end kernels
       end if
 
-      if (advopt >= 4) then
+      if (fproc(1:3) == 'sml') then
         !$acc kernels
         !$acc loop independent
         do k = 2, nk-2
@@ -406,6 +406,18 @@
           end do
         end do
         !$acc end kernels
+      else
+        if (advopt >= 4) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 1, nj-1
+              scpx(j,k,1) = scpx(j,k,1)*dtdvb
+            end do
+          end do
+          !$acc end kernels
+        end if
       end if
     end if
 
@@ -502,7 +514,7 @@
         !$acc end kernels
       end if
 
-      if (advopt >= 4) then
+      if (fproc(1:3) == 'sml') then
         !$acc kernels
         !$acc loop independent
         do k = 2, nk-2
@@ -512,6 +524,18 @@
           end do
         end do
         !$acc end kernels
+      else
+        if (advopt >= 4) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do j = 1, nj-1
+              scpx(j,k,2) = scpx(j,k,2)*dtdvb
+            end do
+          end do
+          !$acc end kernels
+        end if
       end if
     end if
 
@@ -608,7 +632,7 @@
         !$acc end kernels
       end if
 
-      if (advopt >= 4) then
+      if (fproc(1:3) == 'sml') then
         !$acc kernels
         !$acc loop independent
         do k = 2, nk-2
@@ -618,6 +642,18 @@
           end do
         end do
         !$acc end kernels
+      else
+        if (advopt >= 4) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do i = 1, ni-1
+              scpy(i,k,1) = scpy(i,k,1)*dtdvb
+            end do
+          end do
+          !$acc end kernels
+        end if
       end if
     end if
 
@@ -714,7 +750,7 @@
         !$acc end kernels
       end if
 
-      if (advopt >= 4) then
+      if (fproc(1:3) == 'sml') then
         !$acc kernels
         !$acc loop independent
         do k = 2, nk-2
@@ -724,6 +760,18 @@
           end do
         end do
         !$acc end kernels
+      else
+        if (advopt >= 4) then
+          !$acc kernels
+          !$acc loop independent
+          do k = 2, nk-2
+            !$acc loop independent
+            do i = 1, ni-1
+              scpy(i,k,2) = scpy(i,k,2)*dtdvb
+            end do
+          end do
+          !$acc end kernels
+        end if
       end if
     end if
 
