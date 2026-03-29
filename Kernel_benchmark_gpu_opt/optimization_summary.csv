@@ -1,0 +1,12 @@
+kernel_id,kernel_name,classification,ai_dram,bw_before_gbs,bw_after_gbs,time_before_us,time_after_us,speedup,optimizations_applied,validation
+230,pgrad,MEM,0.35,1474,-,4026,2240,1.80x,"inline_tmp3+kernel_fusion(6->2)",PASSED
+091,diver3d,MEM,0.25,1682,-,2740,2731,1.003x,"inline_tmp1_tmp2_tmp3+collapse3",PASSED
+315,stepwi,MEM,0.60,2151,-,3885,3210,1.21x,"inline_tmp1_tmp2+collapse3+fusion(5->2)",PASSED
+015,advs,MEM,0.26,1657,-,6866,6832,1.005x,"merge_independent_kernels(10->7)",PASSED
+313,stepuv,MEM,0.65,1878,-,2086,2075,1.005x,"merge_kernels+collapse3",PASSED
+046,buoywsi,MEM,0.49,-,-,1499,1489,1.007x,"merge_kernels+collapse3",PASSED
+090,diver2d,MEM,0.25,1812,-,1812,1812,1.00x,"no_change(collapse3_regression)",PASSED
+308,steppi,MEM,0.75,-,-,968,968,1.00x,"no_change(already_single_kernel)",PASSED
+115,gaussel,MEM,0.44,812,-,4674,2556,1.83x,"k-loop-consolidation(247->2_blocks)+collapse2",PASSED
+014,advp,MEM,0.26,1449,-,9695,9634,1.006x,"merge_independent_kernels(32->21)",PASSED
+067,copy3d,MEM,0.00,1129,-,608,607,1.00x,"collapse3(no_effect_compiler_auto)",PASSED
