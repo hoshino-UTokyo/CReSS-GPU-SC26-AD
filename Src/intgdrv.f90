@@ -59,6 +59,8 @@
       use m_satadjst
       use m_sfcphy
       use m_shift2nd
+      use m_defmpi
+      use m_wtime_prof
       use m_swp2nxt
       use m_timeflt
       use m_totalqwi
@@ -809,6 +811,9 @@
       real, intent(inout) :: tmp7(0:ni+1,0:nj+1,1:km)
                        ! Temporary array
 
+      double precision wt_tmp
+                       ! Temporary wall time for communication profiling
+
 ! Remark
 
 !     u,v,w,pp,ptp,qv,pfrc: These variables are also temporary.
@@ -890,11 +895,13 @@
 
       if(advopt.ge.4) then
 
+       wt_tmp = mpi_wtime()
        call shift2nd(idwbc,idebc,idsbc,idnbc,idadvopt,idsmtopt,idcphopt,&
      &               idhaiopt,idqcgopt,idaslopt,idtrkopt,idtubopt,fmois,&
      &               'oooooooooo',ni,nj,nk,nqw,nnw,nqi,nni,nqa,uf,vf,wf,&
      &               ppf,ptpf,qvf,qwtrf,nwtrf,qicef,nicef,qcwtrf,qcicef,&
      &               qaslf,qtf,tkef)
+       wt_comm = wt_comm + (mpi_wtime() - wt_tmp)
 
        call culintg(fmois,nvstp,dtb,dtsep,ni,nj,nk,nqw,nnw,nqi,nni,nqa, &
      &              j31,j32,jcb8w,mf,mf8u,mf8v,uf,vf,wf,ppf,ptpf,qvf,   &
@@ -1002,19 +1009,23 @@
 
       if(advopt.le.3) then
 
+       wt_tmp = mpi_wtime()
        call shift2nd(idwbc,idebc,idsbc,idnbc,idadvopt,idsmtopt,idcphopt,&
      &               idhaiopt,idqcgopt,idaslopt,idtrkopt,idtubopt,fmois,&
      &               'oooooooooo',ni,nj,nk,nqw,nnw,nqi,nni,nqa,u,v,w,   &
      &               pp,ptp,qv,qwtr,nwtr,qice,nice,qcwtr,qcice,         &
      &               qasl,qt,tke)
+       wt_comm = wt_comm + (mpi_wtime() - wt_tmp)
 
       end if
 
+      wt_tmp = mpi_wtime()
       call shift2nd(idwbc,idebc,idsbc,idnbc,idadvopt,idsmtopt,idcphopt, &
      &              idhaiopt,idqcgopt,idaslopt,idtrkopt,idtubopt,fmois, &
      &              'oooooooooo',ni,nj,nk,nqw,nnw,nqi,nni,nqa,uf,vf,wf, &
      &              ppf,ptpf,qvf,qwtrf,nwtrf,qicef,nicef,qcwtrf,qcicef, &
      &              qaslf,qtf,tkef)
+      wt_comm = wt_comm + (mpi_wtime() - wt_tmp)
 
 ! -----
 

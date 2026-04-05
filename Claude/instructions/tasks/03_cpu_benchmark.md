@@ -83,16 +83,79 @@ end if
 1. Set `!$omp parallel default(none) private(...) shared(...)`
 2. Compile - errors reveal all variables used
 3. Add sharing attributes iteratively
-4. Save complete list to `variable_list.txt`
+4. Analyze each variable's in/out role (see below)
+5. Save complete list to `variable_list.txt`
+
+### `variable_list.txt` Format
+
+Tab-separated, one variable per line:
+
+```
+# name          type            rank    attributes      omp_clause      inout   condition
+ni              integer         scalar  parameter       shared          in      -
+nj              integer         scalar  parameter       shared          in      -
+dt              real(8)         scalar  -               shared          in      -
+u               real(8)         3d      allocatable     shared          in      -
+uf              real(8)         3d      allocatable     shared          inout   -
+wfrc            real(8)         3d      allocatable     shared          out     -
+qall            real(8)         4d      allocatable     shared          in      -
+qasl            real(8)         4d      allocatable     shared          inout   cphopt >= 2
+nccn            real(8)         3d      pointer         shared          in      aslopt >= 1
+k               integer         scalar  -               private         -       -
+```
+
+#### Column Definitions
+
+| Column | Values | Description |
+|--------|--------|-------------|
+| `name` | variable name | |
+| `type` | `integer`, `real(4)`, `real(8)`, `character`, `logical` | Fortran type |
+| `rank` | `scalar`, `1d`, `2d`, `3d`, `4d` | Dimensionality |
+| `attributes` | `parameter`, `allocatable`, `pointer`, `-` | Declaration attributes (comma-separated if multiple) |
+| `omp_clause` | `shared`, `private`, `firstprivate`, `reduction(+:)`, etc. | OpenMP sharing clause |
+| `inout` | `in`, `out`, `inout`, `-` | Role within the OpenMP region |
+| `condition` | Fortran expression or `-` | Guard condition if variable is only accessed conditionally |
+
+#### In/Out Determination Rules
+
+1. **No function calls in region** (typical case):
+   - `in`: appears only on the RHS of assignments or in conditionals
+   - `out`: appears only on the LHS of assignments
+   - `inout`: appears on both LHS and RHS
+   - `-`: private/loop variables (not relevant for dump)
+
+2. **Function/subroutine calls in region** (rare — see Phase 1 survey):
+   - Check the called routine's `intent(in)`, `intent(out)`, `intent(inout)` for each argument
+   - If intent is not declared, trace one level into the routine to determine actual usage
+   - If the call chain is deeper than one level, mark as `inout` conservatively and add a note
+
+3. **Private variables**: mark inout as `-` (not dumped, reconstructed locally in benchmark)
+
+#### Condition Column Rules
+
+The `condition` column prevents dump failures on unallocated/unassociated arrays:
+
+- If a variable is accessed only inside `if (cphopt >= 2) then ... end if`, record `cphopt >= 2`
+- If a variable is accessed only inside `if (allocated(var)) then ...`, record `allocated(var)`
+- If a variable is always accessed unconditionally, record `-`
+- The dump code must wrap the corresponding `dump_array_*` call in the same guard:
+
+```fortran
+if (cphopt >= 2) then
+  call dump_array_3d('qasl.bin', qasl, ...)
+end if
+```
 
 ### What to Dump
 
 | Category | How to Handle |
 |----------|---------------|
-| Arrays (input/output) | Dump as binary (`.bin`) |
-| Scalar parameters | Dump to `params.txt` |
-| Derived constants | Dump value or document formula |
-| Module constants | Define as parameters in benchmark |
+| `in` / `inout` arrays | Dump as binary (`.bin`) before OpenMP region |
+| `out` / `inout` arrays | Dump as binary (`.bin`) after OpenMP region (reference output) |
+| `in` scalars | Dump to `params.txt` |
+| `parameter` / module constants | Define as parameters in benchmark (no dump needed) |
+| `private` variables | Not dumped (reconstructed locally in benchmark) |
+| Conditional variables | Dump with guard condition from `variable_list.txt` |
 
 ---
 
@@ -219,15 +282,34 @@ clean:
 
 ## Workflow Summary
 
+The process has 3 stages. Stages 1 and 2 are done once for all kernels; stage 3 is per-kernel.
+
+### Stage 1: Variable List Creation (per kernel)
+
+For each kernel, create `variable_list.txt`:
+
+1. **Identify the OpenMP region** in the source file
+2. **Use `default(none)`** to discover all variables (see Variable Discovery Rule above)
+3. **Classify each variable** (type, rank, omp_clause, inout, condition)
+4. **Save** as `Kernel_benchmark/<id>_<name>/variable_list.txt`
+
+### Stage 2: Dump Data Collection (one simulation run)
+
+Add dump instrumentation for **all target kernels at once**, then run the simulation **once** to collect all dump data:
+
+1. **Add dump code** to each source file based on its `variable_list.txt`
+2. **Build** the instrumented simulation
+3. **Run simulation once** — all kernels dump their data in a single run
+4. **Copy dump files** to each kernel's `data/` directory
+5. **Remove dump instrumentation** from source files
+
+### Stage 3: Benchmark Creation (per kernel)
+
 For each kernel:
 
-1. **Identify kernel** from `Kernel_benchmark/<id>_<name>/README.md`
-2. **Add dump instrumentation** to source file
-3. **Run simulation** to generate dump files
-4. **Copy dump files** to benchmark directory
-5. **Create benchmark program** following template
-6. **Build and test**: `make && ./kernel_benchmark`
-7. **Verify validation passes** (error count = 0)
+1. **Create benchmark program** following template, using `variable_list.txt` for declarations and I/O
+2. **Build and test**: `make && ./kernel_benchmark`
+3. **Verify validation passes** (error count = 0)
 
 ---
 

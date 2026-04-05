@@ -171,7 +171,7 @@ contains
         if (wbc == 2 .or. wbc == 3) then
           !$acc kernels
           !$acc loop independent
-          do k = 2, nk-2
+          do k = 2, nk-1
             !$acc loop independent
             do j = 1, nj-1
               wf(1,j,k) = wf(2,j,k)
@@ -183,7 +183,7 @@ contains
         if (wbc >= 2) then
           !$acc kernels
           !$acc loop independent
-          do k = 2, nk-2
+          do k = 2, nk-1
             !$acc loop independent
             do j = 1, nj-1
               wf(1,j,k) = wf(2,j,k)
@@ -200,7 +200,7 @@ contains
         if (ebc == 2 .or. ebc == 3) then
           !$acc kernels
           !$acc loop independent
-          do k = 2, nk-2
+          do k = 2, nk-1
             !$acc loop independent
             do j = 1, nj-1
               wf(nim1,j,k) = wf(nim2,j,k)
@@ -212,7 +212,7 @@ contains
         if (ebc >= 2) then
           !$acc kernels
           !$acc loop independent
-          do k = 2, nk-2
+          do k = 2, nk-1
             !$acc loop independent
             do j = 1, nj-1
               wf(nim1,j,k) = wf(nim2,j,k)
@@ -229,7 +229,7 @@ contains
         if (sbc == 2 .or. sbc == 3) then
           !$acc kernels
           !$acc loop independent
-          do k = 2, nk-2
+          do k = 2, nk-1
             !$acc loop independent
             do i = 1, ni-1
               wf(i,1,k) = wf(i,2,k)
@@ -241,7 +241,7 @@ contains
         if (sbc >= 2) then
           !$acc kernels
           !$acc loop independent
-          do k = 2, nk-2
+          do k = 2, nk-1
             !$acc loop independent
             do i = 1, ni-1
               wf(i,1,k) = wf(i,2,k)
@@ -258,7 +258,7 @@ contains
         if (nbc == 2 .or. nbc == 3) then
           !$acc kernels
           !$acc loop independent
-          do k = 2, nk-2
+          do k = 2, nk-1
             !$acc loop independent
             do i = 1, ni-1
               wf(i,njm1,k) = wf(i,njm2,k)
@@ -270,7 +270,7 @@ contains
         if (nbc >= 2) then
           !$acc kernels
           !$acc loop independent
-          do k = 2, nk-2
+          do k = 2, nk-1
             !$acc loop independent
             do i = 1, ni-1
               wf(i,njm1,k) = wf(i,njm2,k)

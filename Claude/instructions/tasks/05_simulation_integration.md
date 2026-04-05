@@ -487,8 +487,59 @@ python3 compare_outputs.py output_cpu.dat output_gpu.dat
 
 - [ ] Compilation succeeds with accelerator info messages
 - [ ] Full simulation test completed (~2 hours)
-- [ ] Output matches reference data
+- [ ] Output passes accuracy criteria (see below)
 - [ ] If failed: binary search completed, problems identified and fixed
+
+---
+
+## Accuracy Validation Criteria
+
+### Primary Metric: Pressure Perturbation
+
+The simulation outputs the maximum and minimum pressure perturbation (`ppmax`, `ppmin`) in `log.solver.txt` at each timestep. Validation uses the relative error against CPU reference values at the final timestep:
+
+```
+a1 = |ppmax - 1.140663e3| / 1.140663e3
+a2 = |ppmin - (-3.927225e3)| / 3.927225e3
+```
+
+where `1.140663e3` and `3.927225e3` are the CPU reference values of `ppmax` and `|ppmin|` at the final timestep (step 360) of the TC2214 test case.
+
+**Pass condition**: Both `a1` and `a2` must be ≤ 1.0e-4.
+
+### Supplementary Metric: TKE
+
+The maximum turbulent kinetic energy (`tkemax`) is also monitored. Due to the chaotic nature of turbulence, `tkemax` shows larger GPU-vs-CPU differences than pressure fields (up to ~1.5% at 360 steps), which is attributable to floating-point operation ordering differences between CPU (OpenMP) and GPU (OpenACC).
+
+### Reference Logs
+
+| Log File | Description |
+|----------|-------------|
+| `test_real/log.solver_noacc.ref.txt` | CPU reference (compiled without `-acc`) |
+| `test_real/log.solver_gpudisabled.ref.txt` | GPU baseline (compiled with `-acc -gpu=managed`, all GPU kernels disabled) |
+
+The GPU baseline (`gpudisabled`) is the proper reference for GPU validation, as it isolates the effect of GPU kernel execution from compiler flag differences. See [Compiler Flag Effect](#compiler-flag-effect) below.
+
+### Compiler Flag Effect
+
+Compiling with `-acc -gpu=managed` introduces minor numerical differences even when all GPU kernels are disabled (CPU code path only). Validated on 2026-03-05:
+
+| Metric | noacc vs gpudisabled difference |
+|--------|-------------------------------|
+| ppmax | ~3.5e-7 |
+| ppmin | ~1.3e-7 |
+| tkemax | ~2.0e-5 |
+
+These differences are negligible and within floating-point tolerance. Therefore, `gpudisabled` (not `noacc`) is used as the baseline when evaluating GPU kernel correctness.
+
+### Validation at Different Timestep Counts
+
+| Duration | Purpose | Expected Accuracy |
+|----------|---------|-------------------|
+| 60 steps | Quick smoke test (~20 min) | ppmax/ppmin: < 1.0e-4, tkemax: < 0.01% |
+| 360 steps | Full validation (~2 hours) | ppmax/ppmin: < 1.0e-4, tkemax: < 2% (FP ordering) |
+
+The 60-step test is used during iterative debugging (e.g., binary search). The 360-step test is the final acceptance criterion.
 
 ### Final
 

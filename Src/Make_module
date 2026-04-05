@@ -577,6 +577,7 @@ m_xy2ij.mod         : xy2ij.o
 m_xy2ll.mod         : xy2ll.o
 
 m_defmpi.mod        : defmpi.o
+m_wtime_prof.mod    : wtime_prof.o
 m_temparam.mod      : temparam.o
 
 m_rdaero.mod        : rdaero.o

@@ -61,6 +61,8 @@
       use m_shiftgy
       use m_shiftsx
       use m_shiftsy
+      use m_defmpi
+      use m_wtime_prof
       use m_vbcqcg
       use m_vbcs
 
@@ -476,7 +478,8 @@
 
       integer n_sub    ! Substitute for n
 
-
+      double precision wt_tmp
+                       ! Temporary wall time for communication profiling
 
 
 !-----7--------------------------------------------------------------7--
@@ -2244,7 +2247,9 @@
 
       if(nb.ne.0) then
 
+        wt_tmp = mpi_wtime()
         call s_shiftsx(idwbc,idebc,'all',nj,nk,nb,sbuf,rbuf)
+        wt_comm = wt_comm + (mpi_wtime() - wt_tmp)
 
       end if
 
@@ -2731,7 +2736,9 @@
 
       if(nb.ne.0) then
 
+        wt_tmp = mpi_wtime()
         call s_shiftsy(idsbc,idnbc,'all',ni,nk,nb,sbuf,rbuf)
+        wt_comm = wt_comm + (mpi_wtime() - wt_tmp)
 
       end if
 

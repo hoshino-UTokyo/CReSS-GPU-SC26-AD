@@ -457,7 +457,7 @@ contains
         end if
       end if
 
-      ! Swap TKE
+      ! Swap TKE (2-way copy only for advopt<=3)
       if (tubopt >= 2) then
         !$acc kernels
         !$acc loop independent
@@ -466,8 +466,7 @@ contains
           do j = jsouth, nj-jnorth
             !$acc loop independent
             do i = iwest, ni-ieast
-              tkep(i,j,k) = tke(i,j,k)
-              tke(i,j,k) = tkef(i,j,k)
+              tkep(i,j,k) = tkef(i,j,k)
             end do
           end do
         end do

@@ -17,6 +17,7 @@ Analyze every OpenMP parallel region in the codebase and determine GPU porting d
 | Global/shared writes | Writes to module variables, global state |
 | Synchronization | `atomic`, `critical`, `ordered`, locks, barriers |
 | Reductions | `reduction(+:var)` clauses |
+| System/runtime calls | `malloc`, `free`, `system`, `getenv`, `exit`, `abort` etc. inside parallel region |
 | Other hazards | Indirect addressing, non-contiguous access, control flow |
 
 ---
@@ -98,6 +99,20 @@ Insert this block **immediately above** each OpenMP parallel region:
 2. For each region, analyze using the checklist above
 3. Add annotation block immediately above the region
 4. **Do not change program behavior** - only add annotations
+5. Generate a summary report (see below)
+
+---
+
+## Report Output
+
+After annotating all regions, generate a summary report at `Claude/instructions/references/meta_info_summary.md` containing:
+
+1. **Statistics**: Total number of OpenMP regions, breakdown by difficulty (Easy/Medium/Hard)
+2. **Per-file table**: File name, subroutine, difficulty, key findings (1-line each)
+3. **Hazard inventory**: List of all regions with system/runtime calls, reductions, synchronization, thread-ID dependencies
+4. **Recommended porting order**: Suggested order based on difficulty and dependency relationships
+
+This report serves as the planning input for subsequent phases.
 
 ---
 

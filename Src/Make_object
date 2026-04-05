@@ -462,10 +462,11 @@ inivar.o         : m_baserho.mod m_castvar.mod m_chkerr.mod m_chkstd.mod\
                    m_vintsnd.mod m_vspdmp.mod
 instvel.o        : m_getcname.mod m_inichar.mod
 intgdrv.o        : m_adjstuv.mod m_aerophy.mod m_cloudphy.mod m_comindx.mod\
-                   m_comkind.mod m_culintg.mod m_diabat.mod m_fdmdrv.mod\
-                   m_getiname.mod m_phasev.mod m_phasevbc.mod m_resetag.mod\
-                   m_satadjst.mod m_sfcphy.mod m_shift2nd.mod m_swp2nxt.mod\
-                   m_timeflt.mod m_totalqwi.mod
+                   m_comkind.mod m_culintg.mod m_defmpi.mod m_diabat.mod\
+                   m_fdmdrv.mod m_getiname.mod m_phasev.mod m_phasevbc.mod\
+                   m_resetag.mod m_satadjst.mod m_sfcphy.mod m_shift2nd.mod\
+                   m_swp2nxt.mod m_timeflt.mod m_totalqwi.mod\
+                   m_wtime_prof.mod
 intrpasl.o       : m_comindx.mod m_getrij.mod m_hint3d.mod m_var8w8s.mod\
                    m_vint133a.mod
 intrpgpv.o       : m_comindx.mod m_getcname.mod m_getrij.mod m_hint3d.mod\
@@ -900,13 +901,14 @@ shiftsx.o        : m_commpi.mod m_defmpi.mod m_getiname.mod
 shiftsy.o        : m_commpi.mod m_defmpi.mod m_getiname.mod
 siadjst.o        : m_comphy.mod m_getrname.mod
 slvdrv.o         : m_abortslv.mod m_chkstd.mod m_closedmp.mod m_comindx.mod\
-                   m_comkind.mod m_commpi.mod m_getcname.mod m_getdate.mod\
-                   m_getiname.mod m_gettime.mod m_inichar.mod m_instvel.mod\
-                   m_intgdrv.mod m_masscon.mod m_mxndrv.mod m_ndgstep.mod\
-                   m_opendmp.mod m_outcheck.mod m_outdmp.mod m_outres.mod\
-                   m_outstd05.mod m_outstd06.mod m_rdaslnxt.mod m_rdgpvnxt.mod\
-                   m_rdrdrmrk.mod m_rdrdrnxt.mod m_rdsstnxt.mod m_setrdr.mod\
-                   m_sfcphy.mod m_slvstep.mod m_timeint.mod
+                   m_comkind.mod m_commpi.mod m_defmpi.mod m_getcname.mod\
+                   m_getdate.mod m_getiname.mod m_gettime.mod m_inichar.mod\
+                   m_instvel.mod m_intgdrv.mod m_masscon.mod m_mxndrv.mod\
+                   m_ndgstep.mod m_opendmp.mod m_outcheck.mod m_outdmp.mod\
+                   m_outres.mod m_outstd05.mod m_outstd06.mod m_rdaslnxt.mod\
+                   m_rdgpvnxt.mod m_rdrdrmrk.mod m_rdrdrnxt.mod m_rdsstnxt.mod\
+                   m_setrdr.mod m_sfcphy.mod m_slvstep.mod m_timeint.mod\
+                   m_wtime_prof.mod
 slvstep.o        : m_chkerr.mod m_comkind.mod m_commpi.mod m_cpondpe.mod\
                    m_destroy.mod m_getiname.mod m_getrname.mod
 smalldrv.o       : m_comindx.mod m_copy3d.mod m_getiname.mod m_heve.mod\
@@ -975,7 +977,7 @@ steps.o          : m_bc4news.mod m_bcycle.mod m_combuf.mod m_comindx.mod\
                    m_putbufsx.mod m_putbufsy.mod m_rbcpt.mod m_rbcq.mod\
                    m_rbcqv.mod m_rbcs.mod m_rbcs0.mod m_shiftgx.mod\
                    m_shiftgy.mod m_shiftsx.mod m_shiftsy.mod m_vbcqcg.mod\
-                   m_vbcs.mod
+                   m_vbcs.mod m_defmpi.mod m_wtime_prof.mod
 steptund.o       : m_comindx.mod m_comphy.mod m_gaussel.mod m_getiname.mod\
                    m_getrname.mod
 stepuv.o         : m_bc4news.mod m_bcycle.mod m_combuf.mod m_comindx.mod\
@@ -1146,3 +1148,4 @@ rdradar.o        : m_comkind.mod m_destroy.mod m_getname.mod m_getunit.mod\
                    m_inichar.mod m_outstd03.mod m_putunit.mod
 rdsst.o          : m_comkind.mod m_destroy.mod m_getname.mod m_getunit.mod\
                    m_inichar.mod m_outstd03.mod m_putunit.mod
+wtime_prof.o     : m_defmpi.mod

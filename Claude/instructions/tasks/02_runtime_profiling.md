@@ -139,6 +139,19 @@ python3 add_profiling_calls.py
 
 ---
 
+## Report Output
+
+After running the instrumented simulation, generate a summary report at `Claude/instructions/references/runtime_profiling_summary.md` containing:
+
+1. **Top-N hotspots**: Ranked list of OpenMP sections by total execution time
+2. **Call frequency table**: Per-section call count and average loop length
+3. **Time distribution**: Breakdown of total runtime by category (dynamics, microphysics, boundary, etc.)
+4. **GPU porting priority**: Recommended porting order based on time share and difficulty (cross-referencing Phase 1 meta_info difficulty)
+
+This report serves as the prioritization input for subsequent GPU porting phases.
+
+---
+
 ## Notes
 
 ### MPI Considerations

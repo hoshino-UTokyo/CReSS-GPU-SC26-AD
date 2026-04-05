@@ -1,0 +1,19 @@
+# Target Kernels for Ablation Experiment (15 kernels)
+# Selected: Top 12 by runtime + 3 condition-bearing kernels
+#
+# ID    Name                        Runtime%  Selection Reason
+235     phvuvw_s_phvuvw             25.40     Top 1
+233     phvbcuvw_s_phvbcuvw         23.98     Top 2
+108     fallblk_subroutine          17.13     Top 3
+016     advuvw_subroutine            3.19     Top 4
+321     swp2nxt_s_swp2nxt            2.21     Top 5
+304     smoo4uvw_s_smoo4uvw          2.03     Top 6
+327     timeflt_s_timeflt            1.79     Top 7
+218     outmxn_s_outmxn_sec1         1.50     Top 8, multiple sections case
+014     advp_subroutine              1.47     Top 9
+073     curveuvw_s_curveuvw          1.24     Top 10
+323     termblk_s_termblk            0.98     Top 11
+015     advs_subroutine              0.96     Top 12
+320     swadjst_s_swadjst            0.52     condition required (cphopt, 5 branches)
+204     more0q_s_more0q              0.29     condition required (nk/evapor_opt/cphopt, 14 branches)
+331     totalqwi_s_totalqwi          0.17     condition required (cphopt/haiopt, 8 branches)

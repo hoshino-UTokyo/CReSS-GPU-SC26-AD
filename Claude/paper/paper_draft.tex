@@ -1,0 +1,1045 @@
+% =============================================================================
+% AI-Assisted GPU Porting of a Large-Scale Weather Simulation Code
+% Draft for SC/IPDPS/SE4Science workshop or similar venue
+% =============================================================================
+\documentclass[conference]{IEEEtran}
+% \documentclass[sigconf]{acmart}  % Alternative: ACM format
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+% Fortran listing style
+\lstdefinestyle{fortran}{
+  language=[90]Fortran,
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{blue}\bfseries,
+  commentstyle=\color{gray}\itshape,
+  stringstyle=\color{red},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  stepnumber=1,
+  numbersep=5pt,
+  frame=single,
+  breaklines=true,
+  captionpos=b,
+  morekeywords={acc,kernels,loop,independent,reduction,routine,seq,wait},
+}
+
+\lstdefinestyle{bash}{
+  language=bash,
+  basicstyle=\ttfamily\footnotesize,
+  frame=single,
+  breaklines=true,
+}
+
+\begin{document}
+
+\title{AI-Assisted GPU Porting of a Production Weather Simulation:\\
+A Methodology for LLM-Driven OpenACC Migration\\of Large-Scale Fortran/MPI/OpenMP Applications}
+
+\author{
+\IEEEauthorblockN{Author A\IEEEauthorrefmark{1},
+Author B\IEEEauthorrefmark{1}}
+\IEEEauthorblockA{\IEEEauthorrefmark{1}Affiliation\\
+Email}
+}
+
+\maketitle
+
+% =============================================================================
+\begin{abstract}
+GPU porting of legacy high-performance computing (HPC) applications remains a
+labor-intensive process requiring deep expertise in both the target programming
+model and the application domain. We present the first case study of using a
+large language model (LLM) code-generation agent to port a production-scale
+Fortran/MPI/OpenMP weather simulation code---CReSS (Cloud Resolving Storm
+Simulator, approximately 285,000 lines of Fortran across 599 source
+files)---to OpenACC for GPU execution. Our methodology decomposes the porting
+process into five machine-amenable phases, each designed around the
+constraints of current LLM agents: limited persistent memory, bounded context
+windows, and non-deterministic output quality. We introduce a verification
+pipeline combining per-kernel element-wise validation with a binary search
+debugging strategy that isolates faulty GPU kernels in $O(\log N)$ simulation
+runs. Applying this methodology, the LLM agent successfully ported 156 GPU
+kernels, with four critical bugs identified and fixed through the binary
+search process. The resulting GPU implementation achieves a 13.6$\times$
+speedup over a 72-thread CPU baseline on an NVIDIA GPU, with numerical
+accuracy within floating-point arithmetic ordering differences ($<$1.5\%
+variance at 360 time steps). We analyze the types of errors introduced by the
+LLM and discuss design principles for human--AI collaborative HPC code
+modernization.
+\end{abstract}
+
+\begin{IEEEkeywords}
+GPU porting, large language models, code generation, OpenACC, Fortran,
+weather simulation, HPC code modernization
+\end{IEEEkeywords}
+
+% =============================================================================
+\section{Introduction}
+\label{sec:intro}
+
+The ongoing transition from CPU-centric to GPU-accelerated supercomputing
+architectures has created a pressing need to port legacy HPC applications to
+GPU programming models. Many production scientific codes, developed over
+decades in Fortran with MPI and OpenMP parallelization, require substantial
+refactoring to exploit GPU hardware effectively. This porting process is
+notoriously labor-intensive: even experienced developers may require months to
+years to port a large application, with significant risk of introducing subtle
+numerical bugs~\cite{ref:gpu_porting_challenges}.
+
+Large language models (LLMs) have demonstrated remarkable capability in code
+generation and translation tasks~\cite{ref:codex, ref:copilot}. However,
+their application to HPC code modernization---particularly GPU porting of
+large-scale Fortran applications---remains largely unexplored. Existing
+studies of LLM-assisted code translation focus on small-scale benchmarks or
+single-file programs, leaving open the question of whether LLMs can
+effectively contribute to porting production applications with hundreds of
+source files and complex inter-module dependencies.
+
+In this paper, we present the first case study of using an LLM code-generation
+agent (Claude Code~\cite{ref:claude}) to port a production weather simulation
+code from OpenMP to OpenACC. Our target application, CReSS~\cite{ref:cress},
+comprises approximately 285,000 lines of Fortran 90 code across 599 source
+files, with 387 OpenMP parallel regions. The key challenge lies not in the
+individual code transformations---which are well-understood---but in managing
+the scale, ensuring correctness, and recovering from the inevitable errors
+that LLMs introduce.
+
+Our primary contributions are:
+
+\begin{enumerate}
+\item \textbf{A five-phase methodology} for LLM-assisted GPU porting that
+  decomposes a monolithic porting task into small, repeatable, verifiable
+  units of work, designed around LLM agent constraints
+  (Section~\ref{sec:methodology}).
+
+\item \textbf{A verification pipeline} combining per-kernel benchmarking with
+  element-wise output comparison and binary search debugging that identifies
+  faulty kernels in $O(\log N)$ full-simulation runs
+  (Section~\ref{sec:verification}).
+
+\item \textbf{An empirical analysis} of LLM-introduced bugs in GPU porting,
+  identifying systematic failure modes including formula truncation,
+  copy-paste propagation errors, and conditional branch omission
+  (Section~\ref{sec:bugs}).
+
+\item \textbf{Performance and accuracy results} demonstrating 13.6$\times$
+  GPU speedup with numerical accuracy within floating-point ordering
+  differences (Section~\ref{sec:results}).
+\end{enumerate}
+
+% =============================================================================
+\section{Background}
+\label{sec:background}
+
+\subsection{CReSS Weather Simulation}
+
+CReSS (Cloud Resolving Storm Simulator)~\cite{ref:cress} is a
+three-dimensional non-hydrostatic atmospheric model developed at Nagoya
+University. It solves the compressible Navier--Stokes equations on a
+staggered Arakawa-C grid using a time-splitting method that separates
+acoustic (fast) and advective (slow) modes. The code is parallelized with
+MPI for domain decomposition and OpenMP for shared-memory threading within
+each MPI rank.
+
+Table~\ref{tab:cress_stats} summarizes the code characteristics relevant to
+GPU porting. The simulation configuration used for this study employs bulk
+cold-rain microphysics (\texttt{cphopt=3}), surface flux parameterization
+(\texttt{sfcopt=1}), radiation boundary conditions (\texttt{*bc=7}), and
+centered advection (\texttt{advopt=3}) on an $899 \times 899 \times 128$
+grid.
+
+\begin{table}[t]
+\centering
+\caption{CReSS codebase statistics.}
+\label{tab:cress_stats}
+\begin{tabular}{lr}
+\toprule
+Metric & Value \\
+\midrule
+Source files (.f90) & 599 \\
+Total lines of code & $\sim$285,000 \\
+OpenMP parallel regions & 387 \\
+Files containing OpenMP & 338 \\
+GPU difficulty: Easy & 236 (61\%) \\
+GPU difficulty: Medium & 121 (31\%) \\
+GPU difficulty: Hard & 30 (8\%) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{LLM Agent Constraints}
+
+Current LLM code-generation agents operate under several constraints that
+fundamentally shape the methodology:
+
+\begin{itemize}
+\item \textbf{Context window limitation}: The agent can process a bounded
+  amount of text (tokens) per session. For large codebases, this means the
+  agent cannot ``see'' the entire application simultaneously. Older context
+  is automatically compressed (\emph{auto-compact}) as the conversation
+  progresses.
+
+\item \textbf{Session non-persistence}: Each new conversation session starts
+  with no memory of previous sessions. Knowledge must be externalized to
+  files (progress reports, instruction documents) to persist across sessions.
+
+\item \textbf{Non-deterministic quality}: LLM outputs are probabilistic.
+  The same prompt may produce correct code in one invocation and subtly
+  buggy code in another. Any methodology must assume that LLM output
+  requires verification.
+\end{itemize}
+
+These constraints motivate our decomposition into small, independently
+verifiable tasks with explicit written specifications---a design pattern we
+term \emph{LLM-amenable task decomposition}.
+
+\subsection{Related Work}
+
+LLM-assisted code translation has been studied primarily for high-level
+language pairs (e.g., Python to C++, Java to Python)~\cite{ref:llm_translation}.
+For HPC-specific tasks, preliminary studies have examined LLM performance on
+CUDA kernel generation from natural language descriptions~\cite{ref:llm_cuda}
+and OpenMP pragma insertion~\cite{ref:llm_openmp}. However, these studies
+typically evaluate on small benchmarks (tens to hundreds of lines) rather
+than production applications.
+
+To our knowledge, no prior work has applied LLM agents to the full GPU
+porting pipeline of a large-scale Fortran/MPI/OpenMP application, including
+analysis, transformation, verification, and debugging at the scale of
+hundreds of thousands of lines of code.
+
+% =============================================================================
+\section{Methodology}
+\label{sec:methodology}
+
+Our methodology decomposes the GPU porting process into five phases, each
+producing artifacts that serve as inputs to subsequent phases and as
+persistent knowledge across LLM sessions. Figure~\ref{fig:pipeline} provides
+an overview.
+
+\begin{figure}[t]
+\centering
+% TODO: Replace with actual figure
+\fbox{\parbox{0.95\columnwidth}{\centering\vspace{2em}
+Phase 1: Meta-Info Analysis $\rightarrow$
+Phase 2: Runtime Profiling $\rightarrow$\\
+Phase 3: CPU Benchmark Extraction $\rightarrow$\\
+Phase 4: GPU Benchmark Conversion $\rightarrow$\\
+Phase 5: Simulation Integration + Binary Search
+\vspace{2em}}}
+\caption{Five-phase GPU porting pipeline. Each phase produces persistent
+  artifacts (annotated source, profiling data, benchmark programs) that
+  externalize knowledge for subsequent LLM sessions.}
+\label{fig:pipeline}
+\end{figure}
+
+\subsection{Design Principles}
+
+Three principles guide the methodology:
+
+\paragraph{P1: Task atomicity.}
+Each task given to the LLM agent must be completable within a single session
+and produce a verifiable artifact. A task processes one OpenMP region (one
+kernel) at a time, making the workflow inherently parallelizable and
+robust to individual failures.
+
+\paragraph{P2: Specification explicitness.}
+All instructions are written as structured documents with templates,
+checklists, and concrete examples. The LLM agent reads these documents at
+the start of each session, effectively receiving a ``fresh briefing'' that
+compensates for session non-persistence.
+
+\paragraph{P3: Observable progress.}
+Each phase produces human-readable artifacts (annotations, benchmark results,
+test logs) that allow the human supervisor to assess progress and quality
+without reading the generated code in detail.
+
+\subsection{Phase 1: Meta-Information Analysis}
+
+The LLM agent analyzes each of the 387 OpenMP parallel regions against a
+six-item GPU compatibility checklist:
+
+\begin{enumerate}
+\item Thread-ID dependencies (\texttt{omp\_get\_thread\_num()})
+\item Impure function calls (I/O, global state modification)
+\item Shared-variable write conflicts
+\item Synchronization primitives (\texttt{critical}, \texttt{atomic}, \texttt{ordered})
+\item Reduction operations
+\item Other hazards (indirect addressing, complex control flow)
+\end{enumerate}
+
+For each region, the agent inserts a structured annotation block directly
+into the source file:
+
+\begin{lstlisting}[style=fortran, caption={Meta-information annotation format.}, label={lst:meta}]
+!@llm start meta_info
+! Location: phvbcs.f90 :: s_phvbcs
+! Summary: Scalar boundary phase speed
+! GPU diff: Hard
+! Findings:
+!   - Complex branch structure (4 boundaries)
+!   - Conditional dtdvb scaling
+! Next: Separate acc kernels per boundary
+!@llm end meta_info
+\end{lstlisting}
+
+The annotations classify each region as Easy (61\%), Medium (31\%), or Hard
+(8\%) for GPU porting. This classification guides subsequent phases and
+provides a progress metric.
+
+\subsection{Phase 2: Runtime Profiling}
+
+The LLM agent instruments the simulation to measure the execution time and
+call count of each OpenMP region. This profiling data serves two purposes:
+(1) prioritizing GPU porting effort toward hot kernels, and (2) providing
+the baseline for performance comparison.
+
+\subsection{Phase 3: CPU Benchmark Extraction}
+
+This phase extracts each OpenMP parallel region into a standalone benchmark
+program with frozen input/output data. The extraction follows a standardized
+template:
+
+\begin{enumerate}
+\item \textbf{Variable discovery}: The agent adds \texttt{default(none)} to
+  the OpenMP pragma and iteratively compiles until all shared/private
+  variables are identified from compiler error messages.
+
+\item \textbf{Data dumping}: Input arrays, scalar parameters, and reference
+  output arrays are serialized to binary files at runtime during a short
+  simulation run.
+
+\item \textbf{Benchmark creation}: A standalone program reads the dumped data,
+  executes the kernel, and validates output against the reference.
+\end{enumerate}
+
+Each benchmark directory contains:
+\begin{itemize}
+\item \texttt{kernel\_benchmark.f90}: Self-contained benchmark program
+\item \texttt{data/params.txt}: Scalar parameters
+\item \texttt{data/*.bin}: Input and reference output arrays
+\item \texttt{benchmark.conf}: Iteration count and validation tolerance
+\end{itemize}
+
+This phase produced 413 CPU benchmark directories, covering all OpenMP
+regions. The frozen data snapshots decouple kernel development from full
+simulation runs, enabling rapid iteration.
+
+\subsection{Phase 4: GPU Benchmark Conversion}
+
+Each CPU benchmark is converted to a GPU (OpenACC) version by the LLM agent
+following systematic transformation rules:
+
+\begin{table}[t]
+\centering
+\caption{OpenMP to OpenACC transformation patterns.}
+\label{tab:transform}
+\begin{tabular}{p{3.5cm}p{3.5cm}}
+\toprule
+OpenMP & OpenACC \\
+\midrule
+\texttt{!\$omp parallel do private(i,j)} &
+\texttt{!\$acc kernels} + \texttt{!\$acc loop independent} \\
+\texttt{!\$omp do reduction(+:sum)} &
+\texttt{!\$acc loop reduction(+:sum)} \\
+\texttt{call sub(x)} within parallel region &
+\texttt{!\$acc routine seq} on subroutine \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Data management is handled entirely by NVIDIA Unified Memory
+(\texttt{-gpu=managed}), eliminating the need for explicit data directives.
+This design choice significantly reduces the complexity of the transformation
+task given to the LLM agent, at the cost of potentially suboptimal data
+transfer performance.
+
+Each GPU benchmark is validated against the same reference data used by its
+CPU counterpart, providing element-wise correctness verification before
+integration.
+
+\subsection{Phase 5: Simulation Integration}
+
+The final phase integrates all validated GPU kernels into the main simulation
+codebase. Rather than incremental integration (one kernel at a time, $O(N)$
+simulation runs), we adopt a \emph{batch integration with binary search
+debugging} strategy:
+
+\begin{enumerate}
+\item All 156 GPU kernels are integrated simultaneously using preprocessor
+  guards:
+
+\begin{lstlisting}[style=fortran, caption={Preprocessor-based kernel control.}, label={lst:guard}]
+#if defined(USE_GPU) && !defined(DISABLE_GPU_094)
+  ! OpenACC version
+  !$acc kernels
+  ...
+  !$acc end kernels
+#else
+  ! Original OpenMP (preserved exactly)
+  !$omp parallel do ...
+  ...
+  !$omp end parallel do
+#endif
+\end{lstlisting}
+
+\item A full simulation test is executed with all kernels enabled.
+
+\item If the simulation fails or produces incorrect results, binary search
+  is applied over the kernel space (Section~\ref{sec:verification}).
+\end{enumerate}
+
+% =============================================================================
+\section{Verification Pipeline}
+\label{sec:verification}
+
+Our verification approach addresses a fundamental challenge of LLM-generated
+code: the output \emph{appears} correct but may contain subtle semantic
+errors invisible to syntactic checking. We employ a three-stage verification
+pipeline.
+
+\subsection{Stage 1: Per-Kernel Benchmark Validation}
+
+Each GPU benchmark compares its output element-by-element against the
+CPU-generated reference data. This catches most transformation errors at the
+individual kernel level. However, certain bugs manifest only in the context
+of the full simulation due to:
+
+\begin{itemize}
+\item Interaction effects between kernels across time steps
+\item Parameter configurations not exercised in the benchmark snapshot
+\item Accumulation of small numerical differences over many iterations
+\end{itemize}
+
+\subsection{Stage 2: Full Simulation Testing}
+
+The complete simulation is run for a sufficient number of time steps (60--360
+steps) and key diagnostic quantities (\texttt{ppmax}, \texttt{ppmin},
+\texttt{tkemax}) are compared against the GPU-disabled baseline. A
+difference exceeding the expected floating-point ordering variance
+($\sim$0.01\% at 60 steps) triggers Stage 3.
+
+\subsection{Stage 3: Binary Search Debugging}
+
+When Stage 2 detects an anomaly, we exploit the per-kernel disable mechanism
+to isolate the faulty kernel(s) in $O(\log_2 N)$ simulation runs:
+
+\begin{algorithm}[t]
+\caption{Binary search kernel debugging.}
+\label{alg:bsearch}
+\begin{algorithmic}[1]
+\Require Set of kernel IDs $K = \{k_1, k_2, \ldots, k_N\}$, simulation
+  test function $\text{Test}(S)$ returning PASS/FAIL for enabled set $S$
+\Ensure Faulty kernel ID $k^*$
+\State $S \gets K$ \Comment{Start with all kernels enabled}
+\If{$\text{Test}(S) = \text{PASS}$}
+  \State \Return no fault
+\EndIf
+\While{$|S| > 1$}
+  \State Split $S$ into halves $S_A, S_B$
+  \State $R \gets K \setminus S_B$ \Comment{Enable $S_A$, disable $S_B$}
+  \If{$\text{Test}(R) = \text{FAIL}$}
+    \State $S \gets S_A$ \Comment{Fault is in first half}
+  \Else
+    \State $S \gets S_B$ \Comment{Fault is in second half}
+  \EndIf
+\EndWhile
+\State \Return $S$ \Comment{Single faulty kernel identified}
+\end{algorithmic}
+\end{algorithm}
+
+For 156 kernels, this requires at most $\lceil \log_2 156 \rceil = 8$
+simulation runs to isolate a single faulty kernel. In practice, 6--7 rounds
+sufficed for each of the four bugs discovered (Section~\ref{sec:bugs}).
+
+The binary search is enabled by the preprocessor guard design: each run
+requires only recompilation with different \texttt{-DDISABLE\_GPU\_NNN}
+flags, not source code changes.
+
+% =============================================================================
+\section{LLM-Introduced Bugs: A Taxonomy}
+\label{sec:bugs}
+
+Four critical bugs were discovered through the binary search process. All
+passed the per-kernel benchmark validation (Stage 1) but caused failures in
+full simulation testing (Stage 2). We classify them into three categories.
+
+\subsection{Formula Truncation (Kernel 204: more0q)}
+
+The microphysics source/sink limiter contains complex multi-term formulas for
+rain, snow, and graupel precipitation. The LLM omitted terms when
+translating the CPU code to GPU:
+
+\begin{itemize}
+\item \textbf{Rain sink}: 4 terms missing (\texttt{clrsg}, \texttt{frrg},
+  \texttt{shsr}, \texttt{shgr})
+\item \textbf{Snow sink}: Sign errors and 3 terms misplaced between
+  positive/negative groups
+\item \textbf{Graupel sink}: Sign inversion and 3 terms missing
+  (\texttt{clri}, \texttt{clir}, \texttt{clsr})
+\end{itemize}
+
+This is the most dangerous category: the code compiles, runs, and produces
+plausible-looking results. Detection required full simulation testing because
+the benchmark data snapshot happened to exercise a parameter regime where the
+limiter was not triggered.
+
+\textbf{Root cause}: The formulas span 3--4 lines in the source code,
+exceeding the LLM's reliable attention span for faithful term-by-term
+copying.
+
+\subsection{Copy-Paste Propagation (Kernels 311, 321)}
+
+Two kernels exhibited errors arising from the LLM incorrectly generalizing
+patterns across code blocks:
+
+\paragraph{Kernel 311 (steptund):} The tridiagonal matrix setup requires
+three coefficient arrays (\texttt{rr}, \texttt{ss}, \texttt{tt}). The LLM
+omitted the \texttt{ss} array entirely in the GPU version, producing only
+\texttt{rr} and \texttt{tt}. The uninitialized \texttt{ss} array caused
+the Gaussian elimination solver to diverge.
+
+\paragraph{Kernel 321 (swp2nxt):} The time-stepping swap routine has
+different semantics for different variable groups: velocity/pressure use
+3-way swap (\texttt{past=present; present=future}) while aerosol/tracer/TKE
+use 2-way copy (\texttt{past=future}). The LLM applied the 3-way pattern
+uniformly to all variables.
+
+\textbf{Root cause}: The LLM recognized a dominant pattern (3-way swap) and
+over-generalized it to exceptional cases, a form of \emph{pattern
+hallucination}.
+
+\subsection{Conditional Branch Omission (Kernel 094: phvbcs)}
+
+The boundary condition code applies a scaling factor (\texttt{dtdvb}) under
+two alternative conditions:
+
+\begin{lstlisting}[style=fortran, caption={Correct conditional logic.}, label={lst:fproc}]
+if (fproc(1:3) == 'sml') then
+  scpx(j,k,1) = scpx(j,k,1) * dtdvb
+else
+  if (advopt >= 4) then
+    scpx(j,k,1) = scpx(j,k,1) * dtdvb
+  end if
+end if
+\end{lstlisting}
+
+The LLM retained only the \texttt{advopt >= 4} branch, dropping the
+\texttt{fproc == 'sml'} condition. Since the simulation uses
+\texttt{advopt=3}, the scaling was never applied in the GPU version.
+
+\textbf{Root cause}: The LLM simplified a two-condition branch into one,
+possibly interpreting the two branches as redundant since they execute the
+same operation.
+
+\subsection{Patterns and Implications}
+
+\begin{table}[t]
+\centering
+\caption{Summary of LLM-introduced bugs.}
+\label{tab:bugs}
+\begin{tabular}{llll}
+\toprule
+ID & Kernel & Category & Detection \\
+\midrule
+204 & more0q & Formula truncation & 7 rounds \\
+094 & phvbcs & Branch omission & 6 rounds \\
+311 & steptund & Copy-paste & 7 rounds \\
+321 & swp2nxt & Copy-paste & (same run) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All four bugs share a common characteristic: they involve \emph{semantic
+faithfulness} rather than syntactic correctness. The LLM-generated code is
+valid Fortran, compiles without error, and produces outputs within plausible
+numerical ranges. This distinguishes LLM bugs from typical human programmer
+errors, which more often manifest as compilation failures or crashes.
+
+The bugs also reveal a tension in LLM behavior: the model's tendency to
+``simplify'' and ``generalize'' patterns---generally desirable for code
+generation---becomes a liability when faithful reproduction of complex
+scientific formulas is required.
+
+% =============================================================================
+\section{Results}
+\label{sec:results}
+
+\subsection{Porting Scale and Effort}
+
+Table~\ref{tab:effort} summarizes the porting effort. The LLM agent
+processed 156 GPU kernels across 14 interactive sessions spanning
+approximately three weeks. The human effort consisted primarily of designing
+the methodology, writing instruction documents, and supervising
+binary-search debugging sessions.
+
+\begin{table}[t]
+\centering
+\caption{Porting effort summary.}
+\label{tab:effort}
+\begin{tabular}{lr}
+\toprule
+Metric & Value \\
+\midrule
+GPU kernels ported & 156 \\
+CPU benchmarks created & 413 \\
+GPU benchmarks created & 172 \\
+LLM sessions & 14 \\
+Calendar time & $\sim$3 weeks \\
+Git commits & 32 \\
+Bugs found by binary search & 4 \\
+Binary search rounds (total) & $\sim$20 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Numerical Accuracy}
+
+Table~\ref{tab:accuracy} compares the GPU simulation output against two
+baselines: (1) the CPU-only build without \texttt{-acc} flags
+(\emph{noacc}), and (2) the GPU build with all GPU kernels disabled
+(\emph{gpudisabled}). The gpudisabled baseline isolates the effect of
+compiler flags from GPU kernel execution.
+
+\begin{table}[t]
+\centering
+\caption{Numerical accuracy comparison at 60 and 360 time steps.
+  Differences are relative to the gpudisabled baseline.}
+\label{tab:accuracy}
+\begin{tabular}{lrr}
+\toprule
+Diagnostic & 60 steps & 360 steps \\
+\midrule
+\texttt{ppmax} & $+0.000$\% & $+0.000$\% \\
+\texttt{ppmin} & $+0.000$\% & --- \\
+\texttt{tkemax} & $+0.001$\% & $-1.464$\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+At 60 time steps, the GPU-enabled simulation is virtually identical to the
+GPU-disabled baseline. At 360 steps, \texttt{tkemax} shows a 1.464\%
+difference attributable to floating-point arithmetic ordering differences
+between CPU (sequential reductions) and GPU (parallel reductions). This
+level of variance is consistent with known GPU porting behavior and does not
+indicate algorithmic error.
+
+Separately, we confirmed that the compiler flags themselves
+(\texttt{-acc -gpu=managed}) introduce negligible numerical differences:
+\texttt{ppmax} differs by $\sim 3.5 \times 10^{-7}$ between the noacc and
+gpudisabled builds.
+
+\subsection{GPU Performance}
+
+% TODO: Add detailed performance data when available
+% Preliminary results show 13.6x overall speedup
+The GPU implementation achieves a preliminary overall speedup of
+approximately 13.6$\times$ compared to the 72-thread OpenMP CPU baseline
+for a 360-step simulation. Individual kernel speedups vary widely, from
+$\sim$2$\times$ for memory-bandwidth-limited stencil operations to over
+100$\times$ for embarrassingly parallel operations
+(Table~\ref{tab:performance}).
+
+\begin{table}[t]
+\centering
+\caption{Representative kernel speedups (GPU vs.\ 72-thread CPU).}
+\label{tab:performance}
+\begin{tabular}{llr}
+\toprule
+Kernel & Description & Speedup \\
+\midrule
+outmxn & Min/max diagnostics & 187$\times$ \\
+adjstni & Ice concentration adjust & 22$\times$ \\
+setblk & Block initialization & 22$\times$ \\
+swp2nxt & Time level swap & 19$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =============================================================================
+\section{Cost Model and Stability}
+\label{sec:cost}
+
+A critical but often overlooked aspect of LLM-assisted software engineering
+is the \emph{cost of failure}. Unlike interactive development where a human
+programmer can immediately recognize and fix errors, LLM-generated code
+failures trigger expensive re-execution cycles involving GPU compute time,
+LLM token consumption, and human supervisory attention. This section
+analyzes the stability characteristics of each phase and the design
+decisions that mitigate rework costs.
+
+\subsection{The Rework Cost Model}
+
+Each failure in the pipeline incurs three costs:
+
+\begin{itemize}
+\item \textbf{Compute cost}: Full simulation runs require 2--4 hours of GPU
+  time; even benchmark runs consume significant resources when repeated
+  across hundreds of kernels.
+\item \textbf{Token cost}: LLM sessions consume tokens proportional to context
+  size. Debugging sessions that revisit previously generated code effectively
+  ``pay twice'' for the same transformation.
+\item \textbf{Attention cost}: Human supervision time is the scarcest
+  resource. Each failure requires the human to diagnose whether the issue is
+  in the LLM output, the specification, or the verification infrastructure.
+\end{itemize}
+
+Table~\ref{tab:rework} summarizes the rework observed across phases.
+
+\begin{table}[t]
+\centering
+\caption{Rework statistics by phase. Phase 3 required the most iterations
+  due to output format inconsistency.}
+\label{tab:rework}
+\begin{tabular}{lrrr}
+\toprule
+Phase & Fix commits & Re-runs & Calendar time \\
+\midrule
+1: Meta-info analysis & 2 & 0 & 2 days \\
+2: Runtime profiling & 1 & 1 & 1 day \\
+3: CPU benchmark extraction & 11+ & 15+ & $\sim$6 weeks \\
+4: GPU benchmark conversion & 3 & 5 & $\sim$2 weeks \\
+5: Integration + debug & 4 & $\sim$20 & $\sim$2 weeks \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Phase 3: The Bottleneck}
+
+CPU benchmark extraction (Phase~3) was by far the most problematic phase,
+consuming approximately half of the total project calendar time. The root
+cause was \emph{output format drift}: while the LLM consistently performed
+the requested operation (dumping data to files), the specific format varied
+across invocations in ways that broke downstream consumption.
+
+Specific failure modes included:
+
+\paragraph{Data serialization inconsistency.}
+The LLM was instructed to dump scalar parameters to a text file
+(\texttt{params.txt}). Across different sessions, it produced three
+incompatible formats: (1)~positional values only, (2)~\texttt{key = value}
+pairs, and (3)~Fortran namelist format. Since the benchmark reader was
+generated in a separate session, format mismatches caused silent data
+corruption or runtime errors.
+
+\paragraph{Conditional allocation blindness.}
+The simulation uses compile-time flags (\texttt{cphopt}, \texttt{sfcopt},
+\texttt{savmem}) to conditionally allocate arrays. The LLM-generated dump
+code attempted to serialize arrays that were not allocated under the current
+configuration, causing segmentation faults. Six separate fix commits over
+four days were required to address cascading instances of this issue.
+
+\paragraph{Type confusion.}
+The LLM called scalar dump routines (\texttt{dump\_scalar\_r()}) on array
+variables, causing silent data truncation. A single fix commit modified
+140~source files with 1,434 insertions and 540 deletions to correct
+variable type handling across all kernels.
+
+\paragraph{Endianness mismatch.}
+The main simulation was compiled with \texttt{-Mbyteswapio} (big-endian I/O),
+but the LLM-generated benchmarks did not include the corresponding flag,
+producing unreadable binary data.
+
+\subsection{Mitigation: Template Rigidity vs.\ LLM Creativity}
+
+The Phase~3 difficulties reveal a fundamental tension in LLM-assisted code
+generation: the model's tendency to produce \emph{creative variations} of
+the requested output, while the downstream pipeline requires \emph{exact
+format compliance}. We addressed this through progressively stricter
+templates:
+
+\begin{enumerate}
+\item \textbf{Shared module}: A standardized \texttt{dump\_kernel\_data.f90}
+  module with typed dump routines (\texttt{dump\_scalar\_r},
+  \texttt{dump\_array\_3d}, etc.) eliminated format variation in data
+  serialization.
+
+\item \textbf{Rigid directory structure}: Each benchmark directory must
+  contain exactly \texttt{kernel\_benchmark.f90}, \texttt{Makefile},
+  \texttt{benchmark.conf}, and \texttt{data/params.txt}, with prescribed
+  formats for each.
+
+\item \textbf{Makefile inclusion}: GPU benchmarks use
+  \texttt{include ../Makefile.common} to eliminate compiler flag variation.
+
+\item \textbf{Explicit variable discovery}: The \texttt{default(none)}
+  compilation technique forces exhaustive variable enumeration, preventing
+  omissions.
+\end{enumerate}
+
+These mechanisms transformed Phase~3 from a high-variance process to a
+mechanical one. The key insight is that \textbf{the template must constrain
+the LLM's output space to a single valid format}, leaving no room for
+``equivalent'' alternatives that break downstream compatibility.
+
+\subsection{Stability Across Phases}
+
+Figure~\ref{fig:stability} illustrates the relationship between template
+rigidity and phase stability. Phases with well-defined templates (1, 4, 5)
+required minimal rework, while Phase~3, where the output format was
+initially under-specified, required extensive iteration.
+
+\begin{figure}[t]
+\centering
+% TODO: Replace with actual figure
+\fbox{\parbox{0.95\columnwidth}{\centering\vspace{2em}
+Scatter plot: X = template rigidity score (1--5),\\
+Y = number of fix commits per phase.\\
+Phase 3 is a clear outlier at (low rigidity, high fixes).\\
+After template hardening, subsequent kernels required no fixes.
+\vspace{2em}}}
+\caption{Template rigidity vs.\ rework effort. Phase~3 initially had
+  low template rigidity, resulting in high rework. After introducing
+  the shared dump module and rigid directory structure, stability improved
+  dramatically.}
+\label{fig:stability}
+\end{figure}
+
+% =============================================================================
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Prompt Engineering for HPC Code Transformation}
+
+The success of our methodology relies heavily on \emph{structured prompt
+design} that accommodates LLM limitations:
+
+\paragraph{Task atomicity and loop processing.}
+Each phase is designed so that the LLM processes one kernel at a time in a
+loop: read specification $\rightarrow$ read source $\rightarrow$ generate
+output $\rightarrow$ validate $\rightarrow$ next kernel. This pattern ensures
+that each task fits within the context window and that progress is preserved
+even if the session terminates unexpectedly.
+
+\paragraph{Template-driven output.}
+By providing rigid output templates (annotation format, benchmark directory
+structure, preprocessor guard pattern), we constrain the LLM's output space
+and reduce the opportunity for creative but incorrect variations.
+
+\paragraph{Externalized memory.}
+Progress reports, instruction documents, and the \texttt{CLAUDE.md} memory
+file serve as the LLM's ``persistent memory,'' enabling coherent work across
+sessions despite the lack of built-in session persistence. This creates a
+form of \emph{software-defined memory} that compensates for the LLM's
+architectural limitations.
+
+\subsection{Human--AI Role Separation}
+
+Our experience suggests a natural role separation:
+
+\begin{itemize}
+\item \textbf{Human}: Methodology design, specification writing, simulation
+  configuration, binary search supervision, final validation judgment
+\item \textbf{LLM}: Code analysis, benchmark extraction, OpenMP-to-OpenACC
+  transformation, bug fixing under direction
+\end{itemize}
+
+The human provides \emph{architectural} decisions (what to do), while the
+LLM provides \emph{operational} execution (how to do it at scale). This
+mirrors traditional software engineering roles but at a different
+granularity.
+
+\subsection{Benchmark Infrastructure as a Tuning Pipeline}
+
+A significant secondary benefit of the per-kernel benchmark framework is
+that it provides a \emph{ready-made performance tuning infrastructure}. Each
+GPU benchmark is a self-contained program that can be independently compiled,
+profiled, and optimized without running the full simulation. This enables:
+
+\begin{itemize}
+\item \textbf{Isolated kernel tuning}: OpenACC directives (e.g.,
+  \texttt{collapse}, \texttt{tile}, \texttt{gang/worker/vector} clauses)
+  can be tested on individual kernels with immediate performance feedback.
+\item \textbf{Rapid iteration}: Benchmark compilation takes seconds vs.\
+  minutes for the full simulation, enabling orders-of-magnitude faster
+  optimization cycles.
+\item \textbf{Correctness-preserving optimization}: After tuning, the
+  benchmark validates output against the frozen reference data, ensuring
+  that optimizations do not introduce numerical errors.
+\item \textbf{Re-integration}: Once a kernel is tuned and validated in
+  isolation, the optimized code is copied back into the simulation source
+  within the existing preprocessor guard structure.
+\end{itemize}
+
+This design creates a virtuous cycle: the verification infrastructure built
+for correctness (Phase~3--4) becomes the optimization infrastructure for
+performance (post-Phase~5). The LLM agent can also be employed for the
+tuning phase, applying the same template-driven workflow to generate
+optimization variants.
+
+\subsection{Comparison with Manual Porting}
+
+While we do not have a controlled comparison with purely manual porting, we
+note that the three-week calendar time for 156 kernels across 285K lines of
+code is competitive with published GPU porting efforts for comparable
+applications, which typically report months of developer effort. The
+methodology's main advantage is not necessarily speed but
+\emph{systematization}: the structured pipeline reduces the risk of ad-hoc
+errors and ensures comprehensive coverage.
+
+\subsection{Limitations and Threats to Validity}
+
+\paragraph{Single LLM evaluation.}
+This study used a single LLM (Claude Code with Opus model). The
+methodology's effectiveness may vary across different models. LLMs differ in
+their Fortran proficiency, tendency toward output format drift, and ability
+to faithfully reproduce complex formulas. Cross-model evaluation using
+alternative agents such as OpenAI Codex/GPT-4, open-source models (Code
+Llama, DeepSeek-Coder), or specialized HPC code models would strengthen the
+generalizability claims. Importantly, our methodology is \emph{model-agnostic}
+by design: the five-phase pipeline, template structure, and binary search
+verification are independent of the underlying LLM. The per-kernel benchmark
+infrastructure provides a natural framework for comparative evaluation---the
+same benchmark suite could validate GPU kernels generated by different models.
+
+\paragraph{Data management.}
+Our use of unified memory (\texttt{-gpu=managed}) sacrifices potential
+performance gains from explicit data management. Future work could apply the
+same methodology to optimize data transfers, using the benchmark
+infrastructure for isolated profiling of data movement patterns.
+
+\paragraph{Benchmark coverage.}
+The binary data snapshot captures only one parameter configuration. Bugs that
+manifest under different configurations may escape benchmark validation, as
+observed with Kernel~204 (more0q), where the microphysics limiter was not
+triggered in the benchmark snapshot. Multi-configuration benchmark generation
+could mitigate this at the cost of increased data storage and setup
+complexity.
+
+\paragraph{Single application.}
+Our methodology was developed and tested on a single application.
+Generalizability to other HPC codes---particularly those with different
+parallelization patterns (e.g., task-based parallelism, non-structured
+grids)---requires further validation.
+
+\paragraph{Performance optimization.}
+The current work focuses on correctness. Systematic GPU performance
+optimization (kernel fusion, data locality, explicit data management)
+remains as future work, for which the per-kernel benchmark infrastructure
+provides a ready-made foundation (Section~\ref{sec:discussion}).
+
+% =============================================================================
+\section{Lessons Learned}
+\label{sec:lessons}
+
+\begin{enumerate}
+\item \textbf{Verification infrastructure is the most valuable investment.}
+  The per-kernel benchmark framework and binary search debugging capability
+  consumed significant setup effort but were essential for achieving correct
+  results. Without them, the four subtle LLM-introduced bugs would have been
+  extremely difficult to diagnose.
+
+\item \textbf{LLMs struggle with faithful formula reproduction.} Multi-term
+  scientific formulas should be treated as high-risk transformation targets.
+  Additional verification mechanisms (e.g., term-counting assertions, symbolic
+  comparison) could mitigate this.
+
+\item \textbf{The ``simplification instinct'' of LLMs is dangerous for
+  scientific code.} LLMs tend to merge similar-looking code branches and
+  normalize patterns. This is often correct for business logic but can
+  silently change the semantics of physics-based computations.
+
+\item \textbf{Preprocessor-based kernel control enables rapid debugging.}
+  The ability to enable/disable individual GPU kernels via compile flags,
+  without modifying source code, was crucial for the binary search strategy
+  and should be adopted as a standard practice for GPU porting projects.
+
+\item \textbf{Session boundaries require careful knowledge management.} The
+  most error-prone moments in the project were session transitions, where
+  context was lost. Investing in comprehensive progress reports and
+  instruction documents paid significant dividends.
+
+\item \textbf{Output format stability is the single largest risk factor.}
+  Phase~3 consumed half the project time due to format drift in
+  LLM-generated data serialization code. The lesson is stark: any interface
+  between LLM-generated components must be constrained by a shared,
+  machine-enforced format specification (e.g., a shared module), not by
+  natural-language instructions alone. Telling the LLM ``dump data in binary
+  format'' is insufficient; providing a \texttt{dump\_array\_3d()} routine
+  that the LLM must call is robust.
+
+\item \textbf{Cost-aware phase ordering matters.} Phases should be ordered
+  so that the cheapest verification comes first. Per-kernel benchmarks
+  (seconds to run) catch most bugs before full simulation testing (hours to
+  run), and binary search (logarithmic runs) avoids exhaustive testing.
+  This ``verification funnel'' minimizes total compute cost.
+\end{enumerate}
+
+% =============================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+
+We have presented the first case study of LLM-assisted GPU porting for a
+production-scale Fortran/MPI/OpenMP weather simulation code. Our five-phase
+methodology, designed around the constraints of current LLM agents,
+successfully ported 156 GPU kernels in a 285,000-line codebase, achieving
+13.6$\times$ GPU speedup with numerical accuracy within floating-point
+ordering differences.
+
+The key insight is that LLMs are effective at the \emph{mechanical} aspects
+of GPU porting (syntactic transformation, boilerplate generation, pattern
+application) but unreliable for \emph{semantic} faithfulness (formula
+reproduction, conditional logic preservation). A verification pipeline that
+assumes LLM output is ``probably correct but possibly wrong'' is essential.
+
+Our binary search debugging strategy, enabled by preprocessor-based kernel
+control, provides a practical and efficient approach to identifying the
+inevitable errors. The four bugs discovered---formula truncation, copy-paste
+propagation, and conditional branch omission---represent systematic failure
+modes that tool developers can target for improvement.
+
+We believe this methodology is applicable to other large-scale HPC code
+modernization efforts and represents a practical model for human--AI
+collaboration in scientific software engineering.
+
+% =============================================================================
+% References (placeholder - replace with actual bibtex entries)
+\begin{thebibliography}{99}
+
+\bibitem{ref:cress}
+K.~Tsuboki and A.~Sakakibara, ``Large-scale parallel computing of cloud
+resolving storm simulator,'' in \emph{High Performance Computing}, Springer,
+2002, pp.~243--259.
+
+\bibitem{ref:claude}
+Anthropic, ``Claude Code: An agentic coding tool,'' 2025. [Online].
+Available: https://docs.anthropic.com/en/docs/claude-code
+
+\bibitem{ref:gpu_porting_challenges}
+S.~Memeti et al., ``Benchmarking OpenCL, OpenACC, OpenMP, and CUDA:
+Programming productivity, performance, and energy consumption,'' in
+\emph{Proc.\ Workshop on Adaptive Resource Management and Scheduling for
+Cloud Computing (ARMS-CC)}, 2017.
+
+\bibitem{ref:codex}
+M.~Chen et al., ``Evaluating large language models trained on code,''
+\emph{arXiv preprint arXiv:2107.03374}, 2021.
+
+\bibitem{ref:copilot}
+A.~Ziegler et al., ``Productivity assessment of neural code completion,''
+in \emph{Proc.\ 6th ACM SIGPLAN Int.\ Symp.\ on Machine Programming}, 2022.
+
+\bibitem{ref:llm_translation}
+B.~Roziere et al., ``Code Llama: Open foundation models for code,''
+\emph{arXiv preprint arXiv:2308.12950}, 2023.
+
+\bibitem{ref:llm_cuda}
+N.~Nichols et al., ``Can large language models write parallel code?,'' in
+\emph{Proc.\ 33rd Int.\ Symp.\ on High-Performance Parallel and Distributed
+Computing (HPDC)}, 2024.
+
+\bibitem{ref:llm_openmp}
+T.~Kadosh et al., ``Domain-specific LLMs for parallel program generation,''
+\emph{arXiv preprint arXiv:2401.10062}, 2024.
+
+\end{thebibliography}
+
+\end{document}

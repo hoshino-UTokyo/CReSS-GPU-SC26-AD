@@ -59,6 +59,7 @@ The GPU porting process consists of 5 phases. Each phase has detailed instructio
 | 3 | CPU Benchmark | Extract standalone benchmarks for each kernel | [03_cpu_benchmark.md](tasks/03_cpu_benchmark.md) |
 | 4 | GPU Benchmark | Convert CPU benchmarks to GPU using OpenACC | [04_gpu_benchmark.md](tasks/04_gpu_benchmark.md) |
 | 5 | Simulation Integration | Integrate GPU kernels back into main simulation | [05_simulation_integration.md](tasks/05_simulation_integration.md) |
+| 6 | Kernel Optimization | nsysルーフライン解析に基づくカーネル最適化 | [06_kernel_optimization.md](tasks/06_kernel_optimization.md) |
 
 ---
 
@@ -86,6 +87,10 @@ The GPU porting process consists of 5 phases. Each phase has detailed instructio
    - Read [05_simulation_integration.md](tasks/05_simulation_integration.md)
    - Output: GPU-enabled `Src/*.f90` files
 
+6. **Optimizing GPU kernel performance?**
+   - Read [06_kernel_optimization.md](tasks/06_kernel_optimization.md)
+   - Output: `Kernel_benchmark_gpu_opt/<id>_<name>/`
+
 ---
 
 ## Key Statistics
@@ -111,10 +116,14 @@ CReSS/
 │   ├── dump_kernel_data.f90      # Shared dump module
 │   ├── *.sh, *.py                # Benchmark scripts
 │   └── <id>_<kernel_name>/       # Individual kernel benchmarks
-├── Kernel_benchmark_gpu/         # GPU benchmark programs (OpenACC)
+├── Kernel_benchmark_gpu/         # GPU benchmark programs (OpenACC) — Phase 4 ベースライン
 │   ├── Makefile.common           # Shared compiler settings
 │   ├── build_all.sh, run_all.sh  # Build/run scripts
 │   └── <id>_<kernel_name>/       # Individual GPU benchmarks
+├── Kernel_benchmark_gpu_opt/     # 最適化版GPU benchmark — Phase 6
+│   ├── roofline_analysis.sh      # nsys/ncuルーフライン解析
+│   ├── optimization_summary.csv  # 全カーネル最適化結果
+│   └── <id>_<kernel_name>/       # 最適化版 + OPTIMIZATION.md
 ├── test_real/                    # Real case simulation
 │   ├── *.sh                      # Simulation run scripts
 │   └── omp_profile.txt           # Profiling results
@@ -218,4 +227,4 @@ Example: `progress_2026-01-29.md`
 
 ---
 
-*Last updated: 2026-01-29*
+*Last updated: 2026-03-30*

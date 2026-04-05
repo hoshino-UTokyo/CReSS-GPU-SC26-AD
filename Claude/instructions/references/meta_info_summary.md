@@ -40,28 +40,31 @@ Hard   [#####                                         ]  30 ( 7.8%)
 
 ## Hard Difficulty Files (30 files)
 
-These files require significant refactoring for GPU porting:
+The "Hard" classification is based on algorithmic characteristics (vertical data dependencies,
+sequential solvers, complex branching), **not** on OpenMP parallelism-level obstacles.
+No structural porting blockers (atomic/critical, thread-ID dependencies, function calls
+inside parallel regions, system function calls, etc.) were found in any file.
 
-| File | Primary Blocker |
-|------|-----------------|
-| `bulksfc.f90` | Complex physics with conditionals |
+| File | Hard Factor (Algorithmic Characteristic) |
+|------|------------------------------------------|
+| `bulksfc.f90` | Complex physics with deep conditional branching |
 | `coalbw.f90` | Bin microphysics coalescence |
 | `defomten.f90` | Omega-theta computation |
-| `depsitbw.f90` | Bin microphysics deposition |
-| `exbcpt.f90` | External boundary conditions |
-| `exbcq.f90` | External boundary conditions |
-| `exbcss.f90` | External boundary conditions |
-| `exbcv.f90` | External boundary conditions |
-| `gaussel.f90` | Gauss elimination solver |
-| `get1d.f90` | 1D profile extraction with reduction |
-| `getkref.f90` | Reference level search |
-| `gseidel.f90` | Gauss-Seidel iteration |
+| `depsitbw.f90` | Bin microphysics ice crystal growth |
+| `exbcpt.f90` | External boundary conditions (multi-stage logic) |
+| `exbcq.f90` | External boundary conditions (multi-stage logic) |
+| `exbcss.f90` | External boundary conditions (multi-stage logic) |
+| `exbcv.f90` | External boundary conditions (multi-stage logic) |
+| `gaussel.f90` | Gaussian elimination (k-direction data dependency) |
+| `get1d.f90` | 1D profile extraction (uses reduction) |
+| `getkref.f90` | Reference level search (uses reduction) |
+| `gseidel.f90` | Gauss-Seidel iteration (sequential dependency) |
 | `inidisbw.f90` | Bin distribution initialization |
-| `newblk_noevap.f90` | Bulk microphysics |
-| `phvbcs.f90` | Physics boundary (vertical) |
-| `phvbcuvw.f90` | Physics boundary (vertical) |
-| `phvs.f90` | Physics vertical scalar |
-| `phvuvw.f90` | Physics vertical velocity |
+| `newblk_noevap.f90` | Bulk microphysics (complex conditional branching) |
+| `phvbcs.f90` | Vertical physics boundary (4 directions x multi-stage) |
+| `phvbcuvw.f90` | Vertical physics boundary (4 directions x multi-stage) |
+| `phvs.f90` | Vertical physics scalar |
+| `phvuvw.f90` | Vertical physics velocity |
 | `rbcpt.f90` | Radiative boundary condition |
 | `rbcq.f90` | Radiative boundary condition |
 | `rbcqv.f90` | Radiative boundary condition |
@@ -71,41 +74,60 @@ These files require significant refactoring for GPU porting:
 | `remapbw.f90` | Bin remapping |
 | `setbin.f90` | Bin setup |
 | `setblk.f90` | Block setup |
-| `steps.f90` | Scalar time stepping |
+| `steps.f90` | Scalar time integration |
 | `swadjst.f90` | SW adjustment |
-| `vspdmp.f90` | Vertical sponge damping |
+| `vspdmp.f90` | Vertical sponge damping (uses reduction) |
 
-## Files with OpenMP Reductions (24 files)
+## Files with OpenMP Reductions (25 files)
 
-These files use `reduction` clauses requiring GPU atomic operations or multi-pass algorithms:
+Files using `reduction()` clauses. These map directly to `!$acc loop reduction()`
+in OpenACC and are **not** a fundamental porting obstacle.
 
 - `adjstuv.f90`, `chkfile.f90`, `chkitr.f90`, `chkmoist.f90`, `chkmxn.f90`
 - `cpondsfc.f90`, `fallblk.f90`, `fallbw.f90`, `fallqr.f90`, `get1d.f90`
 - `getarea.f90`, `getkref.f90`, `getmxn.f90`, `hint2d.f90`, `hint3d.f90`
 - `hintlnd.f90`, `newsindx.f90`, `outmxn.f90`, `paractl.f90`, `phycood.f90`
-- `rdgrp.f90`, `set1d.f90`, `undefice.f90`, `undefsst.f90`
+- `rdgrp.f90`, `set1d.f90`, `undefice.f90`, `undefsst.f90`, `vspdmp.f90`
+
+## OpenACC Porting Obstacle Survey Results
+
+A comprehensive survey of all OpenMP parallel regions found **no structural obstacles**
+to OpenACC conversion:
+
+| Check Item | Result |
+|------------|--------|
+| `omp_get_thread_num` / thread-ID dependency | **0 occurrences** — not used |
+| `!$omp atomic` / `critical` / `ordered` | **0 occurrences** — not used |
+| Function calls inside parallel regions (`call`) | **0 occurrences** — all calls are outside parallel regions |
+| System/runtime functions (`malloc`, `free`, `system`, `getenv`, etc.) | **0 occurrences** — not used |
+| Writes to global/module variables | **None** — module access is read-only |
+| `reduction()` clauses | **25 files** — directly supported by `!$acc loop reduction()` |
+
+In summary, all OpenMP parallel regions in CReSS are straightforward loop-level parallelism
+with no structural obstacles for OpenMP-to-OpenACC conversion.
+The "Hard" difficulty classification is based solely on algorithmic characteristics
+(vertical dependencies, sequential solvers, complex branching).
 
 ## Common Patterns Found
 
 ### Easy (236 files)
 - Pure stencil operations
 - No function calls inside parallel regions
-- No synchronization (atomic, critical, barrier)
+- No synchronization primitives
 - Embarrassingly parallel grid loops
 - Only intrinsic functions (max, min, sqrt, exp, log)
 
 ### Medium (121 files)
 - Conditional branching inside loops
-- Module constant access from `comphy`, `commath`
+- Read-only access to module constants (`comphy`, `commath`, etc.)
 - Multiple sequential parallel regions
-- Calls to simple helper functions before parallel regions
+- Helper function calls outside parallel regions
 
 ### Hard (30 files)
-- Thread-ID dependent operations (`omp_get_thread_num`)
-- Reduction operations requiring careful GPU implementation
-- k-dependent data dependencies (vertical solver)
-- Gauss elimination/Gauss-Seidel iterative solvers
-- Complex control flow with early exits
+- k-direction data dependencies (vertical solvers: gaussel, gseidel)
+- Complex conditional branching and multi-stage logic (boundary conditions, microphysics)
+- Reduction clauses (directly supported by OpenACC)
+- Complex control flow
 
 ## Annotation Format
 
@@ -126,20 +148,18 @@ Each annotation follows this structure:
 ## Recommended Porting Priority
 
 ### Phase 1: Easy files (236 files)
-- Direct OpenACC `kernels` or `parallel loop` with `collapse`
+- Direct conversion with `!$acc kernels` + `collapse`
 - Minimal code changes required
-- High parallelism, good GPU utilization expected
 
 ### Phase 2: Medium files (121 files)
-- May require data region management
-- Some conditional kernel splitting
-- Function inlining or device routines
+- May require kernel splitting for conditional branches
+- Data region management considerations
 
 ### Phase 3: Hard files (30 files)
-- Algorithm redesign for GPU
-- Replace Gauss-Seidel with parallel-friendly solvers
-- Implement GPU-compatible reduction patterns
-- Consider keeping some on CPU if GPU benefit is marginal
+- Primarily algorithmic adaptation (no structural blockers)
+- gaussel/gseidel: k-direction sequential dependency — parallelize over i,j with `!$acc kernels` (k remains sequential)
+- Boundary conditions / microphysics: complex branching — handled by compiler via `!$acc kernels`
+- Reductions: directly supported by `!$acc loop reduction()`
 
 ## Statistics by Category
 
@@ -156,6 +176,6 @@ Each annotation follows this structure:
 
 ---
 
-*Generated: 2025-12-28*
+*Generated: 2025-12-28, Updated: 2026-04-04*
 *Branch: meta_info*
 *Commit: 4ddf2dc*

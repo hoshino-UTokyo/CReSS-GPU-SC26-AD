@@ -1,0 +1,1028 @@
+[23:33:43] Roofline analysis started
+[23:33:43] Output: /work/jh250015/g24000/SC26/CReSS3.5.1m_SPN_RAD1.4.3_20230323_upload/Kernel_benchmark_gpu/roofline_results/roofline_summary_20260323_233343.csv
+[23:33:43] Targets: 166 benchmarks
+[23:33:43] GPU: NVIDIA GH200 120GB
+[23:33:43] Profiling 003_adjstni_subroutine ...
+[23:33:50]   launches=12, kpi=1, skip=2
+[23:33:57]   done
+[23:33:57] Profiling 007_adjstq_subroutine ...
+[23:34:02]   launches=72, kpi=6, skip=12
+[23:34:08]   done
+[23:34:08] Profiling 009_adjstuv_subroutine_sec1 ...
+[23:34:14]   launches=120, kpi=10, skip=20
+[23:34:23]   done
+[23:34:23] Profiling 010_adjstuv_subroutine_sec2 ...
+[23:34:27]   launches=48, kpi=4, skip=8
+[23:34:32]   done
+[23:34:32] Profiling 012_advbspi_subroutine ...
+[23:34:36]   launches=12, kpi=1, skip=2
+[23:34:40]   done
+[23:34:40] Profiling 013_advbspt_subroutine ...
+[23:34:44]   launches=24, kpi=2, skip=4
+[23:34:50]   done
+[23:34:50] Profiling 014_advp_subroutine ...
+[23:35:01]   launches=156, kpi=13, skip=26
+[23:35:18]   done
+[23:35:18] Profiling 015_advs_subroutine ...
+[23:35:23]   launches=120, kpi=10, skip=20
+[23:35:30]   done
+[23:35:30] Profiling 016_advuvw_subroutine ...
+[23:35:43]   launches=360, kpi=30, skip=60
+[23:36:06]   done
+[23:36:06] Profiling 017_aggregat_s_aggregat ...
+[23:36:08]   launches=12, kpi=1, skip=2
+[23:36:09]   done
+[23:36:09] Profiling 018_allocbuf_s_allocbuf ...
+[23:36:11]   launches=12, kpi=1, skip=2
+[23:36:13]   done
+[23:36:13] SKIP 020_allociot_s_allociot: no executable
+[23:36:13] SKIP 022_allocslv_s_allocslv: no executable
+[23:36:13] Profiling 024_baserho_s_baserho ...
+[23:36:15]   launches=12, kpi=1, skip=2
+[23:36:18]   done
+[23:36:18] Profiling 025_bbcw_s_bbcw ...
+[23:36:21]   launches=36, kpi=3, skip=6
+[23:36:25]   done
+[23:36:25] Profiling 027_bc4news_s_bc4news ...
+[23:36:27]   launches=0, kpi=20, skip=40
+[23:36:28]   Retrying with skip=0 ...
+[23:36:29]   WARN: no ncu data
+[23:36:29] Profiling 028_bc8u_s_bc8u ...
+[23:36:32]   launches=24, kpi=2, skip=4
+[23:36:36]   done
+[23:36:36] Profiling 029_bc8v_s_bc8v ...
+[23:36:38]   launches=24, kpi=2, skip=4
+[23:36:41]   done
+[23:36:41] Profiling 030_bc8w_s_bc8w ...
+[23:36:44]   launches=24, kpi=2, skip=4
+[23:36:47]   done
+[23:36:47] Profiling 031_bcbase_s_bcbase ...
+[23:36:55]   launches=72, kpi=6, skip=12
+[23:37:09]   done
+[23:37:09] Profiling 037_bcten_s_bcten ...
+[23:37:11]   launches=24, kpi=2, skip=4
+[23:37:14]   done
+[23:37:14] Profiling 038_bcycle_s_bcycle ...
+[23:37:16]   launches=0, kpi=20, skip=40
+[23:37:17]   Retrying with skip=0 ...
+[23:37:19]   WARN: no ncu data
+[23:37:19] Profiling 039_bcyclex_s_bcyclex ...
+[23:37:20]   launches=0, kpi=20, skip=40
+[23:37:21]   Retrying with skip=0 ...
+[23:37:23]   WARN: no ncu data
+[23:37:23] Profiling 040_bcycley_s_bcycley ...
+[23:37:24]   launches=0, kpi=20, skip=40
+[23:37:26]   Retrying with skip=0 ...
+[23:37:27]   WARN: no ncu data
+[23:37:27] Profiling 041_bruntv_s_bruntv ...
+[23:38:27]   launches=29, kpi=2, skip=4
+[23:40:06]   done
+[23:40:06] Profiling 042_bulksfc_s_bulksfc ...
+[23:40:07]   launches=12, kpi=1, skip=2
+[23:40:09]   done
+[23:40:09] Profiling 043_buoytke_s_buoytke ...
+[23:40:14]   launches=24, kpi=2, skip=4
+[23:40:19]   done
+[23:40:19] Profiling 044_buoywb_s_buoywb ...
+[23:40:25]   launches=36, kpi=3, skip=6
+[23:40:33]   done
+[23:40:33] Profiling 046_buoywsi_s_buoywsi ...
+[23:40:37]   launches=24, kpi=2, skip=4
+[23:40:41]   done
+[23:40:41] Profiling 050_chkitr_s_chkitr ...
+[23:40:43]   launches=24, kpi=2, skip=4
+[23:40:45]   done
+[23:40:45] Profiling 051_chkmoist_s_chkmoist ...
+[23:40:47]   launches=24, kpi=2, skip=4
+[23:40:50]   done
+[23:40:50] Profiling 054_chkrain_s_chkrain ...
+[23:40:51]   launches=12, kpi=1, skip=2
+[23:40:53]   done
+[23:40:53] Profiling 055_chksat_s_chksat ...
+[23:40:57]   launches=12, kpi=1, skip=2
+[23:41:01]   done
+[23:41:01] Profiling 056_cloudcov_s_cloudcov ...
+[23:41:18]   launches=1548, kpi=129, skip=258
+[23:42:00]   done
+[23:42:00] Profiling 061_collect_s_collect ...
+[23:42:02]   launches=12, kpi=1, skip=2
+[23:42:04]   done
+[23:42:04] Profiling 063_convers_s_convers ...
+[23:42:05]   launches=12, kpi=1, skip=2
+[23:42:07]   done
+[23:42:07] Profiling 065_copy1d_s_copy1d ...
+[23:42:09]   launches=12, kpi=1, skip=2
+[23:42:11]   done
+[23:42:11] Profiling 067_copy3d_s_copy3d ...
+[23:42:13]   launches=12, kpi=1, skip=2
+[23:42:15]   done
+[23:42:15] Profiling 068_copy4d_s_copy4d ...
+[23:42:19]   launches=12, kpi=1, skip=2
+[23:42:23]   done
+[23:42:23] Profiling 069_coriuv_subroutine ...
+[23:42:29]   launches=48, kpi=4, skip=8
+[23:42:36]   done
+[23:42:36] Profiling 073_curveuvw_s_curveuvw ...
+[23:42:48]   launches=156, kpi=13, skip=26
+[23:43:05]   done
+[23:43:05] Profiling 075_defomssq_s_defomssq ...
+[23:43:08]   launches=12, kpi=1, skip=2
+[23:43:12]   done
+[23:43:12] Profiling 078_depsit_s_depsit ...
+[23:43:14]   launches=12, kpi=1, skip=2
+[23:43:16]   done
+[23:43:16] Profiling 083_diagni_s_diagni ...
+[23:43:19]   launches=12, kpi=1, skip=2
+[23:43:22]   done
+[23:43:22] Profiling 085_diagnw_s_diagnw ...
+[23:43:26]   launches=12, kpi=1, skip=2
+[23:43:29]   done
+[23:43:29] Profiling 087_disptke_s_disptke ...
+[23:43:33]   launches=12, kpi=1, skip=2
+[23:43:37]   done
+[23:43:37] Profiling 088_distrpg_s_distrpg ...
+[23:43:38]   launches=12, kpi=1, skip=2
+[23:43:40]   done
+[23:43:40] Profiling 090_diver2d_s_diver2d ...
+[23:43:43]   launches=36, kpi=3, skip=6
+[23:43:47]   done
+[23:43:47] Profiling 091_diver3d_s_diver3d ...
+[23:43:51]   launches=48, kpi=4, skip=8
+[23:43:55]   done
+[23:43:55] Profiling 093_diverpih_s_diverpih ...
+[23:44:00]   launches=12, kpi=1, skip=2
+[23:44:08]   done
+[23:44:08] Profiling 094_diverpiv_s_diverpiv ...
+[23:44:10]   launches=12, kpi=1, skip=2
+[23:44:13]   done
+[23:44:13] Profiling 094_phvbcs_s_phvbcs ...
+[23:44:16]   launches=96, kpi=8, skip=16
+[23:44:21]   done
+[23:44:21] Profiling 095_eddydif_s_eddydif ...
+[23:44:26]   launches=36, kpi=3, skip=6
+[23:44:32]   done
+[23:44:32] Profiling 097_eddyvis_subroutine ...
+[23:44:36]   launches=12, kpi=1, skip=2
+[23:44:39]   done
+[23:44:39] Profiling 098_eddyvisj_s_eddyvisj ...
+[23:44:43]   launches=12, kpi=1, skip=2
+[23:44:48]   done
+[23:44:48] Profiling 102_exbcpt_s_exbcpt ...
+[23:44:52]   launches=96, kpi=8, skip=16
+[23:44:58]   done
+[23:44:58] Profiling 103_exbcq_s_exbcq ...
+[23:45:02]   launches=96, kpi=8, skip=16
+[23:45:08]   done
+[23:45:08] Profiling 104_exbcss_s_exbcss ...
+[23:45:12]   launches=96, kpi=8, skip=16
+[23:45:17]   done
+[23:45:17] Profiling 105_exbcu_subroutine ...
+[23:45:21]   launches=48, kpi=4, skip=8
+[23:45:25]   done
+[23:45:25] Profiling 106_exbcv_s_exbcv ...
+[23:45:28]   launches=48, kpi=4, skip=8
+[23:45:33]   done
+[23:45:33] Profiling 108_fallblk_subroutine ...
+[23:45:36]   launches=24, kpi=2, skip=4
+[23:45:39]   done
+[23:45:39] Profiling 112_forcept_s_forcept ...
+[23:45:43]   launches=12, kpi=1, skip=2
+[23:45:47]   done
+[23:45:47] Profiling 113_forcesfc_s_forcesfc ...
+[23:45:51]   launches=48, kpi=4, skip=8
+[23:45:57]   done
+[23:45:57] Profiling 114_freezing_s_freezing ...
+[23:45:58]   launches=12, kpi=1, skip=2
+[23:46:00]   done
+[23:46:00] Profiling 115_gaussel_subroutine ...
+[23:46:32]   launches=2964, kpi=247, skip=494
+[23:47:51]   done
+[23:47:51] Profiling 119_getarea_s_getarea ...
+[23:47:54]   launches=120, kpi=10, skip=20
+[23:47:59]   done
+[23:47:59] Profiling 125_getexner_s_getexner ...
+[23:48:01]   launches=12, kpi=1, skip=2
+[23:48:04]   done
+[23:48:04] Profiling 136_getrich_s_getrich ...
+[23:48:06]   launches=12, kpi=1, skip=2
+[23:48:08]   done
+[23:48:08] Profiling 140_gettrn_s_gettrn_sec1 ...
+[23:48:09]   launches=12, kpi=1, skip=2
+[23:48:11]   done
+[23:48:11] Profiling 141_gettrn_s_gettrn_sec2 ...
+[23:48:13]   launches=24, kpi=2, skip=4
+[23:48:15]   done
+[23:48:15] Profiling 142_getvdens_s_getvdens ...
+[23:48:17]   launches=12, kpi=1, skip=2
+[23:48:19]   done
+[23:48:19] Profiling 143_getxy_s_getxy ...
+[23:48:21]   launches=12, kpi=1, skip=2
+[23:48:23]   done
+[23:48:23] Profiling 144_getz_s_getz ...
+[23:48:25]   launches=12, kpi=1, skip=2
+[23:48:26]   done
+[23:48:26] Profiling 146_getzlow_s_getzlow ...
+[23:48:28]   launches=12, kpi=1, skip=2
+[23:48:30]   done
+[23:48:30] Profiling 164_heatsfc_s_heatsfc ...
+[23:48:32]   launches=12, kpi=1, skip=2
+[23:48:34]   done
+[23:48:34] SKIP 173_inidef_s_inidef: no executable
+[23:48:34] SKIP 175_inimod_s_inimod: no executable
+[23:48:34] Profiling 177_inisfc_subroutine ...
+[23:48:36]   launches=12, kpi=1, skip=2
+[23:48:38]   done
+[23:48:38] Profiling 179_initund_s_initund ...
+[23:48:54]   launches=1524, kpi=127, skip=254
+[23:49:31]   done
+[23:49:31] Profiling 181_jacobian_s_jacobian ...
+[23:49:35]   launches=36, kpi=3, skip=6
+[23:49:40]   done
+[23:49:40] Profiling 182_kh8uv_s_kh8uv ...
+[23:49:44]   launches=36, kpi=3, skip=6
+[23:49:49]   done
+[23:49:49] Profiling 183_lbcs_s_lbcs ...
+[23:49:50]   launches=0, kpi=20, skip=40
+[23:49:51]   Retrying with skip=0 ...
+[23:49:53]   WARN: no ncu data
+[23:49:53] Profiling 190_lbcw_s_lbcw ...
+[23:49:54]   launches=0, kpi=20, skip=40
+[23:49:55]   Retrying with skip=0 ...
+[23:49:57]   WARN: no ncu data
+[23:49:57] Profiling 200_mapfct_s_mapfct ...
+[23:50:00]   launches=120, kpi=10, skip=20
+[23:50:04]   done
+[23:50:04] Profiling 202_melting_s_melting ...
+[23:50:06]   launches=12, kpi=1, skip=2
+[23:50:07]   done
+[23:50:07] Profiling 204_more0q_s_more0q ...
+[23:50:10]   launches=24, kpi=2, skip=4
+[23:50:12]   done
+[23:50:12] Profiling 206_newblk_subroutine ...
+[23:50:14]   launches=12, kpi=1, skip=2
+[23:50:16]   done
+[23:50:16] Profiling 212_nuc1stc_s_nuc1stc ...
+[23:50:18]   launches=12, kpi=1, skip=2
+[23:50:19]   done
+[23:50:19] Profiling 213_nuc1stv_s_nuc1stv ...
+[23:50:21]   launches=12, kpi=1, skip=2
+[23:50:23]   done
+[23:50:23] Profiling 214_nuc2nd_s_nuc2nd ...
+[23:50:25]   launches=12, kpi=1, skip=2
+[23:50:26]   done
+[23:50:26] SKIP 215_opendmp_s_opendmp: no executable
+[23:50:26] Profiling 217_outdmp_s_outdmp ...
+[23:50:28]   launches=12, kpi=1, skip=2
+[23:50:30]   done
+[23:50:30] Profiling 218_outmxn_s_outmxn_sec1 ...
+[23:50:32]   launches=24, kpi=2, skip=4
+[23:50:35]   done
+[23:50:35] Profiling 220_outpbl_s_outpbl ...
+[23:50:36]   launches=13, kpi=1, skip=2
+[23:50:38]   done
+[23:50:38] Profiling 230_pgrad_subroutine ...
+[23:50:45]   launches=76, kpi=6, skip=12
+[23:50:53]   done
+[23:50:54] Profiling 231_pgradiv_s_pgradiv ...
+[23:50:58]   launches=24, kpi=2, skip=4
+[23:51:03]   done
+[23:51:03] Profiling 232_phvbcs_s_phvbcs ...
+[23:51:07]   launches=96, kpi=8, skip=16
+[23:51:12]   done
+[23:51:12] Profiling 233_phvbcuvw_s_phvbcuvw ...
+[23:51:16]   launches=144, kpi=12, skip=24
+[23:51:24]   done
+[23:51:24] Profiling 234_phvs_s_phvs ...
+[23:51:27]   launches=144, kpi=12, skip=24
+[23:51:33]   done
+[23:51:33] Profiling 235_phvuvw_s_phvuvw ...
+[23:51:38]   launches=144, kpi=12, skip=24
+[23:51:45]   done
+[23:51:45] Profiling 236_phy2cnt_s_phy2cnt ...
+[23:51:48]   launches=12, kpi=1, skip=2
+[23:51:52]   done
+[23:51:52] Profiling 237_phycood_s_phycood_sec1 ...
+[23:51:54]   launches=24, kpi=2, skip=4
+[23:51:56]   done
+[23:51:56] Profiling 238_phycood_s_phycood_sec2 ...
+[23:51:58]   launches=24, kpi=2, skip=4
+[23:52:00]   done
+[23:52:00] Profiling 239_phycood_s_phycood_sec3 ...
+[23:52:03]   launches=36, kpi=3, skip=6
+[23:52:05]   done
+[23:52:05] Profiling 240_prodctwg_s_prodctwg ...
+[23:52:07]   launches=12, kpi=1, skip=2
+[23:52:09]   done
+[23:52:09] Profiling 247_radiat_s_radiat ...
+[23:52:13]   launches=48, kpi=4, skip=8
+[23:52:18]   done
+[23:52:18] Profiling 249_rbcq_s_rbcq ...
+[23:52:22]   launches=96, kpi=8, skip=16
+[23:52:27]   done
+[23:52:27] Profiling 251_rbcs_s_rbcs ...
+[23:52:31]   launches=96, kpi=8, skip=16
+[23:52:36]   done
+[23:52:36] Profiling 252_rbcs0_s_rbcs0 ...
+[23:52:40]   launches=96, kpi=8, skip=16
+[23:52:45]   done
+[23:52:45] Profiling 256_rbcw_s_rbcw ...
+[23:52:49]   launches=96, kpi=8, skip=16
+[23:52:54]   done
+[23:52:54] SKIP 257_rdgrp_s_rdgrp: no executable
+[23:52:54] Profiling 264_roughitr_s_roughitr ...
+[23:52:56]   launches=12, kpi=1, skip=2
+[23:52:58]   done
+[23:52:58] Profiling 265_roughnxt_s_roughnxt ...
+[23:53:00]   launches=12, kpi=1, skip=2
+[23:53:01]   done
+[23:53:01] Profiling 266_rstuvwc_s_rstuvwc ...
+[23:53:05]   launches=36, kpi=3, skip=6
+[23:53:10]   done
+[23:53:10] Profiling 278_setbase_s_setbase ...
+[23:53:19]   launches=24, kpi=2, skip=4
+[23:53:32]   done
+[23:53:32] Profiling 280_setblk_s_setblk ...
+[23:53:34]   launches=24, kpi=2, skip=4
+[23:53:36]   done
+[23:53:36] Profiling 281_phvs_s_phvs ...
+[23:53:39]   launches=96, kpi=8, skip=16
+[23:53:43]   done
+[23:53:43] Profiling 281_setcst1d_s_setcst1d_sec1 ...
+[23:53:44]   launches=0, kpi=20, skip=40
+[23:53:44]   Retrying with skip=0 ...
+[23:53:45]   WARN: no ncu data
+[23:53:45] Profiling 282_setcst1d_s_setcst1d_r8_sec2 ...
+[23:53:45]   launches=0, kpi=20, skip=40
+[23:53:45]   Retrying with skip=0 ...
+[23:53:46]   WARN: no ncu data
+[23:53:46] Profiling 283_setcst2d_s_setcst2d_sec1 ...
+[23:53:48]   launches=12, kpi=1, skip=2
+[23:53:50]   done
+[23:53:50] Profiling 285_setcst3d_s_setcst3d_sec1 ...
+[23:53:52]   launches=12, kpi=1, skip=2
+[23:53:54]   done
+[23:53:54] Profiling 286_setcst3d_s_setcst3d_r8_sec2 ...
+[23:53:56]   launches=12, kpi=1, skip=2
+[23:53:57]   done
+[23:53:57] Profiling 287_setcst4d_s_setcst4d ...
+[23:53:58]   launches=0, kpi=20, skip=40
+[23:53:58]   Retrying with skip=0 ...
+[23:53:58]   WARN: no ncu data
+[23:53:59] Profiling 288_setgpv_s_setgpv ...
+[23:54:01]   launches=12, kpi=1, skip=2
+[23:54:03]   done
+[23:54:03] SKIP 289_setname_s_setname: no executable
+[23:54:03] Profiling 291_setsfc_s_setsfc ...
+[23:54:08]   launches=84, kpi=7, skip=14
+[23:54:15]   done
+[23:54:15] Profiling 293_sfcflx_subroutine ...
+[23:54:17]   launches=12, kpi=1, skip=2
+[23:54:19]   done
+[23:54:19] Profiling 294_sheartke_s_sheartke ...
+[23:54:22]   launches=12, kpi=1, skip=2
+[23:54:26]   done
+[23:54:26] Profiling 295_shedding_s_shedding ...
+[23:54:28]   launches=12, kpi=1, skip=2
+[23:54:29]   done
+[23:54:29] Profiling 296_siadjst_s_siadjst ...
+[23:54:35]   launches=12, kpi=1, skip=2
+[23:54:42]   done
+[23:54:42] Profiling 302_smoo4qv_s_smoo4qv ...
+[23:54:51]   launches=84, kpi=7, skip=14
+[23:55:03]   done
+[23:55:03] Profiling 303_smoo4s_subroutine ...
+[23:55:09]   launches=84, kpi=7, skip=14
+[23:55:16]   done
+[23:55:16] Profiling 304_smoo4uvw_s_smoo4uvw ...
+[23:55:27]   launches=252, kpi=21, skip=42
+[23:55:44]   done
+[23:55:44] Profiling 305_sndwave_s_sndwave ...
+[23:55:47]   launches=12, kpi=1, skip=2
+[23:55:50]   done
+[23:55:50] Profiling 308_steppi_s_steppi ...
+[23:55:53]   launches=12, kpi=1, skip=2
+[23:55:56]   done
+[23:55:56] Profiling 310_steps_s_steps ...
+[23:56:00]   launches=24, kpi=2, skip=4
+[23:56:03]   done
+[23:56:03] Profiling 311_steptund_s_steptund_sec1 ...
+[23:56:27]   launches=2268, kpi=189, skip=378
+[23:57:24]   done
+[23:57:24] Profiling 312_steptund_s_steptund_sec2 ...
+[23:57:27]   launches=24, kpi=2, skip=4
+[23:57:30]   done
+[23:57:30] Profiling 313_stepuv_subroutine ...
+[23:57:35]   launches=24, kpi=2, skip=4
+[23:57:41]   done
+[23:57:41] Profiling 315_stepwi_subroutine ...
+[23:57:48]   launches=48, kpi=4, skip=8
+[23:57:56]   done
+[23:57:56] Profiling 318_strsten_s_strsten ...
+[23:58:07]   launches=96, kpi=8, skip=16
+[23:58:23]   done
+[23:58:23] Profiling 320_swadjst_s_swadjst ...
+[23:58:29]   launches=12, kpi=1, skip=2
+[23:58:35]   done
+[23:58:35] Profiling 321_swp2nxt_s_swp2nxt ...
+[23:59:12]   launches=108, kpi=9, skip=18
+[23:59:52]   done
+[23:59:52] Profiling 323_termblk_s_termblk ...
+[23:59:58]   launches=24, kpi=2, skip=4
+[00:00:06]   done
+[00:00:06] Profiling 327_timeflt_s_timeflt ...
+[00:00:43]   launches=168, kpi=14, skip=28
+[00:01:23]   done
+[00:01:23] Profiling 331_totalqwi_s_totalqwi ...
+[00:01:27]   launches=12, kpi=1, skip=2
+[00:01:30]   done
+[00:01:30] Profiling 332_totals_s_totals ...
+[00:01:32]   launches=12, kpi=1, skip=2
+[00:01:35]   done
+[00:01:35] Profiling 333_trilat_s_trilat ...
+[00:01:36]   launches=12, kpi=1, skip=2
+[00:01:38]   done
+[00:01:38] Profiling 336_turbs_subroutine ...
+[00:01:44]   launches=36, kpi=3, skip=6
+[00:01:52]   done
+[00:01:52] Profiling 337_turbtke_s_turbtke ...
+[00:01:59]   launches=36, kpi=3, skip=6
+[00:02:07]   done
+[00:02:07] Profiling 338_turbuvw_subroutine ...
+[00:02:21]   launches=120, kpi=10, skip=20
+[00:02:41]   done
+[00:02:41] Profiling 347_upwnp_s_upwnp ...
+[00:02:44]   launches=48, kpi=4, skip=8
+[00:02:49]   done
+[00:02:49] Profiling 349_upwqp_subroutine ...
+[00:02:54]   launches=36, kpi=3, skip=6
+[00:02:59]   done
+[00:02:59] Profiling 353_var8uvw_s_var8uvw ...
+[00:03:03]   launches=36, kpi=3, skip=6
+[00:03:08]   done
+[00:03:08] Profiling 358_vbcp_s_vbcp ...
+[00:03:10]   launches=24, kpi=2, skip=4
+[00:03:13]   done
+[00:03:13] Profiling 360_vbcs_s_vbcs ...
+[00:03:16]   launches=24, kpi=2, skip=4
+[00:03:19]   done
+[00:03:19] Profiling 361_vbcu_s_vbcu ...
+[00:03:22]   launches=24, kpi=2, skip=4
+[00:03:25]   done
+[00:03:25] Profiling 362_vbcv_s_vbcv ...
+[00:03:28]   launches=24, kpi=2, skip=4
+[00:03:31]   done
+[00:03:31] Profiling 363_vbcw_s_vbcw ...
+[00:03:35]   launches=144, kpi=12, skip=24
+[00:03:42]   done
+[00:03:42] Profiling 364_vbcwc_s_vbcwc ...
+[00:03:45]   launches=24, kpi=2, skip=4
+[00:03:48]   done
+[00:03:48] Profiling 380_vspdmp_s_vspdmp ...
+[00:04:05]   launches=1548, kpi=129, skip=258
+[00:04:44]   done
+[00:04:44] Profiling 382_vspqv_s_vspqv ...
+[00:04:48]   launches=12, kpi=1, skip=2
+[00:04:52]   done
+[00:04:52] Profiling 383_vsps_subroutine ...
+[00:04:56]   launches=12, kpi=1, skip=2
+[00:05:00]   done
+[00:05:00] Profiling 384_vsps0_s_vsps0 ...
+[00:05:01]   launches=0, kpi=20, skip=40
+[00:05:02]   Retrying with skip=0 ...
+[00:05:02]   WARN: no ncu data
+[00:05:02] Profiling 385_vspuvw_subroutine ...
+[00:06:02]   launches=649, kpi=54, skip=108
+[00:06:31]   done
+[00:06:31] Profiling 387_xy2ll_s_xy2ll ...
+[00:06:32]   launches=0, kpi=20, skip=40
+[00:06:33]   Retrying with skip=0 ...
+[00:06:34]   WARN: no ncu data
+[00:06:34] Profiling complete
+
+
+=======================================================================================================================================
+ROOFLINE ANALYSIS SUMMARY
+GPU: GH200 120GB  |  FP32 Peak: 59.3 TFLOPS  |  HBM3 BW: 4000 GB/s  |  Ridge Point: 14.8 FLOP/Byte
+=======================================================================================================================================
+Benchmark / Kernel                                    FLOP   DRAM(MB)   Time(us)   AI(DRAM)      GFLOP/s     BW(GB/s)      Bound
+---------------------------------------------------------------------------------------------------------------------------------------
+adjstni_subroutine / adjstni_268                  2.29e+09     4508.3     1990.6     0.5088       1152.4       2264.8  MEM 56.6%
+adjstq_subroutine / benchmark_adjstq_copy_...     0.00e+00      812.2      699.4     0.0000          0.0       1161.2  MEM 29.0%
+adjstq_subroutine / benchmark_adjstq_copy_...     0.00e+00     1643.9     1865.9     0.0000          0.0        881.0  MEM 22.0%
+adjstq_subroutine / benchmark_adjstq_copy_...     0.00e+00     2475.3     2798.0     0.0000          0.0        884.6  MEM 22.1%
+adjstq_subroutine / adjstq_227                    0.00e+00      796.8      679.2     0.0000          0.0       1173.2  MEM 29.3%
+adjstq_subroutine / adjstq_244                    0.00e+00     1619.0     1145.9     0.0000          0.0       1412.9  MEM 35.3%
+adjstq_subroutine / adjstq_262                    0.00e+00     2441.4     1721.4     0.0000          0.0       1418.2  MEM 35.5%
+adjstuv_subroutine_sec1 / adjstuv_sec1_275        1.05e+07       29.5       14.8     0.3554        705.2       1984.0  MEM 49.6%
+adjstuv_subroutine_sec1 / adjstuv_sec1_319        7.85e+05       30.9       18.0     0.0254         43.6       1719.8  MEM 43.0%
+adjstuv_subroutine_sec1 / adjstuv_sec1_349        7.85e+05       31.1       18.1     0.0253         43.3       1714.5  MEM 42.9%
+adjstuv_subroutine_sec1 / adjstuv_sec1_367        8.97e+05        1.8        4.6     0.4891        196.1        400.8  MEM 10.0%
+adjstuv_subroutine_sec1 / adjstuv_sec1_397        8.97e+05        1.8        4.5     0.4888        197.4        403.9  MEM 10.1%
+adjstuv_subroutine_sec2 / adjstuv_sec2_211        1.25e+06       15.2       10.4     0.0826        121.0       1464.4  MEM 36.6%
+adjstuv_subroutine_sec2 / adjstuv_sec2_224        1.25e+06       15.2       10.7     0.0824        117.7       1428.5  MEM 35.7%
+adjstuv_subroutine_sec2 / adjstuv_sec2_237        1.25e+06        0.9        4.2     1.3466        301.6        223.9   MEM 5.6%
+adjstuv_subroutine_sec2 / adjstuv_sec2_250        1.25e+06        0.9        3.9     1.3441        318.7        237.1   MEM 5.9%
+advbspi_subroutine / advbspi_245                  6.02e+08     2014.7      899.4     0.2989        669.5       2240.2  MEM 56.0%
+advbspt_subroutine / advbspt_213                  5.06e+08     1633.6      899.8     0.3096        562.1       1815.6  MEM 45.4%
+advbspt_subroutine / advbspt_226                  2.01e+08     1199.1      830.1     0.1674        241.8       1444.5  MEM 36.1%
+advp_subroutine / advp_404                        2.05e+08     1252.9      865.2     0.1637        237.0       1448.1  MEM 36.2%
+advp_subroutine / advp_415                        1.03e+08     1228.1      819.5     0.0835        125.1       1498.7  MEM 37.5%
+advp_subroutine / advp_473                        1.03e+08     1236.2      826.5     0.0835        124.9       1495.7  MEM 37.4%
+advp_subroutine / advp_486                        3.01e+08     1204.4      809.2     0.2502        372.4       1488.4  MEM 37.2%
+advp_subroutine / advp_497                        3.01e+08     1208.1      844.6     0.2495        356.9       1430.4  MEM 35.8%
+advp_subroutine / advp_508                        3.03e+08     1220.0      906.8     0.2487        334.7       1345.5  MEM 33.6%
+advp_subroutine / advp_548                        4.01e+08     2021.3     1092.3     0.1986        367.5       1850.5  MEM 46.3%
+advp_subroutine / advp_608                        4.01e+08     1202.3      851.5     0.3331        470.4       1411.9  MEM 35.3%
+advp_subroutine / advp_620                        4.01e+08     1208.9      958.0     0.3313        418.1       1261.9  MEM 31.5%
+advp_subroutine / advp_633                        5.00e+08     1602.4      911.1     0.3117        548.3       1758.8  MEM 44.0%
+advp_subroutine / advp_659                        4.00e+08     1246.9      979.9     0.3205        407.8       1272.5  MEM 31.8%
+advp_subroutine / advp_671                        2.95e+08     1182.4      870.4     0.2494        338.8       1358.4  MEM 34.0%
+advp_subroutine / advp_682                        1.00e+08     1193.8      749.8     0.0841        133.8       1592.1  MEM 39.8%
+advs_subroutine / advs_249                        3.01e+08     1204.6      727.1     0.2502        414.5       1656.7  MEM 41.4%
+advs_subroutine / advs_260                        3.01e+08     1208.2      750.2     0.2495        401.7       1610.4  MEM 40.3%
+advs_subroutine / advs_271                        3.03e+08     1219.2      850.1     0.2489        357.0       1434.3  MEM 35.9%
+advs_subroutine / advs_310                        4.01e+08     2022.2      870.8     0.1985        461.0       2322.2  MEM 58.1%
+advs_subroutine / advs_326                        4.01e+08     1202.4      742.6     0.3331        539.3       1619.1  MEM 40.5%
+advs_subroutine / advs_338                        4.01e+08     1209.1      807.9     0.3313        495.7       1496.6  MEM 37.4%
+advs_subroutine / advs_350                        5.00e+08     1601.5      811.0     0.3119        615.9       1974.7  MEM 49.4%
+advs_subroutine / advs_376                        4.00e+08     1225.3      887.6     0.3262        450.2       1380.3  MEM 34.5%
+advs_subroutine / advs_388                        2.95e+08     1181.7      851.5     0.2496        346.4       1387.9  MEM 34.7%
+advs_subroutine / advs_399                        1.00e+08     1193.6      707.9     0.0841        141.8       1686.1  MEM 42.2%
+advuvw_subroutine / advuvw_341                    4.02e+08     1204.4      729.0     0.3340        551.9       1652.2  MEM 41.3%
+advuvw_subroutine / advuvw_352                    4.02e+08     1207.2      757.6     0.3332        531.0       1593.5  MEM 39.8%
+advuvw_subroutine / advuvw_363                    4.05e+08     1219.4      849.9     0.3322        476.6       1434.8  MEM 35.9%
+advuvw_subroutine / advuvw_399                    4.02e+08     2020.4      876.5     0.1989        458.5       2305.1  MEM 57.6%
+advuvw_subroutine / advuvw_415                    4.01e+08     1201.8      741.1     0.3336        541.0       1621.7  MEM 40.5%
+advuvw_subroutine / advuvw_426                    6.01e+08     1208.8      824.9     0.4976        729.1       1465.3  MEM 36.6%
+advuvw_subroutine / advuvw_438                    5.00e+08     1601.7      813.7     0.3122        614.6       1968.5  MEM 49.2%
+advuvw_subroutine / advuvw_462                    6.00e+08     1228.2      897.7     0.4886        668.5       1368.2  MEM 34.2%
+advuvw_subroutine / advuvw_474                    2.95e+08     1181.6      851.6     0.2499        346.7       1387.5  MEM 34.7%
+advuvw_subroutine / advuvw_485                    2.01e+08     1603.8      738.3     0.1253        272.1       2172.3  MEM 54.3%
+advuvw_subroutine / advuvw_499                    4.02e+08     1207.1      756.8     0.3333        531.6       1595.1  MEM 39.9%
+advuvw_subroutine / advuvw_510                    4.02e+08     1210.4      773.9     0.3324        519.9       1564.1  MEM 39.1%
+advuvw_subroutine / advuvw_521                    4.05e+08     1222.3      812.4     0.3314        498.6       1504.5  MEM 37.6%
+advuvw_subroutine / advuvw_557                    4.02e+08     2023.5      871.4     0.1986        461.2       2322.1  MEM 58.1%
+advuvw_subroutine / advuvw_573                    6.01e+08     1204.9      784.0     0.4992        767.1       1536.8  MEM 38.4%
+advuvw_subroutine / advuvw_585                    4.01e+08     1210.5      805.1     0.3312        498.1       1503.6  MEM 37.6%
+advuvw_subroutine / advuvw_596                    5.00e+08     1603.5      817.6     0.3119        611.6       1961.2  MEM 49.0%
+advuvw_subroutine / advuvw_620                    6.00e+08     1224.5      965.5     0.4901        621.5       1268.2  MEM 31.7%
+advuvw_subroutine / advuvw_632                    2.95e+08     1183.1      851.6     0.2496        346.7       1389.3  MEM 34.7%
+advuvw_subroutine / advuvw_643                    2.01e+08     1605.0      736.8     0.1252        272.7       2178.2  MEM 54.5%
+advuvw_subroutine / advuvw_657                    4.05e+08     1218.9      855.7     0.3323        473.4       1424.4  MEM 35.6%
+advuvw_subroutine / advuvw_668                    4.05e+08     1221.2      818.4     0.3317        494.9       1492.2  MEM 37.3%
+advuvw_subroutine / advuvw_679                    4.08e+08     1233.4      870.1     0.3307        468.7       1417.5  MEM 35.4%
+advuvw_subroutine / advuvw_715                    4.05e+08     2037.9      882.4     0.1985        458.6       2309.6  MEM 57.7%
+advuvw_subroutine / advuvw_731                    6.06e+08     1216.8      874.0     0.4977        692.9       1392.2  MEM 34.8%
+advuvw_subroutine / advuvw_743                    6.06e+08     1222.4      896.2     0.4954        675.7       1363.9  MEM 34.1%
+advuvw_subroutine / advuvw_755                    5.04e+08     1615.4      820.4     0.3117        613.7       1969.0  MEM 49.2%
+advuvw_subroutine / advuvw_779                    4.03e+08     1249.3      891.4     0.3224        451.9       1401.6  MEM 35.0%
+advuvw_subroutine / advuvw_790                    2.97e+08     1191.7      857.3     0.2495        346.8       1390.0  MEM 34.7%
+advuvw_subroutine / advuvw_801                    2.02e+08     1616.6      742.0     0.1251        272.7       2178.7  MEM 54.5%
+aggregat_s_aggregat / aggregat_272                0.00e+00        6.5        9.4     0.0000          0.0        686.5  MEM 17.2%
+allocbuf_s_allocbuf / allocbuf_144                0.00e+00        0.0        2.3     0.0000          0.0          1.7   MEM 0.0%
+baserho_s_baserho / baserho_195                   1.03e+08     1228.2      731.5     0.0838        140.6       1679.0  MEM 42.0%
+bbcw_s_bbcw / bbcw_248                            1.61e+06        9.7        8.1     0.1662        199.4       1199.8  MEM 30.0%
+bbcw_s_bbcw / bbcw_259                            1.61e+06        9.7        8.2     0.1660        197.1       1187.1  MEM 29.7%
+bbcw_s_bbcw / bbcw_283                            5.62e+06       16.2        9.1     0.3478        616.2       1771.6  MEM 44.3%
+bc8u_s_bc8u / bc8u_212                            0.00e+00        7.5        6.7     0.0000          0.0       1122.1  MEM 28.1%
+bc8u_s_bc8u / bc8u_241                            0.00e+00        7.5        6.8     0.0000          0.0       1111.4  MEM 27.8%
+bc8v_s_bc8v / bc8v_212                            0.00e+00        0.5        3.6     0.0000          0.0        133.0   MEM 3.3%
+bc8v_s_bc8v / bc8v_241                            0.00e+00        0.5        3.6     0.0000          0.0        133.3   MEM 3.3%
+bc8w_s_bc8w / bc8w_193                            0.00e+00        3.3        7.3     0.0000          0.0        445.6  MEM 11.1%
+bc8w_s_bc8w / bc8w_218                            0.00e+00        3.3        7.7     0.0000          0.0        423.4  MEM 10.6%
+bcbase_s_bcbase / bcbase_250                      0.00e+00        6.5       10.5     0.0000          0.0        620.5  MEM 15.5%
+bcbase_s_bcbase / bcbase_260                      0.00e+00        6.5        9.3     0.0000          0.0        696.5  MEM 17.4%
+bcbase_s_bcbase / bcbase_272                      0.00e+00       13.0       13.3     0.0000          0.0        976.4  MEM 24.4%
+bcbase_s_bcbase / bcbase_286                      0.00e+00        6.5        9.3     0.0000          0.0        699.6  MEM 17.5%
+bcbase_s_bcbase / bcbase_298                      2.27e+07       34.1       14.8     0.6656       1527.5       2294.9  MEM 57.4%
+bcbase_s_bcbase / bcbase_312                      8.10e+07       13.2       13.7     6.1504       5914.1        961.6  MEM 24.0%
+bcten_s_bcten / bcten_191                         8.12e+05        3.3        7.3     0.2497        111.3        445.6  MEM 11.1%
+bcten_s_bcten / bcten_216                         8.12e+05        3.3        7.5     0.2497        108.9        436.1  MEM 10.9%
+bruntv_s_bruntv / bruntv_491                      1.02e+08     1226.3      811.7     0.0835        126.2       1510.8  MEM 37.8%
+bruntv_s_bruntv / bruntv_525                      1.43e+09     1226.9      866.7     1.1686       1654.3       1415.6  MEM 35.4%
+bulksfc_s_bulksfc / bulksfc_164                   2.25e+08       16.6       19.9    13.5383      11290.8        834.0  MEM 20.8%
+buoytke_s_buoytke / buoytke_223                   3.03e+08     1629.5      880.5     0.1862        344.7       1850.7  MEM 46.3%
+buoytke_s_buoytke / buoytke_237                   2.01e+08     1198.9      833.6     0.1674        240.8       1438.2  MEM 36.0%
+buoywb_s_buoywb / buoywb_219                      1.00e+08     1204.8      716.7     0.0833        140.0       1680.9  MEM 42.0%
+buoywb_s_buoywb / buoywb_266                      3.72e+09     2827.6     1294.7     1.3159       2874.0       2184.0  MEM 54.6%
+buoywb_s_buoywb / buoywb_298                      1.99e+08     1188.9      825.2     0.1675        241.3       1440.7  MEM 36.0%
+buoywsi_s_buoywsi / buoywsi_246                   1.51e+09     2423.1      855.2     0.6212       1760.1       2833.3  MEM 70.8%
+buoywsi_s_buoywsi / buoywsi_278                   1.99e+08     1188.8      823.9     0.1675        241.6       1442.8  MEM 36.1%
+chkitr_s_chkitr / chkitr_187                      0.00e+00        3.2       11.5     0.0000          0.0        282.4   MEM 7.1%
+chkmoist_s_chkmoist / benchmark_gpu_chkmoi...     0.00e+00      417.1      537.7     0.0000          0.0        775.6  MEM 19.4%
+chkrain_s_chkrain / chkrain_208                   0.00e+00       16.2       16.5     0.0000          0.0        982.4  MEM 24.6%
+chksat_s_chksat / chksat_236                      7.98e+09     2485.9     1410.8     3.2118       5659.4       1762.1  MEM 44.1%
+cloudcov_s_cloudcov / cloudcov_306                2.05e+08      814.8      816.4     0.2514        250.9        998.0  MEM 24.9%
+cloudcov_s_cloudcov / cloudcov_319                3.06e+07        9.8       10.9     3.1417       2808.2        893.9  MEM 22.3%
+cloudcov_s_cloudcov / cloudcov_340                0.00e+00        6.5       11.4     0.0000          0.0        568.4  MEM 14.2%
+cloudcov_s_cloudcov / cloudcov_429                4.68e+07       16.4       18.8     2.8564       2490.0        871.7  MEM 21.8%
+collect_s_collect / 320                           5.64e+06       46.4       70.5     0.1217         80.1        657.8  MEM 16.4%
+convers_s_convers / 242                           0.00e+00       13.2       27.7     0.0000          0.0        475.0  MEM 11.9%
+copy1d_s_copy1d / copy1d_130                      0.00e+00        0.0        2.5     0.0000          0.0          1.4   MEM 0.0%
+copy3d_s_copy3d / copy3d_184                      0.00e+00      812.7      720.0     0.0000          0.0       1128.8  MEM 28.2%
+copy4d_s_copy4d / copy4d_156                      0.00e+00     2475.5     2854.3     0.0000          0.0        867.3  MEM 21.7%
+coriuv_subroutine / coriuv_237                    3.02e+08     1234.6      877.0     0.2444        344.1       1407.8  MEM 35.2%
+coriuv_subroutine / coriuv_249                    2.01e+08     1193.3      799.5     0.1684        251.3       1492.5  MEM 37.3%
+coriuv_subroutine / coriuv_262                    4.02e+08     1235.1      829.0     0.3257        485.3       1489.9  MEM 37.2%
+coriuv_subroutine / coriuv_274                    2.01e+08     1196.4      740.8     0.1679        271.2       1615.1  MEM 40.4%
+curveuvw_s_curveuvw / curveuvw_458                2.05e+08     1636.7      953.1     0.1251        214.9       1717.2  MEM 42.9%
+curveuvw_s_curveuvw / curveuvw_471                2.02e+08     1211.3      900.0     0.1664        224.0       1346.0  MEM 33.6%
+curveuvw_s_curveuvw / curveuvw_483                1.01e+08     1205.0      809.8     0.0835        124.2       1488.0  MEM 37.2%
+curveuvw_s_curveuvw / curveuvw_494                1.01e+08     1208.0      804.3     0.0833        125.0       1501.9  MEM 37.5%
+curveuvw_s_curveuvw / curveuvw_506                3.01e+08     1193.8      755.5     0.2525        398.9       1580.1  MEM 39.5%
+curveuvw_s_curveuvw / curveuvw_517                3.01e+08     1197.2      785.6     0.2518        383.6       1523.8  MEM 38.1%
+curveuvw_s_curveuvw / curveuvw_529                4.08e+08     1638.0      891.7     0.2490        457.3       1836.9  MEM 45.9%
+curveuvw_s_curveuvw / curveuvw_541                3.03e+08     1208.8      791.2     0.2511        383.5       1527.7  MEM 38.2%
+curveuvw_s_curveuvw / curveuvw_556                2.02e+08     1230.3      859.4     0.1639        234.6       1431.6  MEM 35.8%
+curveuvw_s_curveuvw / curveuvw_593                1.01e+08     1196.3      754.0     0.0841        133.4       1586.6  MEM 39.7%
+curveuvw_s_curveuvw / curveuvw_604                1.01e+08     1193.1      752.5     0.0843        133.7       1585.4  MEM 39.6%
+curveuvw_s_curveuvw / curveuvw_639                2.01e+08     1193.6      754.8     0.1683        266.2       1581.2  MEM 39.5%
+curveuvw_s_curveuvw / curveuvw_650                2.01e+08     1197.3      800.5     0.1678        251.0       1495.7  MEM 37.4%
+defomssq_s_defomssq / defomssq_206                2.25e+09     2917.9     1127.6     0.7722       1998.0       2587.6  MEM 64.7%
+depsit_s_depsit / depsit_290                      0.00e+00        3.3       10.5     0.0000          0.0        313.2   MEM 7.8%
+diagni_s_diagni / diagni_230                      2.05e+09     2875.5     1765.1     0.7123       1160.5       1629.1  MEM 40.7%
+diagnw_s_diagnw / diagnw_209                      1.36e+09     1635.5     1292.6     0.8319       1052.6       1265.3  MEM 31.6%
+disptke_s_disptke / disptke_263                   5.88e+09     2463.4     1388.4     2.3880       4237.0       1774.3  MEM 44.4%
+distrpg_s_distrpg / distrpg_219                   0.00e+00        3.2        7.5     0.0000          0.0        431.1  MEM 10.8%
+diver2d_s_diver2d / diver2d_256                   1.03e+08     1226.8      619.0     0.0836        165.6       1982.0  MEM 49.6%
+diver2d_s_diver2d / diver2d_263                   2.05e+08     1235.9      631.4     0.1659        324.8       1957.4  MEM 48.9%
+diver2d_s_diver2d / diver2d_342                   6.14e+08     1255.7      801.6     0.4894        766.6       1566.5  MEM 39.2%
+diver3d_s_diver3d / diver3d_290                   1.03e+08     1225.5      731.7     0.0837        140.1       1674.8  MEM 41.9%
+diver3d_s_diver3d / diver3d_303                   2.05e+08     1252.3      844.7     0.1637        242.8       1482.6  MEM 37.1%
+diver3d_s_diver3d / diver3d_376                   1.03e+08     1236.4      736.0     0.0835        140.2       1679.8  MEM 42.0%
+diver3d_s_diver3d / diver3d_413                   9.22e+08     1687.7      899.1     0.5461       1025.2       1877.1  MEM 46.9%
+diverpih_s_diverpih / diverpih_253                1.00e+08     1193.6      706.1     0.0841        142.1       1690.4  MEM 42.3%
+diverpiv_s_diverpiv / diverpiv_194                3.01e+08     1209.7      841.2     0.2489        357.9       1438.0  MEM 35.9%
+phvbcs_s_phvbcs / phvbcs_334                      0.00e+00        0.0        3.3     0.0000          0.0          1.2   MEM 0.0%
+phvbcs_s_phvbcs / phvbcs_346                      0.00e+00        0.5        4.0     0.0000          0.0        128.9   MEM 3.2%
+phvbcs_s_phvbcs / phvbcs_440                      0.00e+00        0.0        3.2     0.0000          0.0          1.3   MEM 0.0%
+phvbcs_s_phvbcs / phvbcs_452                      0.00e+00        0.5        4.1     0.0000          0.0        125.6   MEM 3.1%
+phvbcs_s_phvbcs / phvbcs_546                      0.00e+00        0.0        3.1     0.0000          0.0          1.3   MEM 0.0%
+phvbcs_s_phvbcs / phvbcs_568                      0.00e+00        0.5        3.5     0.0000          0.0        128.9   MEM 3.2%
+phvbcs_s_phvbcs / phvbcs_652                      0.00e+00        0.0        3.1     0.0000          0.0          1.2   MEM 0.0%
+phvbcs_s_phvbcs / phvbcs_674                      0.00e+00        0.5        3.4     0.0000          0.0        134.9   MEM 3.4%
+eddydif_s_eddydif / eddydif_304                   1.02e+08     1635.2      760.5     0.0626        134.7       2150.1  MEM 53.8%
+eddydif_s_eddydif / eddydif_345                   2.03e+08      809.1      805.3     0.2511        252.3       1004.8  MEM 25.1%
+eddydif_s_eddydif / eddydif_356                   2.05e+08     1215.7      722.7     0.1685        283.4       1682.0  MEM 42.1%
+eddyvis_subroutine / eddyvis_651                  9.06e+09     4608.0     2330.2     1.9656       3887.2       1977.5  MEM 49.4%
+eddyvisj_s_eddyvisj / eddyvisj_238                8.19e+08     2056.2     1620.6     0.3985        505.6       1268.8  MEM 31.7%
+exbcpt_s_exbcpt / exbcpt_258                      5.50e+03        0.1        4.2     0.0700          1.3         18.9   MEM 0.5%
+exbcpt_s_exbcpt / exbcpt_274                      5.50e+03        0.1        4.2     0.0709          1.3         18.6   MEM 0.5%
+exbcpt_s_exbcpt / exbcpt_329                      5.50e+03        0.1        4.3     0.0704          1.3         18.1   MEM 0.5%
+exbcpt_s_exbcpt / exbcpt_345                      5.50e+03        0.1        4.2     0.0704          1.3         18.6   MEM 0.5%
+exbcpt_s_exbcpt / exbcpt_400                      2.91e+06       36.1       20.4     0.0807        142.6       1766.9  MEM 44.2%
+exbcpt_s_exbcpt / exbcpt_456                      2.91e+06       36.0       20.5     0.0808        142.2       1759.5  MEM 44.0%
+exbcpt_s_exbcpt / exbcpt_511                      2.91e+06        3.2        4.9     0.9163        590.9        644.9  MEM 16.1%
+exbcpt_s_exbcpt / exbcpt_565                      2.91e+06        3.2        4.9     0.9163        598.7        653.4  MEM 16.3%
+exbcq_s_exbcq / exbcq_257                         5.50e+03        0.1        4.1     0.0709          1.3         18.8   MEM 0.5%
+exbcq_s_exbcq / exbcq_273                         5.50e+03        0.1        4.1     0.0691          1.4         19.6   MEM 0.5%
+exbcq_s_exbcq / exbcq_328                         5.50e+03        0.1        5.3     0.0682          1.0         15.1   MEM 0.4%
+exbcq_s_exbcq / exbcq_344                         5.50e+03        0.1        5.2     0.0678          1.1         15.7   MEM 0.4%
+exbcq_s_exbcq / exbcq_400                         2.91e+06       36.1       20.0     0.0808        145.8       1806.0  MEM 45.1%
+exbcq_s_exbcq / exbcq_460                         2.91e+06       36.2       20.1     0.0805        144.7       1796.6  MEM 44.9%
+exbcq_s_exbcq / exbcq_519                         2.91e+06        3.2        4.8     0.9170        602.6        657.2  MEM 16.4%
+exbcq_s_exbcq / exbcq_577                         2.91e+06        3.2        5.0     0.9161        579.6        632.7  MEM 15.8%
+exbcss_s_exbcss / exbcss_161                      2.62e+03        0.1        3.6     0.0368          0.7         19.6   MEM 0.5%
+exbcss_s_exbcss / exbcss_175                      2.62e+03        0.1        3.6     0.0376          0.7         19.3   MEM 0.5%
+exbcss_s_exbcss / exbcss_191                      2.62e+03        0.1        3.8     0.0368          0.7         18.8   MEM 0.5%
+exbcss_s_exbcss / exbcss_205                      2.62e+03        0.1        3.6     0.0372          0.7         19.7   MEM 0.5%
+exbcss_s_exbcss / exbcss_228                      1.57e+06       25.3       14.9     0.0619        105.4       1703.2  MEM 42.6%
+exbcss_s_exbcss / exbcss_259                      1.57e+06       25.2       14.6     0.0622        107.2       1724.6  MEM 43.1%
+exbcss_s_exbcss / exbcss_289                      1.57e+06        3.2        4.9     0.4944        320.3        647.8  MEM 16.2%
+exbcss_s_exbcss / exbcss_318                      1.57e+06        3.2        4.6     0.4940        337.9        684.1  MEM 17.1%
+exbcu_subroutine / exbcu_149                      1.57e+06       25.3       15.2     0.0621        103.6       1668.0  MEM 41.7%
+exbcu_subroutine / exbcu_180                      1.57e+06       25.3       14.9     0.0622        105.2       1691.7  MEM 42.3%
+exbcu_subroutine / exbcu_210                      1.57e+06        3.2        4.6     0.4946        338.3        684.0  MEM 17.1%
+exbcu_subroutine / exbcu_239                      1.57e+06        3.2        4.7     0.4945        331.4        670.3  MEM 16.8%
+exbcv_s_exbcv / exbcv_151                         1.57e+06        3.2        7.7     0.4933        203.8        413.1  MEM 10.3%
+exbcv_s_exbcv / exbcv_180                         1.57e+06        3.2        4.5     0.4951        345.8        698.6  MEM 17.5%
+exbcv_s_exbcv / exbcv_210                         1.57e+06       25.3       14.9     0.0619        105.0       1695.6  MEM 42.4%
+exbcv_s_exbcv / exbcv_241                         1.57e+06       25.4       15.0     0.0617        104.6       1694.6  MEM 42.4%
+fallblk_subroutine / fallblk_284                  5.74e+09     2470.2     1904.5     2.3217       3011.3       1297.0  MEM 32.4%
+forcept_s_forcept / forcept_125                   1.02e+08     1227.0      725.9     0.0835        141.1       1690.5  MEM 42.3%
+forcesfc_s_forcesfc / forcesfc_331                1.37e+07       16.2        9.1     0.8464       1513.8       1788.5  MEM 44.7%
+forcesfc_s_forcesfc / forcesfc_359                1.61e+06        9.7        8.3     0.1660        194.6       1172.0  MEM 29.3%
+forcesfc_s_forcesfc / forcesfc_372                1.93e+07       19.4       11.3     0.9952       1706.6       1714.8  MEM 42.9%
+forcesfc_s_forcesfc / forcesfc_387                1.93e+07       19.4       12.9     0.9953       1499.1       1506.2  MEM 37.7%
+freezing_s_freezing / freezing_166                0.00e+00        3.2        8.6     0.0000          0.0        375.2   MEM 9.4%
+gaussel_subroutine / gaussel_269                  5.62e+06        9.7       11.9     0.5798        470.8        812.0  MEM 20.3%
+gaussel_subroutine / gaussel_287                  8.83e+06       19.4       12.9     0.4555        684.8       1503.2  MEM 37.6%
+gaussel_subroutine / gaussel_304                  8.03e+06       16.2       11.1     0.4969        725.1       1459.2  MEM 36.5%
+gaussel_subroutine / gaussel_321                  1.61e+06        9.7        7.9     0.1657        203.1       1226.2  MEM 30.7%
+getarea_s_getarea / getarea_238                   2.41e+06        3.2        9.3     0.7442        258.2        347.0   MEM 8.7%
+getarea_s_getarea / getarea_277                   3.36e+05        7.2        7.1     0.0467         47.3       1012.6  MEM 25.3%
+getarea_s_getarea / getarea_304                   3.36e+05        7.2        7.0     0.0467         47.7       1022.0  MEM 25.5%
+getarea_s_getarea / getarea_320                   3.36e+05        0.5        4.0     0.7249         84.7        116.8   MEM 2.9%
+getarea_s_getarea / getarea_335                   3.36e+05        0.5        4.0     0.7261         83.3        114.7   MEM 2.9%
+getexner_s_getexner / getexner_123                3.89e+09     1635.5      888.2     2.3795       4381.8       1841.5  MEM 46.0%
+getrich_s_getrich / getrich_128                   2.26e+07       22.7       12.1     0.9953       1861.8       1870.6  MEM 46.8%
+gettrn_s_gettrn_sec1 / 149                        0.00e+00        0.0        6.6     0.0000          0.0          0.6   MEM 0.0%
+gettrn_s_gettrn_sec2 / benchmark_79               0.00e+00        3.2        9.3     0.0000          0.0        350.1   MEM 8.8%
+getvdens_s_getvdens / getvdens_105                5.12e+08      808.4      727.3     0.6334        704.1       1111.6  MEM 27.8%
+getxy_s_getxy / getxy_96                          1.62e+06        0.0        6.8   373.0703        239.3          0.6  COMP 0.4%
+getz_s_getz / getz_149                            2.56e+02        0.0        2.2     0.0833          0.1          1.4   MEM 0.0%
+getzlow_s_getzlow / getzlow_108                   1.61e+06        6.5        7.8     0.2490        207.4        833.0  MEM 20.8%
+heatsfc_s_heatsfc / heatsfc_177                   4.44e+07       23.0       16.0     1.9290       2772.0       1437.0  MEM 35.9%
+inisfc_subroutine / benchmark_83                  0.00e+00        3.3        7.5     0.0000          0.0        436.4  MEM 10.9%
+initund_s_initund / initund_264                   0.00e+00        3.2        8.2     0.0000          0.0        395.9   MEM 9.9%
+initund_s_initund / initund_285                   7.44e+02        0.0        2.4     0.2236          0.3          1.4   MEM 0.0%
+initund_s_initund / initund_295                   0.00e+00        6.5        8.7     0.0000          0.0        741.5  MEM 18.5%
+initund_s_initund / initund_314                   0.00e+00        3.2        7.3     0.0000          0.0        442.2  MEM 11.1%
+jacobian_s_jacobian / jacobian_179                1.35e+09      816.3      936.4     1.6492       1437.7        871.7  MEM 21.8%
+jacobian_s_jacobian / jacobian_193                1.35e+09      818.0     1043.5     1.6460       1290.3        783.9  MEM 19.6%
+jacobian_s_jacobian / jacobian_207                1.23e+09      815.7      880.2     1.5133       1402.5        926.8  MEM 23.2%
+kh8uv_s_kh8uv / kh8uv_233                         1.02e+08      808.9      691.6     0.1265        147.9       1169.6  MEM 29.2%
+kh8uv_s_kh8uv / kh8uv_247                         1.02e+08      800.5      782.9     0.1279        130.8       1022.5  MEM 25.6%
+kh8uv_s_kh8uv / kh8uv_261                         1.02e+08      809.6      725.0     0.1264        141.1       1116.7  MEM 27.9%
+mapfct_s_mapfct / 231                             2.02e+07        3.2        8.5     6.2314       2388.0        383.2   MEM 9.6%
+mapfct_s_mapfct / 263                             1.62e+06        3.2        7.2     0.4983        224.8        451.1  MEM 11.3%
+mapfct_s_mapfct / 274                             1.62e+06        3.2        7.6     0.4982        211.6        424.7  MEM 10.6%
+mapfct_s_mapfct / 285                             1.05e+07        3.3        8.8     3.2350       1201.0        371.2   MEM 9.3%
+mapfct_s_mapfct / 299                             4.85e+06        3.2        7.9     1.4942        616.7        412.7  MEM 10.3%
+mapfct_s_mapfct / 311                             4.85e+06        3.2        9.2     1.4955        526.8        352.2   MEM 8.8%
+mapfct_s_mapfct / 323                             1.62e+06        3.2        7.6     0.4982        212.5        426.4  MEM 10.7%
+mapfct_s_mapfct / 334                             8.08e+05        3.2        8.2     0.2488         98.7        396.6   MEM 9.9%
+mapfct_s_mapfct / 345                             1.62e+06        3.2        7.7     0.4982        209.8        421.1  MEM 10.5%
+mapfct_s_mapfct / 356                             8.08e+05        3.2        7.7     0.2491        104.8        420.7  MEM 10.5%
+melting_s_melting / melting_281                   6.45e+06       34.4       16.4     0.1877        393.8       2098.2  MEM 52.5%
+more0q_s_more0q / more0q_420                      0.00e+00       13.0       14.0     0.0000          0.0        924.1  MEM 23.1%
+more0q_s_more0q / more0q_442                      0.00e+00       16.2       50.9     0.0000          0.0        318.2   MEM 8.0%
+newblk_subroutine / newblk_349                    6.13e+07      192.5      211.6     0.3184        289.6        909.6  MEM 22.7%
+nuc1stc_s_nuc1stc / 183                           0.00e+00        3.2        9.4     0.0000          0.0        346.0   MEM 8.6%
+nuc1stv_s_nuc1stv / 159                           0.00e+00        3.2        8.5     0.0000          0.0        379.7   MEM 9.5%
+nuc2nd_s_nuc2nd / 164                             0.00e+00        6.5       10.8     0.0000          0.0        599.1  MEM 15.0%
+outdmp_s_outdmp / benchmark_gpu_outdmp_104        0.00e+00        0.0      489.6     0.0000          0.0          0.0   MEM 0.0%
+outmxn_s_outmxn_sec1 / outmxn_254                 1.02e+08      414.7      678.3     0.2469        151.0        611.4  MEM 15.3%
+outpbl_s_outpbl / benchmark_gpu_outpbl_113        8.06e+06        3.2        8.9     2.4868        909.8        365.8   MEM 9.1%
+pgrad_subroutine / pgrad_368                      1.33e+09     1640.5      876.6     0.8116       1518.8       1871.5  MEM 46.8%
+pgrad_subroutine / pgrad_383                      1.01e+08     1196.1      715.6     0.0843        140.8       1671.3  MEM 41.8%
+pgrad_subroutine / pgrad_418                      3.01e+08      806.4      793.9     0.3737        379.6       1015.8  MEM 25.4%
+pgrad_subroutine / pgrad_429                      2.01e+08      797.9      722.0     0.2518        278.3       1105.2  MEM 27.6%
+pgrad_subroutine / pgrad_342                      3.07e+08     1640.4      755.6     0.1873        406.6       2170.8  MEM 54.3%
+pgrad_subroutine / pgrad_355                      2.02e+08      807.1      810.0     0.2507        249.8        996.4  MEM 24.9%
+pgradiv_s_pgradiv / pgradiv_252                   1.00e+09     1205.5      751.7     0.8324       1334.9       1603.6  MEM 40.1%
+pgradiv_s_pgradiv / pgradiv_266                   3.98e+08     1595.2      858.4     0.2496        463.9       1858.3  MEM 46.5%
+phvbcs_s_phvbcs / phvbcs_364                      0.00e+00        0.0        3.1     0.0000          0.0          1.3   MEM 0.0%
+phvbcs_s_phvbcs / phvbcs_375                      0.00e+00        0.5        4.1     0.0000          0.0        125.9   MEM 3.1%
+phvbcs_s_phvbcs / phvbcs_433                      0.00e+00        0.0        3.0     0.0000          0.0          1.4   MEM 0.0%
+phvbcs_s_phvbcs / phvbcs_444                      0.00e+00        0.5        4.0     0.0000          0.0        128.1   MEM 3.2%
+phvbcs_s_phvbcs / phvbcs_502                      0.00e+00        0.0        3.1     0.0000          0.0          1.3   MEM 0.0%
+phvbcs_s_phvbcs / phvbcs_513                      0.00e+00        0.5        3.6     0.0000          0.0        127.6   MEM 3.2%
+phvbcs_s_phvbcs / phvbcs_571                      0.00e+00        0.0        3.1     0.0000          0.0          1.2   MEM 0.0%
+phvbcs_s_phvbcs / phvbcs_582                      0.00e+00        0.5        3.7     0.0000          0.0        123.2   MEM 3.1%
+phvbcuvw_s_phvbcuvw / phvbcuvw_441                0.00e+00        0.0        3.5     0.0000          0.0          1.4   MEM 0.0%
+phvbcuvw_s_phvbcuvw / phvbcuvw_453                0.00e+00        0.0        3.0     0.0000          0.0          1.4   MEM 0.0%
+phvbcuvw_s_phvbcuvw / phvbcuvw_465                0.00e+00        0.0        3.6     0.0000          0.0          1.3   MEM 0.0%
+phvbcuvw_s_phvbcuvw / phvbcuvw_477                0.00e+00        0.0        3.1     0.0000          0.0          1.4   MEM 0.0%
+phvbcuvw_s_phvbcuvw / phvbcuvw_489                0.00e+00        0.0        3.0     0.0000          0.0          1.3   MEM 0.0%
+phvbcuvw_s_phvbcuvw / phvbcuvw_500                0.00e+00        0.0        3.0     0.0000          0.0          1.4   MEM 0.0%
+phvbcuvw_s_phvbcuvw / phvbcuvw_511                0.00e+00        0.0        3.2     0.0000          0.0          1.3   MEM 0.0%
+phvbcuvw_s_phvbcuvw / phvbcuvw_522                0.00e+00        0.0        3.2     0.0000          0.0          1.2   MEM 0.0%
+phvbcuvw_s_phvbcuvw / phvbcuvw_534                0.00e+00        0.0        3.5     0.0000          0.0          1.3   MEM 0.0%
+phvbcuvw_s_phvbcuvw / phvbcuvw_545                0.00e+00        0.0        3.1     0.0000          0.0          1.3   MEM 0.0%
+phvbcuvw_s_phvbcuvw / phvbcuvw_556                0.00e+00        0.0        3.3     0.0000          0.0          1.2   MEM 0.0%
+phvbcuvw_s_phvbcuvw / phvbcuvw_567                0.00e+00        0.0        3.1     0.0000          0.0          1.2   MEM 0.0%
+phvs_s_phvs / phvs_299                            0.00e+00        0.0        3.1     0.0000          0.0          1.3   MEM 0.0%
+phvs_s_phvs / phvs_310                            0.00e+00        0.0        3.1     0.0000          0.0          1.3   MEM 0.0%
+phvs_s_phvs / phvs_319                            0.00e+00        0.0        2.3     0.0000          0.0          1.2   MEM 0.0%
+phvs_s_phvs / phvs_326                            0.00e+00        0.0        2.4     0.0000          0.0          1.2   MEM 0.0%
+phvs_s_phvs / phvs_395                            0.00e+00        0.0        3.1     0.0000          0.0          1.3   MEM 0.0%
+phvs_s_phvs / phvs_407                            0.00e+00        0.5        4.0     0.0000          0.0        127.7   MEM 3.2%
+phvs_s_phvs / phvs_469                            0.00e+00        0.0        3.1     0.0000          0.0          1.3   MEM 0.0%
+phvs_s_phvs / phvs_481                            0.00e+00        0.5        3.9     0.0000          0.0        131.0   MEM 3.3%
+phvs_s_phvs / phvs_543                            0.00e+00        0.0        3.1     0.0000          0.0          1.3   MEM 0.0%
+phvs_s_phvs / phvs_555                            0.00e+00        0.5        3.6     0.0000          0.0        125.5   MEM 3.1%
+phvs_s_phvs / phvs_617                            0.00e+00        0.0        3.2     0.0000          0.0          1.2   MEM 0.0%
+phvs_s_phvs / phvs_629                            0.00e+00        0.5        3.6     0.0000          0.0        125.4   MEM 3.1%
+phvuvw_s_phvuvw / phvuvw_427                      0.00e+00        0.0        3.1     0.0000          0.0          1.2   MEM 0.0%
+phvuvw_s_phvuvw / phvuvw_440                      0.00e+00        0.0        3.1     0.0000          0.0          1.3   MEM 0.0%
+phvuvw_s_phvuvw / phvuvw_453                      0.00e+00        0.0        3.1     0.0000          0.0          1.3   MEM 0.0%
+phvuvw_s_phvuvw / phvuvw_466                      0.00e+00        0.0        3.5     0.0000          0.0          1.4   MEM 0.0%
+phvuvw_s_phvuvw / phvuvw_479                      0.00e+00        0.0        3.1     0.0000          0.0          1.2   MEM 0.0%
+phvuvw_s_phvuvw / phvuvw_491                      0.00e+00        0.0        3.1     0.0000          0.0          1.3   MEM 0.0%
+phvuvw_s_phvuvw / phvuvw_503                      0.00e+00        0.0        3.4     0.0000          0.0          1.1   MEM 0.0%
+phvuvw_s_phvuvw / phvuvw_515                      0.00e+00        0.0        3.1     0.0000          0.0          1.3   MEM 0.0%
+phvuvw_s_phvuvw / phvuvw_528                      0.00e+00        0.0        3.2     0.0000          0.0          1.3   MEM 0.0%
+phvuvw_s_phvuvw / phvuvw_540                      0.00e+00        0.0        3.1     0.0000          0.0          1.3   MEM 0.0%
+phvuvw_s_phvuvw / phvuvw_552                      0.00e+00        0.0        3.1     0.0000          0.0          1.3   MEM 0.0%
+phvuvw_s_phvuvw / phvuvw_564                      0.00e+00        0.0        3.1     0.0000          0.0          1.3   MEM 0.0%
+phy2cnt_s_phy2cnt / phy2cnt_241                   0.00e+00      802.8      687.7     0.0000          0.0       1167.4  MEM 29.2%
+phycood_s_phycood_sec1 / phycood_sec1_182         0.00e+00        3.2        9.3     0.0000          0.0        350.1   MEM 8.8%
+phycood_s_phycood_sec2 / benchmark_gpu_phy...     0.00e+00        0.0        3.1     0.0000          0.0          1.6   MEM 0.0%
+phycood_s_phycood_sec3 / phycood_154              5.10e+08      388.7      730.4     1.3130        698.7        532.1  MEM 13.3%
+phycood_s_phycood_sec3 / phycood_170              3.24e+06       13.0       11.6     0.2496        278.9       1117.6  MEM 27.9%
+phycood_s_phycood_sec3 / phycood_181              2.52e+02        0.0        2.8     0.0703          0.1          1.3   MEM 0.0%
+prodctwg_s_prodctwg / prodctwg_336                0.00e+00        3.2        8.3     0.0000          0.0        392.9   MEM 9.8%
+radiat_s_radiat / 395                             4.35e+07        6.5       10.4     6.7178       4187.1        623.3  MEM 15.6%
+radiat_s_radiat / 410                             2.05e+08      814.3      770.7     0.2515        265.8       1056.6  MEM 26.4%
+radiat_s_radiat / 422                             8.06e+05        6.5        8.6     0.1245         93.3        749.8  MEM 18.7%
+radiat_s_radiat / 548                             9.19e+07      478.2     1014.7     0.1921         90.6        471.3  MEM 11.8%
+rbcq_s_rbcq / rbcq_237                            3.88e+03        0.0        5.2     0.0818          0.8          9.1   MEM 0.2%
+rbcq_s_rbcq / rbcq_248                            3.88e+03        0.0        4.9     0.0814          0.8          9.7   MEM 0.2%
+rbcq_s_rbcq / rbcq_285                            3.88e+03        0.0        4.9     0.0846          0.8          9.4   MEM 0.2%
+rbcq_s_rbcq / rbcq_296                            3.88e+03        0.0        5.0     0.0836          0.8          9.3   MEM 0.2%
+rbcq_s_rbcq / rbcq_336                            1.90e+06       19.1       11.4     0.0995        167.6       1684.4  MEM 42.1%
+rbcq_s_rbcq / rbcq_364                            1.90e+06       19.2       11.7     0.0994        162.6       1636.0  MEM 40.9%
+rbcq_s_rbcq / rbcq_392                            1.90e+06        1.4        4.2     1.3949        454.2        325.6   MEM 8.1%
+rbcq_s_rbcq / rbcq_420                            1.90e+06        1.4        4.3     1.3949        447.4        320.7   MEM 8.0%
+rbcs_s_rbcs / rbcs_121                            3.88e+03        0.0        5.1     0.0846          0.8          9.0   MEM 0.2%
+rbcs_s_rbcs / rbcs_131                            3.88e+03        0.0        4.8     0.0818          0.8          9.8   MEM 0.2%
+rbcs_s_rbcs / rbcs_167                            3.88e+03        0.0        4.9     0.0809          0.8          9.7   MEM 0.2%
+rbcs_s_rbcs / rbcs_177                            3.88e+03        0.0        4.9     0.0809          0.8          9.7   MEM 0.2%
+rbcs_s_rbcs / rbcs_215                            1.90e+06       19.7       12.0     0.0969        159.1       1642.1  MEM 41.1%
+rbcs_s_rbcs / rbcs_241                            1.90e+06       19.5       12.4     0.0975        154.2       1581.3  MEM 39.5%
+rbcs_s_rbcs / rbcs_267                            1.90e+06        1.4        7.8     1.3835        242.9        175.5   MEM 4.4%
+rbcs_s_rbcs / rbcs_293                            1.90e+06        1.4        7.6     1.3837        252.1        182.2   MEM 4.6%
+rbcs0_s_rbcs0 / rbcs0_237                         3.90e+03        0.0        5.0     0.0857          0.8          9.1   MEM 0.2%
+rbcs0_s_rbcs0 / rbcs0_248                         3.88e+03        0.0        5.0     0.0846          0.8          9.1   MEM 0.2%
+rbcs0_s_rbcs0 / rbcs0_285                         3.88e+03        0.0        5.1     0.0814          0.8          9.4   MEM 0.2%
+rbcs0_s_rbcs0 / rbcs0_296                         3.88e+03        0.0        5.0     0.0801          0.8          9.7   MEM 0.2%
+rbcs0_s_rbcs0 / rbcs0_336                         1.90e+06       19.5       12.0     0.0975        158.2       1622.9  MEM 40.6%
+rbcs0_s_rbcs0 / rbcs0_364                         1.90e+06       19.3       11.6     0.0986        164.8       1670.8  MEM 41.8%
+rbcs0_s_rbcs0 / rbcs0_392                         1.90e+06        1.4        4.2     1.3936        454.2        325.9   MEM 8.1%
+rbcs0_s_rbcs0 / rbcs0_420                         1.90e+06        1.4        4.3     1.3954        444.0        318.2   MEM 8.0%
+rbcw_s_rbcw / rbcw_173                            1.01e+03        0.0        3.4     0.0270          0.3         11.1   MEM 0.3%
+rbcw_s_rbcw / rbcw_195                            1.01e+03        0.0        3.2     0.0273          0.3         11.5   MEM 0.3%
+rbcw_s_rbcw / rbcw_220                            1.01e+03        0.0        3.4     0.0272          0.3         10.9   MEM 0.3%
+rbcw_s_rbcw / rbcw_242                            1.01e+03        0.0        3.2     0.0275          0.3         11.3   MEM 0.3%
+rbcw_s_rbcw / rbcw_270                            5.64e+05        8.3        7.3     0.0680         77.7       1143.1  MEM 28.6%
+rbcw_s_rbcw / rbcw_296                            5.64e+05        8.3        7.2     0.0679         78.0       1149.9  MEM 28.7%
+rbcw_s_rbcw / rbcw_323                            5.64e+05        1.4        3.9     0.4122        145.8        353.6   MEM 8.8%
+rbcw_s_rbcw / rbcw_349                            5.64e+05        1.4        3.8     0.4118        148.2        360.0   MEM 9.0%
+roughitr_s_roughitr / roughitr_209                1.21e+07       13.0       10.7     0.9338       1135.1       1215.6  MEM 30.4%
+roughnxt_s_roughnxt / roughnxt_300                2.42e+06        9.7       11.2     0.2490        215.4        865.0  MEM 21.6%
+rstuvwc_s_rstuvwc / rstuvwc_169                   2.05e+08     1254.9      862.9     0.1634        237.6       1454.3  MEM 36.4%
+rstuvwc_s_rstuvwc / rstuvwc_179                   1.03e+08     1228.2      738.3     0.0835        138.9       1663.5  MEM 41.6%
+rstuvwc_s_rstuvwc / rstuvwc_234                   1.03e+08     1236.4      743.7     0.0835        138.8       1662.5  MEM 41.6%
+setbase_s_setbase / 276                           2.06e+08      815.7      777.3     0.2522        264.7       1049.4  MEM 26.2%
+setbase_s_setbase / 290                           6.38e+09     2426.1     1394.3     2.6292       4574.9       1740.0  MEM 43.5%
+setblk_s_setblk / setblk_429                      2.22e+08       34.8       23.5     6.3806       9428.6       1477.7  MEM 36.9%
+setblk_s_setblk / setblk_463                      1.85e+07       31.7       22.9     0.5855        809.5       1382.6  MEM 34.6%
+phvs_s_phvs / phvs_260                            0.00e+00        0.0        3.6     0.0000          0.0          1.2   MEM 0.0%
+phvs_s_phvs / phvs_272                            0.00e+00        0.5        4.2     0.0000          0.0        123.0   MEM 3.1%
+phvs_s_phvs / phvs_324                            0.00e+00        0.0        3.1     0.0000          0.0          1.3   MEM 0.0%
+phvs_s_phvs / phvs_336                            0.00e+00        0.5        4.1     0.0000          0.0        125.9   MEM 3.1%
+phvs_s_phvs / phvs_388                            0.00e+00        0.0        3.1     0.0000          0.0          1.2   MEM 0.0%
+phvs_s_phvs / phvs_410                            0.00e+00        0.5        3.4     0.0000          0.0        132.5   MEM 3.3%
+phvs_s_phvs / phvs_452                            0.00e+00        0.0        3.0     0.0000          0.0          1.4   MEM 0.0%
+phvs_s_phvs / phvs_474                            0.00e+00        0.5        3.5     0.0000          0.0        131.3   MEM 3.3%
+setcst2d_s_setcst2d_sec1 / benchmark_107          0.00e+00        0.0        6.7     0.0000          0.0          0.6   MEM 0.0%
+setcst3d_s_setcst3d_sec1 / setcst3d_182           0.00e+00      388.5      620.3     0.0000          0.0        626.3  MEM 15.7%
+setcst3d_s_setcst3d_r8_sec2 / benchmark_78        0.00e+00      803.7      618.9     0.0000          0.0       1298.7  MEM 32.5%
+setgpv_s_setgpv / setgpv_183                      0.00e+00        0.0      490.0     0.0000          0.0          0.0   MEM 0.0%
+setsfc_s_setsfc / setsfc_351                      4.10e+09     2875.1     1010.8     1.4249       4052.8       2844.4  MEM 71.1%
+setsfc_s_setsfc / setsfc_365                      1.61e+06        9.7        9.5     0.1660        169.1       1018.7  MEM 25.5%
+setsfc_s_setsfc / setsfc_392                      2.98e+07        9.7       11.4     3.0701       2619.1        853.1  MEM 21.3%
+setsfc_s_setsfc / setsfc_441                      2.42e+06       13.0        9.7     0.1868        249.5       1335.7  MEM 33.4%
+setsfc_s_setsfc / setsfc_496                      4.92e+07       13.0       11.6     3.7977       4258.2       1121.2  MEM 28.0%
+setsfc_s_setsfc / setsfc_515                      1.13e+07        6.5        9.1     1.7427       1237.9        710.3  MEM 17.8%
+setsfc_s_setsfc / setsfc_541                      1.21e+07       13.0        9.3     0.9337       1294.5       1386.4  MEM 34.7%
+sfcflx_subroutine / sfcflx_178                    1.29e+07       16.3       10.0     0.7895       1292.3       1637.0  MEM 40.9%
+sheartke_s_sheartke / sheartke_198                3.01e+08     2010.5      770.0     0.1497        391.0       2610.9  MEM 65.3%
+shedding_s_shedding / shedding_239                0.00e+00        6.5        9.3     0.0000          0.0        693.4  MEM 17.3%
+siadjst_s_siadjst / siadjst_238                   8.94e+08     1354.0      958.6     0.6600        932.2       1412.4  MEM 35.3%
+smoo4qv_s_smoo4qv / smoo4qv_233                   3.07e+08     2050.7     1027.0     0.1498        299.2       1996.8  MEM 49.9%
+smoo4qv_s_smoo4qv / smoo4qv_249                   2.01e+08     1205.4      836.7     0.1665        239.9       1440.7  MEM 36.0%
+smoo4qv_s_smoo4qv / smoo4qv_262                   2.01e+08     1207.0      842.8     0.1663        238.2       1432.2  MEM 35.8%
+smoo4qv_s_smoo4qv / smoo4qv_275                   2.01e+08     1215.9      899.3     0.1651        223.2       1352.0  MEM 33.8%
+smoo4qv_s_smoo4qv / smoo4qv_290                   5.02e+08     2011.0      919.3     0.2495        545.8       2187.7  MEM 54.7%
+smoo4qv_s_smoo4qv / smoo4qv_320                   0.00e+00        6.4        9.3     0.0000          0.0        695.0  MEM 17.4%
+smoo4qv_s_smoo4qv / smoo4qv_334                   1.10e+09     2020.4     1214.7     0.5439        904.7       1663.3  MEM 41.6%
+smoo4s_subroutine / smoo4s_249                    2.05e+08     1634.9      781.8     0.1253        262.0       2091.4  MEM 52.3%
+smoo4s_subroutine / smoo4s_261                    2.01e+08     1204.7      731.5     0.1666        274.4       1646.9  MEM 41.2%
+smoo4s_subroutine / smoo4s_272                    2.01e+08     1206.5      770.1     0.1664        260.6       1566.7  MEM 39.2%
+smoo4s_subroutine / smoo4s_283                    2.01e+08     1218.0      857.6     0.1648        234.0       1420.2  MEM 35.5%
+smoo4s_subroutine / smoo4s_294                    5.02e+08     2010.8      772.2     0.2495        649.8       2603.9  MEM 65.1%
+smoo4s_subroutine / smoo4s_322                    0.00e+00        6.4        9.6     0.0000          0.0        674.1  MEM 16.9%
+smoo4s_subroutine / smoo4s_333                    1.10e+09     2023.6      961.9     0.5431       1142.5       2103.8  MEM 52.6%
+smoo4uvw_s_smoo4uvw / smoo4uvw_324                1.33e+09     2463.1      891.5     0.5411       1495.1       2763.0  MEM 69.1%
+smoo4uvw_s_smoo4uvw / smoo4uvw_339                2.01e+08     1204.6      732.6     0.1668        274.2       1644.1  MEM 41.1%
+smoo4uvw_s_smoo4uvw / smoo4uvw_353                2.01e+08     1206.6      771.7     0.1665        260.4       1563.5  MEM 39.1%
+smoo4uvw_s_smoo4uvw / smoo4uvw_367                2.01e+08     1221.5      858.3     0.1645        234.1       1423.1  MEM 35.6%
+smoo4uvw_s_smoo4uvw / smoo4uvw_381                5.02e+08     2010.8      775.1     0.2498        648.1       2594.3  MEM 64.9%
+smoo4uvw_s_smoo4uvw / smoo4uvw_411                0.00e+00        6.4        9.5     0.0000          0.0        676.2  MEM 16.9%
+smoo4uvw_s_smoo4uvw / smoo4uvw_425                1.10e+09     2020.1      967.0     0.5446       1137.7       2089.0  MEM 52.2%
+smoo4uvw_s_smoo4uvw / smoo4uvw_444                1.33e+09     2467.4      892.1     0.5402       1494.1       2765.8  MEM 69.1%
+smoo4uvw_s_smoo4uvw / smoo4uvw_459                2.01e+08     1206.5      732.7     0.1665        274.2       1646.7  MEM 41.2%
+smoo4uvw_s_smoo4uvw / smoo4uvw_473                2.01e+08     1208.2      772.4     0.1663        260.1       1564.2  MEM 39.1%
+smoo4uvw_s_smoo4uvw / smoo4uvw_487                2.01e+08     1223.1      858.0     0.1643        234.2       1425.5  MEM 35.6%
+smoo4uvw_s_smoo4uvw / smoo4uvw_501                5.02e+08     2012.8      775.9     0.2496        647.4       2594.0  MEM 64.9%
+smoo4uvw_s_smoo4uvw / smoo4uvw_531                0.00e+00        6.5        9.5     0.0000          0.0        677.0  MEM 16.9%
+smoo4uvw_s_smoo4uvw / smoo4uvw_545                1.10e+09     2022.9      972.2     0.5439       1131.6       2080.7  MEM 52.0%
+smoo4uvw_s_smoo4uvw / smoo4uvw_564                1.24e+09     2066.9      863.0     0.5993       1435.2       2395.1  MEM 59.9%
+smoo4uvw_s_smoo4uvw / smoo4uvw_579                2.02e+08     1215.1      738.1     0.1665        274.1       1646.3  MEM 41.2%
+smoo4uvw_s_smoo4uvw / smoo4uvw_593                2.02e+08     1216.3      777.3     0.1663        260.3       1564.8  MEM 39.1%
+smoo4uvw_s_smoo4uvw / smoo4uvw_607                2.02e+08     1232.3      864.4     0.1642        234.0       1425.6  MEM 35.6%
+smoo4uvw_s_smoo4uvw / smoo4uvw_621                5.06e+08     2026.7      778.5     0.2496        649.7       2603.4  MEM 65.1%
+smoo4uvw_s_smoo4uvw / smoo4uvw_651                0.00e+00        6.4        9.4     0.0000          0.0        683.2  MEM 17.1%
+smoo4uvw_s_smoo4uvw / smoo4uvw_665                1.11e+09     2037.7      980.6     0.5436       1129.7       2078.1  MEM 52.0%
+sndwave_s_sndwave / sndwave_123                   1.02e+08      809.0      701.3     0.1266        146.0       1153.6  MEM 28.8%
+steppi_s_steppi / steppi_192                      1.20e+09     1603.3      998.7     0.7511       1205.8       1605.4  MEM 40.1%
+steps_s_steps / steps_212                         1.00e+09      795.1      728.7     1.2622       1377.2       1091.1  MEM 27.3%
+steps_s_steps / steps_240                         2.01e+08     1611.7      740.2     0.1245        271.1       2177.3  MEM 54.4%
+steptund_s_steptund_sec1 / steptund_sec1_308      0.00e+00        3.2        7.6     0.0000          0.0        427.3  MEM 10.7%
+steptund_s_steptund_sec1 / steptund_sec1_320      0.00e+00        3.2        7.2     0.0000          0.0        448.1  MEM 11.2%
+steptund_s_steptund_sec1 / steptund_sec1_334      8.06e+05        3.2        7.4     0.2488        109.1        438.4  MEM 11.0%
+steptund_s_steptund_sec1 / steptund_sec1_346      1.53e+07       33.3       19.7     0.4605        778.5       1690.7  MEM 42.3%
+steptund_s_steptund_sec1 / steptund_sec1_415      1.61e+06        6.5        9.5     0.2477        169.7        685.2  MEM 17.1%
+steptund_s_steptund_sec2 / benchmark_159          0.00e+00        6.5        9.8     0.0000          0.0        663.7  MEM 16.6%
+steptund_s_steptund_sec2 / benchmark_173          5.08e+07      382.6      339.2     0.1328        149.8       1128.0  MEM 28.2%
+stepuv_subroutine / stepuv_230                    1.31e+09     2010.6     1071.2     0.6496       1219.2       1876.9  MEM 46.9%
+stepuv_subroutine / stepuv_244                    1.31e+09     2013.1     1070.8     0.6488       1219.7       1880.0  MEM 47.0%
+stepwi_subroutine / stepwi_263                    1.19e+09     1590.6      989.5     0.7510       1207.3       1607.6  MEM 40.2%
+stepwi_subroutine / stepwi_277                    2.11e+09     2014.8     1018.0     1.0460       2070.0       1979.0  MEM 49.5%
+stepwi_subroutine / stepwi_291                    2.01e+08     1607.5      754.2     0.1249        266.1       2131.2  MEM 53.3%
+stepwi_subroutine / stepwi_328                    1.89e+09     3737.0     1398.7     0.5061       1352.3       2671.8  MEM 66.8%
+strsten_s_strsten / strsten_262                   3.07e+08     3267.3     1723.0     0.0940        178.3       1896.3  MEM 47.4%
+strsten_s_strsten / strsten_278                   5.11e+08     1216.3      765.1     0.4201        667.8       1589.8  MEM 39.7%
+strsten_s_strsten / strsten_293                   5.06e+08     1208.8      849.5     0.4189        596.0       1422.9  MEM 35.6%
+strsten_s_strsten / strsten_308                   5.06e+08     1212.1      844.1     0.4177        599.8       1435.9  MEM 35.9%
+strsten_s_strsten / strsten_321                   0.00e+00        3.2        7.3     0.0000          0.0        443.2  MEM 11.1%
+strsten_s_strsten / strsten_331                   0.00e+00        3.2        7.3     0.0000          0.0        441.8  MEM 11.0%
+strsten_s_strsten / strsten_344                   5.06e+08     1208.6      848.4     0.4189        596.8       1424.5  MEM 35.6%
+strsten_s_strsten / strsten_359                   5.06e+08     1212.2      829.2     0.4177        610.7       1462.0  MEM 36.5%
+swadjst_s_swadjst / swadjst_231                   3.80e+09     2484.7     1590.8     1.5306       2390.6       1561.9  MEM 39.0%
+swp2nxt_s_swp2nxt / swp2nxt_323                   0.00e+00     1625.5      874.2     0.0000          0.0       1859.4  MEM 46.5%
+swp2nxt_s_swp2nxt / swp2nxt_338                   0.00e+00     1628.8      871.7     0.0000          0.0       1868.4  MEM 46.7%
+swp2nxt_s_swp2nxt / swp2nxt_353                   0.00e+00     1638.4      878.8     0.0000          0.0       1864.2  MEM 46.6%
+swp2nxt_s_swp2nxt / swp2nxt_368                   0.00e+00     3274.0     1401.1     0.0000          0.0       2336.8  MEM 58.4%
+swp2nxt_s_swp2nxt / swp2nxt_386                   0.00e+00     1625.4      872.7     0.0000          0.0       1862.5  MEM 46.6%
+swp2nxt_s_swp2nxt / swp2nxt_402                   0.00e+00     3274.4     1354.5     0.0000          0.0       2417.5  MEM 60.4%
+swp2nxt_s_swp2nxt / swp2nxt_422                   0.00e+00     4923.2     1962.1     0.0000          0.0       2509.1  MEM 62.7%
+swp2nxt_s_swp2nxt / swp2nxt_445                   0.00e+00     4923.3     1962.2     0.0000          0.0       2509.0  MEM 62.7%
+swp2nxt_s_swp2nxt / swp2nxt_468                   0.00e+00     1625.3      870.8     0.0000          0.0       1866.3  MEM 46.7%
+termblk_s_termblk / termblk_344                   0.00e+00     2461.8      903.9     0.0000          0.0       2723.4  MEM 68.1%
+termblk_s_termblk / termblk_433                   3.70e+09     5036.4     1899.0     0.7346       1948.1       2652.1  MEM 66.3%
+timeflt_s_timeflt / timeflt_446                   4.10e+08     1633.1      854.8     0.2511        479.8       1910.4  MEM 47.8%
+timeflt_s_timeflt / timeflt_460                   4.10e+08     1634.8      853.4     0.2509        480.6       1915.6  MEM 47.9%
+timeflt_s_timeflt / timeflt_474                   4.13e+08     1646.1      858.4     0.2508        481.0       1917.8  MEM 47.9%
+timeflt_s_timeflt / timeflt_488                   8.19e+08     3276.8     1336.5     0.2500        613.0       2451.7  MEM 61.3%
+timeflt_s_timeflt / timeflt_504                   4.10e+08     1632.9      853.4     0.2509        480.0       1913.4  MEM 47.8%
+timeflt_s_timeflt / timeflt_520                   4.10e+08     1633.6      917.4     0.2508        446.5       1780.6  MEM 44.5%
+timeflt_s_timeflt / timeflt_538                   4.10e+08     1633.0      917.9     0.2509        446.3       1779.1  MEM 44.5%
+timeflt_s_timeflt / timeflt_556                   4.10e+08     1633.1      917.4     0.2508        446.5       1780.1  MEM 44.5%
+timeflt_s_timeflt / timeflt_574                   4.10e+08     1633.1      852.7     0.2508        480.4       1915.3  MEM 47.9%
+totalqwi_s_totalqwi / totalqwi_219                4.10e+08     2466.3      951.3     0.1661        430.6       2592.5  MEM 64.8%
+totals_s_totals / totals_194                      1.03e+08     1228.2      728.7     0.0838        141.2       1685.5  MEM 42.1%
+trilat_s_trilat / trilat_201                      1.45e+07        3.2        8.1     4.4762       1792.9        400.5  MEM 10.0%
+turbs_subroutine / turbs_339                      1.00e+08     1204.7      716.8     0.0834        140.2       1680.7  MEM 42.0%
+turbs_subroutine / turbs_352                      2.01e+08     1229.1      826.9     0.1635        243.0       1486.3  MEM 37.2%
+turbs_subroutine / turbs_395                      1.00e+09     2058.5      900.1     0.4875       1114.9       2287.0  MEM 57.2%
+turbtke_s_turbtke / turbtke_341                   1.00e+08     1204.5      717.0     0.0834        140.1       1680.0  MEM 42.0%
+turbtke_s_turbtke / turbtke_354                   2.01e+08     1229.1      827.7     0.1635        242.8       1485.0  MEM 37.1%
+turbtke_s_turbtke / turbtke_397                   1.00e+09     2055.5      903.4     0.4882       1110.9       2275.4  MEM 56.9%
+turbuvw_subroutine / turbuvw_369                  8.05e+05        3.2        8.0     0.2483        101.0        406.7  MEM 10.2%
+turbuvw_subroutine / turbuvw_467                  1.01e+08     1193.7      714.1     0.0843        140.8       1671.6  MEM 41.8%
+turbuvw_subroutine / turbuvw_480                  3.02e+08     1232.2      807.9     0.2449        373.5       1525.1  MEM 38.1%
+turbuvw_subroutine / turbuvw_521                  9.04e+08     1657.7      934.9     0.5455        967.1       1773.0  MEM 44.3%
+turbuvw_subroutine / turbuvw_678                  2.01e+08     1207.7      833.4     0.1666        241.3       1449.0  MEM 36.2%
+turbuvw_subroutine / turbuvw_691                  2.01e+08     1206.5      716.2     0.1667        280.9       1684.6  MEM 42.1%
+turbuvw_subroutine / turbuvw_732                  9.04e+08     1663.7      934.0     0.5435        968.0       1781.2  MEM 44.5%
+turbuvw_subroutine / turbuvw_889                  2.03e+08     1219.7      841.8     0.1661        240.6       1448.9  MEM 36.2%
+turbuvw_subroutine / turbuvw_902                  3.04e+08     1249.2      878.7     0.2432        345.8       1421.6  MEM 35.5%
+turbuvw_subroutine / turbuvw_943                  9.10e+08     1672.5      884.4     0.5443       1029.5       1891.2  MEM 47.3%
+upwnp_s_upwnp / upwnp_135                         2.03e+08     1627.9      747.3     0.1248        271.9       2178.4  MEM 54.5%
+upwnp_s_upwnp / upwnp_146                         0.00e+00        3.2        7.9     0.0000          0.0        408.4  MEM 10.2%
+upwnp_s_upwnp / upwnp_158                         1.32e+09     1624.7     1042.6     0.8130       1266.9       1558.3  MEM 39.0%
+upwnp_s_upwnp / upwnp_170                         0.00e+00        3.2        7.4     0.0000          0.0        438.4  MEM 11.0%
+upwqp_subroutine / upwqp_173                      2.05e+08     1641.1      752.9     0.1248        272.0       2179.6  MEM 54.5%
+upwqp_subroutine / upwqp_185                      1.32e+09     1624.4     1038.8     0.8132       1271.6       1563.8  MEM 39.1%
+upwqp_subroutine / upwqp_197                      3.23e+06       13.0       11.4     0.2488        282.4       1135.0  MEM 28.4%
+var8uvw_s_var8uvw / var8uvw_235                   2.06e+08      810.2      703.2     0.2537        292.2       1152.1  MEM 28.8%
+var8uvw_s_var8uvw / var8uvw_249                   2.06e+08      810.8      762.5     0.2535        269.5       1063.3  MEM 26.6%
+var8uvw_s_var8uvw / var8uvw_263                   2.04e+08      809.0      814.0     0.2523        250.8        993.9  MEM 24.8%
+vbcp_s_vbcp / vbcp_204                            1.61e+06        6.5        7.7     0.2490        210.0        843.3  MEM 21.1%
+vbcp_s_vbcp / vbcp_226                            0.00e+00        3.2        7.4     0.0000          0.0        436.5  MEM 10.9%
+vbcs_s_vbcs / vbcs_119                            0.00e+00        3.2        7.4     0.0000          0.0        436.5  MEM 10.9%
+vbcs_s_vbcs / vbcs_130                            0.00e+00        3.2        7.6     0.0000          0.0        427.3  MEM 10.7%
+vbcu_s_vbcu / vbcu_119                            0.00e+00        3.2        7.3     0.0000          0.0        446.1  MEM 11.2%
+vbcu_s_vbcu / vbcu_130                            0.00e+00        3.2        8.2     0.0000          0.0        397.2   MEM 9.9%
+vbcv_s_vbcv / vbcv_119                            0.00e+00        3.2        7.4     0.0000          0.0        438.9  MEM 11.0%
+vbcv_s_vbcv / vbcv_130                            0.00e+00        3.2        7.4     0.0000          0.0        437.0  MEM 10.9%
+vbcw_s_vbcw / vbcw_261                            1.61e+06        9.7        8.1     0.1662        199.4       1199.8  MEM 30.0%
+vbcw_s_vbcw / vbcw_271                            1.61e+06        9.7        8.3     0.1660        194.8       1173.4  MEM 29.3%
+vbcw_s_vbcw / vbcw_298                            4.03e+06        9.7        8.5     0.4149        473.7       1141.6  MEM 28.5%
+vbcw_s_vbcw / vbcw_339                            1.61e+06        9.7        8.0     0.1660        200.8       1209.4  MEM 30.2%
+vbcw_s_vbcw / vbcw_349                            1.61e+06        9.7        8.1     0.1662        199.4       1199.8  MEM 30.0%
+vbcw_s_vbcw / vbcw_359                            1.61e+06        9.7        8.3     0.1660        194.8       1173.3  MEM 29.3%
+vbcw_s_vbcw / vbcw_386                            4.03e+06        9.7        8.5     0.4149        475.5       1146.0  MEM 28.6%
+vbcw_s_vbcw / vbcw_444                            1.61e+06        9.7        8.3     0.1662        194.1       1167.5  MEM 29.2%
+vbcw_s_vbcw / vbcw_454                            1.61e+06        9.7        8.2     0.1660        196.3       1182.4  MEM 29.6%
+vbcw_s_vbcw / vbcw_481                            4.03e+06        9.7        8.5     0.4149        473.7       1141.6  MEM 28.5%
+vbcw_s_vbcw / vbcw_522                            1.61e+06        9.7        8.3     0.1660        195.3       1176.5  MEM 29.4%
+vbcw_s_vbcw / vbcw_532                            0.00e+00        0.0        6.6     0.0000          0.0          0.7   MEM 0.0%
+vbcwc_s_vbcwc / vbcwc_207                         8.06e+05        3.2        7.5     0.2488        107.2        431.0  MEM 10.8%
+vbcwc_s_vbcwc / vbcwc_235                         8.06e+05        3.2        8.0     0.2488        100.8        405.2  MEM 10.1%
+vspdmp_s_vspdmp / vspdmp_225                      0.00e+00        0.0        2.4     0.0000          0.0          1.2   MEM 0.0%
+vspdmp_s_vspdmp / vspdmp_236                      0.00e+00        3.3       50.6     0.0000          0.0         64.3   MEM 1.6%
+vspdmp_s_vspdmp / vspdmp_268                      0.00e+00      800.8      768.3     0.0000          0.0       1042.3  MEM 26.1%
+vspdmp_s_vspdmp / vspdmp_285                      0.00e+00      801.0      777.5     0.0000          0.0       1030.2  MEM 25.8%
+vspqv_s_vspqv / vspqv_206                         8.09e+08     2847.1     1010.8     0.2842        800.6       2816.8  MEM 70.4%
+vsps_subroutine / vsps_222                        5.06e+08     2030.8      872.1     0.2491        579.9       2328.6  MEM 58.2%
+vspuvw_subroutine / vspuvw_298                    1.61e+06        6.5        8.2     0.2495        196.9        789.1  MEM 19.7%
+vspuvw_subroutine / vspuvw_327                    5.63e+06       19.4        9.6     0.2899        586.0       2021.4  MEM 50.5%
+---------------------------------------------------------------------------------------------------------------------------------------
+AI < 14.8 => Memory-bound (MEM),  AI >= 14.8 => Compute-bound (COMP)
+Efficiency: %BW = fraction of peak HBM bandwidth,  %FP = fraction of peak FP32 throughput
+Results: /work/jh250015/g24000/SC26/CReSS3.5.1m_SPN_RAD1.4.3_20230323_upload/Kernel_benchmark_gpu/roofline_results/roofline_summary_20260323_233343.csv
+

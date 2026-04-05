@@ -74,6 +74,8 @@
       use m_sfcphy
       use m_slvstep
       use m_timeint
+      use m_defmpi
+      use m_wtime_prof
 
 !-----7--------------------------------------------------------------7--
 
@@ -902,7 +904,29 @@
       real, intent(inout) :: tmp1_rdr(1:nid_rdr,1:njd_rdr,1:nk)
                        ! Temporary array
 
+      double precision t_init_start
+                       ! Wall time at start of initialization
+
+      double precision t_loop_start
+                       ! Wall time at start of timestep loop
+
+      double precision t_loop_end
+                       ! Wall time at end of timestep loop
+
+      integer ierr_wt   ! MPI error code for barrier
+
 !-----7--------------------------------------------------------------7--
+
+! Start wall-clock profiling for initialization.
+
+      call mpi_barrier(mpi_comm_cress,ierr_wt)
+      t_init_start = mpi_wtime()
+
+! Initialize profiling accumulators.
+
+      call wtime_prof_init()
+
+! -----
 
 ! Initialize the character variable.
 
@@ -971,6 +995,14 @@
 ! -----
 
 !!!! The loop for the large time steps integration.
+
+      call mpi_barrier(mpi_comm_cress,ierr_wt)
+      t_loop_start = mpi_wtime()
+
+      if(mype.eq.root) then
+        write(6,'(a,f12.3,a)') ' Initialization wall time: ',             &
+     &    t_loop_start - t_init_start, ' sec'
+      end if
 
       do ibstp=nbstp0,nbstp1
 
@@ -1451,6 +1483,18 @@
       end do
 
 !!!! -----
+
+      call mpi_barrier(mpi_comm_cress,ierr_wt)
+      t_loop_end = mpi_wtime()
+
+      if(mype.eq.root) then
+        write(6,'(a,f12.3,a)') ' Timestep loop wall time: ',              &
+     &    t_loop_end - t_loop_start, ' sec'
+        write(6,'(a,f12.3,a)') ' Total wall time       : ',               &
+     &    t_loop_end - t_init_start, ' sec'
+      end if
+
+      call wtime_prof_report(mype,root)
 
       end subroutine s_slvdrv
 

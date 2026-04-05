@@ -153,6 +153,7 @@ OBJS    = abortslv.o\
           dbz2kg.o\
           defdim.o\
           defmpi.o\
+          wtime_prof.o\
           defname.o\
           defomssq.o\
           defomten.o\

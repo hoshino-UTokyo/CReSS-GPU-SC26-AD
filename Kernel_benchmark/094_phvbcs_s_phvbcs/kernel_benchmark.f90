@@ -17,6 +17,7 @@ program kernel_benchmark
   integer :: ebe, ebn, ebs, ebw
   real :: gdxdt, gdxdtn, gdydt, gdydtn
   real :: gtinc0, gtinc1, gtinc2
+  character(len=3) :: fproc
   integer :: isub, jsub
   integer :: nim1, nim2, nim3
   integer :: nisub, njsub
@@ -245,6 +246,8 @@ contains
             read(line(eq_pos+1:), *) njsub
           case ('nkm3v')
             read(line(eq_pos+1:), *) nkm3v
+          case ('fproc')
+            read(line(eq_pos+1:), *) fproc
         end select
       end if
     end do
@@ -412,7 +415,7 @@ contains
         end do
       end if
 
-      if (advopt >= 4) then
+      if (fproc(1:3) == 'sml') then
         do k = 2, nk-2
           !$omp do schedule(runtime) private(j)
           do j = 1, nj-1
@@ -420,6 +423,16 @@ contains
           end do
           !$omp end do
         end do
+      else
+        if (advopt >= 4) then
+          do k = 2, nk-2
+            !$omp do schedule(runtime) private(j)
+            do j = 1, nj-1
+              scpx(j,k,1) = scpx(j,k,1)*dtdvb
+            end do
+            !$omp end do
+          end do
+        end if
       end if
     end if
 
@@ -500,7 +513,7 @@ contains
         end do
       end if
 
-      if (advopt >= 4) then
+      if (fproc(1:3) == 'sml') then
         do k = 2, nk-2
           !$omp do schedule(runtime) private(j)
           do j = 1, nj-1
@@ -508,6 +521,16 @@ contains
           end do
           !$omp end do
         end do
+      else
+        if (advopt >= 4) then
+          do k = 2, nk-2
+            !$omp do schedule(runtime) private(j)
+            do j = 1, nj-1
+              scpx(j,k,2) = scpx(j,k,2)*dtdvb
+            end do
+            !$omp end do
+          end do
+        end if
       end if
     end if
 
@@ -588,7 +611,7 @@ contains
         end do
       end if
 
-      if (advopt >= 4) then
+      if (fproc(1:3) == 'sml') then
         do k = 2, nk-2
           !$omp do schedule(runtime) private(i)
           do i = 1, ni-1
@@ -596,6 +619,16 @@ contains
           end do
           !$omp end do
         end do
+      else
+        if (advopt >= 4) then
+          do k = 2, nk-2
+            !$omp do schedule(runtime) private(i)
+            do i = 1, ni-1
+              scpy(i,k,1) = scpy(i,k,1)*dtdvb
+            end do
+            !$omp end do
+          end do
+        end if
       end if
     end if
 
@@ -676,7 +709,7 @@ contains
         end do
       end if
 
-      if (advopt >= 4) then
+      if (fproc(1:3) == 'sml') then
         do k = 2, nk-2
           !$omp do schedule(runtime) private(i)
           do i = 1, ni-1
@@ -684,6 +717,16 @@ contains
           end do
           !$omp end do
         end do
+      else
+        if (advopt >= 4) then
+          do k = 2, nk-2
+            !$omp do schedule(runtime) private(i)
+            do i = 1, ni-1
+              scpy(i,k,2) = scpy(i,k,2)*dtdvb
+            end do
+            !$omp end do
+          end do
+        end if
       end if
     end if
 
