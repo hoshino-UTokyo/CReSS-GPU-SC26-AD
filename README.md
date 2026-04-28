@@ -194,13 +194,25 @@ toggling `-acc -gpu=managed` off in `compile.conf`, provides the
 9.51 s median per-step time that anchors the 5.1× GPU speedup
 statement.
 
+## Agent session logs
+
+The Claude Code session state produced by the human-in-the-loop
+Phase 1–6 workflow is bundled as `claude_logs.tar.gz` at the repository
+root (17 MB compressed, ~80 MB uncompressed). Extract with
+`tar xzf claude_logs.tar.gz` to obtain a single `.claude/` directory
+containing conversation transcripts (`projects/*.jsonl`, `sessions/`),
+file-history snapshots, shell-environment snapshots, and the
+permission-allowlist `settings.json`. The bundle is sanitized: API
+credentials (`.credentials.json`), MCP auth caches, the in-memory
+`cache/` directory, the Anthropic telemetry directory (`statsig/`),
+and the paste-cache directory are removed before archival.
+
 ## Excluded content
 
-Per-replicate Claude Code session transcripts (`.claude/` directories)
-and multi-GB intermediate dump files are intentionally not included in
-this repository due to size and personal-data considerations; they are
-available on request to the AD/AE Reproducibility committee. The same
-applies to the raw GPV input files mentioned above.
+The TC2214 raw GPV input files (~108 MB each, two files) and the
+multi-GB intermediate kernel dump binaries are not bundled in this
+repository due to size and dataset-licensing considerations; they are
+available on request to the AD/AE Reproducibility committee.
 
 ## License
 
