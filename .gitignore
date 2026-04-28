@@ -90,6 +90,7 @@ Src.back.*/
 SrcDevelop/
 test_4d_dump/
 *.tar.gz
+!claude_logs.tar.gz
 .git.backup-*/
 
 # ---------- ISPACK is fetched by ispack_download.sh, do not bundle ----------
