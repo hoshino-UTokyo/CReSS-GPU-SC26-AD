@@ -1,0 +1,32 @@
+################################################################################
+#                                                                              #
+#     User configuration file, compile.conf_allcpu_test                        #
+#                                                                              #
+#     GPU managed memory enabled, but ALL GPU kernels disabled (CPU/OpenMP).   #
+#     This tests whether managed memory causes issues vs actual GPU kernels.   #
+#                                                                              #
+#     < How to compile >                                                       #
+#                                                                              #
+#     $ cp compile.conf_allcpu_test compile.conf                               #
+#     $ ./compile_radlib.csh crscln                                            #
+#     $ ./compile_radlib.csh solver compile.conf                               #
+#                                                                              #
+################################################################################
+
+#LDFLAGS = -L"./" -lrrtmg_kgkgb -lisp -fast -mp -acc -gpu=managed
+LDFLAGS = -fast -mp -acc -gpu=managed
+FFLAGS = -fast -mp -acc -gpu=managed -Mpreprocess -Mbyteswapio -mcmodel=medium $(EXTRA_FLAGS)
+
+#------------------------------------------------------------------------------#
+
+FC      = mpifort   # nvfortran with MPI wrapper
+CC      = nvc       # NVIDIA C compiler
+
+#------------------------------------------------------------------------------#
+
+AR         = ar
+ARFLAGS    = vru
+CPP        = cpp -E
+CPPFLAGS   = -DDIRECT -DIEEE -DASCII -DLEN
+AS         = as
+RANLIB     = ranlib

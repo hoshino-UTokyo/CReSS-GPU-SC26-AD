@@ -1,0 +1,33 @@
+################################################################################
+#                                                                              #
+#     User configuration file, compile.conf_testA_smallstep                    #
+#                                                                              #
+#     Binary search Test A: GPU enabled, but small timestep loop GPU kernels   #
+#     DISABLED. Tests whether NaN at t=270s is caused by small timestep        #
+#     loop kernels (pgrad, stepuv, steppi, stepwi, diverpih, diverpiv,         #
+#     advbspi, advbspt, pgradiv, buoywsi).                                    #
+#                                                                              #
+#     Disabled kernels (10):                                                   #
+#       012(advbspi) 013(advbspt) 046(buoywsi) 093(diverpih)                  #
+#       094(diverpiv) 230(pgrad) 231(pgradiv) 308(steppi)                     #
+#       313(stepuv) 315(stepwi)                                               #
+#                                                                              #
+################################################################################
+
+#LDFLAGS = -L"./" -lrrtmg_kgkgb -lisp -fast -mp -acc -gpu=managed
+LDFLAGS = -fast -mp -acc -gpu=managed
+FFLAGS = -fast -mp -acc -gpu=managed -Mpreprocess -Mbyteswapio -mcmodel=medium -Minfo=accel -DUSE_GPU -DDISABLE_GPU_012 -DDISABLE_GPU_013 -DDISABLE_GPU_046 -DDISABLE_GPU_093 -DDISABLE_GPU_094 -DDISABLE_GPU_230 -DDISABLE_GPU_231 -DDISABLE_GPU_308 -DDISABLE_GPU_313 -DDISABLE_GPU_315 $(EXTRA_FLAGS)
+
+#------------------------------------------------------------------------------#
+
+FC      = mpifort   # nvfortran with MPI wrapper
+CC      = nvc       # NVIDIA C compiler
+
+#------------------------------------------------------------------------------#
+
+AR         = ar
+ARFLAGS    = vru
+CPP        = cpp -E
+CPPFLAGS   = -DDIRECT -DIEEE -DASCII -DLEN -DUSE_GPU -DDISABLE_GPU_012 -DDISABLE_GPU_013 -DDISABLE_GPU_046 -DDISABLE_GPU_093 -DDISABLE_GPU_094 -DDISABLE_GPU_230 -DDISABLE_GPU_231 -DDISABLE_GPU_308 -DDISABLE_GPU_313 -DDISABLE_GPU_315
+AS         = as
+RANLIB     = ranlib

@@ -1,0 +1,12 @@
+LDFLAGS = -fast -mp
+FFLAGS = -fast -mp -Mpreprocess -Mbyteswapio -mcmodel=medium $(EXTRA_FLAGS)
+
+FC      = mpifort
+CC      = nvc
+
+AR         = ar
+ARFLAGS    = vru
+CPP        = cpp -E
+CPPFLAGS   = -DDIRECT -DIEEE -DASCII -DLEN
+AS         = as
+RANLIB     = ranlib

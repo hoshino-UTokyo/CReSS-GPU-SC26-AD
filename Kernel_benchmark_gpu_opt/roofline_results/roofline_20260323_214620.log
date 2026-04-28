@@ -1,0 +1,50 @@
+[21:46:20] Roofline analysis started
+[21:46:20] Output: /work/jh250015/g24000/SC26/CReSS3.5.1m_SPN_RAD1.4.3_20230323_upload/Kernel_benchmark_gpu/roofline_results/roofline_summary_20260323_214620.csv
+[21:46:20] Targets: 15 benchmarks
+[21:46:21] GPU: NVIDIA GH200 120GB
+[21:46:21] Profiling 067_copy3d_s_copy3d ...
+[21:46:23]   launches=12, kpi=1, skip=2
+[21:46:25]   done
+[21:46:25] Profiling 091_diver3d_s_diver3d ...
+[21:46:29]   launches=48, kpi=4, skip=8
+[21:46:33]   done
+[21:46:33] Profiling 094_diverpiv_s_diverpiv ...
+[21:46:36]   launches=12, kpi=1, skip=2
+[21:46:38]   done
+[21:46:38] Profiling 230_pgrad_subroutine ...
+[21:46:45]   launches=76, kpi=6, skip=12
+[21:46:54]   done
+[21:46:54] Profiling 308_steppi_s_steppi ...
+[21:46:57]   launches=12, kpi=1, skip=2
+[21:47:00]   done
+[21:47:00] Profiling 313_stepuv_subroutine ...
+[21:47:05]   launches=24, kpi=2, skip=4
+[21:47:11]   done
+[21:47:11] Profiling 315_stepwi_subroutine ...
+[21:47:18]   launches=48, kpi=4, skip=8
+[21:47:26]   done
+[21:47:26] Profiling 015_advs_subroutine ...
+[21:47:31]   launches=120, kpi=10, skip=20
+[21:47:38]   done
+[21:47:38] Profiling 012_advbspi_subroutine ...
+[21:47:41]   launches=12, kpi=1, skip=2
+[21:47:45]   done
+[21:47:45] Profiling 046_buoywsi_s_buoywsi ...
+[21:47:49]   launches=24, kpi=2, skip=4
+[21:47:54]   done
+[21:47:54] Profiling 115_gaussel_subroutine ...
+[21:48:27]   launches=2964, kpi=247, skip=494
+[21:49:46]   done
+[21:49:46] Profiling 303_smoo4s_subroutine ...
+[21:49:52]   launches=84, kpi=7, skip=14
+[21:49:59]   done
+[21:49:59] Profiling 236_phy2cnt_s_phy2cnt ...
+[21:50:02]   launches=12, kpi=1, skip=2
+[21:50:07]   done
+[21:50:07] Profiling 327_timeflt_s_timeflt ...
+[21:50:43]   launches=168, kpi=14, skip=28
+[21:51:23]   done
+[21:51:23] Profiling 321_swp2nxt_s_swp2nxt ...
+[21:51:58]   launches=108, kpi=9, skip=18
+[21:52:39]   done
+[21:52:39] Profiling complete

@@ -1,0 +1,30 @@
+################################################################################
+#                                                                              #
+#     Binary search Test C: Only benchmark-PASSED GPU kernels enabled          #
+#                                                                              #
+#     146 kernels PASSED benchmark -> enabled on GPU                           #
+#     11 kernels non-PASSED (FAILED/SKIP) -> disabled (CPU fallback)           #
+#                                                                              #
+#     Disabled (11): 018(allocbuf) 097(eddyvis:FAILED) 143(getxy)             #
+#       282(setcst1d) 287(setcst4d) 380(vspdmp:FAILED) 382(vspqv:FAILED)     #
+#       383(vsps:FAILED) 384(vsps0:FAILED) 385(vspuvw:FAILED)                #
+#       387(xy2ll:FAILED)                                                      #
+#                                                                              #
+################################################################################
+
+LDFLAGS = -fast -mp -acc -gpu=managed
+FFLAGS = -fast -mp -acc -gpu=managed -Mpreprocess -Mbyteswapio -mcmodel=medium -Minfo=accel -DUSE_GPU -DDISABLE_GPU_018 -DDISABLE_GPU_097 -DDISABLE_GPU_143 -DDISABLE_GPU_282 -DDISABLE_GPU_287 -DDISABLE_GPU_380 -DDISABLE_GPU_382 -DDISABLE_GPU_383 -DDISABLE_GPU_384 -DDISABLE_GPU_385 -DDISABLE_GPU_387 $(EXTRA_FLAGS)
+
+#------------------------------------------------------------------------------#
+
+FC      = mpifort   # nvfortran with MPI wrapper
+CC      = nvc       # NVIDIA C compiler
+
+#------------------------------------------------------------------------------#
+
+AR         = ar
+ARFLAGS    = vru
+CPP        = cpp -E
+CPPFLAGS   = -DDIRECT -DIEEE -DASCII -DLEN -DUSE_GPU -DDISABLE_GPU_018 -DDISABLE_GPU_097 -DDISABLE_GPU_143 -DDISABLE_GPU_282 -DDISABLE_GPU_287 -DDISABLE_GPU_380 -DDISABLE_GPU_382 -DDISABLE_GPU_383 -DDISABLE_GPU_384 -DDISABLE_GPU_385 -DDISABLE_GPU_387
+AS         = as
+RANLIB     = ranlib

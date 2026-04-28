@@ -1,0 +1,30 @@
+################################################################################
+#                                                                              #
+#     Binary search Test B: GPU enabled, forcing-related GPU kernels DISABLED  #
+#                                                                              #
+#     Disabled kernels (18) - all forcing path for u/v/w/p:                    #
+#       forceuvw: 016(advuvw) 069(coriuv) 073(curveuvw) 044(buoywb)           #
+#                 266(rstuvwc) 304(smoo4uvw) 353(var8uvw) 182(kh8uv)           #
+#       turbdrv:  041(bruntv) 075(defomssq) 095(eddydif) 097(eddyvis)         #
+#                 318(strsten) 338(turbuvw)                                    #
+#       forcep:   014(advp) 112(forcept)                                       #
+#       other:    236(phy2cnt) 385(vspuvw)                                     #
+#                                                                              #
+################################################################################
+
+LDFLAGS = -fast -mp -acc -gpu=managed
+FFLAGS = -fast -mp -acc -gpu=managed -Mpreprocess -Mbyteswapio -mcmodel=medium -Minfo=accel -DUSE_GPU -DDISABLE_GPU_014 -DDISABLE_GPU_016 -DDISABLE_GPU_041 -DDISABLE_GPU_044 -DDISABLE_GPU_069 -DDISABLE_GPU_073 -DDISABLE_GPU_075 -DDISABLE_GPU_095 -DDISABLE_GPU_097 -DDISABLE_GPU_112 -DDISABLE_GPU_182 -DDISABLE_GPU_236 -DDISABLE_GPU_266 -DDISABLE_GPU_304 -DDISABLE_GPU_318 -DDISABLE_GPU_338 -DDISABLE_GPU_353 -DDISABLE_GPU_385 $(EXTRA_FLAGS)
+
+#------------------------------------------------------------------------------#
+
+FC      = mpifort   # nvfortran with MPI wrapper
+CC      = nvc       # NVIDIA C compiler
+
+#------------------------------------------------------------------------------#
+
+AR         = ar
+ARFLAGS    = vru
+CPP        = cpp -E
+CPPFLAGS   = -DDIRECT -DIEEE -DASCII -DLEN -DUSE_GPU -DDISABLE_GPU_014 -DDISABLE_GPU_016 -DDISABLE_GPU_041 -DDISABLE_GPU_044 -DDISABLE_GPU_069 -DDISABLE_GPU_073 -DDISABLE_GPU_075 -DDISABLE_GPU_095 -DDISABLE_GPU_097 -DDISABLE_GPU_112 -DDISABLE_GPU_182 -DDISABLE_GPU_236 -DDISABLE_GPU_266 -DDISABLE_GPU_304 -DDISABLE_GPU_318 -DDISABLE_GPU_338 -DDISABLE_GPU_353 -DDISABLE_GPU_385
+AS         = as
+RANLIB     = ranlib

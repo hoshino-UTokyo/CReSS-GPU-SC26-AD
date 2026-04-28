@@ -1,0 +1,1 @@
+benchmark,kernel,fp32_flop,fp64_flop,total_flop,dram_bytes,l2_bytes,l1_bytes,duration_ns,ai_dram,ai_l2,ai_l1,gflops,bw_gbs

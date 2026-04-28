@@ -1,0 +1,16 @@
+################################################################################
+#  All 156 GPU kernels enabled (fix094: phvbcs.f90 fproc/dtdvb bug fix)
+################################################################################
+
+LDFLAGS = -fast -mp -acc -gpu=managed
+FFLAGS = -fast -mp -acc -gpu=managed -Mpreprocess -Mbyteswapio -mcmodel=medium -Minfo=accel -DUSE_GPU $(EXTRA_FLAGS)
+
+FC      = mpifort
+CC      = nvc
+
+AR         = ar
+ARFLAGS    = vru
+CPP        = cpp -E
+CPPFLAGS   = -DDIRECT -DIEEE -DASCII -DLEN -DUSE_GPU
+AS         = as
+RANLIB     = ranlib

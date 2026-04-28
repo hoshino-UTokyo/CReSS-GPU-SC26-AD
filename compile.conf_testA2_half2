@@ -1,0 +1,27 @@
+################################################################################
+#                                                                              #
+#     Binary search Test A2: Disable second half of small timestep kernels     #
+#                                                                              #
+#     Disabled kernels (5):                                                    #
+#       230(pgrad) 231(pgradiv) 308(steppi) 313(stepuv) 315(stepwi)           #
+#                                                                              #
+#     Use ONLY if Test A shows NaN disappears (confirming small timestep bug)  #
+#                                                                              #
+################################################################################
+
+LDFLAGS = -fast -mp -acc -gpu=managed
+FFLAGS = -fast -mp -acc -gpu=managed -Mpreprocess -Mbyteswapio -mcmodel=medium -Minfo=accel -DUSE_GPU -DDISABLE_GPU_230 -DDISABLE_GPU_231 -DDISABLE_GPU_308 -DDISABLE_GPU_313 -DDISABLE_GPU_315 $(EXTRA_FLAGS)
+
+#------------------------------------------------------------------------------#
+
+FC      = mpifort   # nvfortran with MPI wrapper
+CC      = nvc       # NVIDIA C compiler
+
+#------------------------------------------------------------------------------#
+
+AR         = ar
+ARFLAGS    = vru
+CPP        = cpp -E
+CPPFLAGS   = -DDIRECT -DIEEE -DASCII -DLEN -DUSE_GPU -DDISABLE_GPU_230 -DDISABLE_GPU_231 -DDISABLE_GPU_308 -DDISABLE_GPU_313 -DDISABLE_GPU_315
+AS         = as
+RANLIB     = ranlib
