@@ -229,3 +229,6 @@ available on request to the AD/AE Reproducibility committee.
 
 See `LICENSE`. This repository is released under a paper-verification-only
 license; redistribution and derivative use require explicit permission.
+
+```text
+SC26 AD/AE artifact for AI-assisted GPU porting of CReSS
