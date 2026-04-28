@@ -55,6 +55,17 @@ specification components (`Claude/instructions/`, including
 plus the per-kernel `variable_list.txt` and `benchmark.conf`) as a
 concrete realization of externalized execution context.
 
+## Repository structure
+
+This repository uses Git branches corresponding to major workflow phases:
+
+- `meta_info`: Phase 1–2, code meta-review and profiling
+- `benchmark`: Phase 3, kernel extraction and benchmarking
+- `gpu_bench`: Phase 4, kernel-level GPU transformation
+- `gpu_integration`: Phase 5, integration into the main code
+
+Each branch represents a stable checkpoint of the workflow and allows evaluators to inspect intermediate states. Phase 6 optimization is performed on top of `gpu_integration` without a separate branch, because it consists of incremental performance tuning rather than a structural workflow phase.
+
 ## Expected results
 
 Building $A_1$ on the target hardware reproduces the end-to-end GPU
