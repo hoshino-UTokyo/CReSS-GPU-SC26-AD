@@ -1,0 +1,54 @@
+Copyright (c) 2026 Tetsuya Hoshino. All rights reserved.
+
+This repository accompanies the SC26 paper
+
+    "AI-Assisted GPU Porting as a Structured Workflow:
+     A Case Study of a 250,000+ Lines Weather Simulation"
+
+and is provided **solely for the purpose of reproducing and verifying
+the results of that paper**.
+
+By downloading or accessing this repository, you are granted a
+non-exclusive, non-transferable, royalty-free license to:
+
+  (a) clone, build, run, and inspect the source code in this
+      repository on computing resources to which you have lawful
+      access, for the purpose of reproducing and evaluating the
+      results reported in the above paper;
+
+  (b) make local modifications to the source code as needed to
+      complete the reproduction or to report a bug; and
+
+  (c) include short excerpts (e.g., for the purpose of writing a
+      review report or a peer-reviewed publication that comments on
+      the above paper) with appropriate citation.
+
+All other rights are reserved. In particular, the following are
+NOT granted by this license and require prior written permission
+from the author:
+
+  - redistribution of the source code, in whole or in part, in
+    modified or unmodified form;
+  - use of the source code in derivative works for purposes other
+    than reproducing or commenting on the above paper;
+  - use of the source code in any production system or commercial
+    product;
+  - removal or alteration of this license file or copyright
+    notices.
+
+This software is provided "AS IS", without warranty of any kind,
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, and
+non-infringement. In no event shall the author be liable for any
+claim, damages, or other liability arising from the use of this
+software.
+
+A future, broadly-licensed open-source release of the GPU port is
+planned separately. Inquiries concerning licensing for purposes
+beyond the scope above may be directed to the author at
+hoshino@cc.nagoya-u.ac.jp.
+
+Underlying CReSS source code (Cloud Resolving Storm Simulator) is
+the work of the CReSS project (Tsuboki and Sakakibara) and is used
+here under the original CReSS license terms; this LICENSE governs
+only the modifications and additions made for the SC26 paper.
